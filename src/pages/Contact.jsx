@@ -31,12 +31,23 @@ const ContactItem = ({ icon: Icon, title, content, href }) => (
         }}>
             <Icon size={24} />
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', width: '100%' }}>
             <h3 style={{ fontWeight: 500, color: '#111827', marginBottom: '0.25rem' }}>{title}</h3>
             {href ? (
-                <a href={href} style={{ color: '#6b7280', transition: 'color 0.2s' }}
-                    onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'}
-                    onMouseLeave={(e) => e.currentTarget.style.color = '#6b7280'}
+                <a href={href}
+                    style={{
+                        color: 'white',
+                        backgroundColor: 'var(--color-primary)',
+                        padding: '0.75rem 1.5rem',
+                        borderRadius: '0.5rem',
+                        textDecoration: 'none',
+                        fontWeight: 500,
+                        display: 'inline-block',
+                        transition: 'opacity 0.2s',
+                        marginTop: '0.25rem'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+                    onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
                 >
                     {content}
                 </a>
