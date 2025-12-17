@@ -15,9 +15,14 @@ import PdfBooks from './pages/PdfBooks';
 import Contact from './pages/Contact';
 import Configuration from './pages/Configuration';
 import ProgramManagement from './pages/ProgramManagement';
+import ProgramTypesManagement from './pages/ProgramTypesManagement';
 import ProgramConversations from './pages/ProgramConversations';
 import AyyasSchedule from './pages/AyyasSchedule';
 import ScheduleManagement from './pages/ScheduleManagement';
+import MyRegistrations from './pages/MyRegistrations';
+import AdminReview from './pages/AdminReview';
+import EventRegistration from './pages/EventRegistration';
+import PaymentFlow from './pages/PaymentFlow';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -65,10 +70,15 @@ function AnimatedRoutes() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/configuration" element={<Configuration />} />
         <Route path="/program" element={<ProgramManagement />} />
+        <Route path="/configuration/program-types" element={<ProgramTypesManagement />} />
 
         <Route path="/conversations/programs" element={<ProgramConversations />} />
         <Route path="/schedule" element={<AyyasSchedule />} />
         <Route path="/schedule/manage" element={<ScheduleManagement />} />
+        <Route path="/my-registrations" element={<MyRegistrations />} />
+        <Route path="/admin-review" element={<AdminReview />} />
+        <Route path="/event-registration" element={<EventRegistration />} />
+        <Route path="/payment-flow" element={<PaymentFlow />} />
       </Routes>
     </AnimatePresence>
   );

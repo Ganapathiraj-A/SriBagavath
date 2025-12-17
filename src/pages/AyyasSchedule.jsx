@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, MapPin, Share2 } from 'lucide-react';
-import BackButton from '../components/BackButton';
 import { db } from '../firebase';
 import { collection, query, orderBy, getDocs, where } from 'firebase/firestore';
 
@@ -92,7 +91,6 @@ const AyyasSchedule = () => {
             padding: '1.5rem'
         }}>
             <div style={{ maxWidth: '42rem', margin: '0 auto' }}>
-                <BackButton />
 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}

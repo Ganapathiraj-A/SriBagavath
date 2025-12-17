@@ -95,7 +95,7 @@ const Home = () => {
                     <MenuButton title="Programs" icon={Calendar} path="/programs" delay={0.4} />
                     <MenuButton title="Ayya's Schedule" icon={Calendar} path="/schedule" delay={0.45} />
                     <MenuButton title="Contact" icon={Mail} path="/contact" delay={0.5} />
-                    <MenuButton title="Settings" icon={Settings} path="/configuration" delay={0.6} />
+                    <MenuButton title="Admin" icon={Settings} path="/configuration" delay={0.6} />
                 </div>
             </motion.div>
         </div>

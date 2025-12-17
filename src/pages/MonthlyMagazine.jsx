@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { FileText, Folder } from 'lucide-react';
-import BackButton from '../components/BackButton';
 import { useDriveFiles } from '../hooks/useDriveFiles';
 import { DRIVE_CONFIG } from '../data/driveConfig';
 
@@ -163,7 +162,6 @@ const MonthlyMagazine = () => {
             <div style={{ maxWidth: '28rem', margin: '0 auto' }}>
                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem', gap: '0.5rem' }}>
                     {!folderIdParam ? (
-                        <BackButton />
                     ) : (
                         <motion.button
                             whileTap={{ scale: 0.95 }}

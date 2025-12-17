@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { BookOpen } from 'lucide-react';
-import BackButton from '../components/BackButton';
 import { useDriveFiles } from '../hooks/useDriveFiles';
 
 import { DRIVE_CONFIG } from '../data/driveConfig';
@@ -148,7 +147,6 @@ const PdfBooks = () => {
       }}
     >
       <div style={{ maxWidth: '28rem', margin: '0 auto' }}>
-        <BackButton />
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}

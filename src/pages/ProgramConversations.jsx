@@ -2,7 +2,6 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Calendar } from 'lucide-react';
-import BackButton from '../components/BackButton';
 
 const PROGRAM_TYPES = [
     'Gnana Muham',
@@ -62,7 +61,6 @@ const ProgramConversations = () => {
             padding: '1.5rem'
         }}>
             <div style={{ maxWidth: '28rem', margin: '0 auto' }}>
-                <BackButton />
 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}

@@ -2,18 +2,52 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Plus, Edit2, Trash2, Calendar as CalendarIcon, ChevronDown, ChevronUp } from 'lucide-react';
-import BackButton from '../components/BackButton';
 import { db } from '../firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
+// Removed storage imports as we are using Base64 in Firestore
 import { tamilnaduCities } from '../data/tamilnaduCities';
 
-const PROGRAM_TYPES = [
-    'Gnana Muham',
-    'Dhyana Muham',
-    'Gnana Viduthalai Muham',
-    "Ayya's Birthday",
-    'Others'
-];
+// Helper to compress image to Base64
+const compressImage = (file) => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                // Use original dimensions
+                canvas.width = img.width;
+                canvas.height = img.height;
+
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                // Compress with 0.6 quality (60%)
+                let quality = 0.6;
+                let dataUrl = canvas.toDataURL('image/jpeg', quality);
+
+                // Simple check: if > 900KB, try compressing more
+                // Base64 length * 0.75 is approx file size in bytes
+                while (dataUrl.length * 0.75 > 900000 && quality > 0.1) {
+                    quality -= 0.1;
+                    dataUrl = canvas.toDataURL('image/jpeg', quality);
+                }
+
+                if (dataUrl.length * 0.75 > 1000000) {
+                    reject(new Error("Image is too large even after compression. Please choose a smaller image."));
+                } else {
+                    resolve(dataUrl);
+                }
+            };
+            img.onerror = (error) => reject(error);
+        };
+        reader.onerror = (error) => reject(error);
+    });
+};
+
+// Removed hardcoded PROGRAM_TYPES
 
 const CITIES = ['Salem', 'Chennai', 'Others'];
 
@@ -23,6 +57,9 @@ const ProgramManagement = () => {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const [programs, setPrograms] = useState([]);
+    const [programTypes, setProgramTypes] = useState([]);
+    const [bannerImage, setBannerImage] = useState(null);
+    const [uploading, setUploading] = useState(false);
 
     const action = searchParams.get('action');
     const editingId = searchParams.get('id');
@@ -44,22 +81,32 @@ const ProgramManagement = () => {
         customCity: '',
         programVenue: '',
         registrationStatus: 'Open',
-        lastDateToRegister: ''
+        lastDateToRegister: '',
+        programBanner: '',
+        maxParticipants: '',
+        ladiesMaxDorm: '',
+        gentsMaxDorm: '',
+        roomMax: '',
+        roomFees: '',
+        dormFees: ''
     });
 
     // Load programs from Firebase when tab changes
     useEffect(() => {
         loadPrograms();
+        loadProgramTypes();
     }, [activeTab]);
 
     useEffect(() => {
         if (editingProgram) {
             const isOtherCity = !CITIES.slice(0, 2).includes(editingProgram.programCity);
-            const isOtherProgram = !PROGRAM_TYPES.slice(0, 4).includes(editingProgram.programName);
+            // Find if it's one of the known types or 'Others'
+            const isKnownType = programTypes.some(t => t.name === editingProgram.programName);
+            const isOtherProgram = !isKnownType && editingProgram.programName !== ""; // If empty, it's new, not other.
 
             setFormData({
-                programName: isOtherProgram ? 'Others' : editingProgram.programName,
-                customProgramName: isOtherProgram ? editingProgram.programName : '',
+                programName: isKnownType ? editingProgram.programName : 'Others',
+                customProgramName: !isKnownType ? editingProgram.programName : '',
                 programDate: editingProgram.programDate,
                 programEndDate: editingProgram.programEndDate || '',
                 programDescription: editingProgram.programDescription || '',
@@ -67,7 +114,14 @@ const ProgramManagement = () => {
                 customCity: isOtherCity ? editingProgram.programCity : '',
                 programVenue: editingProgram.programVenue,
                 registrationStatus: editingProgram.registrationStatus,
-                lastDateToRegister: editingProgram.lastDateToRegister
+                lastDateToRegister: editingProgram.lastDateToRegister,
+                programBanner: editingProgram.programBanner || '',
+                maxParticipants: editingProgram.maxParticipants || '',
+                ladiesMaxDorm: editingProgram.ladiesMaxDorm || '',
+                gentsMaxDorm: editingProgram.gentsMaxDorm || '',
+                roomMax: editingProgram.roomMax || '',
+                roomFees: editingProgram.roomFees || '',
+                dormFees: editingProgram.dormFees || ''
             });
 
             if (isOtherCity) {
@@ -144,7 +198,6 @@ const ProgramManagement = () => {
             }));
 
             // Client-side sort fallback if needed, but Firestore orderBy should handle it.
-            // Keeping it simple as per Firestore logic.
             setPrograms(loadedPrograms);
         } catch (error) {
             console.error('Error loading programs:', error);
@@ -156,13 +209,40 @@ const ProgramManagement = () => {
         }
     };
 
+    const loadProgramTypes = async () => {
+        try {
+            const typesRef = collection(db, 'programTypes');
+            const q = query(typesRef, orderBy('order', 'asc'));
+            const querySnapshot = await getDocs(q);
+            const loadedTypes = querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+            setProgramTypes(loadedTypes);
+        } catch (error) {
+            console.error('Error loading program types:', error);
+        }
+    };
+
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => {
             const updates = { [name]: value };
 
-            if (name === 'programName' && value !== 'Others') {
-                updates.customProgramName = '';
+            if (name === 'programName') {
+                if (value !== 'Others') {
+                    updates.customProgramName = '';
+                    // Auto-fill defaults from selected program type
+                    const selectedType = programTypes.find(t => t.name === value);
+                    if (selectedType) {
+                        updates.maxParticipants = selectedType.maxParticipants || '';
+                        updates.ladiesMaxDorm = selectedType.ladiesMaxDorm || '';
+                        updates.gentsMaxDorm = selectedType.gentsMaxDorm || '';
+                        updates.roomMax = selectedType.roomMax || '';
+                        updates.roomFees = selectedType.roomFees || '';
+                        updates.dormFees = selectedType.dormFees || '';
+                    }
+                }
             }
 
             if (name === 'programCity') {
@@ -197,10 +277,36 @@ const ProgramManagement = () => {
         city.toLowerCase().includes(citySearch.toLowerCase())
     );
 
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setBannerImage(file);
+            alert(`File selected: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`);
+        } else {
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setUploading(true);
 
         try {
+            let bannerUrl = formData.programBanner;
+
+            if (bannerImage) {
+                // alert("Compressing image...");
+                try {
+                    // Compress and get Base64 string
+                    bannerUrl = await compressImage(bannerImage);
+                    // alert("Image processed! Size: " + Math.round(bannerUrl.length * 0.75 / 1024) + "KB");
+                } catch (compressError) {
+                    console.error("Compression failed:", compressError);
+                    alert("Image processing failed: " + compressError.message);
+                    throw compressError; // Stop submission
+                }
+            } else {
+            }
+
             const programData = {
                 programName: formData.programName === 'Others' ? formData.customProgramName : formData.programName,
                 programDate: formData.programDate,
@@ -210,6 +316,13 @@ const ProgramManagement = () => {
                 programVenue: formData.programVenue,
                 registrationStatus: formData.registrationStatus,
                 lastDateToRegister: formData.lastDateToRegister,
+                programBanner: bannerUrl,
+                maxParticipants: formData.maxParticipants,
+                ladiesMaxDorm: formData.ladiesMaxDorm,
+                gentsMaxDorm: formData.gentsMaxDorm,
+                roomMax: formData.roomMax,
+                roomFees: formData.roomFees,
+                dormFees: formData.dormFees,
                 createdAt: new Date().toISOString()
             };
 
@@ -226,6 +339,8 @@ const ProgramManagement = () => {
         } catch (error) {
             console.error('Error saving program:', error);
             alert('Error saving program: ' + error.message);
+        } finally {
+            setUploading(false);
         }
     };
 
@@ -255,8 +370,17 @@ const ProgramManagement = () => {
             customCity: '',
             programVenue: '',
             registrationStatus: 'Open',
-            lastDateToRegister: ''
+            lastDateToRegister: '',
+            programBanner: '',
+            maxParticipants: '',
+            ladiesMaxDorm: '',
+            gentsMaxDorm: '',
+            roomMax: '',
+            roomFees: '',
+            dormFees: ''
         });
+
+        setBannerImage(null);
         setCitySearch('');
         setSearchParams({});
     };
@@ -376,8 +500,7 @@ const ProgramManagement = () => {
                 padding: '1.5rem'
             }}
         >
-            <div style={{ maxWidth: '56rem', margin: '0 auto' }}>
-                <BackButton />
+            <div style={{ maxWidth: '64rem', margin: '0 auto' }}>
 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -511,12 +634,119 @@ const ProgramManagement = () => {
                                     }}
                                 >
                                     <option value="">Select Program Type</option>
-                                    {PROGRAM_TYPES.map(type => (
-                                        <option key={type} value={type}>
-                                            {type}
+                                    {programTypes.map(type => (
+                                        <option key={type.id} value={type.name}>
+                                            {type.name}
                                         </option>
                                     ))}
+                                    <option value="Others">Others</option>
                                 </select>
+                            </div>
+
+                            {/* Program Banner */}
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
+                                    Program Banner
+                                </label>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleImageChange}
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.5rem',
+                                        border: '1px solid #d1d5db',
+                                        borderRadius: '0.5rem',
+                                        background: 'white'
+                                    }}
+                                />
+                                {formData.programBanner && !bannerImage && (
+                                    <div style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: '#059669' }}>
+                                        Current Banner set
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Participant Counts & Fees */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
+                                        Max Participants
+                                    </label>
+                                    <input
+                                        type="number"
+                                        name="maxParticipants"
+                                        value={formData.maxParticipants}
+                                        onChange={handleInputChange}
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
+                                        Room Max
+                                    </label>
+                                    <input
+                                        type="number"
+                                        name="roomMax"
+                                        value={formData.roomMax}
+                                        onChange={handleInputChange}
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
+                                    />
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
+                                        Ladies Max Dorm
+                                    </label>
+                                    <input
+                                        type="number"
+                                        name="ladiesMaxDorm"
+                                        value={formData.ladiesMaxDorm}
+                                        onChange={handleInputChange}
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
+                                        Gents Max Dorm
+                                    </label>
+                                    <input
+                                        type="number"
+                                        name="gentsMaxDorm"
+                                        value={formData.gentsMaxDorm}
+                                        onChange={handleInputChange}
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
+                                    />
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
+                                        Room Fees
+                                    </label>
+                                    <input
+                                        type="number"
+                                        name="roomFees"
+                                        value={formData.roomFees}
+                                        onChange={handleInputChange}
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
+                                        Dorm Fees
+                                    </label>
+                                    <input
+                                        type="number"
+                                        name="dormFees"
+                                        value={formData.dormFees}
+                                        onChange={handleInputChange}
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
+                                    />
+                                </div>
                             </div>
 
                             {/* Custom Program Name (if Others) */}

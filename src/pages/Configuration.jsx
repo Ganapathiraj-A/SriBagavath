@@ -2,7 +2,6 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Shield, Code } from 'lucide-react';
-import BackButton from '../components/BackButton';
 
 const ConfigButton = ({ title, icon: Icon, path, delay }) => {
     const navigate = useNavigate();
@@ -55,7 +54,6 @@ const Configuration = () => {
             padding: '1.5rem'
         }}>
             <div style={{ maxWidth: '28rem', margin: '0 auto' }}>
-                <BackButton />
 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -68,14 +66,15 @@ const Configuration = () => {
                     }}
                 >
                     <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#111827', marginBottom: '2rem', textAlign: 'center' }}>
-                        Configuration
+                        Admin
                     </h1>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         <ConfigButton title="Program" icon={Calendar} path="/program" delay={0.1} />
+                        <ConfigButton title="Program Types" icon={Code} path="/configuration/program-types" delay={0.15} />
                         <ConfigButton title="Ayya's Schedule" icon={Calendar} path="/schedule/manage" delay={0.2} />
-                        {/* <ConfigButton title="Admin" icon={Shield} path="/admin" delay={0.2} />
-							<ConfigButton title="Developer" icon={Code} path="/developer" delay={0.3} /> */}
+                        <ConfigButton title="Registration" icon={Shield} path="/admin-review" delay={0.2} />
+                        {/* <ConfigButton title="Developer" icon={Code} path="/developer" delay={0.3} /> */}
 
                     </div>
                 </motion.div>

@@ -1,7 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Phone, MapPin, Globe, Home } from 'lucide-react';
-import BackButton from '../components/BackButton';
 
 const ContactItem = ({ icon: Icon, content, href }) => (
     <div style={{
@@ -50,7 +49,6 @@ const Contact = () => {
     return (
         <div className="min-h-screen bg-surface p-6">
             <div className="max-w-2xl mx-auto">
-                <BackButton />
 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}

@@ -4,6 +4,9 @@
 APP_NAME="SriBagavath"
 APK_PATH="android/app/build/outputs/apk/debug/BagavathPathai-debug.apk"
 OUTPUT_APK="${APP_NAME}.apk"
+
+# Set Java 21 for Capacitor 7+
+export JAVA_HOME="/usr/lib/jvm/java-21-openjdk-amd64"
 TAG_NAME="latest"
 RELEASE_TITLE="Latest Build (Persistent URL)"
 RELEASE_NOTES="This is the latest build of Sri Bagavath. The download link for this release will always remain the same."
@@ -28,7 +31,7 @@ fi
 
 # 2.1 Patch capacitor.build.gradle (Downgrade Java 21 -> 17)
 echo "Patching capacitor.build.gradle..."
-sed -i 's/VERSION_21/VERSION_17/g' android/app/capacitor.build.gradle
+# sed -i 's/VERSION_21/VERSION_17/g' android/app/capacitor.build.gradle
 
 # 3. Build APK
 echo "Building APK..."

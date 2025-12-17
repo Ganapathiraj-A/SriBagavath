@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { cleanupOldSchedules } from '../utils/cleanup';
 import { motion } from 'framer-motion';
 import { Plus, Edit2, Trash2, Calendar as CalendarIcon, MapPin } from 'lucide-react';
-import BackButton from '../components/BackButton';
 import { db } from '../firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy, where, limit } from 'firebase/firestore';
 
@@ -79,7 +78,6 @@ const ScheduleManagement = () => {
         }
 
         // Check for overlaps
-        // Overlap logic: (StartA < EndB) && (EndA > StartB)
         // This allows touching (e.g. EndA === StartB) which represents traveling on the same day.
         const hasOverlap = schedules.some(schedule => {
             // Skip current schedule if editing
@@ -286,7 +284,6 @@ const ScheduleManagement = () => {
             }}
         >
             <div style={{ maxWidth: '56rem', margin: '0 auto' }}>
-                <BackButton />
 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}

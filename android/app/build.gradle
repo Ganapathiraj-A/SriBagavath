@@ -47,6 +47,7 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
+    implementation 'com.google.mlkit:text-recognition:16.0.1'
 }
 
 apply from: 'capacitor.build.gradle'
@@ -58,7 +59,7 @@ try {
     }
 } catch(Exception e) {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
-
+}
 
 task syncApkToDrive(type: Exec) {
     commandLine 'bash', '-c', """
@@ -72,7 +73,4 @@ tasks.whenTaskAdded { task ->
     if (task.name == "assembleDebug") {
         task.finalizedBy(syncApkToDrive)
     }
-}
-
-
 }

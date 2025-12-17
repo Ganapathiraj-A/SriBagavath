@@ -1,12 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import BackButton from '../components/BackButton';
 
 const About = () => {
     return (
         <div className="min-h-screen bg-surface p-6">
             <div className="max-w-2xl mx-auto">
-                <BackButton />
 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}

@@ -2,7 +2,6 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Headphones, BookOpen, Video, FileText } from 'lucide-react';
-import BackButton from '../components/BackButton';
 
 const BookTypeButton = ({ title, icon: Icon, path, delay }) => {
     const navigate = useNavigate();
@@ -55,7 +54,6 @@ const Books = () => {
             padding: '1.5rem'
         }}>
             <div style={{ maxWidth: '28rem', margin: '0 auto' }}>
-                <BackButton />
 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}

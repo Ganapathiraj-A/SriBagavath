@@ -1,7 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Headphones } from 'lucide-react';
-import BackButton from '../components/BackButton';
 import { useDriveFiles } from '../hooks/useDriveFiles';
 
 // Audio Book folder:
@@ -110,7 +109,6 @@ const AudioBooks = () => {
       }}
     >
       <div style={{ maxWidth: '28rem', margin: '0 auto' }}>
-        <BackButton />
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
