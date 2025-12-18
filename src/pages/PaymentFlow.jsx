@@ -122,7 +122,10 @@ const PaymentFlow = () => {
                 participants: participants || [],
                 primaryApplicant: primaryApplicant || {},
                 place: place || "",
-                participantCount: participantCount || 1
+                participantCount: participantCount || 1,
+                programId: location.state?.programId || "",
+                programDate: location.state?.programDate || "",
+                programCity: location.state?.programCity || ""
             }, image);
 
             alert("Transaction Submitted Successfully!\n\nPlease check status at My Registration.");
@@ -152,7 +155,13 @@ const PaymentFlow = () => {
                 }} />
             </div>
             <p className="hint-text">(Tap the QR code to save it and proceed)</p>
-            <button className="btn-secondary full-width" onClick={() => navigate(-1)}>Back</button>
+            <button className="btn-secondary full-width" onClick={() => navigate('/event-registration', {
+                replace: true,
+                state: {
+                    program: location.state?.program,
+                    savedState: location.state?.savedState
+                }
+            })}>Back to Details</button>
         </div>
     );
 

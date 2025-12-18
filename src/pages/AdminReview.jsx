@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Check, Trash2, Rewind, AlertCircle, X } from 'lucide-react';
 import { TransactionService } from '../services/TransactionService';
+import PageHeader from '../components/PageHeader';
 import '../components/RegistrationStyles.css';
 
 const TABS = ['PENDING', 'REGISTERED', 'HOLD', 'BNK_VERIFIED'];
@@ -9,12 +10,15 @@ const TAB_LABELS = {
     'PENDING': 'Pending',
     'REGISTERED': 'Approved',
     'HOLD': 'Hold',
-    'BNK_VERIFIED': 'Verified'
+    'BNK_VERIFIED': 'Completed'
 };
+
+import { auth } from '../firebase';
 
 const AdminReview = () => {
     const navigate = useNavigate();
     const [allRegs, setAllRegs] = useState([]);
+    const [allPrograms, setAllPrograms] = useState([]); // Master Program List
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('PENDING');
     const [filterProduct, setFilterProduct] = useState("All");
@@ -24,27 +28,103 @@ const AdminReview = () => {
             setAllRegs(data);
             setLoading(false);
         });
+
+        // Fetch Master Programs for Date Fallback (for old transactions)
+        const fetchPrograms = async () => {
+            try {
+                const { collection, getDocs } = await import('firebase/firestore');
+                const { db } = await import('../firebase');
+                const snapshot = await getDocs(collection(db, 'programs'));
+                const progs = snapshot.docs.map(d => d.data());
+                setAllPrograms(progs);
+            } catch (e) {
+                console.error("Failed to fetch programs", e);
+            }
+        };
+        fetchPrograms();
+
         return () => unsubscribe();
     }, []);
 
+    // Helper: Find Program Details if missing in Transaction
+    // Helper: Find Program Details if missing in Transaction
+    const getProgramDetails = (tx) => {
+        // First try by ID (Exact Match)
+        if (tx.programId) {
+            const match = allPrograms.find(p => p.id === tx.programId);
+            if (match) {
+                return {
+                    date: match.programDate,
+                    city: match.programCity
+                };
+            }
+        }
+
+        // Second try explicit saved fields (Backward Compatibility)
+        if (tx.programDate && tx.programCity) {
+            return { date: tx.programDate, city: tx.programCity };
+        }
+
+        // Fallback: Find by Name in Master List (Collision Risk)
+        const match = allPrograms.find(p => p.programName === tx.itemName);
+        if (match) {
+            return {
+                date: tx.programDate || match.programDate,
+                city: tx.programCity || match.programCity
+            };
+        }
+        return { date: "", city: "" }; // None found
+    };
+
     // Derived State
+    // Derived State
+    // Group unique programs by Name + Date + City
+    const distinctPrograms = Array.from(new Set(allRegs.map(r => {
+        const details = getProgramDetails(r);
+        const key = JSON.stringify({
+            name: r.itemName,
+            date: details.date || "",
+            city: details.city || ""
+        });
+        return key;
+    }))).map(k => JSON.parse(k)).sort((a, b) => a.name.localeCompare(b.name));
+
     const filteredByProduct = filterProduct === "All"
         ? allRegs
-        : allRegs.filter(r => r.itemName === filterProduct);
+        : allRegs.filter(r => {
+            if (filterProduct === "All") return true;
+            try {
+                const criteria = JSON.parse(filterProduct);
+                const details = getProgramDetails(r);
+                return r.itemName === criteria.name &&
+                    (details.date || "") === criteria.date &&
+                    (details.city || "") === criteria.city;
+            } catch (e) { return true; }
+        });
 
     const displayedRegs = filteredByProduct.filter(r => {
         if (activeTab === 'PENDING') return r.status === 'PENDING' || (r.status !== 'REGISTERED' && r.status !== 'HOLD' && r.status !== 'BNK_VERIFIED' && r.status !== 'REJECTED');
         return r.status === activeTab;
     });
 
-    const distinctProducts = Array.from(new Set(allRegs.map(r => r.itemName))).filter(Boolean).sort();
-
     // Counts
     const getCount = (status) => {
         return filteredByProduct.filter(r => {
             if (status === 'PENDING') return r.status === 'PENDING' || (r.status !== 'REGISTERED' && r.status !== 'HOLD' && r.status !== 'BNK_VERIFIED' && r.status !== 'REJECTED');
             return r.status === status;
-        }).length;
+        }).reduce((acc, r) => acc + (r.participantCount || 1), 0);
+    };
+
+    const formatProgramLabel = (p) => {
+        let label = p.name;
+        if (p.date) {
+            const d = new Date(p.date);
+            const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            label += ` (${dateStr}`;
+            if (p.city) label += ` - ${p.city}`;
+            label += `)`;
+        }
+        return label;
     };
 
     // Actions
@@ -66,7 +146,7 @@ const AdminReview = () => {
         const toDelete = filteredByProduct.filter(r => r.status === 'BNK_VERIFIED');
         if (toDelete.length === 0) return;
 
-        if (confirm(`Delete ALL ${toDelete.length} Verified transactions?`)) {
+        if (confirm(`Delete ALL ${toDelete.length} Completed transactions?`)) {
             for (const tx of toDelete) {
                 await TransactionService.deleteTransaction(tx.id);
             }
@@ -95,21 +175,19 @@ const AdminReview = () => {
                 <div className="modal-overlay" onClick={() => setViewingImage(null)}>
                     <div className="modal-content" onClick={e => e.stopPropagation()} style={{ flexDirection: 'column', alignItems: 'center', gap: '10px', background: 'white', padding: '10px' }}>
                         <img src={`data:image/jpeg;base64,${viewingImage}`} alt="Receipt" className="modal-image" style={{ maxHeight: '80vh' }} />
-                        <button className="btn-primary" onClick={() => setViewingImage(null)} style={{ width: '100%', background: '#333' }}>
+                        <button className="btn-primary" onClick={() => setViewingImage(null)} style={{ width: '100%', background: '#2563eb' }}>
                             Close
                         </button>
                     </div>
                 </div>
             )}
 
-            <header className="header full-width-header">
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%', position: 'relative' }}>
-                    {/* <button className="btn-text" onClick={() => navigate(-1)} style={{ position: 'absolute', left: 0 }}><ChevronLeft /></button> */}
-                    <h1>Registration</h1>
-                </div>
+            <PageHeader title="Registration" />
 
+            {/* Sub-Header / Filters Wrapper */}
+            <div style={{ backgroundColor: 'white', padding: '10px 16px', borderBottom: '1px solid #eee' }}>
                 {/* Filter Row */}
-                <div className="filter-row" style={{ padding: '8px 0', display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+                <div className="filter-row" style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
                     <select
                         value={filterProduct}
                         onChange={e => setFilterProduct(e.target.value)}
@@ -117,51 +195,66 @@ const AdminReview = () => {
                         style={{ width: '100%' }}
                     >
                         <option value="All">All Programs</option>
-                        {distinctProducts.map(p => <option key={p} value={p}>{p}</option>)}
+                        {distinctPrograms.map((p, idx) => (
+                            <option key={idx} value={JSON.stringify(p)}>{formatProgramLabel(p)}</option>
+                        ))}
                     </select>
 
                     {/* Totals Summary */}
                     <div style={{
                         width: '100%',
                         display: 'flex',
-                        flexWrap: 'wrap',
-                        gap: '12px',
+                        flexDirection: 'column', // Stack vertically
+                        gap: '8px',
                         fontSize: '13px',
                         background: '#f3f4f6',
                         padding: '8px',
                         borderRadius: '6px',
-                        justifyContent: 'space-between'
                     }}>
-                        <div style={{ fontWeight: 'bold' }}>Total Regs: {displayedRegs.length}</div>
-                        {/* Calculate Stats based on Participants in Displayed Regs */}
-                        {(() => {
-                            let lDorm = 0, gDorm = 0, rooms = 0, male = 0, female = 0;
-                            displayedRegs.forEach(r => {
-                                (r.participants || []).forEach(p => {
-                                    if (p.accommodation === 'Dorm') {
-                                        if (p.gender === 'Female') lDorm++;
-                                        else gDorm++;
-                                    }
-                                    if (p.accommodation === 'Room') rooms++; // Count people in rooms? Or rooms? Assuming people for now based on context.
+                        {/* Line 1: Main Counts */}
+                        <div style={{ fontWeight: 'bold', borderBottom: '1px solid #e5e7eb', paddingBottom: '4px', marginBottom: '0px' }}>
+                            Registrations: {filteredByProduct.length} <span style={{ color: '#ccc', margin: '0 8px' }}>|</span> Participants: {filteredByProduct.reduce((acc, r) => acc + (r.participantCount || 1), 0)}
+                        </div>
 
-                                    if (p.gender === 'Female') female++;
-                                    else male++;
+                        {/* Line 2: Details */}
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between' }}>
+                            {/* Calculate Stats */}
+                            {(() => {
+                                let dormMale = 0, dormFemale = 0;
+                                let roomMale = 0, roomFemale = 0;
+                                let totalMale = 0, totalFemale = 0;
+
+                                // FIX: Use filteredByProduct (All tabs)
+                                filteredByProduct.forEach(r => {
+                                    (r.participants || []).forEach(p => {
+                                        const isFemale = p.gender === 'Female';
+
+                                        if (isFemale) totalFemale++;
+                                        else totalMale++;
+
+                                        if (p.accommodation === 'Dorm') {
+                                            if (isFemale) dormFemale++;
+                                            else dormMale++;
+                                        } else if (p.accommodation === 'Room') {
+                                            if (isFemale) roomFemale++;
+                                            else roomMale++;
+                                        }
+                                    });
                                 });
-                            });
-                            return (
-                                <>
-                                    <div title="Ladies Dorm">L.Dorm: <strong>{lDorm}</strong></div>
-                                    <div title="Gents Dorm">G.Dorm: <strong>{gDorm}</strong></div>
-                                    <div title="Room">Rooms: <strong>{rooms}</strong></div>
-                                    <div title="Male/Female">M/F: <strong>{male}/{female}</strong></div>
-                                </>
-                            );
-                        })()}
+                                return (
+                                    <>
+                                        <div title="Dorms (Male/Female)">Dorms(M/F): <strong>{dormMale}/{dormFemale}</strong></div>
+                                        <div title="Rooms (Male/Female)">Rooms(M/F): <strong>{roomMale}/{roomFemale}</strong></div>
+                                        <div title="Total (Male/Female)">Total(M/F): <strong>{totalMale}/{totalFemale}</strong></div>
+                                    </>
+                                );
+                            })()}
+                        </div>
                     </div>
                 </div>
 
                 {/* Tabs */}
-                <div className="tabs-row" style={{ justifyContent: 'center' }}>
+                <div className="tabs-row" style={{ justifyContent: 'center', marginTop: '10px' }}>
                     {TABS.map(tab => {
                         const count = getCount(tab);
                         return (
@@ -180,11 +273,10 @@ const AdminReview = () => {
                 {/* Specific Tab Action: Delete All */}
                 {activeTab === 'BNK_VERIFIED' && getCount('BNK_VERIFIED') > 0 && (
                     <button className="btn-danger full-width" style={{ marginTop: '8px' }} onClick={handleDeleteAllVerified}>
-                        <Trash2 size={16} /> Delete All Verified ({getCount('BNK_VERIFIED')})
+                        <Trash2 size={16} /> Delete All Completed ({getCount('BNK_VERIFIED')} Participants)
                     </button>
                 )}
-
-            </header>
+            </div>
 
             <div className="product-list" style={{ marginTop: '16px' }}>
                 {loading && <p>Loading...</p>}
@@ -196,10 +288,21 @@ const AdminReview = () => {
                     const isMatch = parsed !== null && Math.abs(parsed - standardPrice) < 1.0;
                     const amountColor = (parsed !== null) ? (isMatch ? '#006400' : 'red') : 'inherit';
 
+                    // Fallback details
+                    const details = getProgramDetails(tx);
+
                     return (
                         <div key={tx.id} className="card">
                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <h3 style={{ margin: 0, fontSize: '16px' }}>{tx.itemName}</h3>
+                                <h3 style={{ margin: 0, fontSize: '16px' }}>
+                                    {tx.itemName}
+                                    {details.date && (
+                                        <span style={{ fontSize: '14px', fontWeight: 'normal', color: '#555', marginLeft: '6px' }}>
+                                            ({new Date(details.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                            {details.city ? ` - ${details.city}` : ''})
+                                        </span>
+                                    )}
+                                </h3>
                                 <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>
                                     ₹{tx.amount}
                                 </span>
@@ -211,13 +314,8 @@ const AdminReview = () => {
                                         <strong>Participants:</strong> {tx.participantCount}
                                     </div>
                                 )}
-                                {tx.place && (
-                                    <div style={{ fontSize: '14px', color: '#333' }}>
-                                        <strong>Place:</strong> {tx.place}
-                                    </div>
-                                )}
                                 <div style={{ fontSize: '14px', color: '#333' }}>
-                                    <strong>From:</strong> {(() => {
+                                    <strong>Applied By:</strong> {(() => {
                                         const text = tx.ocrText || "";
                                         const lines = text.split('\n');
                                         const fromLine = lines.find(l => l.toLowerCase().includes("from"));
@@ -246,6 +344,12 @@ const AdminReview = () => {
                                 </div>
                             )}
 
+                            {tx.place && (
+                                <div style={{ fontSize: '14px', color: '#333', marginTop: '8px' }}>
+                                    <strong>Coming From:</strong> {tx.place}
+                                </div>
+                            )}
+
                             {tx.hasImage && (
                                 <button className="btn-text" onClick={() => handleViewImage(tx.id)} style={{ marginTop: '8px', padding: 0, textAlign: 'left' }}>View Receipt</button>
                             )}
@@ -263,7 +367,7 @@ const AdminReview = () => {
                                 {/* APPROVED (Registered) Tab Actions */}
                                 {activeTab === 'REGISTERED' && (
                                     <>
-                                        <button className="btn-bnk" onClick={() => handleUpdate(tx.id, 'BNK_VERIFIED')}><Check size={16} /> BNK Verify</button>
+                                        <button className="btn-bnk" onClick={() => handleUpdate(tx.id, 'BNK_VERIFIED')}><Check size={16} /> Mark Completed</button>
                                         <button className="btn-pink" onClick={() => handleUpdate(tx.id, 'PENDING')}><Rewind size={16} /> Pending</button>
                                         <button className="btn-hold" onClick={() => handleUpdate(tx.id, 'HOLD')}><AlertCircle size={16} /> Hold</button>
                                     </>

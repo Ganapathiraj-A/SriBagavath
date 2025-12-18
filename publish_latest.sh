@@ -29,9 +29,9 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# 2.1 Patch capacitor.build.gradle (Downgrade Java 21 -> 17)
-echo "Patching capacitor.build.gradle..."
-# sed -i 's/VERSION_21/VERSION_17/g' android/app/capacitor.build.gradle
+# 2.1 Ensure Java 21 in all build files
+echo "Ensuring Java 21 in build files..."
+grep -r "VERSION_17" android --include="*.gradle" -l | xargs -r sed -i 's/VERSION_17/VERSION_21/g'
 
 # 3. Build APK
 echo "Building APK..."

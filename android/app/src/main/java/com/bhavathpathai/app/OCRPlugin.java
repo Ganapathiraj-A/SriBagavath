@@ -212,9 +212,17 @@ public class OCRPlugin extends Plugin {
 
             try (android.database.Cursor cursor = resolver.query(collection, projection, selection, selectionArgs, null)) {
                 if (cursor != null && cursor.moveToFirst()) {
-                    // Already exists
-                    call.resolve();
-                    return;
+                    // Already exists - DELETE it so we can re-create it at the top
+                    long id = cursor.getLong(cursor.getColumnIndexOrThrow(android.provider.MediaStore.Images.Media._ID));
+                    android.net.Uri deleteUri = android.content.ContentUris.withAppendedId(collection, id);
+                    try {
+                        resolver.delete(deleteUri, null, null);
+                        Log.d("OCR_PLUGIN", "Deleted existing QR image: " + id);
+                    } catch (Exception e) {
+                        Log.e("OCR_PLUGIN", "Failed to delete existing QR", e);
+                        // If delete fails, we might create a duplicate or just error out. 
+                        // Proceeding to insert might result in "BagavathMission_QR (1)" etc.
+                    }
                 }
             }
 

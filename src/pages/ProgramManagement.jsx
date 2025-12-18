@@ -2,48 +2,87 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Plus, Edit2, Trash2, Calendar as CalendarIcon, ChevronDown, ChevronUp } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 import { db } from '../firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
 // Removed storage imports as we are using Base64 in Firestore
+// Removed storage imports as we are using Base664 in Firestore
 import { tamilnaduCities } from '../data/tamilnaduCities';
 
 // Helper to compress image to Base64
+// Helper to compress image to Base64
 const compressImage = (file) => {
     return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (event) => {
+        // 1. Check for HEIC/HEIF which browsers often can't render in <img>/Canvas directly
+        if (file.type === "image/heic" || file.type === "image/heif" || file.name.toLowerCase().endsWith('.heic')) {
+            reject(new Error("HEIC format is not supported by the browser. Please use a standard JPEG or PNG image."));
+            return;
+        }
+
+        const attemptLoad = (src, isBlob) => {
             const img = new Image();
-            img.src = event.target.result;
             img.onload = () => {
-                const canvas = document.createElement('canvas');
-                // Use original dimensions
-                canvas.width = img.width;
-                canvas.height = img.height;
+                if (isBlob) URL.revokeObjectURL(src);
+                try {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const MAX_WIDTH = 800; // Increased slightly for better quality on tablets
 
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    if (width > MAX_WIDTH) {
+                        height = (height * MAX_WIDTH) / width;
+                        width = MAX_WIDTH;
+                    }
 
-                // Compress with 0.6 quality (60%)
-                let quality = 0.6;
-                let dataUrl = canvas.toDataURL('image/jpeg', quality);
+                    canvas.width = width;
+                    canvas.height = height;
 
-                // Simple check: if > 900KB, try compressing more
-                // Base64 length * 0.75 is approx file size in bytes
-                while (dataUrl.length * 0.75 > 900000 && quality > 0.1) {
-                    quality -= 0.1;
-                    dataUrl = canvas.toDataURL('image/jpeg', quality);
-                }
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
 
-                if (dataUrl.length * 0.75 > 1000000) {
-                    reject(new Error("Image is too large even after compression. Please choose a smaller image."));
-                } else {
+                    // Adaptive Quality Reduction
+                    let quality = 0.8;
+                    let dataUrl = canvas.toDataURL('image/jpeg', quality);
+                    const TARGET_SIZE = 350000; // 350KB target
+
+                    while (dataUrl.length * 0.75 > TARGET_SIZE && quality > 0.3) {
+                        quality -= 0.1;
+                        dataUrl = canvas.toDataURL('image/jpeg', quality);
+                    }
+
                     resolve(dataUrl);
+                } catch (e) {
+                    reject(new Error("Image processing error: " + e.message));
                 }
             };
-            img.onerror = (error) => reject(error);
+
+            img.onerror = (e) => {
+                if (isBlob) {
+                    URL.revokeObjectURL(src);
+                    console.warn("createObjectURL failed, falling back to FileReader...");
+                    // Fallback to FileReader
+                    const reader = new FileReader();
+                    reader.onload = (re) => attemptLoad(re.target.result, false);
+                    reader.onerror = (err) => reject(new Error("Failed to read file: " + err.message));
+                    reader.readAsDataURL(file);
+                } else {
+                    reject(new Error("Unable to load image. Only JPEG/PNG are supported. If using HEIC, please convert it first."));
+                }
+            };
+
+            img.src = src;
         };
-        reader.onerror = (error) => reject(error);
+
+        // Start with createObjectURL for memory efficiency
+        try {
+            const objectUrl = URL.createObjectURL(file);
+            attemptLoad(objectUrl, true);
+        } catch (e) {
+            // Immediate fallback if createObjectURL crashes (unlikely but possible)
+            const reader = new FileReader();
+            reader.onload = (re) => attemptLoad(re.target.result, false);
+            reader.readAsDataURL(file);
+        }
     });
 };
 
@@ -52,6 +91,8 @@ const compressImage = (file) => {
 const CITIES = ['Salem', 'Chennai', 'Others'];
 
 const SALEM_VENUE = "Sri Bagavath Bhavan, Kodambakkadu, Periyakoundapuram, Karippatti, Salem, Tamil Nadu 636106";
+
+import { auth } from '../firebase';
 
 const ProgramManagement = () => {
     const navigate = useNavigate();
@@ -295,14 +336,17 @@ const ProgramManagement = () => {
 
             if (bannerImage) {
                 // alert("Compressing image...");
-                try {
-                    // Compress and get Base64 string
-                    bannerUrl = await compressImage(bannerImage);
-                    // alert("Image processed! Size: " + Math.round(bannerUrl.length * 0.75 / 1024) + "KB");
-                } catch (compressError) {
-                    console.error("Compression failed:", compressError);
-                    alert("Image processing failed: " + compressError.message);
-                    throw compressError; // Stop submission
+                if (bannerImage) {
+                    // alert("Compressing image...");
+                    try {
+                        // Compress and get Base64 string
+                        bannerUrl = await compressImage(bannerImage);
+                        // alert("Image processed! Size: " + Math.round(bannerUrl.length * 0.75 / 1024) + "KB");
+                    } catch (compressError) {
+                        console.error("Compression failed:", compressError);
+                        alert("Image processing failed: " + compressError.message);
+                        throw compressError; // Stop submission
+                    }
                 }
             } else {
             }
@@ -492,646 +536,641 @@ const ProgramManagement = () => {
         );
     }
 
+    // ... imports
+
     return (
         <div
             style={{
                 minHeight: '100vh',
                 backgroundColor: 'var(--color-surface)',
-                padding: '1.5rem'
+                // removed padding: '1.5rem' to allow header full width, restore for content
             }}
         >
-            <div style={{ maxWidth: '64rem', margin: '0 auto' }}>
+            <PageHeader title="Program Management" />
+            <div style={{ padding: '1.5rem' }}>
+                <div style={{ maxWidth: '64rem', margin: '0 auto' }}>
 
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    style={{
-                        backgroundColor: 'white',
-                        borderRadius: '1rem',
-                        padding: '2rem',
-                        boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-                        marginBottom: '1.5rem'
-                    }}
-                >
-                    {/* Header */}
-                    <div
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
                         style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'stretch',
-                            marginBottom: '2rem',
-                            gap: '0.75rem'
+                            backgroundColor: 'white',
+                            borderRadius: '1rem',
+                            padding: '2rem',
+                            boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+                            marginBottom: '1.5rem'
                         }}
                     >
-                        <h1
+                        {/* Header */}
+                        <div
                             style={{
-                                fontSize: '1.875rem',
-                                fontWeight: 'bold',
-                                color: '#111827',
-                                margin: 0,
-                                width: '100%'
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'stretch',
+                                marginBottom: '2rem',
+                                gap: '0.75rem'
                             }}
                         >
-                            Program Management
-                        </h1>
+                            {/* Title removed, usage PageHeader outside */}
 
-                        {/* Tabs */}
-                        {!showForm && (
-                            <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #e5e7eb' }}>
-                                <button
-                                    onClick={() => setActiveTab('upcoming')}
-                                    style={{
-                                        padding: '0.75rem 1rem',
-                                        borderBottom: activeTab === 'upcoming' ? '2px solid var(--color-primary)' : 'none',
-                                        color: activeTab === 'upcoming' ? 'var(--color-primary)' : '#6b7280',
-                                        fontWeight: activeTab === 'upcoming' ? 600 : 500,
-                                        background: 'none',
-                                        borderTop: 'none',
-                                        borderLeft: 'none',
-                                        borderRight: 'none',
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    Upcoming
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('history')}
-                                    style={{
-                                        padding: '0.75rem 1rem',
-                                        borderBottom: activeTab === 'history' ? '2px solid var(--color-primary)' : 'none',
-                                        color: activeTab === 'history' ? 'var(--color-primary)' : '#6b7280',
-                                        fontWeight: activeTab === 'history' ? 600 : 500,
-                                        background: 'none',
-                                        borderTop: 'none',
-                                        borderLeft: 'none',
-                                        borderRight: 'none',
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    History
-                                </button>
-                            </div>
-                        )}
-                        {!showForm && activeTab === 'upcoming' && (
-                            <button
-                                onClick={() => setSearchParams({ action: 'add' })}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: '0.5rem',
-                                    padding: '0.75rem 1.5rem',
-                                    backgroundColor: 'var(--color-primary)',
-                                    color: 'white',
-                                    borderRadius: '0.5rem',
-                                    fontWeight: 500,
-                                    cursor: 'pointer',
-                                    border: 'none',
-                                    width: '100%'
-                                }}
-                            >
-                                <Plus size={20} />
-                                Add Program
-                            </button>
-                        )}
-                    </div>
-
-                    {showForm ? (
-                        <form
-                            onSubmit={handleSubmit}
-                            style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
-                        >
-                            <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#111827' }}>
-                                {editingProgram ? 'Edit Program' : 'Add New Program'}
-                            </h2>
-
-                            {/* Program Name */}
-                            <div>
-                                <label
-                                    style={{
-                                        display: 'block',
-                                        marginBottom: '0.5rem',
-                                        fontWeight: 500,
-                                        color: '#374151'
-                                    }}
-                                >
-                                    Program Name *
-                                </label>
-                                <select
-                                    name="programName"
-                                    value={formData.programName}
-                                    onChange={handleInputChange}
-                                    onFocus={() => setShowCitySuggestions(false)}
-                                    required
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.75rem',
-                                        borderRadius: '0.5rem',
-                                        border: '1px solid #d1d5db',
-                                        fontSize: '1rem',
-                                        position: 'relative',
-                                        zIndex: 1
-                                    }}
-                                >
-                                    <option value="">Select Program Type</option>
-                                    {programTypes.map(type => (
-                                        <option key={type.id} value={type.name}>
-                                            {type.name}
-                                        </option>
-                                    ))}
-                                    <option value="Others">Others</option>
-                                </select>
-                            </div>
-
-                            {/* Program Banner */}
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
-                                    Program Banner
-                                </label>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={handleImageChange}
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.5rem',
-                                        border: '1px solid #d1d5db',
-                                        borderRadius: '0.5rem',
-                                        background: 'white'
-                                    }}
-                                />
-                                {formData.programBanner && !bannerImage && (
-                                    <div style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: '#059669' }}>
-                                        Current Banner set
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Participant Counts & Fees */}
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
-                                        Max Participants
-                                    </label>
-                                    <input
-                                        type="number"
-                                        name="maxParticipants"
-                                        value={formData.maxParticipants}
-                                        onChange={handleInputChange}
-                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
-                                    />
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
-                                        Room Max
-                                    </label>
-                                    <input
-                                        type="number"
-                                        name="roomMax"
-                                        value={formData.roomMax}
-                                        onChange={handleInputChange}
-                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
-                                    />
-                                </div>
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
-                                        Ladies Max Dorm
-                                    </label>
-                                    <input
-                                        type="number"
-                                        name="ladiesMaxDorm"
-                                        value={formData.ladiesMaxDorm}
-                                        onChange={handleInputChange}
-                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
-                                    />
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
-                                        Gents Max Dorm
-                                    </label>
-                                    <input
-                                        type="number"
-                                        name="gentsMaxDorm"
-                                        value={formData.gentsMaxDorm}
-                                        onChange={handleInputChange}
-                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
-                                    />
-                                </div>
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
-                                        Room Fees
-                                    </label>
-                                    <input
-                                        type="number"
-                                        name="roomFees"
-                                        value={formData.roomFees}
-                                        onChange={handleInputChange}
-                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
-                                    />
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
-                                        Dorm Fees
-                                    </label>
-                                    <input
-                                        type="number"
-                                        name="dormFees"
-                                        value={formData.dormFees}
-                                        onChange={handleInputChange}
-                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Custom Program Name (if Others) */}
-                            {formData.programName === 'Others' && (
-                                <div>
-                                    <label
+                            {/* Tabs */}
+                            {!showForm && (
+                                <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #e5e7eb' }}>
+                                    <button
+                                        onClick={() => setActiveTab('upcoming')}
                                         style={{
-                                            display: 'block',
-                                            marginBottom: '0.5rem',
-                                            fontWeight: 500,
-                                            color: '#374151'
+                                            padding: '0.75rem 1rem',
+                                            borderBottom: activeTab === 'upcoming' ? '2px solid var(--color-primary)' : 'none',
+                                            color: activeTab === 'upcoming' ? 'var(--color-primary)' : '#6b7280',
+                                            fontWeight: activeTab === 'upcoming' ? 600 : 500,
+                                            background: 'none',
+                                            borderTop: 'none',
+                                            borderLeft: 'none',
+                                            borderRight: 'none',
+                                            cursor: 'pointer'
                                         }}
                                     >
-                                        Enter Program Name *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="customProgramName"
-                                        value={formData.customProgramName}
-                                        onChange={handleInputChange}
-                                        required
+                                        Upcoming
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveTab('history')}
                                         style={{
-                                            width: '100%',
-                                            padding: '0.75rem',
-                                            borderRadius: '0.5rem',
-                                            border: '1px solid #d1d5db',
-                                            fontSize: '1rem',
-                                            position: 'relative',
-                                            zIndex: 1
+                                            padding: '0.75rem 1rem',
+                                            borderBottom: activeTab === 'history' ? '2px solid var(--color-primary)' : 'none',
+                                            color: activeTab === 'history' ? 'var(--color-primary)' : '#6b7280',
+                                            fontWeight: activeTab === 'history' ? 600 : 500,
+                                            background: 'none',
+                                            borderTop: 'none',
+                                            borderLeft: 'none',
+                                            borderRight: 'none',
+                                            cursor: 'pointer'
                                         }}
-                                    />
+                                    >
+                                        History
+                                    </button>
                                 </div>
                             )}
-
-                            {/* Program Date Range */}
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                <div>
-                                    <label
-                                        style={{
-                                            display: 'block',
-                                            marginBottom: '0.5rem',
-                                            fontWeight: 500,
-                                            color: '#374151'
-                                        }}
-                                    >
-                                        From *
-                                    </label>
-                                    <input
-                                        type="date"
-                                        name="programDate"
-                                        value={formData.programDate}
-                                        onChange={handleInputChange}
-                                        onFocus={() => setShowCitySuggestions(false)}
-                                        required
-                                        style={{
-                                            width: '100%',
-                                            padding: '0.75rem',
-                                            borderRadius: '0.5rem',
-                                            border: '1px solid #d1d5db',
-                                            fontSize: '1rem',
-                                            position: 'relative',
-                                            zIndex: 1
-                                        }}
-                                    />
-                                </div>
-                                <div>
-                                    <label
-                                        style={{
-                                            display: 'block',
-                                            marginBottom: '0.5rem',
-                                            fontWeight: 500,
-                                            color: '#374151'
-                                        }}
-                                    >
-                                        To
-                                    </label>
-                                    <input
-                                        type="date"
-                                        name="programEndDate"
-                                        value={formData.programEndDate}
-                                        onChange={handleInputChange}
-                                        onFocus={() => setShowCitySuggestions(false)}
-                                        style={{
-                                            width: '100%',
-                                            padding: '0.75rem',
-                                            borderRadius: '0.5rem',
-                                            border: '1px solid #d1d5db',
-                                            fontSize: '1rem',
-                                            position: 'relative',
-                                            zIndex: 1
-                                        }}
-                                    />
-                                </div>
-                            </div>
-
-
-                            {/* Program City */}
-                            <div>
-                                <label
-                                    style={{
-                                        display: 'block',
-                                        marginBottom: '0.5rem',
-                                        fontWeight: 500,
-                                        color: '#374151'
-                                    }}
-                                >
-                                    Program City *
-                                </label>
-                                <select
-                                    name="programCity"
-                                    value={formData.programCity}
-                                    onChange={handleInputChange}
-                                    onFocus={() => setShowCitySuggestions(false)}
-                                    required
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.75rem',
-                                        borderRadius: '0.5rem',
-                                        border: '1px solid #d1d5db',
-                                        fontSize: '1rem',
-                                        position: 'relative',
-                                        zIndex: 1
-                                    }}
-                                >
-                                    <option value="">Select City</option>
-                                    {CITIES.map(city => (
-                                        <option key={city} value={city}>
-                                            {city}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            {/* Custom City (if Others) */}
-                            {formData.programCity === 'Others' && (
-                                <div style={{ position: 'relative' }}>
-                                    <label
-                                        style={{
-                                            display: 'block',
-                                            marginBottom: '0.5rem',
-                                            fontWeight: 500,
-                                            color: '#374151'
-                                        }}
-                                    >
-                                        Enter City Name *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="customCity"
-                                        value={citySearch}
-                                        onChange={(e) => handleCitySearch(e.target.value)}
-                                        onFocus={() => setShowCitySuggestions(true)}
-                                        data-city-input
-                                        required
-                                        style={{
-                                            width: '100%',
-                                            padding: '0.75rem',
-                                            borderRadius: '0.5rem',
-                                            border: '1px solid #d1d5db',
-                                            fontSize: '1rem',
-                                            position: 'relative',
-                                            zIndex: 1
-                                        }}
-                                    />
-                                    {showCitySuggestions && citySearch && filteredCities.length > 0 && (
-                                        <div
-                                            data-city-suggestions
-                                            style={{
-                                                position: 'absolute',
-                                                top: '100%',
-                                                left: 0,
-                                                right: 0,
-                                                backgroundColor: 'white',
-                                                border: '1px solid #e5e7eb',
-                                                borderRadius: '0.5rem',
-                                                marginTop: '0.25rem',
-                                                maxHeight: '200px',
-                                                overflowY: 'auto',
-                                                zIndex: 10,
-                                                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                                            }}
-                                        >
-                                            {filteredCities.map((city, index) => (
-                                                <div
-                                                    key={index}
-                                                    onClick={() => selectCity(city)}
-                                                    style={{
-                                                        padding: '0.75rem',
-                                                        cursor: 'pointer',
-                                                        ':hover': { backgroundColor: '#f3f4f6' }
-                                                    }}
-                                                >
-                                                    {city}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* Program Venue (readonly if Salem) */}
-                            <div>
-                                <label
-                                    style={{
-                                        display: 'block',
-                                        marginBottom: '0.5rem',
-                                        fontWeight: 500,
-                                        color: '#374151'
-                                    }}
-                                >
-                                    Program Venue *
-                                </label>
-                                <textarea
-                                    name="programVenue"
-                                    value={formData.programVenue}
-                                    onChange={handleInputChange}
-                                    onFocus={() => setShowCitySuggestions(false)}
-                                    readOnly={formData.programCity === 'Salem'}
-                                    required
-                                    rows="3"
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.75rem',
-                                        borderRadius: '0.5rem',
-                                        border: '1px solid #d1d5db',
-                                        fontSize: '1rem',
-                                        position: 'relative',
-                                        zIndex: 1,
-                                        backgroundColor: formData.programCity === 'Salem' ? '#f3f4f6' : 'white'
-                                    }}
-                                />
-                            </div>
-
-                            {/* Program Description */}
-                            <div>
-                                <label
-                                    style={{
-                                        display: 'block',
-                                        marginBottom: '0.5rem',
-                                        fontWeight: 500,
-                                        color: '#374151'
-                                    }}
-                                >
-                                    Description
-                                </label>
-                                <textarea
-                                    name="programDescription"
-                                    value={formData.programDescription}
-                                    onChange={handleInputChange}
-                                    onFocus={() => setShowCitySuggestions(false)}
-                                    rows="5"
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.75rem',
-                                        borderRadius: '0.5rem',
-                                        border: '1px solid #d1d5db',
-                                        fontSize: '1rem',
-                                        position: 'relative',
-                                        zIndex: 1
-                                    }}
-                                />
-                            </div>
-
-                            {/* Registration Status */}
-                            <div>
-                                <label
-                                    style={{
-                                        display: 'block',
-                                        marginBottom: '0.5rem',
-                                        fontWeight: 500,
-                                        color: '#374151'
-                                    }}
-                                >
-                                    Registration Status *
-                                </label>
-                                <select
-                                    name="registrationStatus"
-                                    value={formData.registrationStatus}
-                                    onChange={handleInputChange}
-                                    onFocus={() => setShowCitySuggestions(false)}
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.75rem',
-                                        borderRadius: '0.5rem',
-                                        border: '1px solid #d1d5db',
-                                        fontSize: '1rem',
-                                        position: 'relative',
-                                        zIndex: 1
-                                    }}
-                                >
-                                    <option value="Open">Open</option>
-                                    <option value="Closed">Closed</option>
-                                    <option value="Fast Filling">Fast Filling</option>
-                                </select>
-                            </div>
-
-                            {/* Last Date to Register */}
-                            <div>
-                                <label
-                                    style={{
-                                        display: 'block',
-                                        marginBottom: '0.5rem',
-                                        fontWeight: 500,
-                                        color: '#374151'
-                                    }}
-                                >
-                                    Last Date to Register *
-                                </label>
-                                <input
-                                    type="date"
-                                    name="lastDateToRegister"
-                                    value={formData.lastDateToRegister}
-                                    onChange={handleInputChange}
-                                    onFocus={() => setShowCitySuggestions(false)}
-                                    required
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.75rem',
-                                        borderRadius: '0.5rem',
-                                        border: '1px solid #d1d5db',
-                                        fontSize: '1rem',
-                                        position: 'relative',
-                                        zIndex: 1
-                                    }}
-                                />
-                            </div>
-
-                            {/* Form Actions */}
-                            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                            {!showForm && activeTab === 'upcoming' && (
                                 <button
-                                    type="submit"
+                                    onClick={() => setSearchParams({ action: 'add' })}
                                     style={{
-                                        flex: 1,
-                                        padding: '0.75rem',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '0.5rem',
+                                        padding: '0.75rem 1.5rem',
                                         backgroundColor: 'var(--color-primary)',
                                         color: 'white',
                                         borderRadius: '0.5rem',
-                                        fontWeight: 600,
+                                        fontWeight: 500,
                                         cursor: 'pointer',
-                                        border: 'none'
+                                        border: 'none',
+                                        width: '100%'
                                     }}
                                 >
-                                    {editingProgram ? 'Update Program' : 'Add Program'}
+                                    <Plus size={20} />
+                                    Add Program
                                 </button>
-                                <button
-                                    type="button"
-                                    onClick={resetForm}
-                                    style={{
-                                        flex: 1,
-                                        padding: '0.75rem',
-                                        backgroundColor: 'white',
-                                        color: '#374151',
-                                        border: '1px solid #d1d5db',
-                                        borderRadius: '0.5rem',
-                                        fontWeight: 600,
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    Cancel
-                                </button>
-                            </div>
-                        </form>
-                    ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            {programs.length === 0 ? (
-                                <div
-                                    style={{
-                                        textAlign: 'center',
-                                        padding: '3rem',
-                                        color: '#6b7280',
-                                        backgroundColor: '#f9fafb',
-                                        borderRadius: '0.75rem',
-                                        border: '1px dashed #d1d5db'
-                                    }}
-                                >
-                                    <p>No {activeTab} programs found.</p>
-                                </div>
-                            ) : (
-                                programs.map(program => (
-                                    <ProgramCard key={program.id} program={program} />
-                                ))
                             )}
                         </div>
-                    )}
-                </motion.div>
+
+                        {showForm ? (
+                            <form
+                                onSubmit={handleSubmit}
+                                style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
+                            >
+                                <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#111827' }}>
+                                    {editingProgram ? 'Edit Program' : 'Add New Program'}
+                                </h2>
+
+                                {/* Program Name */}
+                                <div>
+                                    <label
+                                        style={{
+                                            display: 'block',
+                                            marginBottom: '0.5rem',
+                                            fontWeight: 500,
+                                            color: '#374151'
+                                        }}
+                                    >
+                                        Program Name *
+                                    </label>
+                                    <select
+                                        name="programName"
+                                        value={formData.programName}
+                                        onChange={handleInputChange}
+                                        onFocus={() => setShowCitySuggestions(false)}
+                                        required
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.75rem',
+                                            borderRadius: '0.5rem',
+                                            border: '1px solid #d1d5db',
+                                            fontSize: '1rem',
+                                            position: 'relative',
+                                            zIndex: 1
+                                        }}
+                                    >
+                                        <option value="">Select Program Type</option>
+                                        {programTypes.map(type => (
+                                            <option key={type.id} value={type.name}>
+                                                {type.name}
+                                            </option>
+                                        ))}
+                                        <option value="Others">Others</option>
+                                    </select>
+                                </div>
+
+                                {/* Program Banner */}
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
+                                        Program Banner
+                                    </label>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleImageChange}
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.5rem',
+                                            border: '1px solid #d1d5db',
+                                            borderRadius: '0.5rem',
+                                            background: 'white'
+                                        }}
+                                    />
+                                    {formData.programBanner && !bannerImage && (
+                                        <div style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: '#059669' }}>
+                                            Current Banner set
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Participant Counts & Fees */}
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                    <div>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
+                                            Max Participants
+                                        </label>
+                                        <input
+                                            type="number"
+                                            name="maxParticipants"
+                                            value={formData.maxParticipants}
+                                            onChange={handleInputChange}
+                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
+                                            Room Max
+                                        </label>
+                                        <input
+                                            type="number"
+                                            name="roomMax"
+                                            value={formData.roomMax}
+                                            onChange={handleInputChange}
+                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                    <div>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
+                                            Ladies Max Dorm
+                                        </label>
+                                        <input
+                                            type="number"
+                                            name="ladiesMaxDorm"
+                                            value={formData.ladiesMaxDorm}
+                                            onChange={handleInputChange}
+                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
+                                            Gents Max Dorm
+                                        </label>
+                                        <input
+                                            type="number"
+                                            name="gentsMaxDorm"
+                                            value={formData.gentsMaxDorm}
+                                            onChange={handleInputChange}
+                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                    <div>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
+                                            Room Fees
+                                        </label>
+                                        <input
+                                            type="number"
+                                            name="roomFees"
+                                            value={formData.roomFees}
+                                            onChange={handleInputChange}
+                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
+                                            Dorm Fees
+                                        </label>
+                                        <input
+                                            type="number"
+                                            name="dormFees"
+                                            value={formData.dormFees}
+                                            onChange={handleInputChange}
+                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Custom Program Name (if Others) */}
+                                {formData.programName === 'Others' && (
+                                    <div>
+                                        <label
+                                            style={{
+                                                display: 'block',
+                                                marginBottom: '0.5rem',
+                                                fontWeight: 500,
+                                                color: '#374151'
+                                            }}
+                                        >
+                                            Enter Program Name *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="customProgramName"
+                                            value={formData.customProgramName}
+                                            onChange={handleInputChange}
+                                            required
+                                            style={{
+                                                width: '100%',
+                                                padding: '0.75rem',
+                                                borderRadius: '0.5rem',
+                                                border: '1px solid #d1d5db',
+                                                fontSize: '1rem',
+                                                position: 'relative',
+                                                zIndex: 1
+                                            }}
+                                        />
+                                    </div>
+                                )}
+
+                                {/* Program Date Range */}
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                    <div>
+                                        <label
+                                            style={{
+                                                display: 'block',
+                                                marginBottom: '0.5rem',
+                                                fontWeight: 500,
+                                                color: '#374151'
+                                            }}
+                                        >
+                                            From *
+                                        </label>
+                                        <input
+                                            type="date"
+                                            name="programDate"
+                                            value={formData.programDate}
+                                            onChange={handleInputChange}
+                                            onFocus={() => setShowCitySuggestions(false)}
+                                            required
+                                            style={{
+                                                width: '100%',
+                                                padding: '0.75rem',
+                                                borderRadius: '0.5rem',
+                                                border: '1px solid #d1d5db',
+                                                fontSize: '1rem',
+                                                position: 'relative',
+                                                zIndex: 1
+                                            }}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label
+                                            style={{
+                                                display: 'block',
+                                                marginBottom: '0.5rem',
+                                                fontWeight: 500,
+                                                color: '#374151'
+                                            }}
+                                        >
+                                            To
+                                        </label>
+                                        <input
+                                            type="date"
+                                            name="programEndDate"
+                                            value={formData.programEndDate}
+                                            onChange={handleInputChange}
+                                            onFocus={() => setShowCitySuggestions(false)}
+                                            style={{
+                                                width: '100%',
+                                                padding: '0.75rem',
+                                                borderRadius: '0.5rem',
+                                                border: '1px solid #d1d5db',
+                                                fontSize: '1rem',
+                                                position: 'relative',
+                                                zIndex: 1
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+
+
+                                {/* Program City */}
+                                <div>
+                                    <label
+                                        style={{
+                                            display: 'block',
+                                            marginBottom: '0.5rem',
+                                            fontWeight: 500,
+                                            color: '#374151'
+                                        }}
+                                    >
+                                        Program City *
+                                    </label>
+                                    <select
+                                        name="programCity"
+                                        value={formData.programCity}
+                                        onChange={handleInputChange}
+                                        onFocus={() => setShowCitySuggestions(false)}
+                                        required
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.75rem',
+                                            borderRadius: '0.5rem',
+                                            border: '1px solid #d1d5db',
+                                            fontSize: '1rem',
+                                            position: 'relative',
+                                            zIndex: 1
+                                        }}
+                                    >
+                                        <option value="">Select City</option>
+                                        {CITIES.map(city => (
+                                            <option key={city} value={city}>
+                                                {city}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Custom City (if Others) */}
+                                {formData.programCity === 'Others' && (
+                                    <div style={{ position: 'relative' }}>
+                                        <label
+                                            style={{
+                                                display: 'block',
+                                                marginBottom: '0.5rem',
+                                                fontWeight: 500,
+                                                color: '#374151'
+                                            }}
+                                        >
+                                            Enter City Name *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="customCity"
+                                            value={citySearch}
+                                            onChange={(e) => handleCitySearch(e.target.value)}
+                                            onFocus={() => setShowCitySuggestions(true)}
+                                            data-city-input
+                                            required
+                                            style={{
+                                                width: '100%',
+                                                padding: '0.75rem',
+                                                borderRadius: '0.5rem',
+                                                border: '1px solid #d1d5db',
+                                                fontSize: '1rem',
+                                                position: 'relative',
+                                                zIndex: 1
+                                            }}
+                                        />
+                                        {showCitySuggestions && citySearch && filteredCities.length > 0 && (
+                                            <div
+                                                data-city-suggestions
+                                                style={{
+                                                    position: 'absolute',
+                                                    top: '100%',
+                                                    left: 0,
+                                                    right: 0,
+                                                    backgroundColor: 'white',
+                                                    border: '1px solid #e5e7eb',
+                                                    borderRadius: '0.5rem',
+                                                    marginTop: '0.25rem',
+                                                    maxHeight: '200px',
+                                                    overflowY: 'auto',
+                                                    zIndex: 10,
+                                                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                                                }}
+                                            >
+                                                {filteredCities.map((city, index) => (
+                                                    <div
+                                                        key={index}
+                                                        onClick={() => selectCity(city)}
+                                                        style={{
+                                                            padding: '0.75rem',
+                                                            cursor: 'pointer',
+                                                            ':hover': { backgroundColor: '#f3f4f6' }
+                                                        }}
+                                                    >
+                                                        {city}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Program Venue (readonly if Salem) */}
+                                <div>
+                                    <label
+                                        style={{
+                                            display: 'block',
+                                            marginBottom: '0.5rem',
+                                            fontWeight: 500,
+                                            color: '#374151'
+                                        }}
+                                    >
+                                        Program Venue *
+                                    </label>
+                                    <textarea
+                                        name="programVenue"
+                                        value={formData.programVenue}
+                                        onChange={handleInputChange}
+                                        onFocus={() => setShowCitySuggestions(false)}
+                                        readOnly={formData.programCity === 'Salem'}
+                                        required
+                                        rows="3"
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.75rem',
+                                            borderRadius: '0.5rem',
+                                            border: '1px solid #d1d5db',
+                                            fontSize: '1rem',
+                                            position: 'relative',
+                                            zIndex: 1,
+                                            backgroundColor: formData.programCity === 'Salem' ? '#f3f4f6' : 'white'
+                                        }}
+                                    />
+                                </div>
+
+                                {/* Program Description */}
+                                <div>
+                                    <label
+                                        style={{
+                                            display: 'block',
+                                            marginBottom: '0.5rem',
+                                            fontWeight: 500,
+                                            color: '#374151'
+                                        }}
+                                    >
+                                        Description
+                                    </label>
+                                    <textarea
+                                        name="programDescription"
+                                        value={formData.programDescription}
+                                        onChange={handleInputChange}
+                                        onFocus={() => setShowCitySuggestions(false)}
+                                        rows="5"
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.75rem',
+                                            borderRadius: '0.5rem',
+                                            border: '1px solid #d1d5db',
+                                            fontSize: '1rem',
+                                            position: 'relative',
+                                            zIndex: 1
+                                        }}
+                                    />
+                                </div>
+
+                                {/* Registration Status */}
+                                <div>
+                                    <label
+                                        style={{
+                                            display: 'block',
+                                            marginBottom: '0.5rem',
+                                            fontWeight: 500,
+                                            color: '#374151'
+                                        }}
+                                    >
+                                        Registration Status *
+                                    </label>
+                                    <select
+                                        name="registrationStatus"
+                                        value={formData.registrationStatus}
+                                        onChange={handleInputChange}
+                                        onFocus={() => setShowCitySuggestions(false)}
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.75rem',
+                                            borderRadius: '0.5rem',
+                                            border: '1px solid #d1d5db',
+                                            fontSize: '1rem',
+                                            position: 'relative',
+                                            zIndex: 1
+                                        }}
+                                    >
+                                        <option value="Open">Open</option>
+                                        <option value="Closed">Closed</option>
+                                        <option value="Fast Filling">Fast Filling</option>
+                                    </select>
+                                </div>
+
+                                {/* Last Date to Register */}
+                                <div>
+                                    <label
+                                        style={{
+                                            display: 'block',
+                                            marginBottom: '0.5rem',
+                                            fontWeight: 500,
+                                            color: '#374151'
+                                        }}
+                                    >
+                                        Last Date to Register *
+                                    </label>
+                                    <input
+                                        type="date"
+                                        name="lastDateToRegister"
+                                        value={formData.lastDateToRegister}
+                                        onChange={handleInputChange}
+                                        onFocus={() => setShowCitySuggestions(false)}
+                                        required
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.75rem',
+                                            borderRadius: '0.5rem',
+                                            border: '1px solid #d1d5db',
+                                            fontSize: '1rem',
+                                            position: 'relative',
+                                            zIndex: 1
+                                        }}
+                                    />
+                                </div>
+
+                                {/* Form Actions */}
+                                <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                                    <button
+                                        type="submit"
+                                        style={{
+                                            flex: 1,
+                                            padding: '0.75rem',
+                                            backgroundColor: 'var(--color-primary)',
+                                            color: 'white',
+                                            borderRadius: '0.5rem',
+                                            fontWeight: 600,
+                                            cursor: 'pointer',
+                                            border: 'none'
+                                        }}
+                                    >
+                                        {editingProgram ? 'Update Program' : 'Add Program'}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={resetForm}
+                                        style={{
+                                            flex: 1,
+                                            padding: '0.75rem',
+                                            backgroundColor: 'white',
+                                            color: '#374151',
+                                            border: '1px solid #d1d5db',
+                                            borderRadius: '0.5rem',
+                                            fontWeight: 600,
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                {programs.length === 0 ? (
+                                    <div
+                                        style={{
+                                            textAlign: 'center',
+                                            padding: '3rem',
+                                            color: '#6b7280',
+                                            backgroundColor: '#f9fafb',
+                                            borderRadius: '0.75rem',
+                                            border: '1px dashed #d1d5db'
+                                        }}
+                                    >
+                                        <p>No {activeTab} programs found.</p>
+                                    </div>
+                                ) : (
+                                    programs.map(program => (
+                                        <ProgramCard key={program.id} program={program} />
+                                    ))
+                                )}
+                            </div>
+                        )}
+                    </motion.div>
+                </div>
             </div>
         </div>
     );

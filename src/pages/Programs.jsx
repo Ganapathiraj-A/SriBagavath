@@ -13,11 +13,14 @@ const Programs = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
     const [programs, setPrograms] = useState([]);
+    const [specificProgram, setSpecificProgram] = useState(null); // Separate state for linked program
     const [loading, setLoading] = useState(true);
-    const [showDetails, setShowDetails] = useState(false);
+    const [specificLoading, setSpecificLoading] = useState(false);
+
 
     const viewingProgramId = searchParams.get('id');
-    const viewingProgram = programs.find(p => p.id === viewingProgramId);
+    // Prioritize specificProgram if available, otherwise look in the main list
+    const viewingProgram = specificProgram || programs.find(p => p.id === viewingProgramId);
 
     useEffect(() => {
         const fetchPrograms = async () => {
@@ -46,6 +49,47 @@ const Programs = () => {
 
         fetchPrograms();
     }, []);
+
+    // Specific Fetch for "View Details" (independent of main list)
+    useEffect(() => {
+        const fetchSpecificProgram = async () => {
+            if (!viewingProgramId) {
+                setSpecificProgram(null);
+                setSpecificLoading(false);
+                return;
+            }
+
+            setSpecificLoading(true);
+
+            // If already in main list, we don't need to fetch
+            if (programs.find(p => p.id === viewingProgramId)) {
+                setSpecificLoading(false);
+                return;
+            }
+
+            // If we already fetched it, don't refetch
+            if (specificProgram && specificProgram.id === viewingProgramId) {
+                setSpecificLoading(false);
+                return;
+            }
+
+            try {
+                const { doc, getDoc } = await import('firebase/firestore');
+                const programRef = doc(db, 'programs', viewingProgramId);
+                const snap = await getDoc(programRef);
+                if (snap.exists()) {
+                    setSpecificProgram({ id: snap.id, ...snap.data() });
+                }
+            } catch (e) {
+                console.error("Failed to fetch specific program", e);
+            } finally {
+                setSpecificLoading(false);
+            }
+        };
+        fetchSpecificProgram();
+    }, [viewingProgramId, programs, specificProgram]);
+
+
 
     const handleCopy = async (text) => {
         try {
@@ -151,6 +195,20 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
         );
     }
 
+    if (specificLoading) {
+        return (
+            <div style={{
+                minHeight: '100vh',
+                backgroundColor: 'var(--color-surface)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+            }}>
+                <p style={{ fontSize: '1.125rem', color: '#6b7280' }}>Loading program details...</p>
+            </div>
+        );
+    }
+
     return (
         <div style={{
             minHeight: '100vh',
@@ -188,10 +246,6 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
                                 </div>
                             )}
 
-                            {/* Title Below Image */}
-                            <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#111827', marginBottom: '1.5rem' }}>
-                                {viewingProgram.programName}
-                            </h1>
 
                             <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
                                 <div style={{ display: 'flex', gap: '1rem' }}>
@@ -213,7 +267,7 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
                                         title="Share Text"
                                     >
                                         <Share2 size={16} />
-                                        Share Text
+                                        Text
                                     </button>
                                     <button
                                         onClick={() => handleShareBanner(viewingProgram)}
@@ -233,33 +287,24 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
                                         title="Share Banner"
                                     >
                                         <Share2 size={16} />
-                                        Share Banner
+                                        Banner
                                     </button>
                                 </div>
 
-                                {/* Toggle Button Logic */}
-                                {viewingProgram.programBanner && (
-                                    <button
-                                        onClick={() => setShowDetails(!showDetails)}
-                                        style={{
-                                            padding: '0.5rem 1rem',
-                                            backgroundColor: showDetails ? '#ea580c' : '#2563eb', // Orange if hiding, Blue if showing
-                                            color: 'white',
-                                            border: 'none',
-                                            borderRadius: '0.375rem',
-                                            fontSize: '0.875rem',
-                                            fontWeight: 500,
-                                            cursor: 'pointer'
-                                        }}
-                                    >
-                                        {showDetails ? 'Hide Details' : 'Show Details'}
-                                    </button>
-                                )}
                             </div>
 
-                            {/* Details Section - Logic: Show if no banner OR if showDetails is true */}
-                            {(!viewingProgram.programBanner || showDetails) && (
+                            {/* Details Section - Logic: Show ONLY if no banner */}
+                            {!viewingProgram.programBanner && (
                                 <div style={{ display: 'grid', gap: '1.5rem', color: '#374151' }}>
+                                    <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#111827', margin: 0 }}>
+                                        {viewingProgram.programName}
+                                        {viewingProgram.programDate && (
+                                            <span style={{ fontSize: '1.25rem', fontWeight: 'normal', color: '#555', marginLeft: '8px' }}>
+                                                ({new Date(viewingProgram.programDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                                {viewingProgram.programCity ? ` - ${viewingProgram.programCity}` : ''})
+                                            </span>
+                                        )}
+                                    </h1>
                                     <div>
                                         <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#6b7280', marginBottom: '0.25rem' }}>
                                             Date & Time
@@ -399,7 +444,13 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
                                                 borderRadius: '1rem',
                                                 padding: '1.5rem',
                                                 boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-                                                border: '1px solid #f3f4f6'
+                                                border: '1px solid #f3f4f6',
+                                                cursor: program.registrationStatus === 'Open' ? 'pointer' : 'default'
+                                            }}
+                                            onClick={() => {
+                                                if (program.registrationStatus === 'Open') {
+                                                    setSearchParams({ id: program.id });
+                                                }
                                             }}
                                         >
                                             <div style={{ marginBottom: '1rem' }}>
@@ -482,21 +533,7 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
                                                 </div>
 
                                                 {program.registrationStatus === 'Open' && (
-                                                    <button
-                                                        onClick={() => setSearchParams({ id: program.id })}
-                                                        style={{
-                                                            padding: '0.5rem 1rem',
-                                                            backgroundColor: 'white',
-                                                            color: '#374151',
-                                                            border: '1px solid #d1d5db',
-                                                            borderRadius: '0.375rem',
-                                                            cursor: 'pointer',
-                                                            fontSize: '0.875rem',
-                                                            fontWeight: 500
-                                                        }}
-                                                    >
-                                                        Details
-                                                    </button>
+                                                    <div style={{ padding: '0.5rem' }}></div>
                                                 )}
                                             </div>
                                         </motion.div>

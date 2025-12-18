@@ -161,8 +161,7 @@ const MonthlyMagazine = () => {
         }}>
             <div style={{ maxWidth: '28rem', margin: '0 auto' }}>
                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem', gap: '0.5rem' }}>
-                    {!folderIdParam ? (
-                    ) : (
+                    {folderIdParam && (
                         <motion.button
                             whileTap={{ scale: 0.95 }}
                             onClick={handleBackClick}

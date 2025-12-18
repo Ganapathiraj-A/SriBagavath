@@ -1,8 +1,10 @@
 import { db } from '../firebase';
 import { collection, doc, setDoc, updateDoc, deleteDoc, getDoc, onSnapshot, query, orderBy, where, Timestamp } from 'firebase/firestore';
 
+import { auth } from '../firebase';
+
 export const TransactionService = {
-    // Helper to get persistent device ID
+    // Helper to get persistent device ID (Legacy/Fallback)
     getDeviceId: () => {
         let id = localStorage.getItem('sbb_device_id');
         if (!id) {
@@ -16,6 +18,9 @@ export const TransactionService = {
     recordTransaction: async (data, base64Image) => {
         const newDocRef = doc(collection(db, "transactions"));
         const txId = newDocRef.id;
+
+        const user = auth.currentUser;
+        const userId = user ? user.uid : null;
 
         const txData = {
             id: txId,
@@ -31,7 +36,11 @@ export const TransactionService = {
             primaryApplicant: data.primaryApplicant || {},
             participants: data.participants || [],
             place: data.place || "",
-            deviceId: TransactionService.getDeviceId()
+            programId: data.programId || null, // Save Program ID
+            programDate: data.programDate || null,
+            programCity: data.programCity || null,
+            deviceId: TransactionService.getDeviceId(),
+            userId: userId // Attach User ID for Security Rules
         };
 
         // 1. Write Meta
@@ -42,7 +51,8 @@ export const TransactionService = {
             const imgDocRef = doc(collection(db, "transaction_images"), txId);
             await setDoc(imgDocRef, {
                 id: txId,
-                base64: base64Image
+                base64: base64Image,
+                userId: userId // Attach User ID
             });
         }
 
@@ -50,11 +60,14 @@ export const TransactionService = {
     },
 
     // Get live stream of transactions (ADMIN)
-    streamTransactions: (callback) => {
+    streamTransactions: (callback, onError) => {
         const q = query(collection(db, "transactions"), orderBy("timestamp", "desc"));
         return onSnapshot(q, (snapshot) => {
             const txs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
             callback(txs);
+        }, (error) => {
+            if (onError) onError(error);
+            else console.error("Stream Error", error);
         });
     },
 

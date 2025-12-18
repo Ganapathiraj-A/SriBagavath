@@ -189,21 +189,7 @@ const PdfBooks = () => {
           {/* After Language Selection – Show PDFs */}
           {selectedLanguage && (
             <>
-              <motion.button
-                onClick={() => setSearchParams({})}
-                whileTap={{ scale: 0.98 }}
-                style={{
-                  marginBottom: '1rem',
-                  fontSize: '0.875rem',
-                  color: 'var(--color-primary)',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 0
-                }}
-              >
-                ← Back to language selection
-              </motion.button>
+
 
               {renderPdfLinks()}
             </>

@@ -23,6 +23,7 @@ import MyRegistrations from './pages/MyRegistrations';
 import AdminReview from './pages/AdminReview';
 import EventRegistration from './pages/EventRegistration';
 import PaymentFlow from './pages/PaymentFlow';
+import AdminLogin from './pages/AdminLogin';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -79,12 +80,32 @@ function AnimatedRoutes() {
         <Route path="/admin-review" element={<AdminReview />} />
         <Route path="/event-registration" element={<EventRegistration />} />
         <Route path="/payment-flow" element={<PaymentFlow />} />
+        <Route path="/admin-login" element={<AdminLogin />} />
       </Routes>
     </AnimatePresence>
   );
 }
 
+import { auth } from './firebase';
+import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
+
 function App() {
+  useEffect(() => {
+    // Authenticate anonymously if not already signed in
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        console.log("User signed in:", user.uid);
+      } else {
+        console.log("No user, signing in anonymously...");
+        signInAnonymously(auth).catch((error) => {
+          console.error("Anonymous auth failed", error);
+        });
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   return (
     <Router>
       <AnimatedRoutes />

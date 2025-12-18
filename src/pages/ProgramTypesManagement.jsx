@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { motion, Reorder } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { Plus, Edit2, Trash2, Save, X, GripVertical, ChevronUp, ChevronDown } from 'lucide-react';
 import { db } from '../firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy, setDoc } from 'firebase/firestore';
 
+import { auth } from '../firebase';
+
 const ProgramTypesManagement = () => {
+    const navigate = useNavigate(); // Needs useNavigate import
     const [types, setTypes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
