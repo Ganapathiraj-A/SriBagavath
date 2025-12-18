@@ -173,7 +173,7 @@ const PaymentFlow = () => {
     );
 
     const renderInstructions = () => (
-        <div className="instructions-container">
+        <div className="instructions-container" style={{ paddingBottom: '80px' }}>
             <h2>Payment Instructions</h2>
 
             <div style={{
@@ -198,7 +198,7 @@ const PaymentFlow = () => {
                 <p><strong>4.</strong> After payment, click <b>Share Screenshot</b> &rarr; <b>More</b> &rarr; <b>SriBagavath</b>.</p>
             </div>
             <button className="btn-primary full-width" onClick={() => GPayUtils.openGPay()}>
-                GPay: Paste UPI ID + Pay -> Share Screenshot
+                GPay: Paste UPI ID + Pay &rarr; Share Screenshot
             </button>
 
             {/* Manual Upload Button in case Share fails */}
