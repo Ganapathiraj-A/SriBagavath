@@ -20,10 +20,10 @@ convert base_s1.png -fill white -draw "rectangle 0,680 472,880" \
 -annotate +0+730 "The UPI id is already copied. It will give" \
 -annotate +0+760 "sribagavathmission.63022941@hdfcbank" s1_annotated.png
 
-# Click center 178,397 (Micro-adjusted)
-convert s1_annotated.png -fill "rgba(255,0,0,0.4)" -stroke red -strokewidth 2 -draw "circle 178,397 190,397" s1_c1.png
-convert s1_annotated.png -fill "rgba(255,0,0,0.4)" -stroke red -strokewidth 2 -draw "circle 178,397 203,397" s1_c2.png
-convert s1_annotated.png -fill "rgba(255,0,0,0.4)" -stroke red -strokewidth 2 -draw "circle 178,397 216,397" s1_c3.png
+# Click center 177,400
+convert s1_annotated.png -fill "rgba(255,0,0,0.4)" -stroke red -strokewidth 2 -draw "circle 177,400 189,400" s1_c1.png
+convert s1_annotated.png -fill "rgba(255,0,0,0.4)" -stroke red -strokewidth 2 -draw "circle 177,400 202,400" s1_c2.png
+convert s1_annotated.png -fill "rgba(255,0,0,0.4)" -stroke red -strokewidth 2 -draw "circle 177,400 215,400" s1_c3.png
 
 # 4. Refine Step 2 (Change ₹1 to ₹5,000)
 # White out ₹1 area and draw new amount
