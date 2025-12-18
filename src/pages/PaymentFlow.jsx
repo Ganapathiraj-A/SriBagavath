@@ -198,7 +198,7 @@ const PaymentFlow = () => {
                 <p><strong>4.</strong> After payment, click <b>Share Screenshot</b> &rarr; <b>More</b> &rarr; <b>SriBagavath</b>.</p>
             </div>
             <button className="btn-primary full-width" onClick={() => GPayUtils.openGPay()}>
-                GPay &rarr; Paste UPI ID + Pay &rarr; Share Screenshot
+                GPay: Paste UPI ID + Pay -> Share Screenshot
             </button>
 
             {/* Manual Upload Button in case Share fails */}
