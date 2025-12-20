@@ -57,6 +57,7 @@ const PageHeader = ({
                     display: 'flex',
                     alignItems: 'center'
                 }}>
+                    {rightAction}
                 </div>
             )}
         </div>

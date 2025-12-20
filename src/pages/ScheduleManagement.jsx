@@ -4,9 +4,21 @@ import { motion } from 'framer-motion';
 import { Plus, Edit2, Trash2, Calendar as CalendarIcon, MapPin } from 'lucide-react';
 import { db } from '../firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy, where, limit } from 'firebase/firestore';
+import { LogOut } from 'lucide-react';
+import { signOut } from 'firebase/auth';
+import { useNavigate } from 'react-router-dom';
+import PageHeader from '../components/PageHeader';
 
 const ScheduleManagement = () => {
+    const navigate = useNavigate();
     const [schedules, setSchedules] = useState([]);
+
+    const handleLogout = async () => {
+        if (confirm("Logout?")) {
+            await signOut(auth);
+            navigate('/');
+        }
+    };
     const [showForm, setShowForm] = useState(false);
     const [editingSchedule, setEditingSchedule] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -280,226 +292,226 @@ const ScheduleManagement = () => {
             style={{
                 minHeight: '100vh',
                 backgroundColor: 'var(--color-surface)',
-                padding: '1.5rem'
+                // padding: '1.5rem' // Allow header full width
             }}
         >
-            <div style={{ maxWidth: '56rem', margin: '0 auto' }}>
+            <PageHeader
+                title="Schedule Management"
+                rightAction={
+                    <button onClick={handleLogout} className="btn-icon" style={{ background: 'none', border: 'none', color: '#dc2626' }}>
+                        <LogOut size={20} />
+                    </button>
+                }
+            />
+            <div style={{ padding: '1.5rem' }}>
+                <div style={{ maxWidth: '56rem', margin: '0 auto' }}>
 
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    style={{
-                        backgroundColor: 'white',
-                        borderRadius: '1rem',
-                        padding: '2rem',
-                        boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-                        marginBottom: '1.5rem'
-                    }}
-                >
-                    {/* Header */}
-                    <div
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
                         style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'stretch',
-                            marginBottom: '2rem',
-                            gap: '0.75rem'
+                            backgroundColor: 'white',
+                            borderRadius: '1rem',
+                            padding: '2rem',
+                            boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+                            marginBottom: '1.5rem'
                         }}
                     >
-                        <h1
+                        {/* Header */}
+                        <div
                             style={{
-                                fontSize: '1.875rem',
-                                fontWeight: 'bold',
-                                color: '#111827',
-                                margin: 0,
-                                width: '100%'
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'stretch',
+                                marginBottom: '2rem',
+                                gap: '0.75rem'
                             }}
                         >
-                            Schedule Management
-                        </h1>
+                            {/* Title handled by PageHeader */}
 
-                        {/* Tabs Removed */}
+                            {/* Tabs Removed */}
 
-                        {!showForm && (
-                            <button
-                                onClick={() => setShowForm(true)}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: '0.5rem',
-                                    padding: '0.75rem 1.5rem',
-                                    backgroundColor: 'var(--color-primary)',
-                                    color: 'white',
-                                    borderRadius: '0.5rem',
-                                    fontWeight: 500,
-                                    cursor: 'pointer',
-                                    border: 'none',
-                                    width: '100%'
-                                }}
-                            >
-                                <Plus size={20} />
-                                Add Schedule
-                            </button>
-                        )}
-                    </div>
-
-                    {showForm ? (
-                        <form
-                            onSubmit={handleSubmit}
-                            style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
-                        >
-                            <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#111827' }}>
-                                {editingSchedule ? 'Edit Schedule' : 'Add New Schedule'}
-                            </h2>
-
-                            {/* From Date */}
-                            <div>
-                                <label
-                                    style={{
-                                        display: 'block',
-                                        marginBottom: '0.5rem',
-                                        fontWeight: 500,
-                                        color: '#374151'
-                                    }}
-                                >
-                                    From Date *
-                                </label>
-                                <input
-                                    type="date"
-                                    name="fromDate"
-                                    value={formData.fromDate}
-                                    onChange={handleInputChange}
-                                    required
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.75rem',
-                                        borderRadius: '0.5rem',
-                                        border: '1px solid #d1d5db',
-                                        fontSize: '1rem'
-                                    }}
-                                />
-                            </div>
-
-                            {/* To Date */}
-                            <div>
-                                <label
-                                    style={{
-                                        display: 'block',
-                                        marginBottom: '0.5rem',
-                                        fontWeight: 500,
-                                        color: '#374151'
-                                    }}
-                                >
-                                    To Date *
-                                </label>
-                                <input
-                                    type="date"
-                                    name="toDate"
-                                    value={formData.toDate}
-                                    onChange={handleInputChange}
-                                    required
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.75rem',
-                                        borderRadius: '0.5rem',
-                                        border: '1px solid #d1d5db',
-                                        fontSize: '1rem'
-                                    }}
-                                />
-                            </div>
-
-                            {/* Place */}
-                            <div>
-                                <label
-                                    style={{
-                                        display: 'block',
-                                        marginBottom: '0.5rem',
-                                        fontWeight: 500,
-                                        color: '#374151'
-                                    }}
-                                >
-                                    Place *
-                                </label>
-                                <input
-                                    type="text"
-                                    name="place"
-                                    value={formData.place}
-                                    onChange={handleInputChange}
-                                    placeholder="Enter city or venue"
-                                    required
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.75rem',
-                                        borderRadius: '0.5rem',
-                                        border: '1px solid #d1d5db',
-                                        fontSize: '1rem'
-                                    }}
-                                />
-                            </div>
-
-                            {/* Form Actions */}
-                            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                            {!showForm && (
                                 <button
-                                    type="submit"
+                                    onClick={() => setShowForm(true)}
                                     style={{
-                                        flex: 1,
-                                        padding: '0.75rem',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '0.5rem',
+                                        padding: '0.75rem 1.5rem',
                                         backgroundColor: 'var(--color-primary)',
                                         color: 'white',
                                         borderRadius: '0.5rem',
                                         fontWeight: 500,
                                         cursor: 'pointer',
-                                        border: 'none'
+                                        border: 'none',
+                                        width: '100%'
                                     }}
                                 >
-                                    {editingSchedule ? 'Update Schedule' : 'Add Schedule'}
+                                    <Plus size={20} />
+                                    Add Schedule
                                 </button>
-                                <button
-                                    type="button"
-                                    onClick={resetForm}
-                                    style={{
-                                        flex: 1,
-                                        padding: '0.75rem',
-                                        backgroundColor: '#6b7280',
-                                        color: 'white',
-                                        borderRadius: '0.5rem',
-                                        fontWeight: 500,
-                                        cursor: 'pointer',
-                                        border: 'none'
-                                    }}
-                                >
-                                    Cancel
-                                </button>
-                            </div>
-                        </form>
-                    ) : (
-                        <div>
-                            {schedules.length === 0 ? (
-                                <div
-                                    style={{
-                                        textAlign: 'center',
-                                        padding: '3rem',
-                                        color: '#6b7280'
-                                    }}
-                                >
-                                    <CalendarIcon
-                                        size={48}
-                                        style={{ margin: '0 auto 1rem', opacity: 0.5 }}
-                                    />
-                                    <p style={{ fontSize: '1.125rem' }}>No schedules added yet</p>
-                                    <p>Click "Add Schedule" to create the first entry</p>
-                                </div>
-                            ) : (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                    {schedules.map(schedule => (
-                                        <ScheduleCard key={schedule.id} schedule={schedule} />
-                                    ))}
-                                </div>
                             )}
                         </div>
-                    )}
-                </motion.div>
+
+                        {showForm ? (
+                            <form
+                                onSubmit={handleSubmit}
+                                style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
+                            >
+                                <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#111827' }}>
+                                    {editingSchedule ? 'Edit Schedule' : 'Add New Schedule'}
+                                </h2>
+
+                                {/* From Date */}
+                                <div>
+                                    <label
+                                        style={{
+                                            display: 'block',
+                                            marginBottom: '0.5rem',
+                                            fontWeight: 500,
+                                            color: '#374151'
+                                        }}
+                                    >
+                                        From Date *
+                                    </label>
+                                    <input
+                                        type="date"
+                                        name="fromDate"
+                                        value={formData.fromDate}
+                                        onChange={handleInputChange}
+                                        required
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.75rem',
+                                            borderRadius: '0.5rem',
+                                            border: '1px solid #d1d5db',
+                                            fontSize: '1rem'
+                                        }}
+                                    />
+                                </div>
+
+                                {/* To Date */}
+                                <div>
+                                    <label
+                                        style={{
+                                            display: 'block',
+                                            marginBottom: '0.5rem',
+                                            fontWeight: 500,
+                                            color: '#374151'
+                                        }}
+                                    >
+                                        To Date *
+                                    </label>
+                                    <input
+                                        type="date"
+                                        name="toDate"
+                                        value={formData.toDate}
+                                        onChange={handleInputChange}
+                                        required
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.75rem',
+                                            borderRadius: '0.5rem',
+                                            border: '1px solid #d1d5db',
+                                            fontSize: '1rem'
+                                        }}
+                                    />
+                                </div>
+
+                                {/* Place */}
+                                <div>
+                                    <label
+                                        style={{
+                                            display: 'block',
+                                            marginBottom: '0.5rem',
+                                            fontWeight: 500,
+                                            color: '#374151'
+                                        }}
+                                    >
+                                        Place *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="place"
+                                        value={formData.place}
+                                        onChange={handleInputChange}
+                                        placeholder="Enter city or venue"
+                                        required
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.75rem',
+                                            borderRadius: '0.5rem',
+                                            border: '1px solid #d1d5db',
+                                            fontSize: '1rem'
+                                        }}
+                                    />
+                                </div>
+
+                                {/* Form Actions */}
+                                <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                                    <button
+                                        type="submit"
+                                        style={{
+                                            flex: 1,
+                                            padding: '0.75rem',
+                                            backgroundColor: 'var(--color-primary)',
+                                            color: 'white',
+                                            borderRadius: '0.5rem',
+                                            fontWeight: 500,
+                                            cursor: 'pointer',
+                                            border: 'none'
+                                        }}
+                                    >
+                                        {editingSchedule ? 'Update Schedule' : 'Add Schedule'}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={resetForm}
+                                        style={{
+                                            flex: 1,
+                                            padding: '0.75rem',
+                                            backgroundColor: '#6b7280',
+                                            color: 'white',
+                                            borderRadius: '0.5rem',
+                                            fontWeight: 500,
+                                            cursor: 'pointer',
+                                            border: 'none'
+                                        }}
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        ) : (
+                            <div>
+                                {schedules.length === 0 ? (
+                                    <div
+                                        style={{
+                                            textAlign: 'center',
+                                            padding: '3rem',
+                                            color: '#6b7280'
+                                        }}
+                                    >
+                                        <CalendarIcon
+                                            size={48}
+                                            style={{ margin: '0 auto 1rem', opacity: 0.5 }}
+                                        />
+                                        <p style={{ fontSize: '1.125rem' }}>No schedules added yet</p>
+                                        <p>Click "Add Schedule" to create the first entry</p>
+                                    </div>
+                                ) : (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                        {schedules.map(schedule => (
+                                            <ScheduleCard key={schedule.id} schedule={schedule} />
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </motion.div>
+                </div>
             </div>
         </div>
     );

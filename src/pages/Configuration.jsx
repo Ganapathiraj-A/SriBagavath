@@ -1,9 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Shield, Code } from 'lucide-react';
+import { Calendar, Shield, Code, LogOut } from 'lucide-react';
+import { auth } from '../firebase';
+import { signOut } from 'firebase/auth';
 
-const ConfigButton = ({ title, icon: Icon, path, delay }) => {
+const ConfigButton = ({ title, icon: Icon, path, delay, onClick: customOnClick, color = 'var(--color-primary)', bgColor = '#fff7ed' }) => {
     const navigate = useNavigate();
 
     return (
@@ -13,7 +15,7 @@ const ConfigButton = ({ title, icon: Icon, path, delay }) => {
             transition={{ delay, duration: 0.5 }}
             whileHover={{ scale: 1.02, backgroundColor: 'var(--color-secondary)' }}
             whileTap={{ scale: 0.98 }}
-            onClick={() => navigate(path)}
+            onClick={customOnClick || (() => navigate(path))}
             style={{
                 width: '100%',
                 padding: '1rem',
@@ -32,14 +34,14 @@ const ConfigButton = ({ title, icon: Icon, path, delay }) => {
             <div style={{
                 padding: '0.75rem',
                 borderRadius: '9999px',
-                backgroundColor: '#fff7ed',
-                color: 'var(--color-primary)',
+                backgroundColor: bgColor,
+                color: color,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 flexShrink: 0
             }}>
-                <Icon size={24} color="var(--color-primary)" />
+                <Icon size={24} color={color} />
             </div>
             <span style={{ fontSize: '1.125rem', fontWeight: 500, color: '#1f2937' }}>{title}</span>
         </motion.button>
@@ -47,6 +49,20 @@ const ConfigButton = ({ title, icon: Icon, path, delay }) => {
 };
 
 const Configuration = () => {
+    const navigate = useNavigate();
+
+    const handleLogout = async () => {
+        if (confirm("Are you sure you want to logout?")) {
+            try {
+                await signOut(auth);
+                navigate('/', { replace: true });
+            } catch (error) {
+                console.error("Logout failed", error);
+                alert("Failed to logout");
+            }
+        }
+    };
+
     return (
         <div style={{
             minHeight: '100vh',
@@ -74,10 +90,28 @@ const Configuration = () => {
                         <ConfigButton title="Program Types" icon={Code} path="/configuration/program-types" delay={0.15} />
                         <ConfigButton title="Ayya's Schedule" icon={Calendar} path="/schedule/manage" delay={0.2} />
                         <ConfigButton title="Registration" icon={Shield} path="/admin-review" delay={0.2} />
-                        {/* <ConfigButton title="Developer" icon={Code} path="/developer" delay={0.3} /> */}
 
+                        <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #f3f4f6' }}>
+                            <ConfigButton
+                                title="Logout"
+                                icon={LogOut}
+                                delay={0.25}
+                                onClick={handleLogout}
+                                color="#dc2626"
+                                bgColor="#fef2f2"
+                            />
+                        </div>
                     </div>
                 </motion.div>
+
+                <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
+                    <button
+                        onClick={() => navigate('/')}
+                        style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '1rem' }}
+                    >
+                        Back to Home
+                    </button>
+                </div>
             </div>
         </div>
     );

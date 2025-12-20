@@ -13,7 +13,8 @@ const TAB_LABELS = {
     'BNK_VERIFIED': 'Completed'
 };
 
-import { auth } from '../firebase';
+import { LogOut } from 'lucide-react';
+import { signOut } from 'firebase/auth';
 
 const AdminReview = () => {
     const navigate = useNavigate();
@@ -22,6 +23,13 @@ const AdminReview = () => {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('PENDING');
     const [filterProduct, setFilterProduct] = useState("All");
+
+    const handleLogout = async () => {
+        if (confirm("Logout?")) {
+            await signOut(auth);
+            navigate('/');
+        }
+    };
 
     useEffect(() => {
         const unsubscribe = TransactionService.streamTransactions((data) => {
@@ -46,7 +54,6 @@ const AdminReview = () => {
         return () => unsubscribe();
     }, []);
 
-    // Helper: Find Program Details if missing in Transaction
     // Helper: Find Program Details if missing in Transaction
     const getProgramDetails = (tx) => {
         // First try by ID (Exact Match)
@@ -76,7 +83,6 @@ const AdminReview = () => {
         return { date: "", city: "" }; // None found
     };
 
-    // Derived State
     // Derived State
     // Group unique programs by Name + Date + City
     const distinctPrograms = Array.from(new Set(allRegs.map(r => {
@@ -274,7 +280,14 @@ const AdminReview = () => {
                 </div>
             )}
 
-            <PageHeader title="Registration" />
+            <PageHeader
+                title="Registration"
+                rightAction={
+                    <button onClick={handleLogout} className="btn-icon" style={{ background: 'none', border: 'none', color: '#dc2626' }}>
+                        <LogOut size={20} />
+                    </button>
+                }
+            />
 
             {/* Sub-Header / Filters Wrapper */}
             <div style={{ backgroundColor: 'white', padding: '10px 16px', borderBottom: '1px solid #eee' }}>

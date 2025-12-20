@@ -93,10 +93,18 @@ const CITIES = ['Salem', 'Chennai', 'Others'];
 
 const SALEM_VENUE = "Sri Bagavath Bhavan, Kodambakkadu, Periyakoundapuram, Karippatti, Salem, Tamil Nadu 636106";
 
-import { auth } from '../firebase';
+import { LogOut } from 'lucide-react';
+import { signOut } from 'firebase/auth';
 
 const ProgramManagement = () => {
     const navigate = useNavigate();
+
+    const handleLogout = async () => {
+        if (confirm("Logout?")) {
+            await signOut(auth);
+            navigate('/');
+        }
+    };
     const [searchParams, setSearchParams] = useSearchParams();
     const [programs, setPrograms] = useState([]);
     const [programTypes, setProgramTypes] = useState([]);
@@ -553,7 +561,14 @@ const ProgramManagement = () => {
                 // removed padding: '1.5rem' to allow header full width, restore for content
             }}
         >
-            <PageHeader title="Program Management" />
+            <PageHeader
+                title="Program Management"
+                rightAction={
+                    <button onClick={handleLogout} className="btn-icon" style={{ background: 'none', border: 'none', color: '#dc2626' }}>
+                        <LogOut size={20} />
+                    </button>
+                }
+            />
             <div style={{ padding: '1.5rem' }}>
                 <div style={{ maxWidth: '64rem', margin: '0 auto' }}>
 
