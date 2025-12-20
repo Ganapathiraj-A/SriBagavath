@@ -11,7 +11,8 @@ const MyRegistrations = () => {
 
     useEffect(() => {
         const unsubscribe = TransactionService.streamUserTransactions((data) => {
-            setRegistrations(data);
+            console.log("MyRegs Stream Data:", data?.length); // Debug
+            setRegistrations(data || []);
             setLoading(false);
         });
 

@@ -84,6 +84,9 @@ export const TransactionService = {
                 return tB - tA;
             });
             callback(txs);
+        }, (error) => {
+            console.error("User Stream Error", error);
+            callback([]); // Return empty list on error to stop loading
         });
     },
 

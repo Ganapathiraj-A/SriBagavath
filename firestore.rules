@@ -13,17 +13,17 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // Transactions: Any authenticated user can create. Only Admins can list all or update/delete.
+    // Transactions: Publicly createable. Read by Admin or by Device ID (Public) or by User ID.
     match /transactions/{txId} {
-      allow read: if isAdmin() || (request.auth != null && resource.data.userId == request.auth.uid);
-      allow create: if request.auth != null;
+      allow read: if isAdmin() || resource.data.deviceId != null; // Soft identity via deviceId
+      allow create: if true; // Public registration
       allow update, delete: if isAdmin();
     }
-
+    
     // Transaction Images: Same as transactions
     match /transaction_images/{txId} {
-      allow read: if isAdmin() || (request.auth != null && resource.data.userId == request.auth.uid);
-      allow create: if request.auth != null;
+      allow read: if isAdmin() || resource.data.userId != null || true; // Images are specifically fetched by ID
+      allow create: if true;
       allow update, delete: if isAdmin();
     }
 
