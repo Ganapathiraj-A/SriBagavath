@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { User, Calendar, BookOpen, Video, Mail, Settings, LogIn, LogOut } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
-import { auth } from '../firebase';
+import { db, auth } from '../firebase';
+import { StatsService } from '../services/StatsService';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import { signOut, GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
 
 const MenuButton = ({ title, icon: Icon, path, delay }) => {
@@ -51,9 +53,21 @@ const MenuButton = ({ title, icon: Icon, path, delay }) => {
 };
 
 const Home = () => {
-    const { user, isAdmin } = useAdminAuth();
+    const { user, isAdmin, checkAdminStatus, setIsAdmin } = useAdminAuth();
     const [authLoading, setAuthLoading] = React.useState(false);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const unsubscribe = auth.onAuthStateChanged((user) => {
+            if (user) {
+                checkAdminStatus(user.uid);
+                StatsService.trackUserLogin().catch(() => { });
+            } else {
+                setIsAdmin(false);
+            }
+        });
+        return () => unsubscribe();
+    }, [checkAdminStatus, setIsAdmin]);
 
     const handleGoogleLogin = async () => {
         setAuthLoading(true);
@@ -95,6 +109,7 @@ const Home = () => {
         { title: "Books & Media", icon: BookOpen, path: "/books", delay: 0.2 },
         { title: "Programs", icon: Calendar, path: "/programs", delay: 0.4 },
         { title: "Ayya's Schedule", icon: Calendar, path: "/schedule", delay: 0.45 },
+        { title: "Dashboard", icon: LayoutDashboard, path: "/admin-dashboard", delay: 0.3 },
         { title: "Contact", icon: Mail, path: "/contact", delay: 0.5 }
     ];
 

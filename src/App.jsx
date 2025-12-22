@@ -26,6 +26,7 @@ import AdminReview from './pages/AdminReview';
 import EventRegistration from './pages/EventRegistration';
 import PaymentFlow from './pages/PaymentFlow';
 import AdminLogin from './pages/AdminLogin';
+import AdminDashboard from './pages/AdminDashboard';
 
 import ProtectedRoute from './components/ProtectedRoute';
 import { AdminAuthProvider } from './context/AdminAuthContext';
@@ -96,6 +97,7 @@ function AnimatedRoutes() {
         <Route path="/conversations/programs" element={<ProtectedRoute requiredPermission="PROGRAM_CONVERSATIONS"><ProgramConversations /></ProtectedRoute>} />
         <Route path="/schedule/manage" element={<ProtectedRoute requiredPermission="SCHEDULE_MANAGEMENT"><ScheduleManagement /></ProtectedRoute>} />
         <Route path="/admin-review" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><AdminReview /></ProtectedRoute>} />
+        <Route path="/admin-dashboard" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><AdminDashboard /></ProtectedRoute>} />
 
         {/* Public view but management is admin */}
         <Route path="/schedule" element={<AyyasSchedule />} />

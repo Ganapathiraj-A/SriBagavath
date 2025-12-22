@@ -1,7 +1,6 @@
-import { db } from '../firebase';
-import { collection, doc, setDoc, updateDoc, deleteDoc, getDoc, getDocs, onSnapshot, query, orderBy, where, limit, Timestamp } from 'firebase/firestore';
-
-import { auth } from '../firebase';
+import { db, auth } from '../firebase';
+import { collection, doc, setDoc, updateDoc, deleteDoc, getDoc, getDocs, onSnapshot, query, orderBy, where, limit, Timestamp, increment } from 'firebase/firestore';
+import { StatsService } from './StatsService';
 
 export const TransactionService = {
     // Helper to get persistent device ID (Legacy/Fallback)
@@ -54,7 +53,13 @@ export const TransactionService = {
                 base64: base64Image,
                 userId: userId // Attach User ID
             });
+            // Update Image Stats (Rough estimate of size from Base64 length)
+            const sizeInBytes = base64Image.length * 0.75;
+            StatsService.recordImage(sizeInBytes).catch(() => { });
         }
+
+        // 3. Update Participant Stats
+        StatsService.recordRegistration(participants.length, true).catch(() => { });
 
         return txId;
     },
@@ -120,9 +125,16 @@ export const TransactionService = {
 
     // Delete Transaction
     deleteTransaction: async (id) => {
-        await deleteDoc(doc(db, "transactions", id));
-        // Also try delete image (fire and forget)
-        deleteDoc(doc(db, "transaction_images", id)).catch(e => console.warn("Img delete failed", e));
+        const docRef = doc(db, "transactions", id);
+        const snap = await getDoc(docRef);
+        if (snap.exists()) {
+            await deleteDoc(docRef);
+            // Also try delete image (fire and forget)
+            deleteDoc(doc(db, "transaction_images", id)).catch(e => console.warn("Img delete failed", e));
+            // Update Stats (Decrement)
+            const count = snap.data().participantCount || (snap.data().participants?.length) || 1;
+            StatsService.recordRegistration(count, false).catch(() => { });
+        }
     },
 
     // Delete All Verified (Batch)

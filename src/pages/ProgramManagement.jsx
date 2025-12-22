@@ -12,6 +12,8 @@ import { signOut } from 'firebase/auth';
 // Removed storage imports as we are using Base664 in Firestore
 import { tamilnaduCities } from '../data/tamilnaduCities';
 import { TransactionService } from '../services/TransactionService';
+import { StatsService } from '../services/StatsService';
+import { increment as firestoreIncrement } from 'firebase/firestore';
 
 // Helper to compress image to Base64
 // Helper to compress image to Base64
@@ -415,6 +417,8 @@ const ProgramManagement = () => {
                 const docRef = await addDoc(collection(db, 'programs'), programData);
                 programId = docRef.id;
                 alert('Program added successfully!');
+                // Update Program Stats
+                StatsService.recordProgram().catch(() => { });
             }
 
             // Save Banner separately if present
@@ -423,6 +427,9 @@ const ProgramManagement = () => {
                     banner: bannerUrl,
                     updatedAt: new Date().toISOString()
                 });
+                // Update Image Stats
+                const sizeInBytes = bannerUrl.length * 0.75;
+                StatsService.recordImage(sizeInBytes).catch(() => { });
             }
 
             resetForm();
@@ -449,6 +456,8 @@ const ProgramManagement = () => {
                 await deleteDoc(doc(db, 'programs', programId));
                 // Also delete banner if exists
                 await deleteDoc(doc(db, 'program_banners', programId)).catch(() => { });
+                // Update Stats
+                StatsService.recordProgram(false).catch(() => { });
                 alert('Program deleted successfully!');
                 loadPrograms();
             }
