@@ -13,6 +13,12 @@ const EventRegistration = () => {
     useEffect(() => {
         if (!program) {
             navigate('/programs');
+        } else {
+            // Track screen view and registration start
+            const Analytics = import('../utils/Analytics').then(m => {
+                m.default.trackScreenView('Event Registration');
+                m.default.trackRegistrationStart(program.programName, program.id);
+            });
         }
     }, [program, navigate]);
 
@@ -138,6 +144,11 @@ const EventRegistration = () => {
         }
 
         const totalAmount = calculateTotal();
+
+        // Track Proceed to Payment
+        import('../utils/Analytics').then(m => {
+            m.default.trackPaymentInitiated('registration_flow', totalAmount);
+        });
 
         navigate('/payment-flow', {
             replace: true, // Replace history so Back goes to Programs

@@ -26,3 +26,7 @@ export const storage = getStorage(app);
 // Initialize Auth
 import { getAuth } from 'firebase/auth';
 export const auth = getAuth(app);
+
+// Initialize Analytics
+import { getAnalytics, isSupported } from 'firebase/analytics';
+export const analytics = isSupported().then(yes => yes ? getAnalytics(app) : null);

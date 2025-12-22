@@ -164,6 +164,14 @@ const Programs = () => {
                 // text: `Check out this program: ${program.programName}`, // REMOVED as per request
                 files: [result.uri]
             });
+
+            // Track Share
+            import('../utils/Analytics').then(m => {
+                m.default.logEvent('share_program_banner', {
+                    program_name: program.programName,
+                    program_id: program.id
+                });
+            });
         } catch (error) {
             console.error('Error sharing banner:', error);
             // Fallback to clipboard if sharing fails
@@ -195,6 +203,14 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
             await Share.share({
                 title: program.programName,
                 text: text,
+            });
+
+            // Track Share
+            import('../utils/Analytics').then(m => {
+                m.default.logEvent('share_program_text', {
+                    program_name: program.programName,
+                    program_id: program.id
+                });
             });
         } catch (error) {
             console.error('Error sharing:', error);

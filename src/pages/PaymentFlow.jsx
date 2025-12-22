@@ -39,6 +39,11 @@ const PaymentFlow = () => {
         if (!amount && !location.state) {
             // Fallback if accessed directly
             navigate('/programs');
+        } else {
+            // Track screen view
+            import('../utils/Analytics').then(m => {
+                m.default.trackScreenView('Payment Flow');
+            });
         }
     }, [amount, navigate, location.state]);
 
@@ -132,6 +137,11 @@ const PaymentFlow = () => {
                 programCity: location.state?.programCity || ""
             }, image);
 
+            // Track Success
+            import('../utils/Analytics').then(m => {
+                m.default.trackPaymentSuccess(parseFloat(submissionAmount), location.state?.programId || "");
+            });
+
             alert("Transaction Submitted Successfully!\n\nPlease check status at My Registration.");
             navigate('/my-registrations', { replace: true });
         } catch (e) {
@@ -153,6 +163,12 @@ const PaymentFlow = () => {
                         string: "sribagavathmission.63022941@hdfcbank"
                     });
                     GPayUtils.saveQRCode(qrImage);
+
+                    // Track UPI Copy
+                    import('../utils/Analytics').then(m => {
+                        m.default.logEvent('qr_upi_copy');
+                    });
+
                     setCurrentStep('INSTRUCTIONS');
                 }}
             >
@@ -202,7 +218,13 @@ const PaymentFlow = () => {
                 <p><strong>3.</strong> Pay the amount: <b>₹{amount}</b></p>
                 <p><strong>4.</strong> After payment, click <b>Share Screenshot</b> &rarr; <b>More</b> &rarr; <b>SriBagavath</b>.</p>
             </div>
-            <button className="btn-primary full-width" style={{ marginTop: '16px' }} onClick={() => GPayUtils.openGPay()}>
+            <button className="btn-primary full-width" style={{ marginTop: '16px' }} onClick={() => {
+                GPayUtils.openGPay();
+                // Track GPay Initiation
+                import('../utils/Analytics').then(m => {
+                    m.default.trackPaymentInitiated('GPay', amount);
+                });
+            }}>
                 GPay: Paste UPI ID + Pay &rarr; Share Screenshot
             </button>
 

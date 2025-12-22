@@ -35,6 +35,13 @@ function AnimatedRoutes() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Centralized Screen Tracking
+  useEffect(() => {
+    const Analytics = import('./utils/Analytics').then(m => {
+      m.default.trackScreenView(location.pathname === '/' ? 'Home' : location.pathname);
+    });
+  }, [location.pathname]);
+
   // Handle Android hardware back button via Capacitor
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) {
