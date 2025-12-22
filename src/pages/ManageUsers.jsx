@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { collection, query, getDocs, onSnapshot, doc, setDoc, deleteDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import PageHeader from '../components/PageHeader';
-import { Check, X, Shield, Mail, Calendar, Trash2, Edit } from 'lucide-react';
+import { Check, X, Shield, Mail, Calendar, Trash2, Edit, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const ALL_PERMISSIONS = [
@@ -99,7 +99,7 @@ const ManageUsers = () => {
     };
 
     return (
-        <div style={{ backgroundColor: '#f9fafb', minHeight: '100vh' }}>
+        <div style={{ backgroundColor: 'white', minHeight: '100vh' }}>
             <PageHeader title="User Management" />
 
             <div style={{ maxWidth: '48rem', margin: '0 auto', padding: '1.5rem' }}>
@@ -156,9 +156,19 @@ const ManageUsers = () => {
                                 </div>
                             )}
 
-                            <div style={{ display: 'flex', gap: '10px', marginTop: '20px', justifyContent: 'flex-end' }}>
-                                <button onClick={() => setSelectedUser(null)} className="btn-secondary">Cancel</button>
-                                <button onClick={handleSave} className="btn-primary">
+                            <div style={{ display: 'flex', gap: '12px', marginTop: '24px', justifyContent: 'center' }}>
+                                <button
+                                    onClick={() => setSelectedUser(null)}
+                                    className="btn-secondary"
+                                    style={{ borderRadius: '24px', flex: 1 }}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleSave}
+                                    className="btn-primary"
+                                    style={{ borderRadius: '24px', flex: 1 }}
+                                >
                                     {isEditing ? 'Save Changes' : 'Add User'}
                                 </button>
                             </div>
@@ -167,15 +177,31 @@ const ManageUsers = () => {
                 )}
 
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                    <h2 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0, color: '#111827' }}>Authorized Administrators</h2>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '2rem' }}>
                     <button
                         onClick={openAddModal}
-                        className="btn-primary"
-                        style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '8px' }}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '0.5rem',
+                            padding: '0.75rem 1.5rem',
+                            backgroundColor: 'var(--color-primary)',
+                            color: 'white',
+                            borderRadius: '0.5rem',
+                            fontWeight: 500,
+                            cursor: 'pointer',
+                            border: 'none',
+                            width: '100%'
+                        }}
                     >
+                        <Plus size={20} />
                         Add User
                     </button>
+
+                    <h2 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0, color: '#111827' }}>
+                        Authorized Administrators
+                    </h2>
                 </div>
 
                 {loading ? (
