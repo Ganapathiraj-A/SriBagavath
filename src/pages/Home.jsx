@@ -1,7 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { User, Calendar, BookOpen, Video, Mail, Settings } from 'lucide-react';
+import { User, Calendar, BookOpen, Video, Mail, Settings, LogIn, LogOut } from 'lucide-react';
+import { useAdminAuth } from '../context/AdminAuthContext';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { auth } from '../firebase';
+import { signOut, GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
 
 const MenuButton = ({ title, icon: Icon, path, delay }) => {
     const navigate = useNavigate();
@@ -47,6 +51,62 @@ const MenuButton = ({ title, icon: Icon, path, delay }) => {
 };
 
 const Home = () => {
+    const { user, isAdmin } = useAdminAuth();
+    const [authLoading, setAuthLoading] = React.useState(false);
+    const navigate = useNavigate();
+
+    const handleGoogleLogin = async () => {
+        setAuthLoading(true);
+        try {
+            const googleUser = await GoogleAuth.signIn();
+            const idToken = googleUser?.authentication?.idToken;
+            if (!idToken) throw new Error("No ID Token received");
+
+            const credential = GoogleAuthProvider.credential(idToken);
+            await signInWithCredential(auth, credential);
+        } catch (err) {
+            console.error("Home Sign-in error:", err);
+            alert("Login failed: " + (err.message || err));
+        } finally {
+            setAuthLoading(false);
+        }
+    };
+
+    const handleLogout = async () => {
+        if (confirm("Logout from " + (user?.email || 'this account') + "?")) {
+            setAuthLoading(true);
+            try {
+                await GoogleAuth.signOut();
+                try { await GoogleAuth.disconnect(); } catch (e) { }
+                await signOut(auth);
+            } catch (err) {
+                console.error("Home Logout error:", err);
+            } finally {
+                setAuthLoading(false);
+            }
+        }
+    };
+
+    const isActualUser = user && !user.isAnonymous;
+
+    // Menu Definitions
+    const baseMenu = [
+        { title: "About Bagavath Ayya", icon: User, path: "/about", delay: 0.1 },
+        { title: "Books & Media", icon: BookOpen, path: "/books", delay: 0.2 },
+        { title: "Programs", icon: Calendar, path: "/programs", delay: 0.4 },
+        { title: "Ayya's Schedule", icon: Calendar, path: "/schedule", delay: 0.45 },
+        { title: "Contact", icon: Mail, path: "/contact", delay: 0.5 }
+    ];
+
+    // Admin Button (Conditional)
+    const adminButton = { title: "Admin", icon: Settings, path: "/configuration", delay: 0.6 };
+
+    // Final Menu List
+    let menuItems = [...baseMenu];
+    if (isAdmin) {
+        // Splice in Admin at 2nd position (Index 1)
+        menuItems.splice(1, 0, adminButton);
+    }
     return (
         <div style={{
             minHeight: '100vh',
@@ -87,15 +147,64 @@ const Home = () => {
                     </div>
                     <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.5rem' }}>Sri Bagavath Mission</h1>
                     <p style={{ color: '#6b7280' }}>Welcome to the official app</p>
+
+                    <div style={{ marginTop: '0.5rem' }}>
+                        {isActualUser ? (
+                            <button
+                                onClick={handleLogout}
+                                disabled={authLoading}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    color: '#dc2626',
+                                    fontSize: '0.9rem',
+                                    fontWeight: 500,
+                                    cursor: 'pointer',
+                                    textDecoration: 'underline',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                    margin: '0 auto'
+                                }}
+                            >
+                                <LogOut size={14} />
+                                Logout ({user.email})
+                            </button>
+                        ) : (
+                            <button
+                                onClick={handleGoogleLogin}
+                                disabled={authLoading}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    color: 'var(--color-primary)',
+                                    fontSize: '0.9rem',
+                                    fontWeight: 500,
+                                    cursor: 'pointer',
+                                    textDecoration: 'underline',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                    margin: '0 auto'
+                                }}
+                            >
+                                <LogIn size={14} />
+                                {authLoading ? 'Signing in...' : 'Sign in for full access'}
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <MenuButton title="About Bagavath Ayya" icon={User} path="/about" delay={0.1} />
-                    <MenuButton title="Books & Media" icon={BookOpen} path="/books" delay={0.2} />
-                    <MenuButton title="Programs" icon={Calendar} path="/programs" delay={0.4} />
-                    <MenuButton title="Ayya's Schedule" icon={Calendar} path="/schedule" delay={0.45} />
-                    <MenuButton title="Contact" icon={Mail} path="/contact" delay={0.5} />
-                    <MenuButton title="Admin" icon={Settings} path="/configuration" delay={0.6} />
+                    {menuItems.map((item, idx) => (
+                        <MenuButton
+                            key={item.path}
+                            title={item.title}
+                            icon={item.icon}
+                            path={item.path}
+                            delay={item.delay}
+                        />
+                    ))}
                 </div>
             </motion.div>
         </div>

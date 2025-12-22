@@ -71,10 +71,20 @@ export const TransactionService = {
         });
     },
 
-    // Get live stream of USER transactions
+    // Get live stream of USER transactions (Support Account-based Recovery)
     streamUserTransactions: (callback) => {
-        const dId = TransactionService.getDeviceId();
-        const q = query(collection(db, "transactions"), where("deviceId", "==", dId));
+        const user = auth.currentUser;
+        let q;
+
+        if (user && !user.isAnonymous) {
+            // Priority 1: Registered with Account (Persists after Reinstall)
+            q = query(collection(db, "transactions"), where("userId", "==", user.uid));
+        } else {
+            // Priority 2: Device-based (Lost on Reinstall/Clear Data)
+            const dId = TransactionService.getDeviceId();
+            q = query(collection(db, "transactions"), where("deviceId", "==", dId));
+        }
+
         return onSnapshot(q, (snapshot) => {
             const txs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
             // Client-side sort to avoid composite index requirement

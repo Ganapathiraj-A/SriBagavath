@@ -4,8 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { Calendar, Shield, Code, LogOut, Users } from 'lucide-react';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { useAdminAuth } from '../context/AdminAuthContext';
 
-const ConfigButton = ({ title, icon: Icon, path, delay, onClick: customOnClick, color = 'var(--color-primary)', bgColor = '#fff7ed' }) => {
+const ConfigButton = ({ title, subtitle, icon: Icon, path, delay, onClick: customOnClick, color = 'var(--color-primary)', bgColor = '#fff7ed' }) => {
     const navigate = useNavigate();
 
     return (
@@ -43,16 +45,30 @@ const ConfigButton = ({ title, icon: Icon, path, delay, onClick: customOnClick, 
             }}>
                 <Icon size={24} color={color} />
             </div>
-            <span style={{ fontSize: '1.125rem', fontWeight: 500, color: '#1f2937' }}>{title}</span>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontSize: '1.125rem', fontWeight: 500, color: '#1f2937' }}>{title}</span>
+                {subtitle && <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>{subtitle}</span>}
+            </div>
         </motion.button>
     );
 };
 
 const Configuration = () => {
     const navigate = useNavigate();
+    const { user } = useAdminAuth();
 
     const handleLogout = async () => {
         if (confirm("Are you sure you want to logout?")) {
+            try {
+                await GoogleAuth.signOut();
+                try {
+                    await GoogleAuth.disconnect();
+                } catch (dErr) {
+                    console.warn("Disconnect failed:", dErr);
+                }
+            } catch (e) {
+                console.warn("Google SignOut Error", e);
+            }
             try {
                 await signOut(auth);
                 navigate('/', { replace: true });
@@ -95,6 +111,7 @@ const Configuration = () => {
                         <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #f3f4f6' }}>
                             <ConfigButton
                                 title="Logout"
+                                subtitle={user?.email}
                                 icon={LogOut}
                                 delay={0.25}
                                 onClick={handleLogout}

@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from
 import { AnimatePresence } from 'framer-motion';
 import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import Home from './pages/Home';
 import About from './pages/About';
 import Programs from './pages/Programs';
@@ -28,6 +29,7 @@ import AdminLogin from './pages/AdminLogin';
 
 import ProtectedRoute from './components/ProtectedRoute';
 import { AdminAuthProvider } from './context/AdminAuthContext';
+import ErrorBoundary from './components/ErrorBoundary';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -79,13 +81,14 @@ function AnimatedRoutes() {
         <Route path="/admin-login" element={<AdminLogin />} />
 
         {/* Admin Routes */}
-        <Route path="/configuration" element={<ProtectedRoute><Configuration /></ProtectedRoute>} />
-        <Route path="/program" element={<ProtectedRoute><ProgramManagement /></ProtectedRoute>} />
-        <Route path="/configuration/program-types" element={<ProtectedRoute><ProgramTypesManagement /></ProtectedRoute>} />
-        <Route path="/manage-users" element={<ProtectedRoute><ManageUsers /></ProtectedRoute>} />
-        <Route path="/conversations/programs" element={<ProtectedRoute><ProgramConversations /></ProtectedRoute>} />
-        <Route path="/schedule/manage" element={<ProtectedRoute><ScheduleManagement /></ProtectedRoute>} />
-        <Route path="/admin-review" element={<ProtectedRoute><AdminReview /></ProtectedRoute>} />
+        {/* Admin Routes */}
+        <Route path="/configuration" element={<ProtectedRoute requiredPermission="CONFIGURATION"><Configuration /></ProtectedRoute>} />
+        <Route path="/program" element={<ProtectedRoute requiredPermission="PROGRAM_MANAGEMENT"><ProgramManagement /></ProtectedRoute>} />
+        <Route path="/configuration/program-types" element={<ProtectedRoute requiredPermission="PROGRAM_TYPES"><ProgramTypesManagement /></ProtectedRoute>} />
+        <Route path="/manage-users" element={<ProtectedRoute requiredPermission="MANAGE_USERS"><ManageUsers /></ProtectedRoute>} />
+        <Route path="/conversations/programs" element={<ProtectedRoute requiredPermission="PROGRAM_CONVERSATIONS"><ProgramConversations /></ProtectedRoute>} />
+        <Route path="/schedule/manage" element={<ProtectedRoute requiredPermission="SCHEDULE_MANAGEMENT"><ScheduleManagement /></ProtectedRoute>} />
+        <Route path="/admin-review" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><AdminReview /></ProtectedRoute>} />
 
         {/* Public view but management is admin */}
         <Route path="/schedule" element={<AyyasSchedule />} />
@@ -95,10 +98,29 @@ function AnimatedRoutes() {
 }
 
 function App() {
+  useEffect(() => {
+    // Centralized initialization for GoogleAuth
+    const initGoogle = async () => {
+      try {
+        await GoogleAuth.initialize({
+          clientId: '358075696780-qufnh6jj5vl6bn3hogihp5uficngu4in.apps.googleusercontent.com',
+          scopes: ['profile', 'email'],
+          grantOfflineAccess: true,
+        });
+        console.log("Root GoogleAuth initialized");
+      } catch (e) {
+        console.warn("Root GoogleAuth init error (safe if already init):", e);
+      }
+    };
+    initGoogle();
+  }, []);
+
   return (
     <Router>
       <AdminAuthProvider>
-        <AnimatedRoutes />
+        <ErrorBoundary>
+          <AnimatedRoutes />
+        </ErrorBoundary>
       </AdminAuthProvider>
     </Router>
   );

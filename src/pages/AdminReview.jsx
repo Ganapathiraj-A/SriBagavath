@@ -13,8 +13,9 @@ const TAB_LABELS = {
     'BNK_VERIFIED': 'Completed'
 };
 
-import { LogOut } from 'lucide-react';
 import { signOut } from 'firebase/auth';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { auth } from '../firebase';
 
 const AdminReview = () => {
     const navigate = useNavigate();
@@ -26,6 +27,16 @@ const AdminReview = () => {
 
     const handleLogout = async () => {
         if (confirm("Logout?")) {
+            try {
+                await GoogleAuth.signOut();
+                try {
+                    await GoogleAuth.disconnect();
+                } catch (dErr) {
+                    console.warn("Disconnect failed:", dErr);
+                }
+            } catch (e) {
+                console.warn("Google SignOut Error", e);
+            }
             await signOut(auth);
             navigate('/');
         }
@@ -283,7 +294,7 @@ const AdminReview = () => {
             <PageHeader
                 title="Registration"
                 rightAction={
-                    <button onClick={handleLogout} className="btn-icon" style={{ background: 'none', border: 'none', color: '#dc2626' }}>
+                    <button onClick={handleLogout} className="btn-icon" style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer' }}>
                         <LogOut size={20} />
                     </button>
                 }

@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { motion, Reorder } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Edit2, Trash2, Save, X, GripVertical, ChevronUp, ChevronDown } from 'lucide-react';
-import { db } from '../firebase';
+import { db, auth } from '../firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy, setDoc } from 'firebase/firestore';
-
-import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { LogOut } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 
@@ -15,6 +14,17 @@ const ProgramTypesManagement = () => {
 
     const handleLogout = async () => {
         if (confirm("Logout?")) {
+            try {
+                await GoogleAuth.signOut();
+                try {
+                    await GoogleAuth.disconnect();
+                } catch (dErr) {
+                    console.warn("Disconnect failed:", dErr);
+                }
+                alert("Signed out. You should see the account picker next time.");
+            } catch (e) {
+                console.warn("Google SignOut Error", e);
+            }
             await signOut(auth);
             navigate('/');
         }

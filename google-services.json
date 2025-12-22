@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "358075696780",
+    "project_id": "antigravity-app-5c1ff",
+    "storage_bucket": "antigravity-app-5c1ff.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:358075696780:android:745fa93d174052e989dda9",
+        "android_client_info": {
+          "package_name": "com.bhavathpathai.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "358075696780-iqm7jcn8qmdq19sit3h98go434s008pb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.bhavathpathai.app",
+            "certificate_hash": "5c2ef9fa09814819ab5bd5bfa6e2e122c7979565"
+          }
+        },
+        {
+          "client_id": "358075696780-qufnh6jj5vl6bn3hogihp5uficngu4in.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAKduVLomDvJtkYJV_yK27h6-WgU76FSpE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "358075696780-qufnh6jj5vl6bn3hogihp5uficngu4in.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

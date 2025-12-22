@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { cleanupOldSchedules } from '../utils/cleanup';
 import { motion } from 'framer-motion';
 import { Plus, Edit2, Trash2, Calendar as CalendarIcon, MapPin } from 'lucide-react';
-import { db } from '../firebase';
+import { db, auth } from '../firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy, where, limit } from 'firebase/firestore';
 import { LogOut } from 'lucide-react';
 import { signOut } from 'firebase/auth';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 
@@ -15,6 +16,16 @@ const ScheduleManagement = () => {
 
     const handleLogout = async () => {
         if (confirm("Logout?")) {
+            try {
+                await GoogleAuth.signOut();
+                try {
+                    await GoogleAuth.disconnect();
+                } catch (dErr) {
+                    console.warn("Disconnect failed:", dErr);
+                }
+            } catch (e) {
+                console.warn("Google SignOut Error", e);
+            }
             await signOut(auth);
             navigate('/');
         }

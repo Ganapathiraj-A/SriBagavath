@@ -4,7 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, MapPin, AlertCircle, Share2 } from 'lucide-react';
 import { Share } from '@capacitor/share';
 import { Filesystem, Directory } from '@capacitor/filesystem';
-import { db } from '../firebase';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { auth, db } from '../firebase';
+import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
 import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
 
 import '../components/RegistrationStyles.css';
@@ -22,6 +24,30 @@ const Programs = () => {
     const viewingProgramId = searchParams.get('id');
     // Prioritize specificProgram if available, otherwise look in the main list
     const viewingProgram = specificProgram || programs.find(p => p.id === viewingProgramId);
+
+    const [authLoading, setAuthLoading] = useState(false);
+
+    const ensureAuth = async () => {
+        if (auth.currentUser && !auth.currentUser.isAnonymous) {
+            return true;
+        }
+
+        setAuthLoading(true);
+        try {
+            const googleUser = await GoogleAuth.signIn();
+            const idToken = googleUser?.authentication?.idToken;
+            if (!idToken) throw new Error("No ID Token received");
+
+            const credential = GoogleAuthProvider.credential(idToken);
+            await signInWithCredential(auth, credential);
+            return true;
+        } catch (err) {
+            console.error("Auth failed:", err);
+            return false;
+        } finally {
+            setAuthLoading(false);
+        }
+    };
 
     useEffect(() => {
         const fetchPrograms = async () => {
@@ -399,14 +425,20 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
 
                             <div style={{ textAlign: 'center', marginBottom: '20px' }}>
                                 <button
-                                    onClick={() => navigate('/my-registrations')}
+                                    onClick={async () => {
+                                        if (await ensureAuth()) {
+                                            navigate('/my-registrations');
+                                        }
+                                    }}
                                     className="btn-primary"
+                                    disabled={authLoading}
                                     style={{
                                         width: 'auto', // Override 100% width
-                                        padding: '10px 24px'
+                                        padding: '10px 24px',
+                                        opacity: authLoading ? 0.7 : 1
                                     }}
                                 >
-                                    My Registrations
+                                    {authLoading ? 'Signing in...' : 'My Registrations'}
                                 </button>
                             </div>
 
@@ -481,16 +513,22 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
 
                                                     {program.registrationStatus === 'Open' ? (
                                                         <button
-                                                            onClick={() => navigate('/event-registration', { state: { program } })}
+                                                            onClick={async () => {
+                                                                if (await ensureAuth()) {
+                                                                    navigate('/event-registration', { state: { program } });
+                                                                }
+                                                            }}
                                                             className="btn-primary"
+                                                            disabled={authLoading}
                                                             style={{
                                                                 width: 'auto',
                                                                 padding: '0.5rem 1rem',
                                                                 fontSize: '0.875rem',
-                                                                borderRadius: '20px' // Match other buttons
+                                                                borderRadius: '20px', // Match other buttons
+                                                                opacity: authLoading ? 0.7 : 1
                                                             }}
                                                         >
-                                                            Register Now
+                                                            {authLoading ? '...' : 'Register Now'}
                                                         </button>
                                                     ) : (
                                                         <span style={{

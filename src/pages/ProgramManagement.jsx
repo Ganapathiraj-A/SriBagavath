@@ -3,8 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Plus, Edit2, Trash2, Calendar as CalendarIcon, ChevronDown, ChevronUp } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
-import { db } from '../firebase';
+import { db, auth } from '../firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { LogOut } from 'lucide-react';
+import { signOut } from 'firebase/auth';
 // Removed storage imports as we are using Base64 in Firestore
 // Removed storage imports as we are using Base664 in Firestore
 import { tamilnaduCities } from '../data/tamilnaduCities';
@@ -93,14 +96,21 @@ const CITIES = ['Salem', 'Chennai', 'Others'];
 
 const SALEM_VENUE = "Sri Bagavath Bhavan, Kodambakkadu, Periyakoundapuram, Karippatti, Salem, Tamil Nadu 636106";
 
-import { LogOut } from 'lucide-react';
-import { signOut } from 'firebase/auth';
-
 const ProgramManagement = () => {
     const navigate = useNavigate();
 
     const handleLogout = async () => {
         if (confirm("Logout?")) {
+            try {
+                await GoogleAuth.signOut();
+                try {
+                    await GoogleAuth.disconnect();
+                } catch (dErr) {
+                    console.warn("Disconnect failed:", dErr);
+                }
+            } catch (e) {
+                console.warn("Google SignOut Error", e);
+            }
             await signOut(auth);
             navigate('/');
         }

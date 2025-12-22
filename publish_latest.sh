@@ -32,6 +32,9 @@ fi
 # 2.1 Ensure Java 21 in all build files
 echo "Ensuring Java 21 in build files..."
 grep -r "VERSION_17" android --include="*.gradle" -l | xargs -r sed -i 's/VERSION_17/VERSION_21/g'
+# 2.2 Ensure google-services.json
+echo "Syncing google-services.json..."
+cp google-services.json android/app/google-services.json
 
 # 3. Build APK
 echo "Building APK..."

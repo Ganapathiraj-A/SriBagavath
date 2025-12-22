@@ -59,11 +59,13 @@ public class OCRPlugin extends Plugin {
     @PluginMethod
     public void checkSharedImage(PluginCall call) {
         if (pendingSharedImageBase64 != null) {
+            Log.d("OCR_PLUGIN", "Found shared image buffer, sending to JS...");
             JSObject ret = new JSObject();
             ret.put("base64", pendingSharedImageBase64);
             pendingSharedImageBase64 = null;
             call.resolve(ret);
         } else {
+            Log.d("OCR_PLUGIN", "checkSharedImage called, but buffer is null");
             call.resolve();
         }
     }

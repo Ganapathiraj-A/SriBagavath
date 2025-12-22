@@ -1,5 +1,16 @@
 {
   "appId": "com.bhavathpathai.app",
   "appName": "Sri Bagavath",
-  "webDir": "dist"
+  "webDir": "dist",
+  "plugins": {
+    "GoogleAuth": {
+      "scopes": [
+        "profile",
+        "email"
+      ],
+      "serverClientId": "358075696780-qufnh6jj5vl6bn3hogihp5uficngu4in.apps.googleusercontent.com",
+      "androidClientId": "358075696780-iqm7jcn8qmdq19sit3h98go434s008pb.apps.googleusercontent.com",
+      "forceCodeForRefreshToken": true
+    }
+  }
 }

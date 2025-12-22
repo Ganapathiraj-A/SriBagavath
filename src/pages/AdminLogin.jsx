@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'firebase/auth';
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { doc, setDoc, Timestamp } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { useAdminAuth } from '../context/AdminAuthContext';
@@ -18,28 +19,14 @@ const AdminLogin = () => {
 
     // Get the page the user was trying to access
     const from = location.state?.from?.pathname || '/admin-review';
-
     useEffect(() => {
-        // Handle Google Redirect Result
-        const checkRedirect = async () => {
-            try {
-                const result = await getRedirectResult(auth);
-                if (result) {
-                    // Auth state will be updated by AdminAuthContext
-                    console.log("Logged in with Google:", result.user.email);
-                }
-            } catch (err) {
-                console.error("Redirect error", err);
-                setError("Google login failed: " + err.message);
-            }
-        };
-        checkRedirect();
-
         // If already admin, redirect away
         if (!authLoading && isAdmin) {
             navigate(from, { replace: true });
         }
     }, [isAdmin, authLoading, navigate, from]);
+
+
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -56,32 +43,80 @@ const AdminLogin = () => {
     const handleGoogleLogin = async () => {
         setLoading(true);
         setError('');
-        const provider = new GoogleAuthProvider();
+        console.log("handleGoogleLogin initiated");
         try {
-            await signInWithRedirect(auth, provider);
+            console.log("Calling GoogleAuth.signIn()...");
+            const googleUser = await GoogleAuth.signIn();
+            console.log("GoogleAuth.signIn success:", JSON.stringify(googleUser));
+
+            const idToken = googleUser?.authentication?.idToken;
+            if (!idToken) {
+                console.error("No ID Token received:", googleUser);
+                throw new Error("No ID Token received. Please try again.");
+            }
+
+            console.log("Signing in to Firebase...");
+            const credential = GoogleAuthProvider.credential(idToken);
+            const result = await signInWithCredential(auth, credential);
+            console.log("Firebase sign-in success for:", result.user.email);
+
+            // Redirect or state update will be handled by onAuthStateChanged in AdminAuthContext
         } catch (err) {
-            setError('Google login failed: ' + err.message);
+            console.error("Google login error detail:", err);
+            let msg = 'Unknown error';
+            if (err.message) msg = err.message;
+            else if (typeof err === 'string') msg = err;
+            else if (err.error) msg = err.error;
+            else msg = JSON.stringify(err);
+
+            setError('Google login failed: ' + msg);
             setLoading(false);
         }
     };
 
     const handleRequestAccess = async () => {
         if (!user) return;
+        console.log("Starting handleRequestAccess for user:", user.uid);
         setLoading(true);
         try {
+            console.log("Writing to Firestore...");
+            // Use setDoc with merge: true to avoid overwriting existing data if unnecessary, 
+            // but here we want to ensure status is PENDING and timestamp is updated.
             await setDoc(doc(db, 'admin_requests', user.uid), {
                 email: user.email,
                 displayName: user.displayName || '',
                 timestamp: Timestamp.now(),
                 status: 'PENDING'
             });
+            console.log("Firestore write successful.");
+
+            // Update local state immediately before alert
             setIsPending(true);
-            alert("Access request sent! Please wait for an existing admin to approve you.");
+
+            alert("Access request sent! Please wait for approval.");
+
         } catch (err) {
+            console.error("Request failed:", err);
             setError('Request failed: ' + err.message);
         } finally {
+            console.log("Finishing handleRequestAccess");
             setLoading(false);
         }
+    };
+
+    const handleSignOut = async () => {
+        try {
+            await GoogleAuth.signOut();
+            try {
+                await GoogleAuth.disconnect();
+            } catch (dErr) {
+                console.warn("Disconnect failed:", dErr);
+            }
+        } catch (error) {
+            console.warn("GoogleAuth signout error:", error);
+        }
+        await auth.signOut();
+        navigate('/');
     };
 
     if (authLoading) {
@@ -168,28 +203,12 @@ const AdminLogin = () => {
                         <div style={{ textAlign: 'center', padding: '1rem' }}>
                             <div style={{ marginBottom: '1.5rem', color: '#4b5563' }}>
                                 <p>Signed in as: <b>{user.email}</b></p>
-                                {isPending ? (
-                                    <div style={{ backgroundColor: '#fff7ed', color: '#c2410c', padding: '1rem', borderRadius: '0.75rem', marginTop: '1rem' }}>
-                                        <b>Access Request Pending</b>
-                                        <p style={{ fontSize: '13px', marginTop: '0.5rem' }}>An administrator needs to approve your request before you can access management tools.</p>
-                                    </div>
-                                ) : (
-                                    <div style={{ backgroundColor: '#fef2f2', color: '#dc2626', padding: '1rem', borderRadius: '0.75rem', marginTop: '1rem' }}>
-                                        <b>Unauthorized</b>
-                                        <p style={{ fontSize: '13px', marginTop: '0.5rem' }}>You do not have administrative privileges.</p>
-                                        <button
-                                            type="button"
-                                            onClick={handleRequestAccess}
-                                            className="btn-primary"
-                                            style={{ marginTop: '1rem', width: '100%', background: '#dc2626' }}
-                                            disabled={loading}
-                                        >
-                                            {loading ? 'Sending Request...' : 'Request Admin Access'}
-                                        </button>
-                                    </div>
-                                )}
+                                <div style={{ backgroundColor: '#fef2f2', color: '#dc2626', padding: '1rem', borderRadius: '0.75rem', marginTop: '1rem' }}>
+                                    <b>Unauthorized</b>
+                                    <p style={{ fontSize: '13px', marginTop: '0.5rem' }}>You do not have administrative privileges. Please contact an administrator to grant you access.</p>
+                                </div>
                             </div>
-                            <button type="button" onClick={() => auth.signOut()} style={{ color: '#6b7280', background: 'none', border: 'none', textDecoration: 'underline', cursor: 'pointer' }}>Sign out</button>
+                            <button type="button" onClick={handleSignOut} style={{ color: '#6b7280', background: 'none', border: 'none', textDecoration: 'underline', cursor: 'pointer' }}>Sign out</button>
                         </div>
                     )}
 
