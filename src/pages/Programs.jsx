@@ -280,52 +280,6 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
                             )}
 
 
-                            <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
-                                <div style={{ display: 'flex', gap: '1rem' }}>
-                                    <button
-                                        onClick={() => handleShare(viewingProgram)}
-                                        style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '0.5rem',
-                                            color: 'var(--color-primary)',
-                                            background: 'none',
-                                            border: '1px solid var(--color-primary)',
-                                            padding: '0.5rem 1rem',
-                                            borderRadius: '0.375rem',
-                                            fontSize: '0.875rem',
-                                            fontWeight: 500,
-                                            cursor: 'pointer'
-                                        }}
-                                        title="Share Text"
-                                    >
-                                        <Share2 size={16} />
-                                        Text
-                                    </button>
-                                    <button
-                                        onClick={() => handleShareBanner(viewingProgram)}
-                                        style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '0.5rem',
-                                            color: 'var(--color-primary)',
-                                            background: 'none',
-                                            border: '1px solid var(--color-primary)',
-                                            padding: '0.5rem 1rem',
-                                            borderRadius: '0.375rem',
-                                            fontSize: '0.875rem',
-                                            fontWeight: 500,
-                                            cursor: 'pointer'
-                                        }}
-                                        title="Share Banner"
-                                    >
-                                        <Share2 size={16} />
-                                        Banner
-                                    </button>
-                                </div>
-
-                            </div>
-
                             {/* Details Section - Logic: Show if NO banner OR if toggle is active (REPLACES banner) */}
                             {(!viewingProgram.programBanner || showTextDetails) && (
                                 <div
@@ -333,7 +287,8 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
                                         display: 'grid',
                                         gap: '1.5rem',
                                         color: '#374151',
-                                        cursor: viewingProgram.programBanner ? 'pointer' : 'default'
+                                        cursor: viewingProgram.programBanner ? 'pointer' : 'default',
+                                        marginBottom: '1.5rem'
                                     }}
                                     onClick={() => viewingProgram.programBanner && setShowTextDetails(false)}
                                 >
@@ -404,6 +359,51 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
                                     </div>
                                 </div>
                             )}
+
+                            <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
+                                <div style={{ display: 'flex', gap: '1rem' }}>
+                                    <button
+                                        onClick={() => handleShare(viewingProgram)}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.5rem',
+                                            color: 'var(--color-primary)',
+                                            background: 'none',
+                                            border: '1px solid var(--color-primary)',
+                                            padding: '0.5rem 1rem',
+                                            borderRadius: '0.375rem',
+                                            fontSize: '0.875rem',
+                                            fontWeight: 500,
+                                            cursor: 'pointer'
+                                        }}
+                                        title="Share Text"
+                                    >
+                                        <Share2 size={16} />
+                                        Text
+                                    </button>
+                                    <button
+                                        onClick={() => handleShareBanner(viewingProgram)}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.5rem',
+                                            color: 'var(--color-primary)',
+                                            background: 'none',
+                                            border: '1px solid var(--color-primary)',
+                                            padding: '0.5rem 1rem',
+                                            borderRadius: '0.375rem',
+                                            fontSize: '0.875rem',
+                                            fontWeight: 500,
+                                            cursor: 'pointer'
+                                        }}
+                                        title="Share Banner"
+                                    >
+                                        <Share2 size={16} />
+                                        Banner
+                                    </button>
+                                </div>
+                            </div>
                         </motion.div>
                     ) : (
                         <motion.div

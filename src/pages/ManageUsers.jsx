@@ -192,7 +192,7 @@ const ManageUsers = () => {
                 )}
 
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '2rem' }}>
+                <div style={{ padding: '1rem 0', display: 'flex', justifyContent: 'center' }}>
                     <button
                         onClick={openAddModal}
                         style={{
@@ -207,13 +207,16 @@ const ManageUsers = () => {
                             fontWeight: 500,
                             cursor: 'pointer',
                             border: 'none',
-                            width: '100%'
+                            width: '90%',
+                            maxWidth: '400px'
                         }}
                     >
                         <Plus size={20} />
                         Add User
                     </button>
+                </div>
 
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginBottom: '1.5rem' }}>
                     <h2 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0, color: '#111827', textAlign: 'center' }}>
                         Authorized Administrators
                     </h2>

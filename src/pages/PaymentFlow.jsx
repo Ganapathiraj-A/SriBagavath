@@ -164,7 +164,7 @@ const PaymentFlow = () => {
             <p className="hint-text" style={{ textAlign: 'center' }}>
                 Tap the QR code to save UPI ID to clipboard and proceed
             </p>
-            <button className="btn-secondary full-width" onClick={() => navigate('/event-registration', {
+            <button className="btn-secondary full-width" style={{ marginTop: '20px' }} onClick={() => navigate('/event-registration', {
                 replace: true,
                 state: {
                     program: location.state?.program,
@@ -175,8 +175,11 @@ const PaymentFlow = () => {
     );
 
     const renderInstructions = () => (
-        <div className="instructions-container" style={{ paddingBottom: '80px' }}>
-            <h2>Payment Instructions</h2>
+        <div className="instructions-container" style={{ paddingBottom: '80px', textAlign: 'center' }}>
+            <h2 style={{ textAlign: 'center' }}>Payment Instructions</h2>
+            <p style={{ fontSize: '0.9rem', color: '#6b7280', margin: '4px 0 16px 0' }}>
+                ⬇️ Scroll below to Proceed ⬇️
+            </p>
 
             <div style={{
                 width: '100%',
@@ -199,7 +202,7 @@ const PaymentFlow = () => {
                 <p><strong>3.</strong> Pay the amount: <b>₹{amount}</b></p>
                 <p><strong>4.</strong> After payment, click <b>Share Screenshot</b> &rarr; <b>More</b> &rarr; <b>SriBagavath</b>.</p>
             </div>
-            <button className="btn-primary full-width" onClick={() => GPayUtils.openGPay()}>
+            <button className="btn-primary full-width" style={{ marginTop: '16px' }} onClick={() => GPayUtils.openGPay()}>
                 GPay: Paste UPI ID + Pay &rarr; Share Screenshot
             </button>
 
@@ -365,8 +368,8 @@ const PaymentFlow = () => {
 
     return (
         <div className="payment-container">
-            <header className="header">
-                <h1>Payment & Registration</h1>
+            <header className="header" style={{ textAlign: 'center' }}>
+                <h1 style={{ width: '100%', textAlign: 'center' }}>Payment & Registration</h1>
             </header>
 
             <div className="content-area">
