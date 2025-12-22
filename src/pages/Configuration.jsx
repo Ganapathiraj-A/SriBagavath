@@ -45,9 +45,9 @@ const ConfigButton = ({ title, subtitle, icon: Icon, path, delay, onClick: custo
             }}>
                 <Icon size={24} color={color} />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '1.125rem', fontWeight: 500, color: '#1f2937' }}>{title}</span>
-                {subtitle && <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>{subtitle}</span>}
+            <div style={{ display: 'flex', flexDirection: 'column', width: '100%', overflow: 'hidden' }}>
+                <span style={{ fontSize: '1.125rem', fontWeight: 500, color: '#1f2937', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{title}</span>
+                {subtitle && <span style={{ fontSize: '0.875rem', color: '#6b7280', wordBreak: 'break-all', marginTop: '2px' }}>{subtitle}</span>}
             </div>
         </motion.button>
     );

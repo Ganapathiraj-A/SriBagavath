@@ -6,10 +6,8 @@ import { Check, X, Shield, Mail, Calendar, Trash2, Edit, Plus } from 'lucide-rea
 import { motion } from 'framer-motion';
 
 const ALL_PERMISSIONS = [
-    { id: 'CONFIGURATION', label: 'Configuration' },
     { id: 'PROGRAM_MANAGEMENT', label: 'Program Management' },
     { id: 'PROGRAM_TYPES', label: 'Program Types' },
-    { id: 'PROGRAM_CONVERSATIONS', label: 'Conversations' },
     { id: 'SCHEDULE_MANAGEMENT', label: 'Schedule Management' },
     { id: 'ADMIN_REVIEW', label: 'Admin Review' },
     { id: 'MANAGE_USERS', label: 'Manage Users' },
@@ -216,9 +214,12 @@ const ManageUsers = () => {
                         Add User
                     </button>
 
-                    <h2 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0, color: '#111827' }}>
+                    <h2 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0, color: '#111827', textAlign: 'center' }}>
                         Authorized Administrators
                     </h2>
+                    <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: 0, textAlign: 'center' }}>
+                        Please click to Manage users
+                    </p>
                 </div>
 
                 {loading ? (
