@@ -55,7 +55,7 @@ const ConfigButton = ({ title, subtitle, icon: Icon, path, delay, onClick: custo
 
 const Configuration = () => {
     const navigate = useNavigate();
-    const { user } = useAdminAuth();
+    const { user, hasAccess } = useAdminAuth();
 
     const handleLogout = async () => {
         if (confirm("Are you sure you want to logout?")) {
@@ -102,11 +102,11 @@ const Configuration = () => {
                     </h1>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        <ConfigButton title="Program" icon={Calendar} path="/program" delay={0.1} />
-                        <ConfigButton title="Program Types" icon={Code} path="/configuration/program-types" delay={0.15} />
-                        <ConfigButton title="Ayya's Schedule" icon={Calendar} path="/schedule/manage" delay={0.2} />
-                        <ConfigButton title="Registration" icon={Shield} path="/admin-review" delay={0.2} />
-                        <ConfigButton title="Manage Admins" icon={Users} path="/manage-users" delay={0.22} />
+                        {hasAccess('PROGRAM_MANAGEMENT') && <ConfigButton title="Program" icon={Calendar} path="/program" delay={0.1} />}
+                        {hasAccess('PROGRAM_TYPES') && <ConfigButton title="Program Types" icon={Code} path="/configuration/program-types" delay={0.15} />}
+                        {hasAccess('SCHEDULE_MANAGEMENT') && <ConfigButton title="Ayya's Schedule" icon={Calendar} path="/schedule/manage" delay={0.2} />}
+                        {hasAccess('ADMIN_REVIEW') && <ConfigButton title="Registration" icon={Shield} path="/admin-review" delay={0.2} />}
+                        {hasAccess('MANAGE_USERS') && <ConfigButton title="Manage Admins" icon={Users} path="/manage-users" delay={0.22} />}
 
                         <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #f3f4f6' }}>
                             <ConfigButton

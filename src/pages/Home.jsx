@@ -73,7 +73,7 @@ const Home = () => {
     };
 
     const handleLogout = async () => {
-        if (confirm("Logout from " + (user?.email || 'this account') + "?")) {
+        if (confirm("Are you sure you want to logout?")) {
             setAuthLoading(true);
             try {
                 await GoogleAuth.signOut();
@@ -168,7 +168,7 @@ const Home = () => {
                                 }}
                             >
                                 <LogOut size={14} />
-                                Logout ({user.email})
+                                Logout
                             </button>
                         ) : (
                             <button
