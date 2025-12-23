@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { User, Calendar, BookOpen, Video, Mail, Settings, LogIn, LogOut } from 'lucide-react';
+import { User, Calendar, BookOpen, Video, Mail, Settings, LogIn, LogOut, LayoutDashboard } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { db, auth } from '../firebase';
@@ -109,7 +109,6 @@ const Home = () => {
         { title: "Books & Media", icon: BookOpen, path: "/books", delay: 0.2 },
         { title: "Programs", icon: Calendar, path: "/programs", delay: 0.4 },
         { title: "Ayya's Schedule", icon: Calendar, path: "/schedule", delay: 0.45 },
-        { title: "Dashboard", icon: LayoutDashboard, path: "/admin-dashboard", delay: 0.3 },
         { title: "Contact", icon: Mail, path: "/contact", delay: 0.5 }
     ];
 

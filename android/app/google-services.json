@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "358075696780-u652678n7j09daa3f9pl30cjtg288ioq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.bhavathpathai.app",
+            "certificate_hash": "99ae46a8fb3c275dc263337a2c6b4fe26efa4de6"
+          }
+        },
+        {
           "client_id": "358075696780-qufnh6jj5vl6bn3hogihp5uficngu4in.apps.googleusercontent.com",
           "client_type": 3
         }

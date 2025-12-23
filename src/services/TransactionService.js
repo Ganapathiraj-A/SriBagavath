@@ -59,7 +59,8 @@ export const TransactionService = {
         }
 
         // 3. Update Participant Stats
-        StatsService.recordRegistration(participants.length, true).catch(() => { });
+        const pCount = data.participantCount || (data.participants?.length) || 1;
+        StatsService.recordRegistration(pCount, true).catch(() => { });
 
         return txId;
     },

@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Shield, Code, LogOut, Users } from 'lucide-react';
+import { Calendar, Shield, Code, LogOut, Users, LayoutDashboard, Video, Layers } from 'lucide-react';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
@@ -102,10 +102,18 @@ const Configuration = () => {
                     </h1>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        {hasAccess('PROGRAM_MANAGEMENT') && <ConfigButton title="Program" icon={Calendar} path="/program" delay={0.1} />}
-                        {hasAccess('PROGRAM_TYPES') && <ConfigButton title="Program Types" icon={Code} path="/configuration/program-types" delay={0.15} />}
+                        {(hasAccess('PROGRAM_MANAGEMENT') || hasAccess('PROGRAM_TYPES') || hasAccess('CONSULTATION_MANAGEMENT')) && (
+                            <ConfigButton
+                                title="Program Management"
+                                subtitle="Retreats, Online Meetings, Sathsang, Types & Consultation"
+                                icon={Layers}
+                                path="/admin/program-management"
+                                delay={0.1}
+                            />
+                        )}
                         {hasAccess('SCHEDULE_MANAGEMENT') && <ConfigButton title="Ayya's Schedule" icon={Calendar} path="/schedule/manage" delay={0.2} />}
                         {hasAccess('ADMIN_REVIEW') && <ConfigButton title="Registration" icon={Shield} path="/admin-review" delay={0.2} />}
+                        {hasAccess('ADMIN_REVIEW') && <ConfigButton title="Analytics Dashboard" icon={LayoutDashboard} path="/admin-dashboard" delay={0.21} />}
                         {hasAccess('MANAGE_USERS') && <ConfigButton title="Manage Admins" icon={Users} path="/manage-users" delay={0.22} />}
 
                         <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #f3f4f6' }}>

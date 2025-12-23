@@ -429,7 +429,7 @@ const ProgramManagement = () => {
                 });
                 // Update Image Stats
                 const sizeInBytes = bannerUrl.length * 0.75;
-                StatsService.recordImage(sizeInBytes).catch(() => { });
+                StatsService.recordImage(sizeInBytes, 'BANNER').catch(() => { });
             }
 
             resetForm();

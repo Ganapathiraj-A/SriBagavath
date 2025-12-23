@@ -27,6 +27,17 @@ import EventRegistration from './pages/EventRegistration';
 import PaymentFlow from './pages/PaymentFlow';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminProgramManagement from './pages/AdminProgramManagement';
+import ConsultationManagement from './pages/ConsultationManagement';
+import ProgramCategories from './pages/ProgramCategories';
+import EmptyPlaceholder from './pages/EmptyPlaceholder';
+import Consultation from './pages/Consultation';
+import OnlineMeetings from './pages/OnlineMeetings';
+import OnlineMeetingDetails from './pages/OnlineMeetingDetails';
+import OnlineMeetingManagement from './pages/OnlineMeetingManagement';
+import SathsangManagement from './pages/SathsangManagement';
+import SathsangListing from './pages/SathsangListing';
+import SathsangDetails from './pages/SathsangDetails';
 
 import ProtectedRoute from './components/ProtectedRoute';
 import { AdminAuthProvider } from './context/AdminAuthContext';
@@ -75,7 +86,13 @@ function AnimatedRoutes() {
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
-        <Route path="/programs" element={<Programs />} />
+        <Route path="/programs" element={<ProgramCategories />} />
+        <Route path="/programs/retreat" element={<Programs />} />
+        <Route path="/programs/online" element={<OnlineMeetings />} />
+        <Route path="/programs/online/:id" element={<OnlineMeetingDetails />} />
+        <Route path="/programs/sathsang" element={<SathsangListing />} />
+        <Route path="/programs/sathsang/:id" element={<SathsangDetails />} />
+        <Route path="/programs/consultation" element={<Consultation />} />
         <Route path="/conversations" element={<Conversations />} />
         <Route path="/books" element={<Books />} />
         <Route path="/monthly-magazine" element={<MonthlyMagazine />} />
@@ -89,13 +106,18 @@ function AnimatedRoutes() {
         <Route path="/admin-login" element={<AdminLogin />} />
 
         {/* Admin Routes */}
-        {/* Admin Routes */}
         <Route path="/configuration" element={<ProtectedRoute requiredPermission="CONFIGURATION"><Configuration /></ProtectedRoute>} />
         <Route path="/program" element={<ProtectedRoute requiredPermission="PROGRAM_MANAGEMENT"><ProgramManagement /></ProtectedRoute>} />
         <Route path="/configuration/program-types" element={<ProtectedRoute requiredPermission="PROGRAM_TYPES"><ProgramTypesManagement /></ProtectedRoute>} />
         <Route path="/manage-users" element={<ProtectedRoute requiredPermission="MANAGE_USERS"><ManageUsers /></ProtectedRoute>} />
         <Route path="/conversations/programs" element={<ProtectedRoute requiredPermission="PROGRAM_CONVERSATIONS"><ProgramConversations /></ProtectedRoute>} />
         <Route path="/schedule/manage" element={<ProtectedRoute requiredPermission="SCHEDULE_MANAGEMENT"><ScheduleManagement /></ProtectedRoute>} />
+
+        <Route path="/admin/program-management" element={<ProtectedRoute><AdminProgramManagement /></ProtectedRoute>} />
+        <Route path="/admin/online-meetings" element={<ProtectedRoute requiredPermission="PROGRAM_MANAGEMENT"><OnlineMeetingManagement /></ProtectedRoute>} />
+        <Route path="/admin/sathsang" element={<ProtectedRoute requiredPermission="PROGRAM_MANAGEMENT"><SathsangManagement /></ProtectedRoute>} />
+        <Route path="/admin/consultation" element={<ProtectedRoute requiredPermission="CONSULTATION_MANAGEMENT"><ConsultationManagement /></ProtectedRoute>} />
+
         <Route path="/admin-review" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><AdminReview /></ProtectedRoute>} />
         <Route path="/admin-dashboard" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><AdminDashboard /></ProtectedRoute>} />
 
