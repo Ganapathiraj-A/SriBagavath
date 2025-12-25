@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">SB Dev Clean</string>
+    <string name="title_activity_main">SB Dev Clean</string>
+    <string name="package_name">com.bhavathpathai.app.dev</string>
+    <string name="custom_url_scheme">com.bhavathpathai.app.dev</string>
+    <string name="server_client_id">265576571338-82ulk332k7gao9h5e8ihnrj85nkir22a.apps.googleusercontent.com</string>
+    <string name="google_client_id">265576571338-6447bg3c1kb5tmf692g95kee4bcca1bj.apps.googleusercontent.com</string>
+</resources>

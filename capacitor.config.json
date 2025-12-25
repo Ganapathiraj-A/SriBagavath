@@ -1,0 +1,15 @@
+{
+    "appId": "com.bhavathpathai.app.dev",
+    "appName": "SB Dev Clean",
+    "webDir": "dist",
+    "plugins": {
+        "GoogleAuth": {
+            "scopes": [
+                "profile",
+                "email"
+            ],
+            "serverClientId": "265576571338-82ulk332k7gao9h5e8ihnrj85nkir22a.apps.googleusercontent.com",
+            "forceCodeForRefreshToken": false
+        }
+    }
+}
