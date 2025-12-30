@@ -15,8 +15,8 @@ gh release delete $TAG --yes || true
 git tag -d $TAG || true
 git push origin :refs/tags/$TAG || true
 
-gh release create $TAG "$APK_NAME" --title "v2.8.49: Home Screen Layout Refinement" --notes "Features:
-- Aligned Admin and Logout links on the same line for a more compact and balanced header UI."
+gh release create $TAG "$APK_NAME" --title "v2.8.50: App Name Display Fix" --notes "Features:
+- Fixed an issue where the app name was still showing as 'SB Clean V4' after installation by updating the activity title string."
 
 echo "---------------------------------------------------"
 echo "Dev Clean Build Published!"
