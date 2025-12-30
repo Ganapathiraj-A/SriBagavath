@@ -15,8 +15,9 @@ gh release delete $TAG --yes || true
 git tag -d $TAG || true
 git push origin :refs/tags/$TAG || true
 
-gh release create $TAG "$APK_NAME" --title "v2.8.40: Admin Dashboard Layout Refinement" --notes "Features:
-- Reordered Admin dashboard: 'Analytics' is now below 'Manage Admins' for better logical grouping."
+gh release create $TAG "$APK_NAME" --title "v2.8.41: My Orders View Receipt" --notes "Features:
+- Renamed 'View Details' to 'View Receipt' in My Orders.
+- Clicking 'View Receipt' now opens the payment screenshot/receipt in a modal."
 
 echo "---------------------------------------------------"
 echo "Dev Clean Build Published!"
