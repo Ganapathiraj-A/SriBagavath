@@ -1,137 +1,93 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, FileText } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 import { useDriveFiles } from '../hooks/useDriveFiles';
-
 import { DRIVE_CONFIG } from '../data/driveConfig';
 
 const { ENGLISH_BOOKS_FOLDER_ID, TAMIL_BOOKS_FOLDER_ID } = DRIVE_CONFIG;
 
-/* ==== Reused Button Style from Books Page ==== */
-const LanguageButton = ({ title, onClick, delay }) => {
-  return (
-    <motion.button
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.5 }}
-      whileHover={{ scale: 1.02, backgroundColor: 'var(--color-secondary)' }}
-      whileTap={{ scale: 0.98 }}
-      onClick={onClick}
-      style={{
-        width: '100%',
-        padding: '1rem',
-        backgroundColor: 'white',
-        borderRadius: '0.75rem',
-        boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-        border: '1px solid #f3f4f6',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'flex-start',
-        gap: '1rem',
-        textAlign: 'left',
-        cursor: 'pointer'
-      }}
-    >
-      <div
-        style={{
-          padding: '0.75rem',
-          borderRadius: '9999px',
-          backgroundColor: '#fff7ed',
-          color: 'var(--color-primary)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0
-        }}
-      >
-        <BookOpen size={24} color="var(--color-primary)" />
-      </div>
-
-      <span
-        style={{
-          fontSize: '1.125rem',
-          fontWeight: 500,
-          color: '#1f2937'
-        }}
-      >
-        {title}
-      </span>
-    </motion.button>
-  );
-};
-
 const PdfBooks = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const selectedLanguage = searchParams.get('lang');
+  const tabs = ['Tamil Books', 'English Books'];
+  const [activeTab, setActiveTab] = useState('Tamil Books');
 
-  const english = useDriveFiles(ENGLISH_BOOKS_FOLDER_ID);
-  const tamil = useDriveFiles(TAMIL_BOOKS_FOLDER_ID);
+  const englishData = useDriveFiles(ENGLISH_BOOKS_FOLDER_ID);
+  const tamilData = useDriveFiles(TAMIL_BOOKS_FOLDER_ID);
 
-  const current =
-    selectedLanguage === 'english'
-      ? english
-      : selectedLanguage === 'tamil'
-        ? tamil
-        : null;
+  const current = activeTab === 'English Books' ? englishData : tamilData;
 
   const renderPdfLinks = () => {
-    if (!current) return null;
-
     const { files, loading, error } = current;
 
     if (loading) {
       return (
-        <div style={{ marginTop: '1rem', color: '#4b5563', fontSize: '0.875rem' }}>
-          Loading books…
+        <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
+          <p>Loading books...</p>
         </div>
       );
     }
 
     if (error) {
       return (
-        <div
-          style={{
-            marginTop: '1rem',
-            padding: '0.75rem',
-            backgroundColor: '#fef2f2',
-            border: '1px solid #fecaca',
-            borderRadius: '0.5rem',
-            color: '#b91c1c',
-            fontSize: '0.875rem'
-          }}
-        >
-          {error}
+        <div style={{ padding: '20px', textAlign: 'center', color: '#ef4444' }}>
+          <p>{error}</p>
+        </div>
+      );
+    }
+
+    if (files.length === 0) {
+      return (
+        <div style={{ padding: '60px 20px', textAlign: 'center', color: '#6b7280' }}>
+          <p>No books available in this category.</p>
         </div>
       );
     }
 
     return (
-      <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {files.map((file) => {
-          const viewUrl =
-            file.webViewLink ||
-            `https://drive.google.com/file/d/${file.id}/view`;
-
+          const viewUrl = file.webViewLink || `https://drive.google.com/file/d/${file.id}/view`;
           return (
-            <a
+            <motion.a
               key={file.id}
               href={viewUrl}
               target="_blank"
               rel="noopener noreferrer"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="card"
               style={{
-                padding: '0.75rem 1rem',
-                backgroundColor: '#f9fafb',
-                border: '1px solid #e5e7eb',
-                borderRadius: '0.5rem',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                color: '#1f2937',
-                textDecoration: 'none'
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '16px',
+                textDecoration: 'none',
+                color: '#111827',
+                transition: 'transform 0.2s ease'
               }}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
             >
-              {file.name}
-            </a>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '8px',
+                backgroundColor: '#fef2f2',
+                color: 'var(--color-primary)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
+              }}>
+                <FileText size={20} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ fontSize: '1rem', fontWeight: 500, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {file.name}
+                </span>
+              </div>
+              <BookOpen size={18} color="#9ca3af" />
+            </motion.a>
           );
         })}
       </div>
@@ -139,62 +95,41 @@ const PdfBooks = () => {
   };
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        backgroundColor: 'var(--color-surface)',
-        padding: '1.5rem'
-      }}
-    >
-      <div style={{ maxWidth: '28rem', margin: '0 auto' }}>
+    <div style={{ backgroundColor: '#f9fafb', minHeight: '100vh', paddingBottom: '30px' }}>
+      <PageHeader title="Digital Books" />
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          style={{
-            backgroundColor: 'white',
-            borderRadius: '1rem',
-            padding: '2rem',
-            boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)'
-          }}
-        >
-          <h1
+      {/* Tabs Navigation */}
+      <div style={{
+        display: 'flex',
+        margin: '0 16px',
+        borderBottom: '1px solid #e5e7eb',
+        gap: '20px',
+        justifyContent: 'flex-start',
+        alignItems: 'center'
+      }}>
+        {tabs.map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
             style={{
-              fontSize: '1.875rem',
-              fontWeight: 'bold',
-              color: '#111827',
-              marginBottom: '2rem',
-              textAlign: 'center'
+              padding: '12px 4px',
+              border: 'none',
+              borderBottom: activeTab === tab ? '2px solid var(--color-primary)' : '2px solid transparent',
+              backgroundColor: 'transparent',
+              color: activeTab === tab ? 'var(--color-primary)' : '#6b7280',
+              fontWeight: activeTab === tab ? '600' : '500',
+              fontSize: '0.95rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
             }}
           >
-            Digital Books
-          </h1>
+            {tab}
+          </button>
+        ))}
+      </div>
 
-          {/* Initial View – Two Buttons */}
-          {!selectedLanguage && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <LanguageButton
-                title="English"
-                delay={0.1}
-                onClick={() => setSearchParams({ lang: 'english' })}
-              />
-              <LanguageButton
-                title="Tamil"
-                delay={0.2}
-                onClick={() => setSearchParams({ lang: 'tamil' })}
-              />
-            </div>
-          )}
-
-          {/* After Language Selection – Show PDFs */}
-          {selectedLanguage && (
-            <>
-
-
-              {renderPdfLinks()}
-            </>
-          )}
-        </motion.div>
+      <div style={{ maxWidth: '30rem', margin: '0 auto' }}>
+        {renderPdfLinks()}
       </div>
     </div>
   );
