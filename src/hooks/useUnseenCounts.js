@@ -25,9 +25,9 @@ export const useUnseenCounts = () => {
 
             snapshot.docs.forEach(doc => {
                 const data = doc.data();
-                if (data.itemType === 'BOOK') {
+                if (data.itemType === 'BOOK' || data.itemType === 'DONATION') {
                     bookCount++;
-                } else {
+                } else if (data.itemType === 'PROGRAM') {
                     regCount++;
                 }
             });

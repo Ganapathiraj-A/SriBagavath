@@ -138,8 +138,8 @@ const Configuration = () => {
                             />
                         )}
                         {hasAccess('ADMIN_REVIEW') && <ConfigButton title="Registration" icon={Shield} path="/admin-review" delay={0.2} badgeCount={counts.registrations} />}
-                        {hasAccess('ADMIN_REVIEW') && <ConfigButton title="Book Management" subtitle="Add books, descriptions & covers" icon={BookOpen} path="/admin/books" delay={0.203} color="#8b5cf6" bgColor="#f5f3ff" />}
-                        {hasAccess('ADMIN_REVIEW') && <ConfigButton title="Purchase / Donation" icon={Code} path="/admin/bookstore" delay={0.205} color="#10b981" bgColor="#f0fdf4" badgeCount={counts.transactions} />}
+                        {hasAccess('ADMIN_REVIEW') && <ConfigButton title="Purchase / Donation" icon={Code} path="/admin/bookstore" delay={0.203} color="#10b981" bgColor="#f0fdf4" badgeCount={counts.transactions} />}
+                        {hasAccess('ADMIN_REVIEW') && <ConfigButton title="Book Management" subtitle="Add books, descriptions & covers" icon={BookOpen} path="/admin/books" delay={0.205} color="#8b5cf6" bgColor="#f5f3ff" />}
 
                         {hasAccess('ADMIN_REVIEW') && <ConfigButton title="Analytics" icon={LayoutDashboard} path="/admin-dashboard" delay={0.21} />}
                         {hasAccess('MANAGE_USERS') && <ConfigButton title="Manage Admins" icon={Users} path="/manage-users" delay={0.22} />}

@@ -15,11 +15,9 @@ gh release delete $TAG --yes || true
 git tag -d $TAG || true
 git push origin :refs/tags/$TAG || true
 
-gh release create $TAG "$APK_NAME" --title "v2.8.38: Admin Book Management Reordering & Layout" --notes "Features:
-- Moved 'Add Book' button to the top for better accessibility.
-- Implemented book reordering functionality (Up/Down controls).
-- Enhanced book card UI and moved 'Delete' to the edit form.
-- Fixed 'X is not defined' error when editing image covers."
+gh release create $TAG "$APK_NAME" --title "v2.8.39: Admin Badge Count & Layout Fixes" --notes "Features:
+- Fixed badge count logic to correctly attribute Donations to the 'Purchase / Donation' badge.
+- Reordered Admin dashboard: 'Purchase / Donation' is now above 'Book Management'."
 
 echo "---------------------------------------------------"
 echo "Dev Clean Build Published!"
