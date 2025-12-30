@@ -15,8 +15,8 @@ gh release delete $TAG --yes || true
 git tag -d $TAG || true
 git push origin :refs/tags/$TAG || true
 
-gh release create $TAG "$APK_NAME" --title "v2.8.44: Program Management UI Refinement" --notes "Features:
-- Reordered Program Management hub: 'Ayya's Schedule' is now placed directly below 'Programs' for better contextual grouping."
+gh release create $TAG "$APK_NAME" --title "v2.8.45: Program Management UI Refinement" --notes "Features:
+- Reordered Program Management hub: 'Program Types' is now placed directly below 'Ayya's Schedule' for better logical flow."
 
 echo "---------------------------------------------------"
 echo "Dev Clean Build Published!"

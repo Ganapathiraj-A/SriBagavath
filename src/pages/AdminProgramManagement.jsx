@@ -99,6 +99,13 @@ const AdminProgramManagement = () => {
             badgeCount: 0 // No specific unread count for schedule management yet
         },
         {
+            title: 'Program Types',
+            subtitle: 'Configure registration formats and fees',
+            icon: Code,
+            path: '/configuration/program-types',
+            permission: 'PROGRAM_TYPES'
+        },
+        {
             title: 'Online Meetings',
             subtitle: 'Schedule and manage Zoom/Meet links',
             icon: Video,
@@ -111,13 +118,6 @@ const AdminProgramManagement = () => {
             icon: Users,
             path: '/admin/satsang',
             permission: 'PROGRAM_MANAGEMENT'
-        },
-        {
-            title: 'Program Types',
-            subtitle: 'Configure registration formats and fees',
-            icon: Code,
-            path: '/configuration/program-types',
-            permission: 'PROGRAM_TYPES'
         },
         {
             title: 'Manage Consultation',
