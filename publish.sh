@@ -15,10 +15,11 @@ gh release delete $TAG --yes || true
 git tag -d $TAG || true
 git push origin :refs/tags/$TAG || true
 
-gh release create $TAG "$APK_NAME" --title "v2.8.37: Admin Book Management Refactor" --notes "Features:
-- Refactored Admin Book Management with category tabs (Tamil/English).
-- Added book cover image display in the administration list.
-- Improved 'Add/Edit Book' form UI with consistent theme and better input styles."
+gh release create $TAG "$APK_NAME" --title "v2.8.38: Admin Book Management Reordering & Layout" --notes "Features:
+- Moved 'Add Book' button to the top for better accessibility.
+- Implemented book reordering functionality (Up/Down controls).
+- Enhanced book card UI and moved 'Delete' to the edit form.
+- Fixed 'X is not defined' error when editing image covers."
 
 echo "---------------------------------------------------"
 echo "Dev Clean Build Published!"

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Plus, Edit2, Trash2, ChevronLeft, LogOut, Package, Image as ImageIcon, BookOpen } from 'lucide-react';
+import { Plus, Edit2, Trash2, ChevronLeft, LogOut, Package, Image as ImageIcon, BookOpen, X, ChevronUp, ChevronDown } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { db, auth } from '../firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, setDoc, query, orderBy, serverTimestamp, getDoc } from 'firebase/firestore';
@@ -149,7 +149,7 @@ const AdminBookManagement = () => {
     const loadBooks = async () => {
         try {
             setLoading(true);
-            const querySnapshot = await getDocs(query(collection(db, 'books'), orderBy('title', 'asc')));
+            const querySnapshot = await getDocs(query(collection(db, 'books'), orderBy('order', 'asc')));
             const loadedBooks = querySnapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
@@ -228,7 +228,13 @@ const AdminBookManagement = () => {
                 bookId = editingBook.id;
                 await updateDoc(doc(db, 'books', bookId), bookData);
             } else {
-                const docRef = await addDoc(collection(db, 'books'), { ...bookData, createdAt: serverTimestamp() });
+                const categoryBooks = books.filter(b => b.category === formData.category);
+                const nextOrder = categoryBooks.length > 0 ? Math.max(...categoryBooks.map(b => b.order || 0)) + 1 : 0;
+                const docRef = await addDoc(collection(db, 'books'), {
+                    ...bookData,
+                    order: nextOrder,
+                    createdAt: serverTimestamp()
+                });
                 bookId = docRef.id;
             }
 
@@ -258,6 +264,7 @@ const AdminBookManagement = () => {
                 await deleteDoc(doc(db, 'books', bookId));
                 await deleteDoc(doc(db, 'book_covers', bookId)).catch(() => { });
                 alert('Book deleted!');
+                setSearchParams({});
                 loadBooks();
             } catch (error) {
                 alert('Delete failed: ' + error.message);
@@ -283,6 +290,31 @@ const AdminBookManagement = () => {
             await GoogleAuth.signOut();
             await signOut(auth);
             navigate('/');
+        }
+    };
+
+    const handleReorder = async (bookId, direction) => {
+        const categoryBooks = books.filter(b => b.category === activeTab);
+        const index = categoryBooks.findIndex(b => b.id === bookId);
+        const targetIndex = index + direction;
+
+        if (targetIndex >= 0 && targetIndex < categoryBooks.length) {
+            const currentBook = categoryBooks[index];
+            const targetBook = categoryBooks[targetIndex];
+
+            // Swap order
+            const currentOrder = currentBook.order || 0;
+            const targetOrder = targetBook.order || 0;
+
+            try {
+                await Promise.all([
+                    updateDoc(doc(db, 'books', currentBook.id), { order: targetOrder }),
+                    updateDoc(doc(db, 'books', targetBook.id), { order: currentOrder })
+                ]);
+                loadBooks();
+            } catch (error) {
+                console.error("Reorder failed", error);
+            }
         }
     };
 
@@ -316,6 +348,29 @@ const AdminBookManagement = () => {
             <div style={{ maxWidth: '64rem', margin: '0 auto' }}>
                 {!showForm ? (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                        <div style={{ padding: '1.5rem 1rem 0.5rem 1rem' }}>
+                            <button
+                                onClick={() => setSearchParams({ action: 'add' })}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '0.5rem',
+                                    padding: '1rem',
+                                    backgroundColor: 'var(--color-primary)',
+                                    color: 'white',
+                                    borderRadius: '1rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    border: 'none',
+                                    width: '100%',
+                                    boxShadow: '0 4px 6px -1px rgba(249, 115, 22, 0.2)'
+                                }}
+                            >
+                                <Plus size={20} /> Add New {activeTab === 'Tamil Books' ? 'Tamil' : 'English'} Book
+                            </button>
+                        </div>
+
                         {/* Tabs Navigation */}
                         <div style={{
                             display: 'flex',
@@ -347,57 +402,45 @@ const AdminBookManagement = () => {
                             ))}
                         </div>
 
-                        <div style={{ padding: '1.5rem' }}>
-                            <button
-                                onClick={() => setSearchParams({ action: 'add' })}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: '0.5rem',
-                                    padding: '1rem',
-                                    backgroundColor: 'var(--color-primary)',
-                                    color: 'white',
-                                    borderRadius: '1rem',
-                                    fontWeight: 600,
-                                    cursor: 'pointer',
-                                    border: 'none',
-                                    width: '100%',
-                                    marginBottom: '1.5rem',
-                                    boxShadow: '0 4px 6px -1px rgba(249, 115, 22, 0.2)'
-                                }}
-                            >
-                                <Plus size={20} /> Add New {activeTab === 'Tamil Books' ? 'Tamil' : 'English'} Book
-                            </button>
-
+                        <div style={{ padding: '1.5rem 1rem' }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                {filteredBooks.map(book => (
-                                    <div key={book.id} style={{ padding: '1rem', backgroundColor: 'white', borderRadius: '1rem', boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #e5e7eb' }}>
-                                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                                            <div style={{ width: '56px', height: '76px', backgroundColor: '#f3f4f6', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: '1px solid #e5e7eb' }}>
+                                {filteredBooks.map((book, idx) => (
+                                    <div key={book.id} style={{ padding: '0.75rem 1rem', backgroundColor: 'white', borderRadius: '1.25rem', boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #e5e7eb' }}>
+                                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flex: 1 }}>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginRight: '4px' }}>
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); handleReorder(book.id, -1); }}
+                                                    disabled={idx === 0}
+                                                    style={{ border: 'none', background: 'none', cursor: idx === 0 ? 'default' : 'pointer', opacity: idx === 0 ? 0.2 : 1, color: '#f97316', padding: '4px' }}
+                                                >
+                                                    <ChevronUp size={20} />
+                                                </button>
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); handleReorder(book.id, 1); }}
+                                                    disabled={idx === filteredBooks.length - 1}
+                                                    style={{ border: 'none', background: 'none', cursor: idx === filteredBooks.length - 1 ? 'default' : 'pointer', opacity: idx === filteredBooks.length - 1 ? 0.2 : 1, color: '#f97316', padding: '4px' }}
+                                                >
+                                                    <ChevronDown size={20} />
+                                                </button>
+                                            </div>
+                                            <div style={{ width: '48px', height: '64px', backgroundColor: '#f3f4f6', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: '1px solid #e5e7eb' }}>
                                                 {covers[book.id] ? (
                                                     <img src={covers[book.id]} alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                                 ) : (
-                                                    <BookOpen size={24} color="#9ca3af" />
+                                                    <BookOpen size={20} color="#9ca3af" />
                                                 )}
                                             </div>
-                                            <div>
-                                                <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#111827', margin: 0 }}>{book.title}</h3>
-                                                <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: '4px 0 0 0' }}>₹{book.price} • {book.weight}g</p>
+                                            <div style={{ flex: 1, minWidth: 0 }}>
+                                                <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: '#111827', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{book.title}</h3>
+                                                <p style={{ fontSize: '0.8rem', color: '#6b7280', margin: '2px 0 0 0' }}>₹{book.price} • {book.weight}g</p>
                                             </div>
                                         </div>
-                                        <div style={{ display: 'flex', gap: '0.75rem' }}>
+                                        <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
                                             <button
                                                 onClick={() => setSearchParams({ action: 'edit', id: book.id })}
                                                 style={{ padding: '0.625rem', backgroundColor: '#fff7ed', color: '#f97316', borderRadius: '0.75rem', border: '1px solid #fed7aa', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                             >
                                                 <Edit2 size={18} />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(book.id)}
-                                                style={{ padding: '0.625rem', backgroundColor: '#fef2f2', color: '#dc2626', borderRadius: '0.75rem', border: '1px solid #fecaca', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                                            >
-                                                <Trash2 size={18} />
                                             </button>
                                         </div>
                                     </div>
@@ -413,7 +456,17 @@ const AdminBookManagement = () => {
                     </motion.div>
                 ) : (
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '1.5rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', margin: '0 16px' }}>
-                        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827', marginBottom: '1.5rem', textAlign: 'center' }}>{editingBook ? 'Edit Book' : 'Add New Book'}</h2>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827', margin: 0 }}>{editingBook ? 'Edit Book' : 'Add New Book'}</h2>
+                            {editingBook && (
+                                <button
+                                    onClick={() => handleDelete(editingBook.id)}
+                                    style={{ padding: '0.5rem', backgroundColor: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', fontWeight: 600 }}
+                                >
+                                    <Trash2 size={16} /> Delete
+                                </button>
+                            )}
+                        </div>
                         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                             <div style={{ display: 'grid', gap: '0.5rem' }}>
                                 <label style={{ fontWeight: 600, color: '#4b5563', fontSize: '0.9rem' }}>Book Title *</label>
