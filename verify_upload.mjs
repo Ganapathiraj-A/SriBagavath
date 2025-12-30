@@ -11,12 +11,15 @@ admin.initializeApp({
 const db = admin.firestore();
 
 async function verify() {
-    const snapshot = await db.collection('books').where('category', '==', 'Tamil Books').get();
-    console.log(`Found ${snapshot.size} Tamil books:`);
-    snapshot.forEach(doc => {
-        const data = doc.data();
-        console.log(`- "${data.title}"`);
-    });
+    const ids = ["12q2kiiMYPIiWrWbea2k", "ujJ5gfyiZGozrERjyoff"];
+    for (const id of ids) {
+        const doc = await db.collection('books').doc(id).get();
+        if (doc.exists) {
+            console.log(`[DATA] ID: ${id}`);
+            console.log(JSON.stringify(doc.data(), null, 2));
+            console.log('---');
+        }
+    }
 }
 
 verify().catch(console.error);

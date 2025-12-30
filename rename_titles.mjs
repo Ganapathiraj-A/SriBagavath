@@ -12,7 +12,7 @@ const db = admin.firestore();
 
 const RENAME_MAPPING = {
     "Agamiya-Karma": "ஆகாமிய கர்மா",
-    "Karma Vinai": "ஆகாமிய கர்மா",
+    "Karma Vinai": "கர்ம வினை",
     "Aanmagna-Ragasiam": "ஆன்ம ஞான ரகசியம்",
     "Aanmavai-Thurundu-Aanmavaga-Iru": "ஆன்மாவைத் துறந்து ஆன்மாவாக இரு",
     "Dhyanathai-Vidu-Gnanathai-Peru": "தியானத்தை விடு ஞானத்தைப் பெறு",
@@ -30,6 +30,14 @@ const RENAME_MAPPING = {
 };
 
 async function renameTitles() {
+    // 1. Specific fix for the accidentally renamed Karma Vinai
+    const specificId = "12q2kiiMYPIiWrWbea2k";
+    console.log(`[SPECIFIC FIX] ID: ${specificId} -> "கர்ம வினை"`);
+    await db.collection('books').doc(specificId).update({
+        title: "கர்ம வினை",
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
     const snapshot = await db.collection('books').where('category', '==', 'Tamil Books').get();
 
     console.log(`Found ${snapshot.size} Tamil books.`);
