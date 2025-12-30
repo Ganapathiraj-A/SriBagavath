@@ -15,8 +15,10 @@ gh release delete $TAG --yes || true
 git tag -d $TAG || true
 git push origin :refs/tags/$TAG || true
 
-gh release create $TAG "$APK_NAME" --title "v2.8.36: Refined Consultation Management" --notes "Features:
-- Removed the default phone number placeholder in the Consultation Management screen for a cleaner input experience."
+gh release create $TAG "$APK_NAME" --title "v2.8.37: Admin Book Management Refactor" --notes "Features:
+- Refactored Admin Book Management with category tabs (Tamil/English).
+- Added book cover image display in the administration list.
+- Improved 'Add/Edit Book' form UI with consistent theme and better input styles."
 
 echo "---------------------------------------------------"
 echo "Dev Clean Build Published!"
