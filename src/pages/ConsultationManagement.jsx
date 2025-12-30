@@ -154,7 +154,7 @@ const ConsultationManagement = () => {
                                     value={formData.number}
                                     onChange={handleInputChange}
                                     required
-                                    placeholder="9876543210"
+                                    placeholder=""
                                     style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #fed7aa', width: '100%' }}
                                 />
                             </div>

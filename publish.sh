@@ -15,10 +15,8 @@ gh release delete $TAG --yes || true
 git tag -d $TAG || true
 git push origin :refs/tags/$TAG || true
 
-gh release create $TAG "$APK_NAME" --title "v2.8.35: Integrated My Orders Tag" --notes "Features:
-- Moved the 'My Orders' button into the tab navigation row for a cleaner, unified one-line layout.
-- Corrected the title for 'Karma Vinai' to 'கர்ம வினை'.
-- Updated all Tamil category book titles to their Tamil equivalents."
+gh release create $TAG "$APK_NAME" --title "v2.8.36: Refined Consultation Management" --notes "Features:
+- Removed the default phone number placeholder in the Consultation Management screen for a cleaner input experience."
 
 echo "---------------------------------------------------"
 echo "Dev Clean Build Published!"
