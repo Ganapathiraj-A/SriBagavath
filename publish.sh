@@ -15,9 +15,9 @@ gh release delete $TAG --yes || true
 git tag -d $TAG || true
 git push origin :refs/tags/$TAG || true
 
-gh release create $TAG "$APK_NAME" --title "v2.8.58: Theme & Font Unification" --notes "Features:
-- Program Management Hub: Unified fonts and typography across all screens (Program, Meeting, Satsang, Types, Schedule, Consultation) to match the cleaner Registration screen look.
-- Program Management: Updated ProgramCard design with icon-based metadata and orange edit buttons.
+gh release create $TAG "$APK_NAME" --title "v2.8.59: Button Reordering & Theme" --notes "Features:
+- Program Management: Reordered buttons to move 'Manage Consultation' and 'Program Types' to the end.
+- Program Management Hub: Unified fonts and typography across all screens to match the cleaner Registration screen look.
 - PageHeader: Standardized title font weight for a premium look."
 
 echo "---------------------------------------------------"
