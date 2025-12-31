@@ -47,9 +47,12 @@ export const StatsService = {
             totalImageSizeMB: increment(sizeInMB)
         };
         if (type === 'BANNER') {
-            updates.totalBanners = increment(1);
+            updates.totalBanners = increment(sizeInBytes >= 0 ? 1 : -1);
+        } else if (type === 'BOOK_COVER') {
+            updates.totalBookCoverSizeMB = increment(sizeInMB);
+            updates.totalBookCovers = increment(sizeInBytes >= 0 ? 1 : -1);
         } else {
-            updates.totalReceipts = increment(1);
+            updates.totalReceipts = increment(sizeInBytes >= 0 ? 1 : -1);
         }
         await StatsService.updateTotals(updates);
     },
@@ -93,8 +96,10 @@ export const StatsService = {
 
             const onlineBannersSnap = await getDocs(collection(db, "online_meeting_banners"));
             const satsangBannersSnap = await getDocs(collection(db, "satsang_banners"));
+            const bookCoversSnap = await getDocs(collection(db, "book_covers"));
 
             let totalImageSizeMB = 0;
+            let totalBookCoverSizeMB = 0;
             const processedBannerIds = new Set();
 
             const processBannerDoc = (d) => {
@@ -134,14 +139,26 @@ export const StatsService = {
             receiptsSnap.docs.forEach(processReceiptDoc);
             archivedReceiptsSnap.docs.forEach(processReceiptDoc);
 
+            bookCoversSnap.docs.forEach(d => {
+                const data = d.data();
+                const content = data.cover || data.image || data.url;
+                if (content && typeof content === 'string') {
+                    totalBookCoverSizeMB += (content.length * 0.75) / (1024 * 1024);
+                }
+            });
+
+            totalImageSizeMB += totalBookCoverSizeMB; // Add to global total for health limits
+
             const newTotals = {
                 totalPrograms,
                 totalParticipants,
                 totalBanners: processedBannerIds.size,
                 totalOnlineBanners: onlineBannersSnap.size,
                 totalSatsangBanners: satsangBannersSnap.size,
+                totalBookCovers: bookCoversSnap.size,
                 totalReceipts: receiptsSnap.size + archivedReceiptsSnap.size,
                 totalImageSizeMB,
+                totalBookCoverSizeMB,
                 totalBookOrders,
                 totalBookRevenue,
                 updatedAt: Timestamp.now()
@@ -161,7 +178,7 @@ export const StatsService = {
     // 7. Clear EVERYTHING (Extreme caution)
     clearAllData: async () => {
         try {
-            const collections = ["programs", "program_banners", "transactions", "transaction_images", "online_meetings", "online_meeting_banners", "satsangs", "satsang_banners"];
+            const collections = ["programs", "program_banners", "transactions", "transaction_images", "online_meetings", "online_meeting_banners", "satsangs", "satsang_banners", "book_covers"];
 
             for (const colName of collections) {
                 const snap = await getDocs(collection(db, colName));
@@ -178,8 +195,10 @@ export const StatsService = {
                 totalBanners: 0,
                 totalOnlineBanners: 0,
                 totalSatsangBanners: 0,
+                totalBookCovers: 0,
                 totalReceipts: 0,
                 totalImageSizeMB: 0,
+                totalBookCoverSizeMB: 0,
                 totalUniqueDevices: 0
             });
 

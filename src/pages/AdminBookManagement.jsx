@@ -7,6 +7,7 @@ import { db, auth } from '../firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, setDoc, query, orderBy, serverTimestamp, getDoc } from 'firebase/firestore';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { signOut } from 'firebase/auth';
+import { StatsService } from '../services/StatsService';
 
 // Helper to compress image to Base64
 const compressImage = (file) => {
@@ -239,10 +240,21 @@ const AdminBookManagement = () => {
             }
 
             if (finalCoverUrl && (coverImage || finalCoverUrl !== editingBook?.coverUrl)) {
+                // If editing and had a previous cover, decrement the old size first
+                if (editingBook?.hasCover && covers[bookId]) {
+                    const oldSizeInBytes = covers[bookId].length * 0.75;
+                    await StatsService.recordImage(-oldSizeInBytes, 'BOOK_COVER');
+                }
+
                 await setDoc(doc(db, 'book_covers', bookId), {
                     cover: finalCoverUrl,
                     updatedAt: serverTimestamp()
                 });
+
+                // Record new size
+                const newSizeInBytes = finalCoverUrl.length * 0.75;
+                await StatsService.recordImage(newSizeInBytes, 'BOOK_COVER');
+
                 setCovers(prev => ({ ...prev, [bookId]: finalCoverUrl }));
             }
 
@@ -261,6 +273,12 @@ const AdminBookManagement = () => {
     const handleDelete = async (bookId) => {
         if (window.confirm('Are you sure you want to delete this book?')) {
             try {
+                // Get cover size before deletion to decrement stats
+                if (covers[bookId]) {
+                    const sizeInBytes = covers[bookId].length * 0.75;
+                    await StatsService.recordImage(-sizeInBytes, 'BOOK_COVER');
+                }
+
                 await deleteDoc(doc(db, 'books', bookId));
                 await deleteDoc(doc(db, 'book_covers', bookId)).catch(() => { });
                 alert('Book deleted!');
@@ -336,11 +354,6 @@ const AdminBookManagement = () => {
                 leftAction={
                     <button onClick={() => navigate('/configuration')} style={{ background: 'none', border: 'none', padding: '8px', cursor: 'pointer' }}>
                         <ChevronLeft size={24} />
-                    </button>
-                }
-                rightAction={
-                    <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer' }}>
-                        <LogOut size={20} />
                     </button>
                 }
             />

@@ -22,14 +22,14 @@ const PageHeader = ({
             backgroundColor: 'transparent', // Transparent to blend with page
             color: textColor,
             // Header spacing similar to Books screen padding
-            paddingTop: '24px',
+            paddingTop: '40px',
             paddingBottom: '24px',
             paddingLeft: '16px',
             paddingRight: '16px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            marginBottom: '1rem'
+            marginBottom: '0.5rem'
         }}>
             {/* Left: Back Button - Removed per user request */}
             {/* {canGoBack && ( ... )} */}
@@ -37,7 +37,7 @@ const PageHeader = ({
             {/* Center: Title */}
             <h1 style={{
                 fontSize: '1.5rem', // Match Books-ish size (Books is 1.875rem, but 1.5 is safer for mobile headers)
-                fontWeight: 'bold', // Match Books weight
+                fontWeight: 500, // Match Registration screen look
                 margin: 0,
                 textAlign: 'center',
                 color: '#111827', // Dark gray

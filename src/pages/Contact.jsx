@@ -1,6 +1,8 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Phone, MapPin, Globe, Home } from 'lucide-react';
+import { Mail, Phone, MapPin, Globe, Home, ChevronLeft } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 
 const ContactItem = ({ icon: Icon, content, href }) => (
     <div style={{
@@ -46,53 +48,68 @@ const ContactItem = ({ icon: Icon, content, href }) => (
 );
 
 const Contact = () => {
+    const navigate = useNavigate();
+
     return (
-        <div className="min-h-screen bg-surface p-6">
-            <div className="max-w-2xl mx-auto">
+        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-surface)', paddingBottom: '2rem' }}>
+            <PageHeader
+                title="Contact Us"
+                leftAction={
+                    <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
+                        <ChevronLeft size={24} />
+                    </button>
+                }
+            />
+            <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ maxWidth: '42rem', margin: '0 auto', width: '100%' }}>
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        style={{
+                            backgroundColor: 'white',
+                            borderRadius: '1rem',
+                            padding: '2rem',
+                            boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+                        }}
+                    >
 
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-white rounded-2xl p-8 shadow-sm"
-                >
-                    <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#111827', marginBottom: '2rem', textAlign: 'center' }}>Contact Us</h1>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <ContactItem
+                                icon={Phone}
+                                content="+91 79041-18421"
+                                href="tel:+917904118421"
+                            />
+                            <ContactItem
+                                icon={Phone}
+                                content="+91 99942-05880, +91 97891-65555"
+                            />
 
-                        <ContactItem
-                            icon={Phone}
-                            content="+91 79041-18421"
-                            href="tel:+917904118421"
-                        />
-                        <ContactItem
-                            icon={Phone}
-                            content="+91 99942-05880, +91 97891-65555"
-                        />
+                            <ContactItem
+                                icon={Globe}
+                                content="http://sribagavath.com"
+                                href="https://sribagavath.com/"
+                            />
 
-                        <ContactItem
-                            icon={Globe}
-                            content="http://sribagavath.com"
-                            href="https://sribagavath.com/"
-                        />
+                            <ContactItem
+                                icon={MapPin}
+                                content="View on Google Maps"
+                                href="https://maps.app.goo.gl/RxVQ3nqtvuk84UWs8"
+                            />
 
-                        <ContactItem
-                            icon={MapPin}
-                            content="View on Google Maps"
-                            href="https://maps.app.goo.gl/RxVQ3nqtvuk84UWs8"
-                        />
+                            <ContactItem
+                                icon={Home}
+                                content="Sri Bagavath Bhavan, Kodambakkadu, Periyakoundapuram, Karippatti, Salem, Tamil Nadu 636106"
+                                href="https://maps.app.goo.gl/RxVQ3nqtvuk84UWs8"
+                            />
 
-                        <ContactItem
-                            icon={Home}
-                            content="Sri Bagavath Bhavan, Kodambakkadu, Periyakoundapuram, Karippatti, Salem, Tamil Nadu 636106"
-                            href="https://maps.app.goo.gl/RxVQ3nqtvuk84UWs8"
-                        />
-
-                        <ContactItem
-                            icon={Home}
-                            content="Registered Office, 31, Ramalingasamy Street, Ammapet, Salem - 636 003."
-                        />
-                    </div>
-                </motion.div>
+                            <ContactItem
+                                icon={Home}
+                                content="Registered Office, 31, Ramalingasamy Street, Ammapet, Salem - 636 003."
+                            />
+                        </div>
+                    </motion.div>
+                </div>
             </div>
         </div>
     );

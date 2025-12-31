@@ -87,7 +87,7 @@ const BookStoreManagement = () => {
             )}
 
             <PageHeader
-                title="Store & Donations"
+                title="Book Store Management"
                 leftAction={
                     <button onClick={() => navigate('/configuration')} style={{ background: 'none', border: 'none', padding: '8px' }}>
                         <ChevronLeft size={24} />

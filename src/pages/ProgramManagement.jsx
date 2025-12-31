@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Plus, Edit2, Trash2, Calendar as CalendarIcon, ChevronDown, ChevronUp, Package } from 'lucide-react';
+import { Plus, Edit2, Trash2, Calendar as CalendarIcon, ChevronDown, ChevronUp, Package, ChevronLeft, MapPin } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { db, auth } from '../firebase';
+import '../components/RegistrationStyles.css';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, setDoc, query, where, orderBy, limit, serverTimestamp } from 'firebase/firestore';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { LogOut } from 'lucide-react';
@@ -509,122 +510,165 @@ const ProgramManagement = () => {
     const ProgramCard = ({ program }) => (
         <div
             style={{
+                backgroundColor: 'white',
+                borderRadius: '1rem',
                 padding: '1.5rem',
-                border: '1px solid #e5e7eb',
-                borderRadius: '0.75rem',
-                backgroundColor: '#f9fafb'
+                boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+                border: '1px solid #f3f4f6',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '1.5rem'
             }}
         >
-            <div
-                style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'flex-start',
-                    gap: '0.75rem',
-                    flexWrap: 'wrap'
-                }}
-            >
-                <div style={{ flex: 1, minWidth: 0 }}>
+            {/* Date Box */}
+            <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#fff7ed',
+                color: 'var(--color-primary)',
+                padding: '1rem',
+                borderRadius: '0.75rem',
+                minWidth: '5rem',
+                flexShrink: 0
+            }}>
+                <span style={{
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em'
+                }}>
+                    {new Date(program.programDate).toLocaleDateString(undefined, { month: 'short' })}
+                </span>
+                <span style={{
+                    fontSize: '1.75rem',
+                    fontWeight: 'bold',
+                    lineHeight: 1
+                }}>
+                    {new Date(program.programDate).getDate()}
+                </span>
+            </div>
+
+            {/* Content */}
+            <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.5rem',
+                flex: 1
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
                     <h3
                         style={{
                             fontSize: '1.25rem',
-                            fontWeight: 600,
-                            color: '#111827',
-                            marginBottom: '0.5rem'
+                            fontWeight: 500,
+                            color: '#000000',
+                            margin: 0
                         }}
                     >
                         {program.programName}
                     </h3>
-                    <div
-                        style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                            gap: '0.75rem',
-                            marginTop: '1rem'
-                        }}
-                    >
-                        <div>
-                            <span style={{ fontWeight: 500, color: '#6b7280' }}>Date: </span>
-                            <span style={{ color: '#111827' }}>
-                                {new Date(program.programDate).toLocaleDateString()}
-                            </span>
-                        </div>
-                        <div>
-                            <span style={{ fontWeight: 500, color: '#6b7280' }}>City: </span>
-                            <span style={{ color: '#111827' }}>{program.programCity}</span>
-                        </div>
+                </div>
 
+                <div style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '0.5rem 1.5rem',
+                    color: '#4b5563',
+                    fontSize: '0.925rem'
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <MapPin size={16} style={{ color: '#6b7280', marginRight: '0.375rem' }} />
+                        <span style={{ fontWeight: 500, color: '#6b7280', marginRight: '0.375rem' }}>City:</span>
+                        <span style={{ color: '#000000' }}>{program.programCity}</span>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <CalendarIcon size={16} style={{ color: '#6b7280', marginRight: '0.375rem' }} />
+                        <span style={{ fontWeight: 500, color: '#6b7280', marginRight: '0.375rem' }}>Date:</span>
+                        <span style={{ color: '#000000' }}>
+                            {new Date(program.programDate).toLocaleDateString()}
+                        </span>
                     </div>
                 </div>
+            </div>
 
-                <div
+            <div
+                style={{
+                    display: 'flex',
+                    gap: '0.5rem',
+                    alignSelf: 'center'
+                }}
+            >
+                <button
+                    onClick={() => setSearchParams({ action: 'edit', id: program.id })}
                     style={{
+                        padding: '0.5rem',
+                        backgroundColor: '#f97316',
+                        color: 'white',
+                        borderRadius: '0.375rem',
+                        cursor: 'pointer',
+                        border: 'none',
                         display: 'flex',
-                        gap: '0.5rem',
-                        alignSelf: 'flex-start'
+                        alignItems: 'center',
+                        justifyContent: 'center'
                     }}
+                    title="Edit"
                 >
+                    <Edit2 size={18} />
+                </button>
+                <button
+                    onClick={() => handleDelete(program.id)}
+                    style={{
+                        padding: '0.5rem',
+                        backgroundColor: '#ef4444',
+                        color: 'white',
+                        borderRadius: '0.375rem',
+                        cursor: 'pointer',
+                        border: 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}
+                    title="Delete"
+                >
+                    <Trash2 size={18} />
+                </button>
+                {activeTab === 'history' && (
                     <button
-                        onClick={() => setSearchParams({ action: 'edit', id: program.id })}
+                        onClick={async () => {
+                            if (confirm("Move this program to Storage?")) {
+                                setLoading(true);
+                                try {
+                                    await TransactionService.archiveProgram(program.id);
+
+                                    // Refresh metadata for notifications
+                                    await setDoc(doc(db, 'system', 'metadata'), {
+                                        lastUpdated_programs: serverTimestamp()
+                                    }, { merge: true });
+
+                                    alert("Program moved to storage successfully");
+                                    loadPrograms();
+                                } catch (e) { alert("Archive Failed"); }
+                                setLoading(false);
+                            }
+                        }}
                         style={{
                             padding: '0.5rem',
-                            backgroundColor: '#3b82f6',
+                            backgroundColor: '#4f46e5',
                             color: 'white',
                             borderRadius: '0.375rem',
                             cursor: 'pointer',
-                            border: 'none'
+                            border: 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
                         }}
-                        title="Edit"
+                        title="Move to Storage"
                     >
-                        <Edit2 size={18} />
+                        <Package size={18} />
                     </button>
-                    <button
-                        onClick={() => handleDelete(program.id)}
-                        style={{
-                            padding: '0.5rem',
-                            backgroundColor: '#ef4444',
-                            color: 'white',
-                            borderRadius: '0.375rem',
-                            cursor: 'pointer',
-                            border: 'none'
-                        }}
-                        title="Delete"
-                    >
-                        <Trash2 size={18} />
-                    </button>
-                    {activeTab === 'history' && (
-                        <button
-                            onClick={async () => {
-                                if (confirm("Move this program to Storage?")) {
-                                    setLoading(true);
-                                    try {
-                                        await TransactionService.archiveProgram(program.id);
-
-                                        // Refresh metadata for notifications
-                                        await setDoc(doc(db, 'system', 'metadata'), {
-                                            lastUpdated_programs: serverTimestamp()
-                                        }, { merge: true });
-
-                                        alert("Program moved to storage successfully");
-                                        loadPrograms();
-                                    } catch (e) { alert("Archive Failed"); }
-                                    setLoading(false);
-                                }
-                            }}
-                            style={{
-                                padding: '0.5rem',
-                                backgroundColor: '#4f46e5',
-                                color: 'white',
-                                borderRadius: '0.375rem',
-                                cursor: 'pointer',
-                                border: 'none'
-                            }}
-                            title="Move to Storage"
-                        >
-                            <Package size={18} />
-                        </button>
-                    )}
-                </div>
+                )}
             </div>
         </div>
     );
@@ -657,9 +701,9 @@ const ProgramManagement = () => {
         >
             <PageHeader
                 title="Program Management"
-                rightAction={
-                    <button onClick={handleLogout} className="btn-icon" style={{ background: 'none', border: 'none', color: '#dc2626' }}>
-                        <LogOut size={20} />
+                leftAction={
+                    <button onClick={() => navigate('/configuration')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
+                        <ChevronLeft size={24} />
                     </button>
                 }
             />

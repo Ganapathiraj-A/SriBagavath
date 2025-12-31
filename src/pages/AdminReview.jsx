@@ -195,10 +195,14 @@ const AdminReview = () => {
         const toDelete = filteredByProduct.filter(r => r.status === 'BNK_VERIFIED');
         if (toDelete.length === 0) return;
 
-        if (confirm(`FINAL WARNING: This will permanently delete ${toDelete.length} records. Continue?`)) {
+        const password = prompt("Final Warning: This will permanently delete ALL completed records. Enter password to proceed:");
+        if (password === "413800") {
             for (const tx of toDelete) {
                 await TransactionService.deleteTransaction(tx.id);
             }
+            alert(`Successfully deleted ${toDelete.length} records.`);
+        } else if (password !== null) {
+            alert("Incorrect password.");
         }
     };
 
@@ -325,9 +329,9 @@ const AdminReview = () => {
 
             <PageHeader
                 title="Registration"
-                rightAction={
-                    <button onClick={handleLogout} className="btn-icon" style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer' }}>
-                        <LogOut size={20} />
+                leftAction={
+                    <button onClick={() => navigate('/configuration')} style={{ background: 'none', border: 'none', padding: '8px', cursor: 'pointer' }}>
+                        <ChevronLeft size={24} />
                     </button>
                 }
             />

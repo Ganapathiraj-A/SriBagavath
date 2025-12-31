@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Plus, Edit2, Trash2, Calendar as CalendarIcon, ChevronLeft, Video, Link as LinkIcon, Clock, User } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { db } from '../firebase';
+import '../components/RegistrationStyles.css';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, setDoc, query, where, orderBy, limit, serverTimestamp } from 'firebase/firestore';
 
 // Helper to compress image to Base64
@@ -256,13 +257,13 @@ const OnlineMeetingManagement = () => {
                         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', backgroundColor: '#f3f4f6', padding: '0.25rem', borderRadius: '0.5rem' }}>
                             <button
                                 onClick={() => setActiveTab('upcoming')}
-                                style={{ flex: 1, padding: '0.5rem', borderRadius: '0.375rem', border: 'none', backgroundColor: activeTab === 'upcoming' ? 'white' : 'transparent', fontWeight: 600, cursor: 'pointer', boxShadow: activeTab === 'upcoming' ? '0 1px 2px 0 rgb(0 0 0 / 0.05)' : 'none' }}
+                                style={{ flex: 1, padding: '0.5rem', borderRadius: '0.375rem', border: 'none', backgroundColor: activeTab === 'upcoming' ? 'white' : 'transparent', fontWeight: 500, cursor: 'pointer', boxShadow: activeTab === 'upcoming' ? '0 1px 2px 0 rgb(0 0 0 / 0.05)' : 'none' }}
                             >
                                 Upcoming
                             </button>
                             <button
                                 onClick={() => setActiveTab('history')}
-                                style={{ flex: 1, padding: '0.5rem', borderRadius: '0.375rem', border: 'none', backgroundColor: activeTab === 'history' ? 'white' : 'transparent', fontWeight: 600, cursor: 'pointer', boxShadow: activeTab === 'history' ? '0 1px 2px 0 rgb(0 0 0 / 0.05)' : 'none' }}
+                                style={{ flex: 1, padding: '0.5rem', borderRadius: '0.375rem', border: 'none', backgroundColor: activeTab === 'history' ? 'white' : 'transparent', fontWeight: 500, cursor: 'pointer', boxShadow: activeTab === 'history' ? '0 1px 2px 0 rgb(0 0 0 / 0.05)' : 'none' }}
                             >
                                 History
                             </button>
@@ -277,7 +278,7 @@ const OnlineMeetingManagement = () => {
                                 meetings.map(meeting => (
                                     <div key={meeting.id} style={{ backgroundColor: 'white', padding: '1rem', borderRadius: '0.75rem', border: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <div>
-                                            <h4 style={{ margin: 0, fontSize: '1.125rem' }}>{meeting.conductedBy}</h4>
+                                            <h4 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 500, color: '#000000' }}>{meeting.conductedBy}</h4>
                                             <div style={{ display: 'flex', gap: '1rem', color: '#6b7280', fontSize: '0.875rem', marginTop: '0.25rem' }}>
                                                 <span><CalendarIcon size={14} style={{ verticalAlign: 'text-bottom' }} /> {meeting.date}</span>
                                                 <span><Clock size={14} style={{ verticalAlign: 'text-bottom' }} /> {meeting.startTime}</span>
@@ -294,7 +295,7 @@ const OnlineMeetingManagement = () => {
 
                         <button
                             onClick={() => setSearchParams({ action: 'add' })}
-                            style={{ position: 'fixed', bottom: '2rem', right: '2rem', width: '3.5rem', height: '3.5rem', borderRadius: '9999px', backgroundColor: '#f97316', color: 'white', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', display: 'flex', alignItems: 'center', justifyCenter: 'center', cursor: 'pointer' }}
+                            style={{ position: 'fixed', bottom: '5rem', right: '2rem', width: '3.5rem', height: '3.5rem', borderRadius: '9999px', backgroundColor: '#f97316', color: 'white', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', display: 'flex', alignItems: 'center', justifyCenter: 'center', cursor: 'pointer' }}
                         >
                             <Plus size={24} style={{ margin: '0 auto' }} />
                         </button>

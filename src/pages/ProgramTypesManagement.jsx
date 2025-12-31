@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { motion, Reorder } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit2, Trash2, Save, X, GripVertical, ChevronUp, ChevronDown } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, X, GripVertical, ChevronUp, ChevronDown, ChevronLeft } from 'lucide-react';
 import { db, auth } from '../firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy, setDoc } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { LogOut } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
+import '../components/RegistrationStyles.css';
 
 const ProgramTypesManagement = () => {
     const navigate = useNavigate();
@@ -170,9 +171,9 @@ const ProgramTypesManagement = () => {
         <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-surface)' }}>
             <PageHeader
                 title="Program Types"
-                rightAction={
-                    <button onClick={handleLogout} className="btn-icon" style={{ background: 'none', border: 'none', color: '#dc2626' }}>
-                        <LogOut size={20} />
+                leftAction={
+                    <button onClick={() => navigate('/configuration')} style={{ background: 'none', border: 'none', padding: '8px', cursor: 'pointer' }}>
+                        <ChevronLeft size={24} />
                     </button>
                 }
             />
@@ -289,7 +290,7 @@ const ProgramTypesManagement = () => {
                         </form>
 
                         <div style={{ display: 'grid', gap: '0.75rem' }}>
-                            <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem' }}>Existing Types</h2>
+                            <h2 style={{ fontSize: '1.25rem', fontWeight: 500, color: '#000000', marginBottom: '0.5rem' }}>Existing Types</h2>
                             {types.map((type, index) => (
                                 <div
                                     key={type.id}

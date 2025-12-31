@@ -8,18 +8,22 @@ import { doc, getDoc, collection, getDocs, query, where, count, getCountFromServ
 
 import { useUnseenCounts } from '../hooks/useUnseenCounts';
 
-const SystemHealthCard = ({ health }) => (
-    <div style={{
-        background: health?.status === 'good' ? '#f0fdf4' : '#fffbeb',
-        padding: '24px',
-        borderRadius: '16px',
-        border: '1px solid',
-        borderColor: health?.status === 'good' ? '#bbf7d0' : '#fef3c7',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '20px',
-        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
-    }}>
+const SystemHealthCard = ({ health, onClick }) => (
+    <div
+        onClick={onClick}
+        style={{
+            background: health?.status === 'good' ? '#f0fdf4' : '#fffbeb',
+            padding: '24px',
+            borderRadius: '16px',
+            border: '1px solid',
+            borderColor: health?.status === 'good' ? '#bbf7d0' : '#fef3c7',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '20px',
+            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
+            cursor: 'pointer'
+        }}
+    >
         <div style={{
             background: health?.status === 'good' ? '#dcfce7' : '#fef3c7',
             padding: '12px',
@@ -58,7 +62,29 @@ const AdminDashboard = () => {
     const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().substring(0, 7));
     const [loading, setLoading] = useState(true);
     const [history, setHistory] = useState([]); // Last 30 days daily counts
-    const [health, setHealth] = useState({ status: 'good', reason: 'System performance within limits' });
+    const [health, setHealth] = useState({ status: 'good', reason: 'System performance within limits', detailedMetrics: null });
+
+    const showHealthDetails = () => {
+        if (!health.detailedMetrics) return;
+        const { avgUsers, peakUsers, totalSizeMB, bookCoverSizeMB, bookCoverCount } = health.detailedMetrics;
+
+        const message = `System Health Logic Breakdown:
+
+1. Thresholds:
+- Storage Limit: 500 MB
+- Daily Avg Limit: 400 Users
+- Peak Usage Limit: 700 Users
+
+2. Current Performance:
+- Total Storage: ${totalSizeMB.toFixed(2)} MB${bookCoverSizeMB ? `\n  (Incl. ${bookCoverSizeMB.toFixed(2)}MB from ${bookCoverCount || 0} Book Covers)` : ''}
+- 30-Day Avg: ${avgUsers.toFixed(0)} Users/Day
+- 30-Day Peak: ${peakUsers} Users
+
+Status strictly moves to 'Warning' if any threshold is exceeded. 
+Otherwise, it stays 'Good'.`;
+
+        alert(message);
+    };
 
     const fetchStats = async () => {
         setLoading(true);
@@ -109,6 +135,8 @@ const AdminDashboard = () => {
 
             // Calculate Health
             const totalSizeMB = totalsSnap.exists() ? (totalsSnap.data().totalImageSizeMB || 0) : 0;
+            const bookCoverSizeMB = totalsSnap.exists() ? (totalsSnap.data().totalBookCoverSizeMB || 0) : 0;
+            const bookCoverCount = totalsSnap.exists() ? (totalsSnap.data().totalBookCovers || 0) : 0;
             const avgUsers = historyData.length > 0 ? (historyData.reduce((acc, d) => acc + d.count, 0) / historyData.length) : 0;
             const peakUsers = historyData.length > 0 ? Math.max(...historyData.map(d => d.count)) : 0;
 
@@ -128,7 +156,11 @@ const AdminDashboard = () => {
                 healthReason = `Healthy: ${avgUsers.toFixed(0)} avg / ${peakUsers} peak users. Storage: ${totalSizeMB.toFixed(1)}MB`;
             }
 
-            setHealth({ status: healthStatus, reason: healthReason });
+            setHealth({
+                status: healthStatus,
+                reason: healthReason,
+                detailedMetrics: { avgUsers, peakUsers, totalSizeMB, bookCoverSizeMB, bookCoverCount }
+            });
 
             if (geoSnap.exists()) {
                 setGeoStats(geoSnap.data());
@@ -155,6 +187,12 @@ const AdminDashboard = () => {
         }
     };
     const handleClearAll = async () => {
+        const password = window.prompt("Enter admin password to proceed with FULL system reset:");
+        if (password !== "413800") {
+            if (password !== null) alert("Incorrect password.");
+            return;
+        }
+
         const confirm1 = window.confirm("WARNING: This will delete ALL programs, registrations, and images. THIS CANNOT BE UNDONE. Are you absolutely sure?");
         if (!confirm1) return;
 
@@ -273,7 +311,7 @@ const AdminDashboard = () => {
             <div style={{ padding: '20px', display: 'grid', gap: '20px' }}>
 
                 {/* System Health Section */}
-                <SystemHealthCard health={health} />
+                <SystemHealthCard health={health} onClick={showHealthDetails} />
 
                 {/* 1. Stats Grid */}
                 <div style={{
@@ -355,6 +393,12 @@ const AdminDashboard = () => {
                         value={stats?.totalReceipts}
                         icon={Image}
                         color="#ec4899"
+                    />
+                    <StatCard
+                        title="Book Covers"
+                        value={stats?.totalBookCovers}
+                        icon={Image}
+                        color="#10b981"
                     />
                     <StatCard
                         title="Storage Size"

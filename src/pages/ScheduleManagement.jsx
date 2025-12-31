@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { cleanupOldSchedules } from '../utils/cleanup';
 import { motion } from 'framer-motion';
-import { Plus, Edit2, Trash2, Calendar as CalendarIcon, MapPin } from 'lucide-react';
+import { Plus, Edit2, Trash2, Calendar as CalendarIcon, MapPin, ChevronLeft } from 'lucide-react';
 import { db, auth } from '../firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy, where, limit, setDoc, serverTimestamp } from 'firebase/firestore';
 import { LogOut } from 'lucide-react';
@@ -9,6 +9,7 @@ import { signOut } from 'firebase/auth';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
+import '../components/RegistrationStyles.css';
 
 const ScheduleManagement = () => {
     const navigate = useNavigate();
@@ -209,8 +210,8 @@ const ScheduleManagement = () => {
                         <h3
                             style={{
                                 fontSize: '1.25rem',
-                                fontWeight: 600,
-                                color: '#111827',
+                                fontWeight: 500,
+                                color: '#000000',
                                 margin: 0
                             }}
                         >
@@ -317,9 +318,9 @@ const ScheduleManagement = () => {
         >
             <PageHeader
                 title="Schedule Management"
-                rightAction={
-                    <button onClick={handleLogout} className="btn-icon" style={{ background: 'none', border: 'none', color: '#dc2626' }}>
-                        <LogOut size={20} />
+                leftAction={
+                    <button onClick={() => navigate('/configuration')} style={{ background: 'none', border: 'none', padding: '8px', cursor: 'pointer' }}>
+                        <ChevronLeft size={24} />
                     </button>
                 }
             />

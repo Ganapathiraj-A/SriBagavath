@@ -160,9 +160,11 @@ const PaymentFlow = () => {
 
     // -- Views (Ported from SBB PaymentScreen.tsx) --
 
+    const [showDemo, setShowDemo] = useState(false);
+
     const renderQrView = () => (
         <div className="center-content">
-            <h2 style={{ textAlign: 'center' }}>Click Image to Pay</h2>
+            <h2 style={{ textAlign: 'center' }}>Click Image to Copy UPI ID</h2>
             <div
                 className="qr-container"
                 onClick={async () => {
@@ -206,24 +208,31 @@ const PaymentFlow = () => {
     const renderInstructions = () => (
         <div className="instructions-container" style={{ paddingBottom: '80px', textAlign: 'center' }}>
             <h2 style={{ textAlign: 'center' }}>Payment Instructions</h2>
-            <p style={{ fontSize: '0.9rem', color: '#6b7280', margin: '4px 0 16px 0' }}>
-                ⬇️ After viewing Instructions - Scroll below to Proceed ⬇️
-            </p>
 
-            <div style={{
-                width: '100%',
-                borderRadius: '12px',
-                overflow: 'hidden',
-                marginBottom: '16px',
-                border: '1px solid #ddd',
-                boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-            }}>
-                <img
-                    src={instructionGif}
-                    alt="Payment Instructions"
-                    style={{ width: '100%', display: 'block' }}
-                />
-            </div>
+            <button
+                className="btn-secondary full-width"
+                style={{ marginBottom: '16px', backgroundColor: '#f3f4f6', border: '1px solid #d1d5db' }}
+                onClick={() => setShowDemo(!showDemo)}
+            >
+                {showDemo ? "Hide Demo" : "Click here to view demo"}
+            </button>
+
+            {showDemo && (
+                <div style={{
+                    width: '100%',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    marginBottom: '16px',
+                    border: '1px solid #ddd',
+                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                }}>
+                    <img
+                        src={instructionGif}
+                        alt="Payment Instructions"
+                        style={{ width: '100%', display: 'block' }}
+                    />
+                </div>
+            )}
 
             <div className="steps-list">
                 <p><strong>1.</strong> UPI ID <b>already copied</b> to clipboard.</p>

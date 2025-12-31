@@ -15,8 +15,10 @@ gh release delete $TAG --yes || true
 git tag -d $TAG || true
 git push origin :refs/tags/$TAG || true
 
-gh release create $TAG "$APK_NAME" --title "v2.8.50: App Name Display Fix" --notes "Features:
-- Fixed an issue where the app name was still showing as 'SB Clean V4' after installation by updating the activity title string."
+gh release create $TAG "$APK_NAME" --title "v2.8.58: Theme & Font Unification" --notes "Features:
+- Program Management Hub: Unified fonts and typography across all screens (Program, Meeting, Satsang, Types, Schedule, Consultation) to match the cleaner Registration screen look.
+- Program Management: Updated ProgramCard design with icon-based metadata and orange edit buttons.
+- PageHeader: Standardized title font weight for a premium look."
 
 echo "---------------------------------------------------"
 echo "Dev Clean Build Published!"

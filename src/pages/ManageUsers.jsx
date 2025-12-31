@@ -193,7 +193,7 @@ const ManageUsers = () => {
                 )}
 
 
-                <div style={{ padding: '1rem 0', display: 'flex', justifyContent: 'center' }}>
+                <div style={{ padding: '0.25rem 0 1rem 0', display: 'flex', justifyContent: 'center' }}>
                     <button
                         onClick={openAddModal}
                         style={{
@@ -213,7 +213,7 @@ const ManageUsers = () => {
                         }}
                     >
                         <Plus size={20} />
-                        Add User
+                        Add Admin
                     </button>
                 </div>
 

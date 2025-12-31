@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { useAdminAuth } from '../context/AdminAuthContext';
+import '../components/RegistrationStyles.css';
 
 import { useUnseenCounts } from '../hooks/useUnseenCounts';
 
@@ -70,7 +71,7 @@ const ManagementButton = ({ title, subtitle, icon: Icon, path, delay, color = '#
                 </div>
             )}
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '1.125rem', fontWeight: 600, color: '#111827' }}>{title}</span>
+                <span style={{ fontSize: '1.125rem', fontWeight: 500, color: '#000000' }}>{title}</span>
                 {subtitle && <span style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '2px' }}>{subtitle}</span>}
             </div>
         </motion.button>

@@ -7,6 +7,7 @@ import {
 import { db } from '../firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy } from 'firebase/firestore';
 import PageHeader from '../components/PageHeader';
+import '../components/RegistrationStyles.css';
 
 const ConsultationManagement = () => {
     const navigate = useNavigate();
@@ -180,7 +181,7 @@ const ConsultationManagement = () => {
                         </form>
 
                         <div style={{ marginTop: '2rem' }}>
-                            <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#374151', marginBottom: '1rem' }}>Teacher Contacts</h2>
+                            <h2 style={{ fontSize: '1.25rem', fontWeight: 500, color: '#000000', marginBottom: '1rem' }}>Teacher Contacts</h2>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                 {consultants.length === 0 ? (
                                     <p style={{ textAlign: 'center', color: '#9ca3af', padding: '1rem' }}>No teacher contacts added yet.</p>
@@ -206,7 +207,7 @@ const ConsultationManagement = () => {
                                             </div>
 
                                             <div style={{ flex: 1 }}>
-                                                <div style={{ fontWeight: 600, fontSize: '1.125rem', color: '#111827' }}>{c.name}</div>
+                                                <div style={{ fontWeight: 500, fontSize: '1.125rem', color: '#000000' }}>{c.name}</div>
                                                 <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>{c.number}</div>
                                             </div>
 
