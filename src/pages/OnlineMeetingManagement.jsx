@@ -95,6 +95,7 @@ const OnlineMeetingManagement = () => {
         startTime: '',
         endTime: '',
         joinLink: '',
+        description: '',
         banner: ''
     });
 
@@ -110,6 +111,7 @@ const OnlineMeetingManagement = () => {
                 startTime: editingMeeting.startTime || '',
                 endTime: editingMeeting.endTime || '',
                 joinLink: editingMeeting.joinLink || '',
+                description: editingMeeting.description || '',
                 banner: editingMeeting.banner || ''
             });
 
@@ -178,6 +180,7 @@ const OnlineMeetingManagement = () => {
                 startTime: formData.startTime,
                 endTime: formData.endTime,
                 joinLink: formData.joinLink,
+                description: formData.description,
                 hasBanner: !!bannerUrl,
                 updatedAt: new Date().toISOString(),
                 createdAt: editingMeeting ? editingMeeting.createdAt : new Date().toISOString()
@@ -235,7 +238,7 @@ const OnlineMeetingManagement = () => {
     };
 
     const resetForm = () => {
-        setFormData({ conductedBy: '', date: '', startTime: '', endTime: '', joinLink: '', banner: '' });
+        setFormData({ conductedBy: '', date: '', startTime: '', endTime: '', joinLink: '', description: '', banner: '' });
         setBannerImage(null);
         setSearchParams({});
     };
@@ -332,7 +335,19 @@ const OnlineMeetingManagement = () => {
 
                             <div>
                                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}><LinkIcon size={16} /> Join Link</label>
-                                <input type="url" name="joinLink" value={formData.joinLink} onChange={handleInputChange} required style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }} placeholder="Zoom / Google Meet Link" />
+                                <input type="text" name="joinLink" value={formData.joinLink} onChange={handleInputChange} required style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }} placeholder="Zoom / Google Meet Link" />
+                            </div>
+
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Description</label>
+                                <textarea
+                                    name="description"
+                                    value={formData.description}
+                                    onChange={handleInputChange}
+                                    rows={4}
+                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', fontFamily: 'inherit' }}
+                                    placeholder="Brief description about the meeting topic..."
+                                />
                             </div>
 
                             <div>

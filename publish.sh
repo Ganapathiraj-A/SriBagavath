@@ -15,9 +15,10 @@ gh release delete $TAG --yes || true
 git tag -d $TAG || true
 git push origin :refs/tags/$TAG || true
 
-gh release create $TAG "$APK_NAME" --title "v2.8.59: Button Reordering & Theme" --notes "Features:
-- Program Management: Reordered buttons to move 'Manage Consultation' and 'Program Types' to the end.
-- Program Management Hub: Unified fonts and typography across all screens to match the cleaner Registration screen look.
+gh release create $TAG "$APK_NAME" --title "v2.8.60: Online Meeting Descriptions" --notes "Features:
+- Online Meeting Management: Added a dedicated description field for meetings.
+- Online Meeting UI: Descriptions are now displayed in meeting cards (truncated) and details pages (full).
+- Validation: Relaxed URL validation for join links to allow more flexible input."
 - PageHeader: Standardized title font weight for a premium look."
 
 echo "---------------------------------------------------"

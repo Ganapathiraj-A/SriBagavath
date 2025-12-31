@@ -43,7 +43,7 @@ const OnlineMeetingDetails = () => {
         if (!meeting) return;
         const text = `
 *Online Meeting with ${meeting.conductedBy}*
-
+${meeting.description ? '\n' + meeting.description + '\n' : ''}
 📅 *Date:* ${new Date(meeting.date).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
 ⏰ *Time:* ${meeting.startTime} - ${meeting.endTime}
 
@@ -125,6 +125,15 @@ const OnlineMeetingDetails = () => {
                                 </div>
                             </div>
                         </div>
+
+                        {meeting.description && (
+                            <div style={{ marginTop: '2rem' }}>
+                                <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#374151', marginBottom: '0.75rem' }}>About this Meeting</h3>
+                                <p style={{ fontSize: '1rem', color: '#4b5563', lineHeight: '1.6', whiteSpace: 'pre-wrap', margin: 0 }}>
+                                    {meeting.description}
+                                </p>
+                            </div>
+                        )}
 
                         <div style={{ marginTop: '2.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                             <button

@@ -91,6 +91,21 @@ const OnlineMeetings = () => {
                                     <Video size={24} color="#f97316" />
                                 </div>
 
+                                {meeting.description && (
+                                    <p style={{
+                                        fontSize: '0.925rem',
+                                        color: '#4b5563',
+                                        margin: '0.5rem 0 0 0',
+                                        display: '-webkit-box',
+                                        WebkitLineClamp: 2,
+                                        WebkitBoxOrient: 'vertical',
+                                        overflow: 'hidden',
+                                        lineHeight: '1.5'
+                                    }}>
+                                        {meeting.description}
+                                    </p>
+                                )}
+
                                 <div style={{ borderTop: '1px solid #f3f4f6', paddingTop: '1rem', marginTop: '1rem', display: 'flex', justifyContent: 'flex-end' }}>
                                     <button
                                         onClick={() => navigate(`/programs/online/${meeting.id}`)}
