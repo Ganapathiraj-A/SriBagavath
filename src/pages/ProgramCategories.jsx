@@ -104,10 +104,17 @@ const ProgramCategories = () => {
                     hasNew={counts.hasNewPrograms}
                 />
                 <CategoryButton
+                    title="Ayya's Schedule"
+                    icon={Calendar}
+                    path="/schedule"
+                    delay={0.2}
+                    hasNew={counts.hasNewSchedule}
+                />
+                <CategoryButton
                     title="Online Meetings"
                     icon={Video}
                     path="/programs/online"
-                    delay={0.2}
+                    delay={0.3}
                     hasNew={counts.hasNewMeetings}
                 />
                 <CategoryButton
@@ -115,15 +122,8 @@ const ProgramCategories = () => {
                     subtitle="City-wide spiritual gatherings"
                     icon={Users}
                     path="/programs/satsang"
-                    delay={0.3}
-                    hasNew={counts.hasNewSatsangs}
-                />
-                <CategoryButton
-                    title="Ayya's Schedule"
-                    icon={Calendar}
-                    path="/schedule"
                     delay={0.4}
-                    hasNew={counts.hasNewSchedule}
+                    hasNew={counts.hasNewSatsangs}
                 />
                 <CategoryButton
                     title="Consultation"

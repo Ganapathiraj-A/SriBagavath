@@ -268,22 +268,48 @@ const ProgramTypesManagement = () => {
                                 </div>
                             </div>
 
-                            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                                <button
-                                    type="submit"
-                                    style={{ padding: '0.75rem 1.5rem', backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                                >
-                                    <Save size={18} />
-                                    {isEditing ? 'Update Type' : 'Add Type'}
-                                </button>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+                                <div style={{ display: 'flex', gap: '1rem' }}>
+                                    <button
+                                        type="submit"
+                                        style={{ flex: 2, padding: '0.75rem', backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                                    >
+                                        <Save size={18} />
+                                        {isEditing ? 'Update Type' : 'Add Type'}
+                                    </button>
+                                    {isEditing && (
+                                        <button
+                                            type="button"
+                                            onClick={resetForm}
+                                            style={{ flex: 1, padding: '0.75rem', backgroundColor: '#9ca3af', color: 'white', border: 'none', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                                        >
+                                            <X size={18} />
+                                            Cancel
+                                        </button>
+                                    )}
+                                </div>
+
                                 {isEditing && (
                                     <button
                                         type="button"
-                                        onClick={resetForm}
-                                        style={{ padding: '0.75rem 1.5rem', backgroundColor: '#9ca3af', color: 'white', border: 'none', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                                        onClick={() => handleDelete(editingId)}
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.75rem',
+                                            backgroundColor: '#fee2e2',
+                                            color: '#dc2626',
+                                            borderRadius: '0.5rem',
+                                            fontWeight: 600,
+                                            cursor: 'pointer',
+                                            border: '1px solid #fecaca',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '0.5rem'
+                                        }}
                                     >
-                                        <X size={18} />
-                                        Cancel
+                                        <Trash2 size={18} />
+                                        Delete Program Type
                                     </button>
                                 )}
                             </div>
@@ -291,20 +317,31 @@ const ProgramTypesManagement = () => {
 
                         <div style={{ display: 'grid', gap: '0.75rem' }}>
                             <h2 style={{ fontSize: '1.25rem', fontWeight: 500, color: '#000000', marginBottom: '0.5rem' }}>Existing Types</h2>
+                            {!isEditing && (
+                                <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: 500 }}>
+                                    Click program type to edit
+                                </p>
+                            )}
                             {types.map((type, index) => (
                                 <div
                                     key={type.id}
+                                    onClick={() => handleEdit(type)}
                                     style={{
                                         display: 'flex',
                                         alignItems: 'center',
-                                        padding: '1rem',
+                                        padding: '1.25rem',
                                         backgroundColor: '#f9fafb',
-                                        borderRadius: '0.5rem',
+                                        borderRadius: '1rem',
                                         border: '1px solid #e5e7eb',
-                                        gap: '1rem'
+                                        gap: '1.25rem',
+                                        cursor: 'pointer',
+                                        boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)'
                                     }}
                                 >
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                    <div
+                                        style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
                                         <button onClick={() => moveItem(index, -1)} disabled={index === 0} style={{ border: 'none', background: 'none', cursor: index === 0 ? 'default' : 'pointer', opacity: index === 0 ? 0.3 : 1 }}><ChevronUp size={20} /></button>
                                         <button onClick={() => moveItem(index, 1)} disabled={index === types.length - 1} style={{ border: 'none', background: 'none', cursor: index === types.length - 1 ? 'default' : 'pointer', opacity: index === types.length - 1 ? 0.3 : 1 }}><ChevronDown size={20} /></button>
                                     </div>
@@ -319,21 +356,6 @@ const ProgramTypesManagement = () => {
                                             <span>R.Fee: {type.roomFees || '-'}</span>
                                             <span>D.Fee: {type.dormFees || '-'}</span>
                                         </div>
-                                    </div>
-
-                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                        <button
-                                            onClick={() => handleEdit(type)}
-                                            style={{ padding: '0.5rem', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer' }}
-                                        >
-                                            <Edit2 size={16} />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(type.id)}
-                                            style={{ padding: '0.5rem', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer' }}
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
                                     </div>
                                 </div>
                             ))}

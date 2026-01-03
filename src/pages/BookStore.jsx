@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingCart, ClipboardList, ChevronLeft, Plus, Minus, Info } from 'lucide-react';
+import { IndianRupee, ShoppingCart, ChevronLeft, Plus, Minus, Info } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
-import { db } from '../firebase';
+import { auth, db } from '../firebase';
 import { collection, getDocs, query, orderBy, doc, getDoc } from 'firebase/firestore';
+import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { useCart } from '../context/CartContext';
+import { useGlobalSettings } from '../context/GlobalSettingsContext';
 
 const BookStore = () => {
     const navigate = useNavigate();
@@ -14,6 +17,48 @@ const BookStore = () => {
     const [loading, setLoading] = useState(true);
     const [covers, setCovers] = useState({});
     const [activeTab, setActiveTab] = useState('Tamil Books');
+    const [authLoading, setAuthLoading] = useState(false);
+    const { onlineTransactionsEnabled } = useGlobalSettings();
+
+    const ensureAuth = async () => {
+        if (auth.currentUser && !auth.currentUser.isAnonymous) {
+            return true;
+        }
+
+        setAuthLoading(true);
+        try {
+            const googleUser = await GoogleAuth.signIn();
+            const idToken = googleUser?.authentication?.idToken;
+            if (!idToken) throw new Error("No ID Token received");
+
+            const credential = GoogleAuthProvider.credential(idToken);
+            await signInWithCredential(auth, credential);
+            return true;
+        } catch (err) {
+            console.error("Auth failed:", err);
+            return false;
+        } finally {
+            setAuthLoading(false);
+        }
+    };
+
+    const handleAddToCart = async (product) => {
+        if (await ensureAuth()) {
+            addToCart(product);
+        }
+    };
+
+    const handleRemoveFromCart = async (product) => {
+        if (await ensureAuth()) {
+            removeFromCart(product);
+        }
+    };
+
+    const handleViewOrders = async () => {
+        if (await ensureAuth()) {
+            navigate('/my-orders');
+        }
+    };
 
     useEffect(() => {
         loadBooks();
@@ -73,7 +118,7 @@ const BookStore = () => {
 
     return (
         <div style={{ backgroundColor: '#f9fafb', minHeight: '100vh', paddingBottom: '100px' }}>
-            <PageHeader title="Printed Books" />
+            <PageHeader title="Print Books" />
 
             {/* Tabs Navigation */}
             <div style={{
@@ -107,7 +152,8 @@ const BookStore = () => {
                 </div>
 
                 <button
-                    onClick={() => navigate('/my-orders')}
+                    onClick={handleViewOrders}
+                    disabled={authLoading}
                     style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -122,8 +168,7 @@ const BookStore = () => {
                         cursor: 'pointer'
                     }}
                 >
-                    <ClipboardList size={18} />
-                    My Orders
+                    <IndianRupee size={18} /> My Orders
                 </button>
             </div>
 
@@ -158,23 +203,29 @@ const BookStore = () => {
                             style={{ display: 'flex', alignItems: 'center', gap: '10px' }}
                             onClick={(e) => e.stopPropagation()} // Prevent navigation to details
                         >
-                            {cart[product.id] > 0 && (
+                            {onlineTransactionsEnabled && (
                                 <>
+                                    {cart[product.id] > 0 && (
+                                        <>
+                                            <button
+                                                onClick={() => handleRemoveFromCart(product)}
+                                                disabled={authLoading}
+                                                style={{ width: '32px', height: '32px', borderRadius: '50%', border: '1px solid #e5e7eb', background: 'white', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: authLoading ? 'wait' : 'pointer' }}
+                                            >
+                                                <Minus size={16} />
+                                            </button>
+                                            <span style={{ fontWeight: 600, minWidth: '20px', textAlign: 'center', fontSize: '1rem' }}>{cart[product.id]}</span>
+                                        </>
+                                    )}
                                     <button
-                                        onClick={() => removeFromCart(product)}
-                                        style={{ width: '32px', height: '32px', borderRadius: '50%', border: '1px solid #e5e7eb', background: 'white', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                                        onClick={() => handleAddToCart(product)}
+                                        disabled={authLoading}
+                                        style={{ width: '32px', height: '32px', borderRadius: '50%', border: 'none', background: 'var(--color-primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: authLoading ? 'wait' : 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
                                     >
-                                        <Minus size={16} />
+                                        <Plus size={16} />
                                     </button>
-                                    <span style={{ fontWeight: 600, minWidth: '20px', textAlign: 'center', fontSize: '1rem' }}>{cart[product.id]}</span>
                                 </>
                             )}
-                            <button
-                                onClick={() => addToCart(product)}
-                                style={{ width: '32px', height: '32px', borderRadius: '50%', border: 'none', background: 'var(--color-primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
-                            >
-                                <Plus size={16} />
-                            </button>
                         </div>
                     </motion.div>
                 ))}
@@ -232,6 +283,27 @@ const BookStore = () => {
                         Checkout
                     </button>
                 </motion.div>
+            )}
+
+            {!onlineTransactionsEnabled && (
+                <div style={{
+                    position: 'fixed',
+                    bottom: '20px',
+                    left: '20px',
+                    right: '20px',
+                    backgroundColor: '#fef2f2',
+                    border: '1px solid #fee2e2',
+                    color: '#b91c1c',
+                    padding: '16px 24px',
+                    borderRadius: '16px',
+                    textAlign: 'center',
+                    boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
+                    zIndex: 100
+                }}>
+                    <p style={{ margin: 0, fontWeight: 700, fontSize: '1rem' }}>
+                        To order books please contact 7904118421
+                    </p>
+                </div>
             )}
         </div>
     );

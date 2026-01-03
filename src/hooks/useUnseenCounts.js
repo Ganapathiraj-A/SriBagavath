@@ -5,7 +5,8 @@ import { collection, query, where, onSnapshot } from 'firebase/firestore';
 export const useUnseenCounts = () => {
     const [counts, setCounts] = useState({
         registrations: 0,
-        transactions: 0,
+        purchases: 0,
+        donations: 0,
         hasNewPrograms: false,
         hasNewMeetings: false,
         hasNewSatsangs: false,
@@ -21,12 +22,15 @@ export const useUnseenCounts = () => {
 
         const unsubAdmin = onSnapshot(pendingQuery, (snapshot) => {
             let regCount = 0;
-            let bookCount = 0;
+            let purchaseCount = 0;
+            let donationCount = 0;
 
             snapshot.docs.forEach(doc => {
                 const data = doc.data();
-                if (data.itemType === 'BOOK' || data.itemType === 'DONATION') {
-                    bookCount++;
+                if (data.itemType === 'BOOK') {
+                    purchaseCount++;
+                } else if (data.itemType === 'DONATION') {
+                    donationCount++;
                 } else if (data.itemType === 'PROGRAM') {
                     regCount++;
                 }
@@ -35,7 +39,8 @@ export const useUnseenCounts = () => {
             setCounts(prev => ({
                 ...prev,
                 registrations: regCount,
-                transactions: bookCount
+                purchases: purchaseCount,
+                donations: donationCount
             }));
         }, err => console.error("Admin counts error:", err));
 

@@ -188,105 +188,69 @@ const ScheduleManagement = () => {
 
     const ScheduleCard = ({ schedule }) => (
         <div
+            onClick={() => handleEdit(schedule)}
             style={{
-                padding: '1.5rem',
-                border: '1px solid #e5e7eb',
-                borderRadius: '0.75rem',
-                backgroundColor: '#f9fafb'
+                padding: '1.25rem',
+                border: '1px solid #f3f4f6',
+                borderRadius: '1rem',
+                backgroundColor: 'white',
+                boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1rem',
+                cursor: 'pointer'
             }}
         >
-            <div
-                style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'flex-start',
-                    gap: '0.75rem',
-                    flexWrap: 'wrap'
-                }}
-            >
-                <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
-                        <MapPin size={20} style={{ color: 'var(--color-primary)', marginRight: '0.5rem' }} />
-                        <h3
-                            style={{
-                                fontSize: '1.25rem',
-                                fontWeight: 500,
-                                color: '#000000',
-                                margin: 0
-                            }}
-                        >
-                            {schedule.place}
-                        </h3>
-                    </div>
+            {/* Top: City */}
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+                <MapPin size={22} style={{ color: 'var(--color-primary)', marginRight: '0.75rem', flexShrink: 0 }} />
+                <h3 style={{ fontSize: '1.4rem', fontWeight: 700, color: '#000', margin: 0 }}>
+                    {schedule.place}
+                </h3>
+            </div>
 
-                    <div
-                        style={{
-                            display: 'flex',
-                            gap: '1.5rem',
-                            marginTop: '0.75rem',
-                            color: '#4b5563'
-                        }}
-                    >
-                        <div>
-                            <span style={{ fontWeight: 500, color: '#6b7280', display: 'block', fontSize: '0.875rem' }}>From</span>
-                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
-                                <span style={{ fontWeight: 'bold', fontSize: '1.1rem', color: '#000' }}>
-                                    {new Date(schedule.fromDate).toLocaleDateString('en-US', { weekday: 'short' })}, {new Date(schedule.fromDate).getDate()}
-                                </span>
-                                <span style={{ fontSize: '0.9rem', color: '#6b7280' }}>
-                                    {new Date(schedule.fromDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                                </span>
-                            </div>
-                        </div>
-                        <div>
-                            <span style={{ fontWeight: 500, color: '#6b7280', display: 'block', fontSize: '0.875rem' }}>To</span>
-                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
-                                <span style={{ fontWeight: 'bold', fontSize: '1.1rem', color: '#000' }}>
-                                    {new Date(schedule.toDate).toLocaleDateString('en-US', { weekday: 'short' })}, {new Date(schedule.toDate).getDate()}
-                                </span>
-                                <span style={{ fontSize: '0.9rem', color: '#6b7280' }}>
-                                    {new Date(schedule.toDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
+            {/* Bottom: Dates Row */}
+            <div style={{ display: 'flex', gap: '1rem' }}>
+                {/* From Date Box */}
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: '#fff7ed',
+                    color: 'var(--color-primary)',
+                    padding: '0.75rem',
+                    borderRadius: '1rem',
+                    minWidth: '5.5rem',
+                }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase' }}>
+                        {new Date(schedule.fromDate).toLocaleDateString(undefined, { month: 'short' })}
+                    </span>
+                    <span style={{ fontSize: '1.5rem', fontWeight: 800, lineHeight: 1 }}>
+                        {new Date(schedule.fromDate).getDate()}
+                    </span>
+                    <span style={{ fontSize: '0.7rem', marginTop: '0.25rem', opacity: 0.8, fontWeight: 500 }}>From</span>
                 </div>
 
-                <div
-                    style={{
-                        display: 'flex',
-                        gap: '0.5rem',
-                        alignSelf: 'flex-start'
-                    }}
-                >
-                    <button
-                        onClick={() => handleEdit(schedule)}
-                        style={{
-                            padding: '0.5rem',
-                            backgroundColor: '#f97316',
-                            color: 'white',
-                            borderRadius: '0.375rem',
-                            cursor: 'pointer',
-                            border: 'none'
-                        }}
-                        title="Edit"
-                    >
-                        <Edit2 size={18} />
-                    </button>
-                    <button
-                        onClick={() => handleDelete(schedule.id)}
-                        style={{
-                            padding: '0.5rem',
-                            backgroundColor: '#ef4444',
-                            color: 'white',
-                            borderRadius: '0.375rem',
-                            cursor: 'pointer',
-                            border: 'none'
-                        }}
-                        title="Delete"
-                    >
-                        <Trash2 size={18} />
-                    </button>
+                {/* To Date Box */}
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: '#f0fdf4',
+                    color: '#16a34a',
+                    padding: '0.75rem',
+                    borderRadius: '1rem',
+                    minWidth: '5.5rem',
+                }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase' }}>
+                        {new Date(schedule.toDate).toLocaleDateString(undefined, { month: 'short' })}
+                    </span>
+                    <span style={{ fontSize: '1.5rem', fontWeight: 800, lineHeight: 1 }}>
+                        {new Date(schedule.toDate).getDate()}
+                    </span>
+                    <span style={{ fontSize: '0.7rem', marginTop: '0.25rem', opacity: 0.8, fontWeight: 500 }}>To</span>
                 </div>
             </div>
         </div>
@@ -480,7 +444,7 @@ const ScheduleManagement = () => {
                                             backgroundColor: 'var(--color-primary)',
                                             color: 'white',
                                             borderRadius: '0.5rem',
-                                            fontWeight: 500,
+                                            fontWeight: 600,
                                             cursor: 'pointer',
                                             border: 'none'
                                         }}
@@ -493,17 +457,41 @@ const ScheduleManagement = () => {
                                         style={{
                                             flex: 1,
                                             padding: '0.75rem',
-                                            backgroundColor: '#6b7280',
-                                            color: 'white',
+                                            backgroundColor: '#f3f4f6',
+                                            color: '#4b5563',
                                             borderRadius: '0.5rem',
-                                            fontWeight: 500,
+                                            fontWeight: 600,
                                             cursor: 'pointer',
-                                            border: 'none'
+                                            border: '1px solid #d1d5db'
                                         }}
                                     >
                                         Cancel
                                     </button>
                                 </div>
+
+                                {editingSchedule && (
+                                    <button
+                                        type="button"
+                                        onClick={() => handleDelete(editingSchedule.id)}
+                                        style={{
+                                            padding: '0.75rem',
+                                            marginTop: '0.5rem',
+                                            backgroundColor: '#fef2f2',
+                                            color: '#ef4444',
+                                            borderRadius: '0.5rem',
+                                            fontWeight: 600,
+                                            cursor: 'pointer',
+                                            border: '1px solid #fee2e2',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '0.5rem'
+                                        }}
+                                    >
+                                        <Trash2 size={18} />
+                                        Delete Schedule
+                                    </button>
+                                )}
                             </form>
                         ) : (
                             <div>
@@ -524,6 +512,9 @@ const ScheduleManagement = () => {
                                     </div>
                                 ) : (
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                        <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '-0.5rem', fontWeight: 500 }}>
+                                            Click on the schedule to edit
+                                        </p>
                                         {schedules.map(schedule => (
                                             <ScheduleCard key={schedule.id} schedule={schedule} />
                                         ))}

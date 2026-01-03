@@ -417,8 +417,15 @@ const AdminBookManagement = () => {
 
                         <div style={{ padding: '1.5rem 1rem' }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '-0.5rem', fontWeight: 500 }}>
+                                    Click book to edit
+                                </p>
                                 {filteredBooks.map((book, idx) => (
-                                    <div key={book.id} style={{ padding: '0.75rem 1rem', backgroundColor: 'white', borderRadius: '1.25rem', boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)', display: 'flex', alignItems: 'center', gap: '1rem', border: '1px solid #e5e7eb' }}>
+                                    <div
+                                        key={book.id}
+                                        onClick={() => setSearchParams({ action: 'edit', id: book.id })}
+                                        style={{ padding: '0.75rem 1rem', backgroundColor: 'white', borderRadius: '1.25rem', boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)', display: 'flex', alignItems: 'center', gap: '1rem', border: '1px solid #e5e7eb', cursor: 'pointer' }}
+                                    >
                                         <div style={{ width: '48px', height: '64px', backgroundColor: '#f3f4f6', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: '1px solid #e5e7eb', flexShrink: 0 }}>
                                             {covers[book.id] ? (
                                                 <img src={covers[book.id]} alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -449,13 +456,6 @@ const AdminBookManagement = () => {
                                                     <ChevronDown size={20} />
                                                 </button>
                                             </div>
-
-                                            <button
-                                                onClick={() => setSearchParams({ action: 'edit', id: book.id })}
-                                                style={{ padding: '0.625rem', backgroundColor: '#fff7ed', color: '#f97316', borderRadius: '0.75rem', border: '1px solid #fed7aa', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                                            >
-                                                <Edit2 size={18} />
-                                            </button>
                                         </div>
                                     </div>
                                 ))}

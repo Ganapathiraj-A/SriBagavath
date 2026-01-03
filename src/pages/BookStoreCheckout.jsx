@@ -58,6 +58,7 @@ const BookStoreCheckout = () => {
         const orderSummary = items.map(p => `${p.title} x${p.quantity}`).join(", ");
 
         navigate('/payment-flow', {
+            replace: true, // Replace history so Back goes to Store/Donations
             state: {
                 itemType: isDonation ? 'DONATION' : 'BOOK',
                 itemName: `Order: ${orderSummary.substring(0, 30)}${orderSummary.length > 30 ? '...' : ''}`,

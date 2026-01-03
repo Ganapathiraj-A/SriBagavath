@@ -1,6 +1,6 @@
 {
     "appId": "com.bhavathpathai.app.dev",
-    "appName": "Sri Bagavath",
+    "appName": "SB Dev",
     "webDir": "dist",
     "plugins": {
         "GoogleAuth": {

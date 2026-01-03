@@ -446,7 +446,7 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
                                         </button>
                                         {viewingBanner && (
                                             <button
-                                                onClick={() => handleShareBanner(viewingProgram.programName, viewingBanner)}
+                                                onClick={() => handleShareBanner(viewingProgram)}
                                                 className="btn-share-banner"
                                                 style={{
                                                     display: 'flex',

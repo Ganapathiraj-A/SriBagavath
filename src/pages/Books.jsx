@@ -70,7 +70,7 @@ const Books = () => {
                     </h1>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        <BookTypeButton title="Printed Books" icon={BookOpen} path="/bookstore" delay={0.1} />
+                        <BookTypeButton title="Print Books" icon={BookOpen} path="/bookstore" delay={0.1} />
                         <BookTypeButton title="Digital Books" icon={BookOpen} path="/pdf-books" delay={0.2} />
                         <BookTypeButton title="Audio Books" icon={Headphones} path="/audio-books" delay={0.3} />
                         <BookTypeButton title="Monthly Magazine" icon={FileText} path="/monthly-magazine" delay={0.4} />

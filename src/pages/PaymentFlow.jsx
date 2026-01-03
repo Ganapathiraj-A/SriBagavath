@@ -11,12 +11,14 @@ import { GPayUtils } from '../utils/GPayUtils';
 import qrImage from '../assets/qr_code.jpg';
 import instructionGif from '../assets/payment_instruction.gif';
 import '../components/RegistrationStyles.css';
+import { useCart } from '../context/CartContext';
 
 // Type Steps matching SBB App
 // SELECTION is skipped as we come from Registration
 const PaymentFlow = () => {
     const location = useLocation();
     const navigate = useNavigate();
+    const { clearCart } = useCart();
 
     // Initial State from Registration or Book Order
     const { amount, programName, itemName, participants, primaryApplicant, place, participantCount } = location.state || {};
@@ -147,7 +149,10 @@ const PaymentFlow = () => {
             });
 
             let targetPage = '/my-registrations';
-            if (location.state?.itemType === 'BOOK') targetPage = '/my-orders';
+            if (location.state?.itemType === 'BOOK') {
+                clearCart();
+                targetPage = '/my-orders';
+            }
             if (location.state?.itemType === 'DONATION') targetPage = '/my-donations';
 
             navigate(targetPage, { replace: true });

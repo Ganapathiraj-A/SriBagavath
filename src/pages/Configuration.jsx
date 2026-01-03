@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Shield, Code, LogOut, Users, LayoutDashboard, Video, Layers, Settings, BookOpen } from 'lucide-react';
+import { Calendar, Shield, IndianRupee, LogOut, Users, LayoutDashboard, Video, Layers, Settings, BookOpen, Heart } from 'lucide-react';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
@@ -123,38 +123,39 @@ const Configuration = () => {
                         boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)'
                     }}
                 >
-                    <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#111827', marginBottom: '2rem', textAlign: 'center' }}>
+                    <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.25rem', textAlign: 'center' }}>
                         Admin
                     </h1>
+                    <div style={{ fontSize: '0.875rem', color: '#6b7280', textAlign: 'center', marginBottom: '2rem' }}>
+                        {user?.email}
+                    </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        {(hasAccess('PROGRAM_MANAGEMENT') || hasAccess('PROGRAM_TYPES') || hasAccess('CONSULTATION_MANAGEMENT')) && (
-                            <ConfigButton
-                                title="Program Management"
-                                subtitle="Retreats, Online Meetings, Satsang, Types & Consultation"
-                                icon={Layers}
-                                path="/admin/program-management"
-                                delay={0.1}
-                            />
-                        )}
-                        {hasAccess('ADMIN_REVIEW') && <ConfigButton title="Registration" icon={Shield} path="/admin-review" delay={0.2} badgeCount={counts.registrations} />}
-                        {hasAccess('ADMIN_REVIEW') && <ConfigButton title="Purchase / Donation" icon={Code} path="/admin/bookstore" delay={0.203} color="#10b981" bgColor="#f0fdf4" badgeCount={counts.transactions} />}
-                        {hasAccess('ADMIN_REVIEW') && <ConfigButton title="Book Management" subtitle="Add books, descriptions & covers" icon={BookOpen} path="/admin/books" delay={0.205} color="#8b5cf6" bgColor="#f5f3ff" />}
+                        {hasAccess('ADMIN_REVIEW') && <ConfigButton title="Registration" icon={Shield} path="/admin-review" delay={0.1} badgeCount={counts.registrations} />}
+                        {hasAccess('ADMIN_REVIEW') && <ConfigButton title="Purchases" icon={IndianRupee} path="/admin/purchases" delay={0.15} color="#10b981" bgColor="#f0fdf4" badgeCount={counts.purchases} />}
+                        {hasAccess('ADMIN_REVIEW') && <ConfigButton title="Donations" icon={Heart} path="/admin/donations" delay={0.17} color="#ef4444" bgColor="#fef2f2" badgeCount={counts.donations} />}
 
-                        {hasAccess('MANAGE_USERS') && <ConfigButton title="Manage Admins" icon={Users} path="/manage-users" delay={0.21} />}
-                        {hasAccess('ADMIN_REVIEW') && <ConfigButton title="Analytics" icon={LayoutDashboard} path="/admin-dashboard" delay={0.22} />}
-                        {hasAccess('CONFIGURATION') && <ConfigButton title="App Settings" subtitle="Landing page & other preferences" icon={Settings} path="/admin/settings" delay={0.23} color="#6366f1" bgColor="#eef2ff" />}
-
-                        <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #f3f4f6' }}>
+                        <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #f3f4f6', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                             <ConfigButton
-                                title="Logout"
-                                subtitle={user?.email}
-                                icon={LogOut}
-                                delay={0.25}
-                                onClick={handleLogout}
-                                color="#dc2626"
-                                bgColor="#fef2f2"
+                                title="Back Office"
+                                subtitle="Reporting, Attendance & Recon"
+                                icon={LayoutDashboard}
+                                path="/admin/back-office"
+                                delay={0.18}
+                                color="#f59e0b"
+                                bgColor="#fffbeb"
                             />
+                            {(hasAccess('PROGRAM_MANAGEMENT') || hasAccess('ADMIN_REVIEW') || hasAccess('MANAGE_USERS') || hasAccess('CONFIGURATION')) && (
+                                <ConfigButton
+                                    title="Settings"
+                                    subtitle="Management Hub & App Preferences"
+                                    icon={Settings}
+                                    path="/admin/settings"
+                                    delay={0.2}
+                                    color="#6366f1"
+                                    bgColor="#eef2ff"
+                                />
+                            )}
                         </div>
                     </div>
                 </motion.div>

@@ -25,7 +25,7 @@ const BookStoreManagement = () => {
         localStorage.setItem('badge_transactions', '0');
 
         const unsubscribe = TransactionService.streamTransactions((data) => {
-            const relevantTransactions = data.filter(tx => tx.itemType === 'BOOK' || tx.itemType === 'DONATION');
+            const relevantTransactions = data.filter(tx => tx.itemType === 'BOOK');
             setAllOrders(relevantTransactions);
             setLoading(false);
         });
@@ -87,7 +87,7 @@ const BookStoreManagement = () => {
             )}
 
             <PageHeader
-                title="Book Store Management"
+                title="Purchases"
                 leftAction={
                     <button onClick={() => navigate('/configuration')} style={{ background: 'none', border: 'none', padding: '8px' }}>
                         <ChevronLeft size={24} />
@@ -141,7 +141,7 @@ const BookStoreManagement = () => {
                 {loading && <p style={{ textAlign: 'center' }}>Loading Orders...</p>}
                 {!loading && displayedOrders.length === 0 && (
                     <p style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
-                        No {TAB_LABELS[activeTab].toLowerCase()} found.
+                        No {TAB_LABELS[activeTab].toLowerCase()} purchases found.
                     </p>
                 )}
 
@@ -159,7 +159,7 @@ const BookStoreManagement = () => {
                         {/* Items summary */}
                         <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '8px', marginBottom: '12px' }}>
                             <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <Package size={14} /> {order.itemType === 'DONATION' ? 'DONATION DETAILS' : 'ORDER ITEMS'}
+                                <Package size={14} /> ORDER ITEMS
                             </div>
                             {order.orderItems?.map((item, idx) => (
                                 <div key={idx} style={{ fontSize: '14px', color: '#111827', display: 'flex', justifyContent: 'space-between' }}>
@@ -177,7 +177,7 @@ const BookStoreManagement = () => {
                         {order.shippingAddress && (
                             <div style={{ background: '#fff7ed', padding: '10px', borderRadius: '8px', marginBottom: '12px' }}>
                                 <div style={{ fontSize: '12px', color: '#9a3412', fontWeight: 600, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    <User size={14} /> {order.itemType === 'DONATION' ? 'DONOR DETAILS' : 'SHIPPING ADDRESS'}
+                                    <User size={14} /> SHIPPING ADDRESS
                                 </div>
                                 <div style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>{order.shippingAddress.name}</div>
                                 <div style={{ fontSize: '14px', color: '#4b5563' }}>{order.shippingAddress.mobile}</div>
@@ -214,11 +214,11 @@ const BookStoreManagement = () => {
                                         <Rewind size={16} /> Revert
                                     </button>
                                     <button
-                                        onClick={() => handleUpdateStatus(order.id, order.itemType === 'DONATION' ? 'BNK_VERIFIED' : 'SHIPPED')}
-                                        style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', backgroundColor: order.itemType === 'DONATION' ? '#16a34a' : '#f59e0b', color: 'white', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                                        onClick={() => handleUpdateStatus(order.id, 'SHIPPED')}
+                                        style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', backgroundColor: '#f59e0b', color: 'white', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                                     >
-                                        {order.itemType === 'DONATION' ? <Check size={16} /> : <Truck size={16} />}
-                                        {order.itemType === 'DONATION' ? 'Mark Completed' : 'Mark Shipped'}
+                                        <Truck size={16} />
+                                        Mark Shipped
                                     </button>
                                 </>
                             )}
@@ -241,7 +241,7 @@ const BookStoreManagement = () => {
                             {order.status === 'BNK_VERIFIED' ? (
                                 <>
                                     <button
-                                        onClick={() => handleUpdateStatus(order.id, order.itemType === 'DONATION' ? 'PROCESSING' : 'SHIPPED')}
+                                        onClick={() => handleUpdateStatus(order.id, 'SHIPPED')}
                                         style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid #10b981', backgroundColor: 'white', color: '#10b981', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                                     >
                                         <Rewind size={16} /> Revert

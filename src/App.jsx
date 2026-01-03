@@ -41,12 +41,17 @@ import SatsangDetails from './pages/SatsangDetails';
 import BookStore from './pages/BookStore';
 import BookStoreCheckout from './pages/BookStoreCheckout';
 import BookStoreManagement from './pages/BookStoreManagement';
+import DonationManagement from './pages/DonationManagement';
 import MyOrders from './pages/MyOrders';
 import Donations from './pages/Donations';
 import MyDonations from './pages/MyDonations';
-import AppSettings from './pages/AppSettings';
+import AdminSettings from './pages/AdminSettings';
 import AdminBookManagement from './pages/AdminBookManagement';
 import BookDetails from './pages/BookDetails';
+import BackOffice from './pages/BackOffice';
+import BackOfficeReporting from './pages/BackOfficeReporting';
+import BackOfficePrograms from './pages/BackOfficePrograms';
+import BackOfficeAttendance from './pages/BackOfficeAttendance';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AdminAuthProvider } from './context/AdminAuthContext';
 import { CartProvider } from './context/CartContext';
@@ -132,12 +137,20 @@ function AnimatedRoutes() {
         <Route path="/admin/online-meetings" element={<ProtectedRoute requiredPermission="PROGRAM_MANAGEMENT"><OnlineMeetingManagement /></ProtectedRoute>} />
         <Route path="/admin/satsang" element={<ProtectedRoute requiredPermission="PROGRAM_MANAGEMENT"><SatsangManagement /></ProtectedRoute>} />
         <Route path="/admin/consultation" element={<ProtectedRoute requiredPermission="CONSULTATION_MANAGEMENT"><ConsultationManagement /></ProtectedRoute>} />
-        <Route path="/admin/bookstore" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BookStoreManagement /></ProtectedRoute>} />
+        <Route path="/admin/purchases" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BookStoreManagement /></ProtectedRoute>} />
+        <Route path="/admin/donations" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><DonationManagement /></ProtectedRoute>} />
         <Route path="/admin/books" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><AdminBookManagement /></ProtectedRoute>} />
 
         <Route path="/admin-review" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><AdminReview /></ProtectedRoute>} />
         <Route path="/admin-dashboard" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><AdminDashboard /></ProtectedRoute>} />
-        <Route path="/admin/settings" element={<ProtectedRoute requiredPermission="CONFIGURATION"><AppSettings /></ProtectedRoute>} />
+        <Route path="/admin/settings" element={<ProtectedRoute requiredPermission="CONFIGURATION"><AdminSettings /></ProtectedRoute>} />
+
+        {/* Back Office Routes */}
+        <Route path="/admin/back-office" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOffice /></ProtectedRoute>} />
+        <Route path="/admin/back-office/reporting" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficeReporting /></ProtectedRoute>} />
+        <Route path="/admin/back-office/programs" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficePrograms /></ProtectedRoute>} />
+        <Route path="/admin/back-office/attendance/:programId" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficeAttendance /></ProtectedRoute>} />
+        <Route path="/admin/back-office/reconciliation" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><div style={{ padding: '2rem' }}>Bank Reconciliation (Coming Soon)</div></ProtectedRoute>} />
 
         {/* Public view but management is admin */}
         <Route path="/schedule" element={<AyyasSchedule />} />
@@ -145,6 +158,8 @@ function AnimatedRoutes() {
     </AnimatePresence>
   );
 }
+
+import { GlobalSettingsProvider } from './context/GlobalSettingsContext';
 
 function App() {
   useEffect(() => {
@@ -164,15 +179,17 @@ function App() {
   }, []);
 
   return (
-    <CartProvider>
-      <Router>
-        <AdminAuthProvider>
-          <ErrorBoundary>
-            <AnimatedRoutes />
-          </ErrorBoundary>
-        </AdminAuthProvider>
-      </Router>
-    </CartProvider>
+    <GlobalSettingsProvider>
+      <CartProvider>
+        <Router>
+          <AdminAuthProvider>
+            <ErrorBoundary>
+              <AnimatedRoutes />
+            </ErrorBoundary>
+          </AdminAuthProvider>
+        </Router>
+      </CartProvider>
+    </GlobalSettingsProvider>
   );
 }
 

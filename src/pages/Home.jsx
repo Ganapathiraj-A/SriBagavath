@@ -1,7 +1,18 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { User, Calendar, BookOpen, Video, Mail, Settings, LogIn, LogOut, LayoutDashboard, Sparkles, X, ShoppingCart } from 'lucide-react';
+import {
+    Calendar,
+    BookOpen,
+    Mail,
+    User,
+    LogOut,
+    LogIn,
+    Settings,
+    Heart,
+    IndianRupee,
+    LayoutDashboard
+} from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { db, auth } from '../firebase';
@@ -156,13 +167,14 @@ const Home = () => {
         { title: "About Bagavath Ayya", icon: User, path: "/about", delay: 0.1 },
         { title: "Programs", icon: Calendar, path: "/programs", delay: 0.2 },
         { title: "Books & Media", icon: BookOpen, path: "/books", delay: 0.3 },
-        { title: "Donations", icon: ShoppingCart, path: "/donations", delay: 0.4 },
+        { title: "Donations", icon: Heart, path: "/donations", delay: 0.4 },
         { title: "Contact", icon: Mail, path: "/contact", delay: 0.5 }
     ];
 
 
     // Final Menu List
     let menuItems = [...baseMenu];
+
     return (
         <div style={{
             minHeight: '100vh',

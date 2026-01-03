@@ -171,10 +171,11 @@ const ConsultationManagement = () => {
                                 {isEditing && (
                                     <button
                                         type="button"
-                                        onClick={resetForm}
-                                        style={{ padding: '0.875rem', backgroundColor: '#d1d5db', color: '#4b5563', border: 'none', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 600 }}
+                                        onClick={() => handleDelete(isEditing)}
+                                        style={{ padding: '0.875rem', backgroundColor: '#fef2f2', color: '#ef4444', border: '1px solid #fee2e2', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
                                     >
-                                        <X size={18} />
+                                        <Trash2 size={18} />
+                                        Delete Consultant
                                     </button>
                                 )}
                             </div>
@@ -183,6 +184,9 @@ const ConsultationManagement = () => {
                         <div style={{ marginTop: '2rem' }}>
                             <h2 style={{ fontSize: '1.25rem', fontWeight: 500, color: '#000000', marginBottom: '1rem' }}>Teacher Contacts</h2>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: 500 }}>
+                                    Click contact to edit
+                                </p>
                                 {consultants.length === 0 ? (
                                     <p style={{ textAlign: 'center', color: '#9ca3af', padding: '1rem' }}>No teacher contacts added yet.</p>
                                 ) : (
@@ -191,6 +195,7 @@ const ConsultationManagement = () => {
                                             key={c.id}
                                             initial={{ opacity: 0 }}
                                             animate={{ opacity: 1 }}
+                                            onClick={() => handleEdit(c)}
                                             style={{
                                                 display: 'flex',
                                                 alignItems: 'center',
@@ -198,32 +203,18 @@ const ConsultationManagement = () => {
                                                 backgroundColor: '#f9fafb',
                                                 borderRadius: '0.75rem',
                                                 border: '1px solid #e5e7eb',
-                                                gap: '1rem'
+                                                gap: '1rem',
+                                                cursor: 'pointer'
                                             }}
                                         >
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                                                <button onClick={() => moveItem(index, -1)} disabled={index === 0} style={{ border: 'none', background: 'none', cursor: index === 0 ? 'default' : 'pointer', opacity: index === 0 ? 0.3 : 1, color: '#f97316' }}><ChevronUp size={20} /></button>
-                                                <button onClick={() => moveItem(index, 1)} disabled={index === consultants.length - 1} style={{ border: 'none', background: 'none', cursor: index === consultants.length - 1 ? 'default' : 'pointer', opacity: index === consultants.length - 1 ? 0.3 : 1, color: '#f97316' }}><ChevronDown size={20} /></button>
+                                                <button onClick={(e) => { e.stopPropagation(); moveItem(index, -1); }} disabled={index === 0} style={{ border: 'none', background: 'none', cursor: index === 0 ? 'default' : 'pointer', opacity: index === 0 ? 0.3 : 1, color: '#f97316' }}><ChevronUp size={20} /></button>
+                                                <button onClick={(e) => { e.stopPropagation(); moveItem(index, 1); }} disabled={index === consultants.length - 1} style={{ border: 'none', background: 'none', cursor: index === consultants.length - 1 ? 'default' : 'pointer', opacity: index === consultants.length - 1 ? 0.3 : 1, color: '#f97316' }}><ChevronDown size={20} /></button>
                                             </div>
 
                                             <div style={{ flex: 1 }}>
                                                 <div style={{ fontWeight: 500, fontSize: '1.125rem', color: '#000000' }}>{c.name}</div>
                                                 <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>{c.number}</div>
-                                            </div>
-
-                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                                <button
-                                                    onClick={() => handleEdit(c)}
-                                                    style={{ padding: '0.5rem', backgroundColor: '#fff7ed', color: '#f97316', border: '1px solid #fed7aa', borderRadius: '0.375rem', cursor: 'pointer' }}
-                                                >
-                                                    <Edit2 size={16} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDelete(c.id)}
-                                                    style={{ padding: '0.5rem', backgroundColor: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '0.375rem', cursor: 'pointer' }}
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
                                             </div>
                                         </motion.div>
                                     ))

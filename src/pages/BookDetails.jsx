@@ -2,9 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ChevronLeft, ShoppingCart, Plus, Minus } from 'lucide-react';
-import { db } from '../firebase';
+import { ChevronLeft, IndianRupee, Plus, Minus } from 'lucide-react';
+import { auth, db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import PageHeader from '../components/PageHeader';
 import { useCart } from '../context/CartContext';
 
@@ -15,6 +17,41 @@ const BookDetails = () => {
     const [book, setBook] = useState(null);
     const [cover, setCover] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [authLoading, setAuthLoading] = useState(false);
+
+    const ensureAuth = async () => {
+        if (auth.currentUser && !auth.currentUser.isAnonymous) {
+            return true;
+        }
+
+        setAuthLoading(true);
+        try {
+            const googleUser = await GoogleAuth.signIn();
+            const idToken = googleUser?.authentication?.idToken;
+            if (!idToken) throw new Error("No ID Token received");
+
+            const credential = GoogleAuthProvider.credential(idToken);
+            await signInWithCredential(auth, credential);
+            return true;
+        } catch (err) {
+            console.error("Auth failed:", err);
+            return false;
+        } finally {
+            setAuthLoading(false);
+        }
+    };
+
+    const handleAddToCart = async () => {
+        if (await ensureAuth()) {
+            addToCart(book);
+        }
+    };
+
+    const handleRemoveFromCart = async () => {
+        if (await ensureAuth()) {
+            removeFromCart(book);
+        }
+    };
 
     useEffect(() => {
         const fetchBookDetails = async () => {
@@ -98,25 +135,28 @@ const BookDetails = () => {
                                 {quantity > 0 ? (
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '20px', backgroundColor: '#f3f4f6', padding: '8px 16px', borderRadius: '12px' }}>
                                         <button
-                                            onClick={() => removeFromCart(book)}
-                                            style={{ background: 'none', border: 'none', color: 'var(--color-primary)', cursor: 'pointer' }}
+                                            onClick={handleRemoveFromCart}
+                                            disabled={authLoading}
+                                            style={{ background: 'none', border: 'none', color: 'var(--color-primary)', cursor: authLoading ? 'wait' : 'pointer' }}
                                         >
                                             <Minus size={24} />
                                         </button>
                                         <span style={{ fontSize: '1.25rem', fontWeight: 'bold', minWidth: '24px', textAlign: 'center' }}>{quantity}</span>
                                         <button
-                                            onClick={() => addToCart(book)}
-                                            style={{ background: 'none', border: 'none', color: 'var(--color-primary)', cursor: 'pointer' }}
+                                            onClick={handleAddToCart}
+                                            disabled={authLoading}
+                                            style={{ background: 'none', border: 'none', color: 'var(--color-primary)', cursor: authLoading ? 'wait' : 'pointer' }}
                                         >
                                             <Plus size={24} />
                                         </button>
                                     </div>
                                 ) : (
                                     <button
-                                        onClick={() => addToCart(book)}
-                                        style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '16px', backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 'bold', fontSize: '1rem', cursor: 'pointer' }}
+                                        onClick={handleAddToCart}
+                                        disabled={authLoading}
+                                        style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '16px', backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 'bold', fontSize: '1rem', cursor: authLoading ? 'wait' : 'pointer' }}
                                     >
-                                        <ShoppingCart size={20} /> Add to Cart
+                                        <IndianRupee size={20} /> {authLoading ? 'Signing in...' : 'Add to Cart'}
                                     </button>
                                 )}
                             </div>

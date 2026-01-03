@@ -96,6 +96,7 @@ const SatsangManagement = () => {
         endTime: '',
         city: '',
         venue: '',
+        description: '',
         banner: ''
     });
 
@@ -116,6 +117,7 @@ const SatsangManagement = () => {
                 endTime: editingMeeting.endTime || '',
                 city: editingMeeting.city || '',
                 venue: editingMeeting.venue || '',
+                description: editingMeeting.description || '',
                 banner: editingMeeting.banner || ''
             });
 
@@ -184,6 +186,7 @@ const SatsangManagement = () => {
                 endTime: formData.endTime,
                 city: formData.city,
                 venue: formData.venue,
+                description: formData.description,
                 hasBanner: !!bannerUrl,
                 updatedAt: new Date().toISOString(),
                 createdAt: editingMeeting ? editingMeeting.createdAt : new Date().toISOString()
@@ -241,7 +244,7 @@ const SatsangManagement = () => {
     };
 
     const resetForm = () => {
-        setFormData({ conductedBy: '', date: '', startTime: '', endTime: '', city: '', venue: '', banner: '' });
+        setFormData({ conductedBy: '', date: '', startTime: '', endTime: '', city: '', venue: '', description: '', banner: '' });
         setBannerImage(null);
         setSearchParams({});
     };
@@ -294,23 +297,55 @@ const SatsangManagement = () => {
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '-0.5rem', fontWeight: 500 }}>
+                                Click Sathsang to edit
+                            </p>
                             {loading ? (
                                 <p style={{ textAlign: 'center', color: '#6b7280' }}>Loading...</p>
                             ) : meetings.length === 0 ? (
                                 <p style={{ textAlign: 'center', color: '#6b7280' }}>No Satsangs found.</p>
                             ) : (
                                 meetings.map(meeting => (
-                                    <div key={meeting.id} style={{ backgroundColor: 'white', padding: '1rem', borderRadius: '0.75rem', border: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <div>
-                                            <h4 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 500, color: '#000000' }}>{meeting.conductedBy}</h4>
-                                            <div style={{ display: 'flex', gap: '1rem', color: '#6b7280', fontSize: '0.875rem', marginTop: '0.25rem', flexWrap: 'wrap' }}>
-                                                <span><CalendarIcon size={14} style={{ verticalAlign: 'text-bottom' }} /> {meeting.date}</span>
-                                                <span><MapPin size={14} style={{ verticalAlign: 'text-bottom' }} /> {meeting.city}</span>
-                                            </div>
+                                    <div
+                                        key={meeting.id}
+                                        onClick={() => setSearchParams({ action: 'edit', id: meeting.id })}
+                                        style={{
+                                            backgroundColor: 'white',
+                                            padding: '1.25rem',
+                                            borderRadius: '1rem',
+                                            border: '1px solid #f3f4f6',
+                                            display: 'flex',
+                                            gap: '1.25rem',
+                                            alignItems: 'center',
+                                            cursor: 'pointer',
+                                            boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)'
+                                        }}
+                                    >
+                                        <div style={{
+                                            width: '64px',
+                                            height: '64px',
+                                            backgroundColor: '#fff7ed',
+                                            border: '1px solid #fed7aa',
+                                            borderRadius: '1rem',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            flexShrink: 0
+                                        }}>
+                                            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#f97316', textTransform: 'uppercase' }}>
+                                                {new Date(meeting.date).toLocaleString('default', { month: 'short' })}
+                                            </span>
+                                            <span style={{ fontSize: '1.5rem', fontWeight: 800, color: '#9a3412', lineHeight: 1 }}>
+                                                {new Date(meeting.date).getDate()}
+                                            </span>
                                         </div>
-                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                            <button onClick={() => setSearchParams({ action: 'edit', id: meeting.id })} style={{ padding: '0.5rem', backgroundColor: ORANGE, color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer' }}><Edit2 size={16} /></button>
-                                            <button onClick={() => handleDelete(meeting.id)} style={{ padding: '0.5rem', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer' }}><Trash2 size={16} /></button>
+
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <h4 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 600, color: '#000000' }}>{meeting.conductedBy}</h4>
+                                            <div style={{ display: 'flex', gap: '1rem', color: '#6b7280', fontSize: '0.875rem', marginTop: '0.25rem', flexWrap: 'wrap' }}>
+                                                <span><MapPin size={14} style={{ verticalAlign: 'text-bottom', marginRight: '4px' }} /> {meeting.city}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 ))
@@ -366,6 +401,18 @@ const SatsangManagement = () => {
                             </div>
 
                             <div>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Description</label>
+                                <textarea
+                                    name="description"
+                                    value={formData.description}
+                                    onChange={handleInputChange}
+                                    rows={4}
+                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', fontFamily: 'inherit' }}
+                                    placeholder="Brief description about the satsang..."
+                                />
+                            </div>
+
+                            <div>
                                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Banner Image</label>
                                 <input type="file" accept="image/*" onChange={handleImageChange} style={{ marginBottom: '0.5rem' }} />
                                 {formData.banner && !bannerImage && (
@@ -390,6 +437,17 @@ const SatsangManagement = () => {
                             >
                                 {uploading ? 'Registering...' : action === 'edit' ? 'Update Satsang' : 'Schedule Satsang'}
                             </button>
+
+                            {action === 'edit' && (
+                                <button
+                                    type="button"
+                                    onClick={() => handleDelete(editingId)}
+                                    style={{ padding: '1rem', backgroundColor: '#fef2f2', color: '#ef4444', border: '1px solid #fee2e2', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                                >
+                                    <Trash2 size={18} />
+                                    Delete Sathsang
+                                </button>
+                            )}
                         </form>
                     </motion.div>
                 )}

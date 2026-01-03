@@ -273,23 +273,55 @@ const OnlineMeetingManagement = () => {
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '-0.5rem', fontWeight: 500 }}>
+                                Click meeting to edit
+                            </p>
                             {loading ? (
                                 <p style={{ textAlign: 'center', color: '#6b7280' }}>Loading meetings...</p>
                             ) : meetings.length === 0 ? (
                                 <p style={{ textAlign: 'center', color: '#6b7280' }}>No meetings found.</p>
                             ) : (
                                 meetings.map(meeting => (
-                                    <div key={meeting.id} style={{ backgroundColor: 'white', padding: '1rem', borderRadius: '0.75rem', border: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <div>
-                                            <h4 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 500, color: '#000000' }}>{meeting.conductedBy}</h4>
-                                            <div style={{ display: 'flex', gap: '1rem', color: '#6b7280', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-                                                <span><CalendarIcon size={14} style={{ verticalAlign: 'text-bottom' }} /> {meeting.date}</span>
-                                                <span><Clock size={14} style={{ verticalAlign: 'text-bottom' }} /> {meeting.startTime}</span>
-                                            </div>
+                                    <div
+                                        key={meeting.id}
+                                        onClick={() => setSearchParams({ action: 'edit', id: meeting.id })}
+                                        style={{
+                                            backgroundColor: 'white',
+                                            padding: '1.25rem',
+                                            borderRadius: '1rem',
+                                            border: '1px solid #f3f4f6',
+                                            display: 'flex',
+                                            gap: '1.25rem',
+                                            alignItems: 'center',
+                                            cursor: 'pointer',
+                                            boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)'
+                                        }}
+                                    >
+                                        <div style={{
+                                            width: '64px',
+                                            height: '64px',
+                                            backgroundColor: '#fff7ed',
+                                            border: '1px solid #fed7aa',
+                                            borderRadius: '1rem',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            flexShrink: 0
+                                        }}>
+                                            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#f97316', textTransform: 'uppercase' }}>
+                                                {new Date(meeting.date).toLocaleString('default', { month: 'short' })}
+                                            </span>
+                                            <span style={{ fontSize: '1.5rem', fontWeight: 800, color: '#9a3412', lineHeight: 1 }}>
+                                                {new Date(meeting.date).getDate()}
+                                            </span>
                                         </div>
-                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                            <button onClick={() => setSearchParams({ action: 'edit', id: meeting.id })} style={{ padding: '0.5rem', backgroundColor: '#f97316', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer' }}><Edit2 size={16} /></button>
-                                            <button onClick={() => handleDelete(meeting.id)} style={{ padding: '0.5rem', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer' }}><Trash2 size={16} /></button>
+
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <h4 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 600, color: '#000000' }}>{meeting.conductedBy}</h4>
+                                            <div style={{ display: 'flex', gap: '1rem', color: '#6b7280', fontSize: '0.875rem', marginTop: '0.25rem' }}>
+                                                <span><Clock size={14} style={{ verticalAlign: 'text-bottom', marginRight: '4px' }} /> {meeting.startTime}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 ))
@@ -368,6 +400,17 @@ const OnlineMeetingManagement = () => {
                             >
                                 {uploading ? 'Processing...' : action === 'edit' ? 'Update Meeting' : 'Schedule Meeting'}
                             </button>
+
+                            {action === 'edit' && (
+                                <button
+                                    type="button"
+                                    onClick={() => handleDelete(editingId)}
+                                    style={{ padding: '1rem', backgroundColor: '#fef2f2', color: '#ef4444', border: '1px solid #fee2e2', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                                >
+                                    <Trash2 size={18} />
+                                    Delete Meeting
+                                </button>
+                            )}
                         </form>
                     </motion.div>
                 )}

@@ -44,7 +44,8 @@ export const TransactionService = {
             programDate: data.programDate || null,
             programCity: data.programCity || null,
             deviceId: TransactionService.getDeviceId(),
-            userId: userId // Attach User ID for Security Rules
+            userId: userId, // Attach User ID for Security Rules
+            userEmail: user ? user.email : null // Explicitly store Gmail ID
         };
 
         // 1. Write Meta
@@ -95,9 +96,9 @@ export const TransactionService = {
             // Priority 1: Registered with Account (Persists after Reinstall)
             q = query(collection(db, "transactions"), where("userId", "==", user.uid));
         } else {
-            // Priority 2: Device-based (Lost on Reinstall/Clear Data)
-            const dId = TransactionService.getDeviceId();
-            q = query(collection(db, "transactions"), where("deviceId", "==", dId));
+            // Disable fallback to deviceId for user records as per security requirement
+            callback([]);
+            return () => { };
         }
 
         return onSnapshot(q, (snapshot) => {

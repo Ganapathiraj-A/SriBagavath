@@ -509,166 +509,64 @@ const ProgramManagement = () => {
 
     const ProgramCard = ({ program }) => (
         <div
+            onClick={() => setSearchParams({ action: 'edit', id: program.id })}
             style={{
                 backgroundColor: 'white',
                 borderRadius: '1rem',
-                padding: '1.5rem',
+                padding: '1.25rem',
                 boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
                 border: '1px solid #f3f4f6',
                 display: 'flex',
-                alignItems: 'center',
-                gap: '1.5rem'
+                alignItems: 'flex-start',
+                gap: '1.25rem',
+                cursor: 'pointer'
             }}
         >
-            {/* Date Box */}
+            {/* Left Column: Date Box */}
             <div style={{
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: '#fff7ed',
-                color: 'var(--color-primary)',
-                padding: '1rem',
-                borderRadius: '0.75rem',
-                minWidth: '5rem',
+                gap: '0.75rem',
                 flexShrink: 0
             }}>
-                <span style={{
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em'
+                <div style={{
+                    width: '64px',
+                    height: '64px',
+                    backgroundColor: '#fff7ed',
+                    border: '1px solid #fed7aa',
+                    borderRadius: '1rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)'
                 }}>
-                    {new Date(program.programDate).toLocaleDateString(undefined, { month: 'short' })}
-                </span>
-                <span style={{
-                    fontSize: '1.75rem',
-                    fontWeight: 'bold',
-                    lineHeight: 1
-                }}>
-                    {new Date(program.programDate).getDate()}
-                </span>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#f97316', textTransform: 'uppercase' }}>
+                        {new Date(program.programDate).toLocaleString('default', { month: 'short' })}
+                    </span>
+                    <span style={{ fontSize: '1.5rem', fontWeight: 800, color: '#9a3412', lineHeight: 1 }}>
+                        {new Date(program.programDate).getDate()}
+                    </span>
+                </div>
             </div>
 
-            {/* Content */}
+            {/* Right Column: Content */}
             <div style={{
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '0.5rem',
-                flex: 1
+                flex: 1,
+                minWidth: 0
             }}>
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <h3
-                        style={{
-                            fontSize: '1.25rem',
-                            fontWeight: 500,
-                            color: '#000000',
-                            margin: 0
-                        }}
-                    >
-                        {program.programName}
-                    </h3>
+                <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#000000', margin: 0 }}>
+                    {program.programName}
+                </h3>
+
+                <div style={{ display: 'flex', alignItems: 'center', color: '#6b7280', fontSize: '0.9rem' }}>
+                    <MapPin size={14} style={{ marginRight: '0.375rem' }} />
+                    <span style={{ fontWeight: 500 }}>{program.programCity}</span>
                 </div>
-
-                <div style={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: '0.5rem 1.5rem',
-                    color: '#4b5563',
-                    fontSize: '0.925rem'
-                }}>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <MapPin size={16} style={{ color: '#6b7280', marginRight: '0.375rem' }} />
-                        <span style={{ fontWeight: 500, color: '#6b7280', marginRight: '0.375rem' }}>City:</span>
-                        <span style={{ color: '#000000' }}>{program.programCity}</span>
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <CalendarIcon size={16} style={{ color: '#6b7280', marginRight: '0.375rem' }} />
-                        <span style={{ fontWeight: 500, color: '#6b7280', marginRight: '0.375rem' }}>Date:</span>
-                        <span style={{ color: '#000000' }}>
-                            {new Date(program.programDate).toLocaleDateString()}
-                        </span>
-                    </div>
-                </div>
-            </div>
-
-            <div
-                style={{
-                    display: 'flex',
-                    gap: '0.5rem',
-                    alignSelf: 'center'
-                }}
-            >
-                <button
-                    onClick={() => setSearchParams({ action: 'edit', id: program.id })}
-                    style={{
-                        padding: '0.5rem',
-                        backgroundColor: '#f97316',
-                        color: 'white',
-                        borderRadius: '0.375rem',
-                        cursor: 'pointer',
-                        border: 'none',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                    }}
-                    title="Edit"
-                >
-                    <Edit2 size={18} />
-                </button>
-                <button
-                    onClick={() => handleDelete(program.id)}
-                    style={{
-                        padding: '0.5rem',
-                        backgroundColor: '#ef4444',
-                        color: 'white',
-                        borderRadius: '0.375rem',
-                        cursor: 'pointer',
-                        border: 'none',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                    }}
-                    title="Delete"
-                >
-                    <Trash2 size={18} />
-                </button>
-                {activeTab === 'history' && (
-                    <button
-                        onClick={async () => {
-                            if (confirm("Move this program to Storage?")) {
-                                setLoading(true);
-                                try {
-                                    await TransactionService.archiveProgram(program.id);
-
-                                    // Refresh metadata for notifications
-                                    await setDoc(doc(db, 'system', 'metadata'), {
-                                        lastUpdated_programs: serverTimestamp()
-                                    }, { merge: true });
-
-                                    alert("Program moved to storage successfully");
-                                    loadPrograms();
-                                } catch (e) { alert("Archive Failed"); }
-                                setLoading(false);
-                            }
-                        }}
-                        style={{
-                            padding: '0.5rem',
-                            backgroundColor: '#4f46e5',
-                            color: 'white',
-                            borderRadius: '0.375rem',
-                            cursor: 'pointer',
-                            border: 'none',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                        }}
-                        title="Move to Storage"
-                    >
-                        <Package size={18} />
-                    </button>
-                )}
             </div>
         </div>
     );
@@ -839,112 +737,6 @@ const ProgramManagement = () => {
                                         ))}
                                         <option value="Others">Others</option>
                                     </select>
-                                </div>
-
-                                {/* Program Banner */}
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
-                                        Program Banner
-                                    </label>
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handleImageChange}
-                                        style={{
-                                            width: '100%',
-                                            padding: '0.5rem',
-                                            border: '1px solid #d1d5db',
-                                            borderRadius: '0.5rem',
-                                            background: 'white'
-                                        }}
-                                    />
-                                    {formData.programBanner && !bannerImage && (
-                                        <div style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: '#059669' }}>
-                                            Current Banner set
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Participant Counts & Fees */}
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                    <div>
-                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
-                                            Max Participants
-                                        </label>
-                                        <input
-                                            type="number"
-                                            name="maxParticipants"
-                                            value={formData.maxParticipants}
-                                            onChange={handleInputChange}
-                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
-                                            Room Max
-                                        </label>
-                                        <input
-                                            type="number"
-                                            name="roomMax"
-                                            value={formData.roomMax}
-                                            onChange={handleInputChange}
-                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                    <div>
-                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
-                                            Ladies Max Dorm
-                                        </label>
-                                        <input
-                                            type="number"
-                                            name="ladiesMaxDorm"
-                                            value={formData.ladiesMaxDorm}
-                                            onChange={handleInputChange}
-                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
-                                            Gents Max Dorm
-                                        </label>
-                                        <input
-                                            type="number"
-                                            name="gentsMaxDorm"
-                                            value={formData.gentsMaxDorm}
-                                            onChange={handleInputChange}
-                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                    <div>
-                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
-                                            Room Fees
-                                        </label>
-                                        <input
-                                            type="number"
-                                            name="roomFees"
-                                            value={formData.roomFees}
-                                            onChange={handleInputChange}
-                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
-                                            Dorm Fees
-                                        </label>
-                                        <input
-                                            type="number"
-                                            name="dormFees"
-                                            value={formData.dormFees}
-                                            onChange={handleInputChange}
-                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
-                                        />
-                                    </div>
                                 </div>
 
                                 {/* Custom Program Name (if Others) */}
@@ -1178,6 +970,43 @@ const ProgramManagement = () => {
                                     />
                                 </div>
 
+                                {/* Program Banner */}
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
+                                        Program Banner
+                                    </label>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleImageChange}
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.5rem',
+                                            border: '1px solid #d1d5db',
+                                            borderRadius: '0.5rem',
+                                            background: 'white'
+                                        }}
+                                    />
+                                    {(bannerImage || formData.programBanner) && (
+                                        <div style={{ marginTop: '1rem' }}>
+                                            <div style={{ fontSize: '0.875rem', fontWeight: 500, color: '#374151', marginBottom: '0.5rem' }}>
+                                                {bannerImage ? 'New Banner Preview:' : 'Current Banner:'}
+                                            </div>
+                                            <img
+                                                src={bannerImage ? URL.createObjectURL(bannerImage) : formData.programBanner}
+                                                alt="Banner preview"
+                                                style={{
+                                                    width: '100%',
+                                                    maxHeight: '200px',
+                                                    objectFit: 'contain',
+                                                    borderRadius: '0.5rem',
+                                                    border: '1px solid #e5e7eb'
+                                                }}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+
                                 {/* Program Description */}
                                 <div>
                                     <label
@@ -1272,6 +1101,88 @@ const ProgramManagement = () => {
                                     />
                                 </div>
 
+                                {/* Participant Counts & Fees */}
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                    <div>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
+                                            Max Participants
+                                        </label>
+                                        <input
+                                            type="number"
+                                            name="maxParticipants"
+                                            value={formData.maxParticipants}
+                                            onChange={handleInputChange}
+                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
+                                            Room Max
+                                        </label>
+                                        <input
+                                            type="number"
+                                            name="roomMax"
+                                            value={formData.roomMax}
+                                            onChange={handleInputChange}
+                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                    <div>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
+                                            Ladies Max Dorm
+                                        </label>
+                                        <input
+                                            type="number"
+                                            name="ladiesMaxDorm"
+                                            value={formData.ladiesMaxDorm}
+                                            onChange={handleInputChange}
+                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
+                                            Gents Max Dorm
+                                        </label>
+                                        <input
+                                            type="number"
+                                            name="gentsMaxDorm"
+                                            value={formData.gentsMaxDorm}
+                                            onChange={handleInputChange}
+                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                    <div>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
+                                            Room Fees
+                                        </label>
+                                        <input
+                                            type="number"
+                                            name="roomFees"
+                                            value={formData.roomFees}
+                                            onChange={handleInputChange}
+                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
+                                            Dorm Fees
+                                        </label>
+                                        <input
+                                            type="number"
+                                            name="dormFees"
+                                            value={formData.dormFees}
+                                            onChange={handleInputChange}
+                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
+                                        />
+                                    </div>
+                                </div>
+
                                 {/* Form Actions */}
                                 <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
                                     <button
@@ -1306,9 +1217,81 @@ const ProgramManagement = () => {
                                         Cancel
                                     </button>
                                 </div>
+
+                                {editingProgram && (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #f3f4f6' }}>
+                                        <div style={{ display: 'flex', gap: '1rem' }}>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleDelete(editingProgram.id)}
+                                                style={{
+                                                    flex: 1,
+                                                    padding: '0.75rem',
+                                                    backgroundColor: '#fee2e2',
+                                                    color: '#dc2626',
+                                                    borderRadius: '0.5rem',
+                                                    fontWeight: 600,
+                                                    cursor: 'pointer',
+                                                    border: '1px solid #fecaca',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    gap: '0.5rem'
+                                                }}
+                                            >
+                                                <Trash2 size={18} />
+                                                Delete Program
+                                            </button>
+
+                                            {activeTab === 'history' && (
+                                                <button
+                                                    type="button"
+                                                    onClick={async () => {
+                                                        if (confirm("Move this program to Storage?")) {
+                                                            setLoading(true);
+                                                            try {
+                                                                await TransactionService.archiveProgram(editingProgram.id);
+                                                                await setDoc(doc(db, 'system', 'metadata'), {
+                                                                    lastUpdated_programs: serverTimestamp()
+                                                                }, { merge: true });
+                                                                alert("Program moved to storage successfully");
+                                                                resetForm();
+                                                                loadPrograms();
+                                                            } catch (e) {
+                                                                alert("Archive Failed: " + e.message);
+                                                            } finally {
+                                                                setLoading(false);
+                                                            }
+                                                        }
+                                                    }}
+                                                    style={{
+                                                        flex: 1,
+                                                        padding: '0.75rem',
+                                                        backgroundColor: '#eef2ff',
+                                                        color: '#4f46e5',
+                                                        borderRadius: '0.5rem',
+                                                        fontWeight: 600,
+                                                        cursor: 'pointer',
+                                                        border: '1px solid #e0e7ff',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        gap: '0.5rem'
+                                                    }}
+                                                >
+                                                    <Package size={18} />
+                                                    Move to Storage
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
                             </form>
                         ) : (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '-0.5rem', fontWeight: 500 }}>
+                                    Click program card to edit
+                                </p>
                                 {programs.length === 0 ? (
                                     <div
                                         style={{

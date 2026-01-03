@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Plus, Trash2, RotateCcw } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
+import { useGlobalSettings } from '../context/GlobalSettingsContext';
 import '../components/RegistrationStyles.css';
 
 const EventRegistration = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { program, savedState } = location.state || {};
+    const { onlineTransactionsEnabled } = useGlobalSettings();
 
     // Redirect if no program
     useEffect(() => {
@@ -17,7 +19,9 @@ const EventRegistration = () => {
             // Track screen view and registration start
             const Analytics = import('../utils/Analytics').then(m => {
                 m.default.trackScreenView('Event Registration');
-                m.default.trackRegistrationStart(program.programName, program.id);
+                if (program?.programName) {
+                    m.default.trackRegistrationStart(program.programName, program.id);
+                }
             });
         }
     }, [program, navigate]);
@@ -192,14 +196,14 @@ const EventRegistration = () => {
                     color: '#111827',
                     margin: 0
                 }}>
-                    {program.programName}
+                    {program?.programName}
                 </h2>
                 <p style={{
                     fontSize: '0.95rem',
                     color: '#4b5563',
                     margin: '0.25rem 0 0 0'
                 }}>
-                    {new Date(program.programDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} - {program.programCity}
+                    {program?.programDate ? new Date(program.programDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : ''} - {program?.programCity}
                 </p>
             </div>
 
@@ -334,9 +338,27 @@ const EventRegistration = () => {
                     <span style={{ fontWeight: 600 }}>Total Estimated Amount:</span>
                     <span style={{ fontSize: '18px', fontWeight: 'bold' }}>₹{calculateTotal()}</span>
                 </div>
-                <button className="btn-primary" style={{ marginTop: '10px' }} onClick={handleProceed}>
-                    Proceed to Payment
-                </button>
+
+                {!onlineTransactionsEnabled && (
+                    <div style={{
+                        marginTop: '10px',
+                        padding: '10px',
+                        backgroundColor: '#fef2f2',
+                        border: '1px solid #fee2e2',
+                        borderRadius: '8px',
+                        textAlign: 'center'
+                    }}>
+                        <p style={{ margin: 0, color: '#b91c1c', fontWeight: 600, fontSize: '0.9rem' }}>
+                            To register please contact 7904118421
+                        </p>
+                    </div>
+                )}
+
+                {onlineTransactionsEnabled && (
+                    <button className="btn-primary" style={{ marginTop: '10px' }} onClick={handleProceed}>
+                        Proceed to Payment
+                    </button>
+                )}
             </div>
         </div>
     );
