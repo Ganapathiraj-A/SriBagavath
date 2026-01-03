@@ -51,7 +51,6 @@ import BookDetails from './pages/BookDetails';
 import BackOffice from './pages/BackOffice';
 import BackOfficeReporting from './pages/BackOfficeReporting';
 import BackOfficePrograms from './pages/BackOfficePrograms';
-import BackOfficePrograms from './pages/BackOfficePrograms';
 import BackOfficeAttendance from './pages/BackOfficeAttendance';
 import BackOfficeOfflineHub from './pages/BackOfficeOfflineHub';
 import BackOfficeOfflineRegistration from './pages/BackOfficeOfflineRegistration';
