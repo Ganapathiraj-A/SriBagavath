@@ -13,7 +13,6 @@ import {
 } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { useAdminAuth } from '../context/AdminAuthContext';
-import { useGlobalSettings } from '../context/GlobalSettingsContext';
 
 const SettingItem = ({ title, subtitle, icon: Icon, path, delay, color = '#2563eb', bgColor = '#eff6ff' }) => {
     const navigate = useNavigate();
@@ -59,7 +58,6 @@ const SettingItem = ({ title, subtitle, icon: Icon, path, delay, color = '#2563e
 const AdminSettings = () => {
     const navigate = useNavigate();
     const { hasAccess } = useAdminAuth();
-    const { onlineTransactionsEnabled, toggleOnlineTransactions } = useGlobalSettings();
     const [landingPage, setLandingPage] = useState(localStorage.getItem('admin_landing_page') || '/');
 
     const handleLandingPageChange = (e) => {
@@ -169,64 +167,6 @@ const AdminSettings = () => {
                         <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0.5rem' }}>
                             General Preferences
                         </h3>
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.5 }}
-                            style={{
-                                backgroundColor: 'white',
-                                borderRadius: '0.75rem',
-                                padding: '1.25rem',
-                                border: '1px solid #e5e7eb',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '1rem'
-                            }}
-                        >
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                    <div style={{
-                                        padding: '0.5rem',
-                                        borderRadius: '8px',
-                                        backgroundColor: onlineTransactionsEnabled ? '#dcfce7' : '#fee2e2',
-                                        color: onlineTransactionsEnabled ? '#166534' : '#991b1b'
-                                    }}>
-                                        <Landmark size={20} />
-                                    </div>
-                                    <div>
-                                        <div style={{ fontSize: '1rem', fontWeight: 600, color: '#111827' }}>Online Transactions</div>
-                                        <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-                                            {onlineTransactionsEnabled ? 'Enabled (Standard Mode)' : 'Disabled (Offline Mode)'}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div
-                                    onClick={() => toggleOnlineTransactions(!onlineTransactionsEnabled)}
-                                    style={{
-                                        width: '44px',
-                                        height: '24px',
-                                        backgroundColor: onlineTransactionsEnabled ? '#2563eb' : '#e5e7eb',
-                                        borderRadius: '12px',
-                                        position: 'relative',
-                                        cursor: 'pointer',
-                                        transition: 'background-color 0.2s'
-                                    }}
-                                >
-                                    <div style={{
-                                        width: '20px',
-                                        height: '20px',
-                                        backgroundColor: 'white',
-                                        borderRadius: '50%',
-                                        position: 'absolute',
-                                        top: '2px',
-                                        left: onlineTransactionsEnabled ? '22px' : '2px',
-                                        transition: 'left 0.2s',
-                                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                                    }} />
-                                </div>
-                            </div>
-                        </motion.div>
-
                         <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
