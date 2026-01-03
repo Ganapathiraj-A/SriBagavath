@@ -25,7 +25,9 @@ export const TransactionService = {
             id: txId,
             itemName: data.itemName, // Program Name or "Book Order"
             amount: data.amount,
-            status: 'PENDING', // PENDING, REGISTERED, HOLD, BNK_VERIFIED, REJECTED
+            status: data.status || 'PENDING', // Allow override (e.g. BNK_VERIFIED for offline)
+            isOffline: data.isOffline || false,
+            offlineRefNo: data.offlineRefNo || "",
             timestamp: Timestamp.now(),
             createdAt: new Date().toISOString(),
             hasImage: !!base64Image,

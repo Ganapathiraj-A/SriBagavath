@@ -51,7 +51,12 @@ import BookDetails from './pages/BookDetails';
 import BackOffice from './pages/BackOffice';
 import BackOfficeReporting from './pages/BackOfficeReporting';
 import BackOfficePrograms from './pages/BackOfficePrograms';
+import BackOfficePrograms from './pages/BackOfficePrograms';
 import BackOfficeAttendance from './pages/BackOfficeAttendance';
+import BackOfficeOfflineHub from './pages/BackOfficeOfflineHub';
+import BackOfficeOfflineRegistration from './pages/BackOfficeOfflineRegistration';
+import BackOfficeOfflineBooks from './pages/BackOfficeOfflineBooks';
+import BackOfficeOfflineDonation from './pages/BackOfficeOfflineDonation';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AdminAuthProvider } from './context/AdminAuthContext';
 import { CartProvider } from './context/CartContext';
@@ -150,7 +155,14 @@ function AnimatedRoutes() {
         <Route path="/admin/back-office/reporting" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficeReporting /></ProtectedRoute>} />
         <Route path="/admin/back-office/programs" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficePrograms /></ProtectedRoute>} />
         <Route path="/admin/back-office/attendance/:programId" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficeAttendance /></ProtectedRoute>} />
+        <Route path="/admin/back-office/attendance/:programId" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficeAttendance /></ProtectedRoute>} />
         <Route path="/admin/back-office/reconciliation" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><div style={{ padding: '2rem' }}>Bank Reconciliation (Coming Soon)</div></ProtectedRoute>} />
+
+        {/* Offline Transactions Screens */}
+        <Route path="/admin/back-office/offline-hub" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficeOfflineHub /></ProtectedRoute>} />
+        <Route path="/admin/back-office/offline-registration" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficeOfflineRegistration /></ProtectedRoute>} />
+        <Route path="/admin/back-office/offline-books" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficeOfflineBooks /></ProtectedRoute>} />
+        <Route path="/admin/back-office/offline-donation" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficeOfflineDonation /></ProtectedRoute>} />
 
         {/* Public view but management is admin */}
         <Route path="/schedule" element={<AyyasSchedule />} />

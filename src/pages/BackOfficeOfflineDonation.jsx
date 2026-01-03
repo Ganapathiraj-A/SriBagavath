@@ -1,0 +1,173 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ChevronLeft, Camera } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
+import { TransactionService } from '../services/TransactionService';
+import { Camera as CameraPlugin, CameraResultType } from '@capacitor/camera';
+
+const BackOfficeOfflineDonation = () => {
+    const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
+
+    // Form State
+    const [donorName, setDonorName] = useState('');
+    const [mobile, setMobile] = useState('');
+    const [pan, setPan] = useState('');
+    const [amount, setAmount] = useState('');
+    const [refNo, setRefNo] = useState('');
+    const [image, setImage] = useState(null);
+
+    const captureImage = async () => {
+        try {
+            const photo = await CameraPlugin.getPhoto({
+                quality: 80,
+                allowEditing: false,
+                resultType: CameraResultType.Base64
+            });
+            setImage(photo.base64String);
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    const handleSubmit = async () => {
+        if (!donorName || !mobile || !amount || !refNo) {
+            alert("Please fill all required fields");
+            return;
+        }
+
+        setLoading(true);
+        try {
+            await TransactionService.recordTransaction({
+                itemName: "Donation",
+                itemType: 'DONATION',
+                amount: parseFloat(amount),
+
+                // Offline Spec
+                status: 'BNK_VERIFIED',
+                isOffline: true,
+                offlineRefNo: refNo,
+
+                // User Data
+                primaryApplicant: {
+                    name: donorName,
+                    mobile: mobile,
+                    pan: pan
+                },
+                place: "Offline Entry"
+            }, image);
+
+            alert("Offline Donation Recorded Successfully!");
+            navigate('/admin/back-office/offline-hub');
+        } catch (error) {
+            console.error(error);
+            alert("Error recording donation: " + error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', paddingBottom: '20px' }}>
+            <PageHeader
+                title="Offline Donation"
+                leftAction={
+                    <button onClick={() => navigate('/admin/back-office/offline-hub')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
+                        <ChevronLeft size={24} />
+                    </button>
+                }
+            />
+
+            <div style={{ padding: '16px', maxWidth: '600px', margin: '0 auto' }}>
+
+                <div className="card" style={{ padding: '16px', borderRadius: '12px', backgroundColor: 'white', marginBottom: '16px', border: '1px solid #e5e7eb' }}>
+                    <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>Donor Details</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <input
+                            placeholder="Donor Name"
+                            value={donorName}
+                            onChange={(e) => setDonorName(e.target.value)}
+                            style={{ padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db' }}
+                        />
+                        <input
+                            placeholder="Mobile Number"
+                            type="tel"
+                            value={mobile}
+                            onChange={(e) => setMobile(e.target.value)}
+                            style={{ padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db' }}
+                        />
+                        <input
+                            placeholder="PAN Number (Optional)"
+                            value={pan}
+                            onChange={(e) => setPan(e.target.value?.toUpperCase())}
+                            style={{ padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db' }}
+                        />
+                    </div>
+                </div>
+
+                <div className="card" style={{ padding: '16px', borderRadius: '12px', backgroundColor: 'white', marginBottom: '20px', border: '1px solid #e5e7eb' }}>
+                    <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>Donation & Payment</h3>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <div style={{ position: 'relative' }}>
+                            <span style={{ position: 'absolute', left: '10px', top: '10px', fontWeight: 600 }}>₹</span>
+                            <input
+                                placeholder="Amount"
+                                type="number"
+                                value={amount}
+                                onChange={(e) => setAmount(e.target.value)}
+                                style={{ width: '100%', padding: '10px 10px 10px 25px', borderRadius: '8px', border: '1px solid #d1d5db', fontWeight: 'bold' }}
+                            />
+                        </div>
+
+                        <input
+                            placeholder="Payment Reference No"
+                            value={refNo}
+                            onChange={(e) => setRefNo(e.target.value)}
+                            style={{ padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db' }}
+                        />
+
+                        <div
+                            onClick={captureImage}
+                            style={{
+                                padding: '12px',
+                                border: '2px dashed #d1d5db',
+                                borderRadius: '8px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px',
+                                color: image ? '#166534' : '#6b7280',
+                                backgroundColor: image ? '#f0fdf4' : 'transparent',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            <Camera size={20} />
+                            <span>{image ? "Receipt Attached" : "Attach Payment Receipt"}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button
+                    onClick={handleSubmit}
+                    disabled={loading}
+                    style={{
+                        width: '100%',
+                        padding: '16px',
+                        backgroundColor: '#2563eb',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '12px',
+                        fontSize: '16px',
+                        fontWeight: 600,
+                        opacity: loading ? 0.7 : 1
+                    }}
+                >
+                    {loading ? "Registering..." : "Record Donation"}
+                </button>
+            </div>
+        </div>
+    );
+};
+
+export default BackOfficeOfflineDonation;
