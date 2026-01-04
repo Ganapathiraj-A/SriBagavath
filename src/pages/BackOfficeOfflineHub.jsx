@@ -7,9 +7,7 @@ import {
     BookOpen,
     Heart,
     ChevronRight,
-    Landmark,
-    Download,
-    Upload
+    Landmark
 } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 
@@ -81,22 +79,6 @@ const BackOfficeOfflineHub = () => {
             path: '/admin/back-office/offline-donation',
             color: '#ec4899',
             bgColor: '#fdf2f8'
-        },
-        {
-            title: 'Export Data',
-            subtitle: 'Export offline records',
-            icon: Download,
-            path: null,
-            color: '#10b981',
-            bgColor: '#d1fae5'
-        },
-        {
-            title: 'Import Data',
-            subtitle: 'Import offline records',
-            icon: Upload,
-            path: null,
-            color: '#f59e0b',
-            bgColor: '#fef3c7'
         }
     ];
 
