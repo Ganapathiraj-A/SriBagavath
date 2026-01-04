@@ -15,7 +15,7 @@ gh release delete $TAG --yes || true
 git tag -d $TAG || true
 git push origin :refs/tags/$TAG || true
 
-gh release create $TAG "$APK_NAME" --title "v2.8.96: Back Office Restructuring" --notes "Moved Offline Transaction tools (Registration, Donation, Books) to main Back Office screen for quicker access."
+gh release create $TAG "$APK_NAME" --title "v2.8.97: Offline 'Use Previous Info'" --notes "Added 'Use Previous Info' feature to all offline registration, book purchase, and donation screens for faster data entry."
 
 echo "---------------------------------------------------"
 echo "Dev Clean Build Published!"

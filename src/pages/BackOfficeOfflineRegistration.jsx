@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Plus, Trash2, Camera } from 'lucide-react';
+import { ChevronLeft, Plus, Trash2, Camera, RotateCcw } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { db } from '../firebase';
 import { collection, query, where, getDocs, Timestamp, orderBy } from 'firebase/firestore';
@@ -48,6 +48,29 @@ const BackOfficeOfflineRegistration = () => {
         };
         fetchPrograms();
     }, []);
+
+    // Persistence Check
+    const [hasPreviousInfo, setHasPreviousInfo] = useState(false);
+    useEffect(() => {
+        const saved = localStorage.getItem('last_offline_transaction_details');
+        if (saved) setHasPreviousInfo(true);
+    }, []);
+
+    const handleUsePrevious = () => {
+        try {
+            const saved = localStorage.getItem('last_offline_transaction_details');
+            if (saved) {
+                const data = JSON.parse(saved);
+                if (confirm("Autofill details from last offline entry?")) {
+                    if (data.name) setPrimaryName(data.name);
+                    if (data.mobile) setMobile(data.mobile);
+                    if (data.city) setCity(data.city);
+                }
+            }
+        } catch (e) {
+            console.error("Failed to load previous info", e);
+        }
+    };
 
     const calculateTotal = () => {
         if (!selectedProgram) return 0;
@@ -98,6 +121,21 @@ const BackOfficeOfflineRegistration = () => {
         try {
             const totalPeople = [{ name: primaryName }, ...participants];
 
+            // Save for "Use Previous Info"
+            try {
+                const dataToSave = {
+                    name: primaryName,
+                    mobile: mobile,
+                    city: city
+                };
+                // Merge with existing to keep other fields (like address/pan from other screens)
+                const existing = localStorage.getItem('last_offline_transaction_details');
+                const merged = existing ? { ...JSON.parse(existing), ...dataToSave } : dataToSave;
+                localStorage.setItem('last_offline_transaction_details', JSON.stringify(merged));
+            } catch (e) {
+                console.error("Failed to save offline details", e);
+            }
+
             await TransactionService.recordTransaction({
                 itemName: selectedProgram.programName,
                 itemType: 'PROGRAM',
@@ -139,13 +177,38 @@ const BackOfficeOfflineRegistration = () => {
             <PageHeader
                 title="Offline Registration"
                 leftAction={
-                    <button onClick={() => navigate('/admin/back-office/offline-hub')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
+                    <button onClick={() => navigate('/admin/back-office')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
                         <ChevronLeft size={24} />
                     </button>
                 }
             />
 
             <div style={{ padding: '16px', maxWidth: '600px', margin: '0 auto' }}>
+                {hasPreviousInfo && (
+                    <div style={{ marginBottom: '16px' }}>
+                        <button
+                            onClick={handleUsePrevious}
+                            style={{
+                                width: '100%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px',
+                                background: '#e0f2fe',
+                                color: '#0284c7',
+                                border: '1px solid #bae6fd',
+                                padding: '10px',
+                                borderRadius: '8px',
+                                fontWeight: 600,
+                                cursor: 'pointer'
+                            }}
+                        >
+                            <RotateCcw size={16} />
+                            Use Previous Info
+                        </button>
+                    </div>
+                )}
+
                 {/* Program Selection */}
                 <div className="card" style={{ padding: '16px', borderRadius: '12px', backgroundColor: 'white', marginBottom: '16px', border: '1px solid #e5e7eb' }}>
                     <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, marginBottom: '8px' }}>Select Program</label>

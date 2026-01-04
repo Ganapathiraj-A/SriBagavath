@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Plus, Minus, Search, Camera } from 'lucide-react';
+import { ChevronLeft, Plus, Minus, Search, Camera, RotateCcw } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { db } from '../firebase';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
@@ -33,6 +33,31 @@ const BackOfficeOfflineBooks = () => {
         };
         fetchBooks();
     }, []);
+
+    // Persistence Check
+    const [hasPreviousInfo, setHasPreviousInfo] = useState(false);
+    useEffect(() => {
+        const saved = localStorage.getItem('last_offline_transaction_details');
+        if (saved) setHasPreviousInfo(true);
+    }, []);
+
+    const handleUsePrevious = () => {
+        try {
+            const saved = localStorage.getItem('last_offline_transaction_details');
+            if (saved) {
+                const data = JSON.parse(saved);
+                if (confirm("Autofill details from last offline entry?")) {
+                    if (data.name) setCustomerName(data.name);
+                    if (data.mobile) setMobile(data.mobile);
+                    if (data.address) setAddress(data.address);
+                    if (data.city) setCity(data.city);
+                    if (data.pincode) setPincode(data.pincode);
+                }
+            }
+        } catch (e) {
+            console.error("Failed to load previous info", e);
+        }
+    };
 
     // Cart Logic
     const addToCart = (id) => setCart(prev => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
@@ -83,6 +108,23 @@ const BackOfficeOfflineBooks = () => {
 
         setLoading(true);
         try {
+            // Save for "Use Previous Info"
+            try {
+                const dataToSave = {
+                    name: customerName,
+                    mobile: mobile,
+                    address: address,
+                    city: city,
+                    pincode: pincode
+                };
+                // Merge with existing
+                const existing = localStorage.getItem('last_offline_transaction_details');
+                const merged = existing ? { ...JSON.parse(existing), ...dataToSave } : dataToSave;
+                localStorage.setItem('last_offline_transaction_details', JSON.stringify(merged));
+            } catch (e) {
+                console.error("Failed to save offline details", e);
+            }
+
             const orderItems = getOrderItems();
             const orderSummary = orderItems.map(p => `${p.title} x${p.quantity}`).join(", ");
             const total = getCartTotal();
@@ -113,7 +155,7 @@ const BackOfficeOfflineBooks = () => {
             }, image);
 
             alert("Offline Order Recorded Successfully!");
-            navigate('/admin/back-office/offline-hub');
+            navigate('/admin/back-office');
         } catch (error) {
             console.error(error);
             alert("Error recording order: " + error.message);
@@ -129,13 +171,38 @@ const BackOfficeOfflineBooks = () => {
             <PageHeader
                 title="Offline Book Order"
                 leftAction={
-                    <button onClick={() => navigate('/admin/back-office/offline-hub')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
+                    <button onClick={() => navigate('/admin/back-office')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
                         <ChevronLeft size={24} />
                     </button>
                 }
             />
 
             <div style={{ padding: '16px', maxWidth: '600px', margin: '0 auto' }}>
+
+                {hasPreviousInfo && (
+                    <div style={{ marginBottom: '16px' }}>
+                        <button
+                            onClick={handleUsePrevious}
+                            style={{
+                                width: '100%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px',
+                                background: '#e0f2fe',
+                                color: '#0284c7',
+                                border: '1px solid #bae6fd',
+                                padding: '10px',
+                                borderRadius: '8px',
+                                fontWeight: 600,
+                                cursor: 'pointer'
+                            }}
+                        >
+                            <RotateCcw size={16} />
+                            Use Previous Info
+                        </button>
+                    </div>
+                )}
 
                 {/* Book Selection */}
                 <div className="card" style={{ padding: '16px', borderRadius: '12px', backgroundColor: 'white', marginBottom: '16px', border: '1px solid #e5e7eb' }}>
