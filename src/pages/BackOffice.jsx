@@ -6,7 +6,7 @@ import {
     BarChart3,
     Layers,
     Landmark,
-    Landmark,
+
     ChevronRight,
     Download,
     Upload
