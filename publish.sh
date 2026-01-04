@@ -15,7 +15,7 @@ gh release delete $TAG --yes || true
 git tag -d $TAG || true
 git push origin :refs/tags/$TAG || true
 
-gh release create $TAG "$APK_NAME" --title "v2.8.89: Admin Settings Update" --notes "Moved Online Transactions toggle back to Admin Settings for easier access."
+gh release create $TAG "$APK_NAME" --title "v2.8.90: Offline Registration Fixes" --notes "Fixed empty program list, updated dropdown format, and fixed participant layout overflow."
 
 echo "---------------------------------------------------"
 echo "Dev Clean Build Published!"

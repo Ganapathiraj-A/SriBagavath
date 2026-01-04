@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Plus, Trash2, Camera } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { db } from '../firebase';
-import { collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, Timestamp, orderBy } from 'firebase/firestore';
 import { TransactionService } from '../services/TransactionService';
 import { Camera as CameraPlugin, CameraResultType } from '@capacitor/camera';
 
@@ -28,10 +28,19 @@ const BackOfficeOfflineRegistration = () => {
     useEffect(() => {
         const fetchPrograms = async () => {
             try {
-                // Fetch active programs (Simplified: fetching all for now, can filter by date)
-                const q = query(collection(db, 'programs'), where('active', '==', true));
-                const snap = await getDocs(q);
-                const loaded = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                // Fetch active programs (Upcoming programs logic from Programs.jsx)
+                const programsRef = collection(db, 'programs');
+                const snap = await getDocs(programsRef);
+
+                console.log("OfflineReg: Fetched All Programs Snap Size:", snap.size);
+
+                const today = new Date().toISOString().split('T')[0];
+                const loaded = snap.docs
+                    .map(d => ({ id: d.id, ...d.data() }))
+                    .filter(p => p.programDate >= today)
+                    .sort((a, b) => a.programDate.localeCompare(b.programDate));
+
+                console.log("OfflineReg: Filtered Programs:", loaded);
                 setPrograms(loaded);
             } catch (error) {
                 console.error("Error fetching programs", error);
@@ -88,7 +97,7 @@ const BackOfficeOfflineRegistration = () => {
             const totalPeople = [{ name: primaryName }, ...participants];
 
             await TransactionService.recordTransaction({
-                itemName: selectedProgram.title,
+                itemName: selectedProgram.programName,
                 itemType: 'PROGRAM',
                 amount: calculateTotal(),
 
@@ -99,8 +108,8 @@ const BackOfficeOfflineRegistration = () => {
 
                 // Program Data
                 programId: selectedProgram.id,
-                programDate: selectedProgram.date,
-                programCity: selectedProgram.location,
+                programDate: selectedProgram.programDate,
+                programCity: selectedProgram.programCity,
 
                 // User Data
                 primaryApplicant: {
@@ -145,7 +154,9 @@ const BackOfficeOfflineRegistration = () => {
                     >
                         <option value="">-- Select Program --</option>
                         {programs.map(p => (
-                            <option key={p.id} value={p.id}>{p.title} - {p.date} ({p.location})</option>
+                            <option key={p.id} value={p.id}>
+                                {p.programName} ({new Date(p.programDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {p.programCity})
+                            </option>
                         ))}
                     </select>
                 </div>
@@ -189,35 +200,37 @@ const BackOfficeOfflineRegistration = () => {
                         </div>
                     ))}
 
-                    <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
                         <input
                             placeholder="Name"
                             value={newParticipant.name}
                             onChange={(e) => setNewParticipant({ ...newParticipant, name: e.target.value })}
-                            style={{ flex: 2, padding: '8px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px' }}
+                            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px' }}
                         />
-                        <select
-                            value={newParticipant.gender}
-                            onChange={(e) => setNewParticipant({ ...newParticipant, gender: e.target.value })}
-                            style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px' }}
-                        >
-                            <option value="">Gender</option>
-                            <option value="M">Male</option>
-                            <option value="F">Female</option>
-                        </select>
-                        <input
-                            placeholder="Age"
-                            type="number"
-                            value={newParticipant.age}
-                            onChange={(e) => setNewParticipant({ ...newParticipant, age: e.target.value })}
-                            style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px' }}
-                        />
-                        <button
-                            onClick={handleAddParticipant}
-                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '6px' }}
-                        >
-                            <Plus size={18} />
-                        </button>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                            <select
+                                value={newParticipant.gender}
+                                onChange={(e) => setNewParticipant({ ...newParticipant, gender: e.target.value })}
+                                style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px', backgroundColor: 'white' }}
+                            >
+                                <option value="">Gender</option>
+                                <option value="M">Male</option>
+                                <option value="F">Female</option>
+                            </select>
+                            <input
+                                placeholder="Age"
+                                type="number"
+                                value={newParticipant.age}
+                                onChange={(e) => setNewParticipant({ ...newParticipant, age: e.target.value })}
+                                style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px' }}
+                            />
+                            <button
+                                onClick={handleAddParticipant}
+                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '42px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '6px' }}
+                            >
+                                <Plus size={20} />
+                            </button>
+                        </div>
                     </div>
                 </div>
 
