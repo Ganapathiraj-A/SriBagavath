@@ -10,7 +10,6 @@ import {
     Landmark
 } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
-import { useGlobalSettings } from '../context/GlobalSettingsContext';
 
 const OfflineItem = ({ title, subtitle, icon: Icon, path, delay, color = '#2563eb', bgColor = '#eff6ff' }) => {
     const navigate = useNavigate();
@@ -53,72 +52,8 @@ const OfflineItem = ({ title, subtitle, icon: Icon, path, delay, color = '#2563e
     );
 };
 
-const ToggleItem = ({ title, subtitle, icon: Icon, delay, color, bgColor, isOn, onToggle }) => {
-    return (
-        <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay, duration: 0.3 }}
-            style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '1rem',
-                padding: '1.25rem',
-                backgroundColor: 'white',
-                border: '1px solid #e5e7eb',
-                borderRadius: '0.75rem',
-                textAlign: 'left'
-            }}
-        >
-            <div style={{
-                padding: '0.75rem',
-                borderRadius: '0.75rem',
-                backgroundColor: bgColor,
-                color: color,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-            }}>
-                <Icon size={24} />
-            </div>
-            <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '1.125rem', fontWeight: 600, color: '#111827' }}>{title}</div>
-                {subtitle && <div style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '2px' }}>{subtitle}</div>}
-            </div>
-
-            <div
-                onClick={() => onToggle(!isOn)}
-                style={{
-                    width: '52px',
-                    height: '28px',
-                    backgroundColor: isOn ? '#2563eb' : '#e5e7eb',
-                    borderRadius: '14px',
-                    position: 'relative',
-                    cursor: 'pointer',
-                    transition: 'background-color 0.2s',
-                    flexShrink: 0
-                }}
-            >
-                <div style={{
-                    width: '24px',
-                    height: '24px',
-                    backgroundColor: 'white',
-                    borderRadius: '50%',
-                    position: 'absolute',
-                    top: '2px',
-                    left: isOn ? '26px' : '2px',
-                    transition: 'left 0.2s',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                }} />
-            </div>
-        </motion.div>
-    );
-};
-
 const BackOfficeOfflineHub = () => {
     const navigate = useNavigate();
-    const { onlineTransactionsEnabled, toggleOnlineTransactions } = useGlobalSettings();
 
     const tools = [
         {
@@ -164,17 +99,6 @@ const BackOfficeOfflineHub = () => {
                         Manage global transaction settings and enter offline records manually.
                     </p>
                 </div>
-
-                <ToggleItem
-                    title="Online Transactions"
-                    subtitle={onlineTransactionsEnabled ? "Enabled (Standard Mode)" : "Disabled (Offline Mode)"}
-                    icon={Landmark}
-                    color={onlineTransactionsEnabled ? '#10b981' : '#ef4444'}
-                    bgColor={onlineTransactionsEnabled ? '#ecfdf5' : '#fee2e2'}
-                    delay={0}
-                    isOn={onlineTransactionsEnabled}
-                    onToggle={toggleOnlineTransactions}
-                />
 
                 <div style={{ height: '10px' }} />
 
