@@ -52,7 +52,9 @@ const BackOfficeOfflineRegistration = () => {
     const calculateTotal = () => {
         if (!selectedProgram) return 0;
         const count = participants.length + 1; // +1 for primary
-        return count * selectedProgram.price;
+        const price = parseFloat(selectedProgram.price);
+        if (isNaN(price)) return 0;
+        return count * price;
     };
 
     const handleAddParticipant = () => {

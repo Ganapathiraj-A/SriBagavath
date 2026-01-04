@@ -15,7 +15,7 @@ gh release delete $TAG --yes || true
 git tag -d $TAG || true
 git push origin :refs/tags/$TAG || true
 
-gh release create $TAG "$APK_NAME" --title "v2.8.92: Back Office UI Updates" --notes "Moved Export/Import Data tools to main Back Office screen."
+gh release create $TAG "$APK_NAME" --title "v2.8.93: Offline Registration Price Fix" --notes "Fixed NaN total amount display by safely parsing program price."
 
 echo "---------------------------------------------------"
 echo "Dev Clean Build Published!"
