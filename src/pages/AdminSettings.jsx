@@ -228,7 +228,20 @@ const AdminSettings = () => {
                         </motion.div>
 
                         <motion.div
-                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1 }}
+                            style={{
+                                backgroundColor: 'white',
+                                borderRadius: '1rem',
+                                padding: '1.5rem',
+                                border: '1px solid #e5e7eb',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: '1rem'
+                            }}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                                 <div style={{
                                     padding: '0.5rem',
                                     borderRadius: '8px',
@@ -266,15 +279,15 @@ const AdminSettings = () => {
                                 </select>
                             </div>
                         </motion.div>
-        </div>
-    )
-}
+                    </div>
+                )
+                }
 
-<div style={{ textAlign: 'center', marginTop: '1rem' }}>
-    <p style={{ fontSize: '0.75rem', color: '#9ca3af', margin: 0 }}>
-        All settings are stored locally on your device.
-    </p>
-</div>
+                <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+                    <p style={{ fontSize: '0.75rem', color: '#9ca3af', margin: 0 }}>
+                        All settings are stored locally on your device.
+                    </p>
+                </div>
             </div >
         </div >
     );
