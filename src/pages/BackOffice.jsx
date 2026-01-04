@@ -8,8 +8,7 @@ import {
     Landmark,
 
     ChevronRight,
-    Download,
-    Upload
+    ArrowRightLeft
 } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 
@@ -83,20 +82,12 @@ const BackOffice = () => {
             bgColor: '#fee2e2'
         },
         {
-            title: 'Export Data',
-            subtitle: 'Export offline records',
-            icon: Download,
+            title: 'Import / Export Data',
+            subtitle: 'Manage offline records',
+            icon: ArrowRightLeft,
             path: null,
             color: '#10b981', // Green
             bgColor: '#d1fae5'
-        },
-        {
-            title: 'Import Data',
-            subtitle: 'Import offline records',
-            icon: Upload,
-            path: null,
-            color: '#f59e0b', // Amber
-            bgColor: '#fef3c7'
         },
         {
             title: 'Bank Reconciliation',

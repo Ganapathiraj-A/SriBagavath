@@ -15,7 +15,7 @@ gh release delete $TAG --yes || true
 git tag -d $TAG || true
 git push origin :refs/tags/$TAG || true
 
-gh release create $TAG "$APK_NAME" --title "v2.8.94: UI Polish" --notes "Removed unused description text from Back Office screen."
+gh release create $TAG "$APK_NAME" --title "v2.8.95: UI Update" --notes "Merged Import/Export Data buttons into a single action item."
 
 echo "---------------------------------------------------"
 echo "Dev Clean Build Published!"
