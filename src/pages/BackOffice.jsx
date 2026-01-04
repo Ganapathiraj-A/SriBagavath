@@ -120,11 +120,7 @@ const BackOffice = () => {
             />
 
             <div style={{ padding: '1.5rem', maxWidth: '32rem', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div style={{ marginBottom: '1rem' }}>
-                    <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: '0 0.5rem' }}>
-                        Operational tools for Back Office.
-                    </p>
-                </div>
+
 
                 {tools.map((tool, idx) => (
                     <BackOfficeItem
