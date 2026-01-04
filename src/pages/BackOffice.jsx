@@ -8,7 +8,10 @@ import {
     Landmark,
 
     ChevronRight,
-    ArrowRightLeft
+    ArrowRightLeft,
+    CreditCard,
+    BookOpen,
+    Heart
 } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 
@@ -58,6 +61,30 @@ const BackOffice = () => {
 
     const tools = [
         {
+            title: 'Program Registration',
+            subtitle: 'Register user for a program',
+            icon: CreditCard,
+            path: '/admin/back-office/offline-registration',
+            color: '#0ea5e9',
+            bgColor: '#e0f2fe'
+        },
+        {
+            title: 'Book Purchase',
+            subtitle: 'Create manual book order',
+            icon: BookOpen,
+            path: '/admin/back-office/offline-books',
+            color: '#8b5cf6',
+            bgColor: '#f5f3ff'
+        },
+        {
+            title: 'Donation Entry',
+            subtitle: 'Record manual donation',
+            icon: Heart,
+            path: '/admin/back-office/offline-donation',
+            color: '#ec4899',
+            bgColor: '#fdf2f8'
+        },
+        {
             title: 'Attendance Tracking',
             subtitle: 'Manage participants & mark presence',
             icon: Layers,
@@ -72,14 +99,6 @@ const BackOffice = () => {
             path: '/admin/back-office/reporting',
             color: '#8b5cf6',
             bgColor: '#f5f3ff'
-        },
-        {
-            title: 'Offline Transactions',
-            subtitle: 'Manual Entries & Settings',
-            icon: Landmark,
-            path: '/admin/back-office/offline-hub',
-            color: '#ef4444',
-            bgColor: '#fee2e2'
         },
         {
             title: 'Import / Export Data',
