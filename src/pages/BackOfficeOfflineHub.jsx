@@ -7,7 +7,9 @@ import {
     BookOpen,
     Heart,
     ChevronRight,
-    Landmark
+    Landmark,
+    Download,
+    Upload
 } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 
@@ -18,7 +20,7 @@ const OfflineItem = ({ title, subtitle, icon: Icon, path, delay, color = '#2563e
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay, duration: 0.3 }}
-            onClick={() => navigate(path)}
+            onClick={() => path ? navigate(path) : alert('Coming Soon!')}
             style={{
                 width: '100%',
                 display: 'flex',
@@ -79,6 +81,22 @@ const BackOfficeOfflineHub = () => {
             path: '/admin/back-office/offline-donation',
             color: '#ec4899',
             bgColor: '#fdf2f8'
+        },
+        {
+            title: 'Export Data',
+            subtitle: 'Export offline records',
+            icon: Download,
+            path: null,
+            color: '#10b981',
+            bgColor: '#d1fae5'
+        },
+        {
+            title: 'Import Data',
+            subtitle: 'Import offline records',
+            icon: Upload,
+            path: null,
+            color: '#f59e0b',
+            bgColor: '#fef3c7'
         }
     ];
 
