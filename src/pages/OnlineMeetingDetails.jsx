@@ -9,7 +9,7 @@ import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 
 const OnlineMeetingDetails = () => {
-    const { id } = useParams();
+    const { id: rawId } = useParams();
     const navigate = useNavigate();
     const [meeting, setMeeting] = useState(null);
     const [banner, setBanner] = useState(null);
@@ -18,14 +18,24 @@ const OnlineMeetingDetails = () => {
     useEffect(() => {
         const fetchDetails = async () => {
             try {
-                const docRef = doc(db, 'online_meetings', id);
+                // Support virtual IDs: masterId_YYYY-MM-DD
+                const parts = rawId.split('_');
+                const masterId = parts[0];
+                const instanceDate = parts[1];
+
+                const docRef = doc(db, 'online_meetings', masterId);
                 const snap = await getDoc(docRef);
                 if (snap.exists()) {
-                    const data = snap.id ? { id: snap.id, ...snap.data() } : null;
+                    const data = { id: snap.id, ...snap.data() };
+
+                    if (instanceDate) {
+                        data.date = instanceDate;
+                    }
+
                     setMeeting(data);
 
                     if (data.hasBanner) {
-                        const bannerSnap = await getDoc(doc(db, 'online_meeting_banners', id));
+                        const bannerSnap = await getDoc(doc(db, 'online_meeting_banners', masterId));
                         if (bannerSnap.exists()) {
                             setBanner(bannerSnap.data().banner);
                         }
@@ -38,7 +48,7 @@ const OnlineMeetingDetails = () => {
             }
         };
         fetchDetails();
-    }, [id]);
+    }, [rawId]);
 
     const handleShare = async () => {
         if (!meeting) return;

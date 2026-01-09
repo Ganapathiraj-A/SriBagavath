@@ -52,10 +52,14 @@ import BackOffice from './pages/BackOffice';
 import BackOfficeReporting from './pages/BackOfficeReporting';
 import BackOfficePrograms from './pages/BackOfficePrograms';
 import BackOfficeAttendance from './pages/BackOfficeAttendance';
-import BackOfficeOfflineHub from './pages/BackOfficeOfflineHub';
 import BackOfficeOfflineRegistration from './pages/BackOfficeOfflineRegistration';
 import BackOfficeOfflineBooks from './pages/BackOfficeOfflineBooks';
 import BackOfficeOfflineDonation from './pages/BackOfficeOfflineDonation';
+import BackOfficeImportExport from './pages/BackOfficeImportExport';
+import BankReconciliation from './pages/BankReconciliation';
+import BankStatementUpload from './pages/BankStatementUpload';
+import BankReconciliationRegs from './pages/BankReconciliationRegs';
+import BankStatementView from './pages/BankStatementView';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AdminAuthProvider } from './context/AdminAuthContext';
 import { CartProvider } from './context/CartContext';
@@ -82,10 +86,122 @@ function AnimatedRoutes() {
 
     const setupBackButtonHandler = async () => {
       backButtonListener = await CapacitorApp.addListener('backButton', () => {
-        if (location.pathname !== '/') {
-          navigate(-1);
-        } else {
+        const { pathname, search } = location;
+
+        if (pathname === '/') {
           CapacitorApp.exitApp();
+          return;
+        }
+
+        // 1. Exception: Payment Flow should use normal history
+        const isPaymentFlow = pathname.includes('/payment-flow') ||
+          pathname.includes('/event-registration') ||
+          pathname.includes('/bookstore-checkout');
+
+        if (isPaymentFlow) {
+          navigate(-1);
+          return;
+        }
+
+        // 2. Exception: Search Params handling
+        if (search) {
+          // For Folder/List style navigation, move back in hierarchy by clearing search
+          const hierarchicalListingPaths = [
+            '/monthly-magazine',
+            '/programs/retreat',
+            '/programs/online',
+            '/programs/satsang'
+          ];
+
+          // Check for exact path match to avoid parent hub interference
+          if (hierarchicalListingPaths.includes(pathname)) {
+            navigate(pathname, { replace: true });
+            return;
+          }
+
+          // Special case: Programs Hub - if we have search (like ?id=) stay on listings
+          if (pathname === '/programs') {
+            navigate(pathname, { replace: true });
+            return;
+          }
+
+          // For Admin "Edit" modes, clear search params and replace history to avoid loops
+          navigate(pathname, { replace: true });
+          return;
+        }
+
+        // 3. Hierarchical Navigation Logic
+        // Special case: Back Office attendance
+        if (pathname.includes('/admin/back-office/attendance/')) {
+          navigate('/admin/back-office/programs');
+          return;
+        }
+
+        // Special case: Book Details
+        if (pathname.startsWith('/book/')) {
+          navigate('/bookstore');
+          return;
+        }
+
+        // Custom Parent Mappings
+        const parentMappings = {
+          '/admin/back-office': '/configuration',
+          '/admin/settings': '/configuration',
+          '/admin-review': '/configuration',
+          '/admin/purchases': '/configuration',
+          '/admin/donations': '/configuration',
+          '/admin/books': '/configuration',
+          '/admin/program-management': '/configuration',
+          '/admin/online-meetings': '/admin/program-management',
+          '/admin/satsang': '/admin/program-management',
+          '/admin/consultation': '/admin/program-management',
+          '/program': '/admin/program-management',
+          '/schedule/manage': '/admin/program-management',
+          '/configuration/program-types': '/admin/program-management',
+          '/manage-users': '/configuration',
+          '/admin-dashboard': '/configuration',
+          '/conversations/programs': '/configuration',
+          '/admin/back-office/reporting': '/admin/back-office',
+          '/admin/back-office/programs': '/admin/back-office',
+          '/admin/back-office/reconciliation': '/admin/back-office',
+          '/admin/back-office/reconciliation/upload': '/admin/back-office/reconciliation',
+          '/admin/back-office/reconciliation/registrations': '/admin/back-office/reconciliation',
+          '/admin/back-office/reconciliation/view': '/admin/back-office/reconciliation',
+          '/admin/back-office/offline-registration': '/admin/back-office',
+          '/admin/back-office/offline-books': '/admin/back-office',
+          '/admin/back-office/offline-donation': '/admin/back-office',
+          '/admin/back-office/import-export': '/admin/back-office',
+          '/my-donations': '/donations',
+          '/my-orders': '/bookstore',
+          '/my-registrations': '/programs/retreat',
+          '/programs/consultation': '/programs',
+          '/schedule': '/programs',
+          '/bookstore': '/books',
+          '/pdf-books': '/books',
+          '/audio-books': '/books',
+          '/videos': '/books',
+          '/monthly-magazine': '/books',
+          '/conversations': '/books'
+        };
+
+        if (parentMappings[pathname]) {
+          navigate(parentMappings[pathname]);
+          return;
+        }
+
+        // Configuration sub-pages (Catch-all for back-office deep links)
+        if (pathname.startsWith('/admin/back-office/') && pathname !== '/admin/back-office') {
+          navigate('/admin/back-office');
+          return;
+        }
+
+        // Generic Hierarchical Logic: Go up one level
+        const segments = pathname.split('/').filter(Boolean);
+        if (segments.length > 1) {
+          const parentPath = '/' + segments.slice(0, -1).join('/');
+          navigate(parentPath);
+        } else {
+          navigate('/');
         }
       });
     };
@@ -97,7 +213,7 @@ function AnimatedRoutes() {
         backButtonListener.remove();
       }
     };
-  }, [location.pathname, navigate]);
+  }, [location.pathname, location.search, navigate]);
 
   return (
     <AnimatePresence mode="wait">
@@ -154,14 +270,17 @@ function AnimatedRoutes() {
         <Route path="/admin/back-office/reporting" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficeReporting /></ProtectedRoute>} />
         <Route path="/admin/back-office/programs" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficePrograms /></ProtectedRoute>} />
         <Route path="/admin/back-office/attendance/:programId" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficeAttendance /></ProtectedRoute>} />
-        <Route path="/admin/back-office/attendance/:programId" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficeAttendance /></ProtectedRoute>} />
-        <Route path="/admin/back-office/reconciliation" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><div style={{ padding: '2rem' }}>Bank Reconciliation (Coming Soon)</div></ProtectedRoute>} />
+        <Route path="/admin/back-office/reconciliation" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BankReconciliation /></ProtectedRoute>} />
+        <Route path="/admin/back-office/reconciliation/upload" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BankStatementUpload /></ProtectedRoute>} />
+        <Route path="/admin/back-office/reconciliation/registrations" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BankReconciliationRegs /></ProtectedRoute>} />
+        <Route path="/admin/back-office/reconciliation/view" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BankStatementView /></ProtectedRoute>} />
+        {/* Bank Verification Hub Reverted */}
 
         {/* Offline Transactions Screens */}
-        <Route path="/admin/back-office/offline-hub" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficeOfflineHub /></ProtectedRoute>} />
         <Route path="/admin/back-office/offline-registration" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficeOfflineRegistration /></ProtectedRoute>} />
         <Route path="/admin/back-office/offline-books" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficeOfflineBooks /></ProtectedRoute>} />
         <Route path="/admin/back-office/offline-donation" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficeOfflineDonation /></ProtectedRoute>} />
+        <Route path="/admin/back-office/import-export" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficeImportExport /></ProtectedRoute>} />
 
         {/* Public view but management is admin */}
         <Route path="/schedule" element={<AyyasSchedule />} />

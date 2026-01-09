@@ -25,13 +25,14 @@ export const TransactionService = {
             id: txId,
             itemName: data.itemName, // Program Name or "Book Order"
             amount: data.amount,
-            status: data.status || 'PENDING', // Allow override (e.g. BNK_VERIFIED for offline)
+            status: data.status || 'PENDING', // Allow override (e.g. COMPLETED for offline)
             isOffline: data.isOffline || false,
             offlineRefNo: data.offlineRefNo || "",
             timestamp: Timestamp.now(),
             createdAt: new Date().toISOString(),
             hasImage: !!base64Image,
             ocrText: data.ocrText || "",
+            utr: data.utr || null,
             parsedAmount: data.parsedAmount || null,
             itemType: data.itemType || 'PROGRAM', // 'PROGRAM' or 'BOOK'
             // Bookstore specific
@@ -167,7 +168,7 @@ export const TransactionService = {
         let count = 0;
 
         snap.docs.forEach(d => {
-            if (d.data().status === 'BNK_VERIFIED') {
+            if (d.data().status === 'COMPLETED') {
                 batch.delete(d.ref);
                 deleteDoc(doc(db, "transaction_images", d.id)).catch(() => { });
                 count++;

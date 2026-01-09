@@ -93,6 +93,22 @@ const BackOffice = () => {
             bgColor: '#fff7ed'
         },
         {
+            title: 'Import / Export Data',
+            subtitle: 'Manage offline records',
+            icon: ArrowRightLeft,
+            path: '/admin/back-office/import-export',
+            color: '#10b981', // Green
+            bgColor: '#d1fae5'
+        },
+        {
+            title: 'Bank Reconciliation',
+            subtitle: 'Statement matching & reconciliation',
+            icon: Landmark,
+            path: '/admin/back-office/reconciliation',
+            color: '#10b981',
+            bgColor: '#f0fdf4'
+        },
+        {
             title: 'Reporting & Analytics',
             subtitle: 'Financial summaries & statistics',
             icon: BarChart3,
@@ -100,22 +116,6 @@ const BackOffice = () => {
             color: '#8b5cf6',
             bgColor: '#f5f3ff'
         },
-        {
-            title: 'Import / Export Data',
-            subtitle: 'Manage offline records',
-            icon: ArrowRightLeft,
-            path: null,
-            color: '#10b981', // Green
-            bgColor: '#d1fae5'
-        },
-        {
-            title: 'Bank Reconciliation',
-            subtitle: 'Coming Soon',
-            icon: Landmark,
-            path: '/admin/back-office/reconciliation',
-            color: '#10b981',
-            bgColor: '#f0fdf4'
-        }
     ];
 
     return (

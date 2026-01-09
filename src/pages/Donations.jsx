@@ -65,14 +65,7 @@ const Donations = () => {
 
     return (
         <div style={{ backgroundColor: '#f9fafb', minHeight: '100vh', paddingBottom: '40px' }}>
-            <PageHeader
-                title="Donations"
-                leftAction={
-                    <button onClick={() => navigate('/')} style={{ background: 'none', border: 'none', padding: '8px' }}>
-                        <ChevronLeft size={24} />
-                    </button>
-                }
-            />
+            <PageHeader title="Donations" />
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '16px 16px 0', gap: '8px' }}>
                 <button

@@ -14,6 +14,7 @@ const MyRegistrations = () => {
     const [loading, setLoading] = useState(true);
     const [authLoading, setAuthLoading] = useState(false);
     const [currentUser, setCurrentUser] = useState(auth.currentUser);
+    const [viewingImage, setViewingImage] = useState(null);
 
     useEffect(() => {
         const unsubAuth = auth.onAuthStateChanged(user => {
@@ -111,7 +112,7 @@ const MyRegistrations = () => {
 
     const getStatusColor = (status) => {
         switch (status) {
-            case 'BNK_VERIFIED': return 'green'; // Green for Verified
+            case 'COMPLETED': return 'green'; // Green for Verified
             case 'REGISTERED': return 'green';
             case 'PENDING': return 'orange';
             case 'REJECTED': return 'red';
@@ -130,6 +131,20 @@ const MyRegistrations = () => {
         if (!dateStr) return "";
         const d = new Date(dateStr);
         return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    };
+
+    const handleViewReceipt = async (id, utr) => {
+        try {
+            const base64 = await TransactionService.getImage(id);
+            if (base64) {
+                setViewingImage({ base64, utr });
+            } else {
+                alert("No receipt image found for this registration.");
+            }
+        } catch (e) {
+            console.error("Error fetching receipt:", e);
+            alert("Error loading receipt.");
+        }
     };
 
     return (
@@ -191,6 +206,44 @@ const MyRegistrations = () => {
                         {loading && <p>Loading...</p>}
                         {!loading && registrations.length === 0 && <p>You have no program registrations yet.</p>}
 
+                        {/* Receipt Modal */}
+                        {viewingImage && (
+                            <div className="modal-overlay" onClick={() => setViewingImage(null)} style={{ zIndex: 1000 }}>
+                                <div className="modal-content" onClick={e => e.stopPropagation()} style={{
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    gap: '15px',
+                                    background: 'white',
+                                    padding: '15px',
+                                    borderRadius: '16px',
+                                    maxWidth: '90%',
+                                    boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)'
+                                }}>
+                                    <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                                        <div>
+                                            <h2 style={{ margin: 0, fontSize: '18px' }}>Payment Receipt</h2>
+                                            {viewingImage.utr && <div style={{ fontSize: '12px', color: '#1e40af', fontWeight: 600 }}>UTR: {viewingImage.utr}</div>}
+                                        </div>
+                                        <button onClick={() => setViewingImage(null)} style={{ border: 'none', background: 'none', padding: '5px', cursor: 'pointer' }}>
+                                            <LogIn size={24} color="#666" style={{ transform: 'rotate(90deg)' }} onClick={() => setViewingImage(null)} />
+                                        </button>
+                                    </div>
+                                    <img
+                                        src={`data:image/jpeg;base64,${viewingImage.base64}`}
+                                        alt="Receipt"
+                                        style={{ width: '100%', borderRadius: '8px', maxHeight: '65vh', objectFit: 'contain', border: '1px solid #eee' }}
+                                    />
+                                    <button
+                                        className="btn-primary"
+                                        onClick={() => setViewingImage(null)}
+                                        style={{ width: '100%', background: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: '8px', height: '48px', fontWeight: 600, cursor: 'pointer' }}
+                                    >
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
                         {registrations.map(tx => {
                             const details = getProgramDetails(tx);
                             return (
@@ -217,7 +270,7 @@ const MyRegistrations = () => {
                                             whiteSpace: 'nowrap',
                                             marginLeft: '8px'
                                         }}>
-                                            {tx.status === 'BNK_VERIFIED' ? 'COMPLETED' : tx.status}
+                                            {tx.status === 'COMPLETED' ? 'COMPLETED' : tx.status}
 
                                         </span>
                                     </div>
@@ -253,13 +306,24 @@ const MyRegistrations = () => {
                                     {/* Link to Program Details */}
                                     {
                                         (tx.programId || details.id) && (
-                                            <button
-                                                className="btn-secondary"
-                                                onClick={() => navigate(`/programs?id=${tx.programId || details.id}`)}
-                                                style={{ marginTop: '12px', width: '100%', fontSize: '14px', padding: '8px' }}
-                                            >
-                                                View Program Details
-                                            </button>
+                                            <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                                                <button
+                                                    className="btn-secondary"
+                                                    onClick={() => navigate(`/programs/retreat?id=${tx.programId || details.id}`)}
+                                                    style={{ flex: 1, fontSize: '14px', padding: '8px' }}
+                                                >
+                                                    View Details
+                                                </button>
+                                                {tx.hasImage && (
+                                                    <button
+                                                        className="btn-secondary"
+                                                        onClick={() => handleViewReceipt(tx.id, tx.utr)}
+                                                        style={{ flex: 1, fontSize: '14px', padding: '8px', border: '1px solid #ddd', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                                                    >
+                                                        View Receipt
+                                                    </button>
+                                                )}
+                                            </div>
                                         )
                                     }
                                 </div>

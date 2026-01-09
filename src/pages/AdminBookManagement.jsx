@@ -259,7 +259,7 @@ const AdminBookManagement = () => {
             }
 
             alert(editingBook ? 'Book updated!' : 'Book added!');
-            setSearchParams({});
+            setSearchParams({}, { replace: true });
             resetForm();
             loadBooks();
         } catch (error) {
@@ -282,7 +282,7 @@ const AdminBookManagement = () => {
                 await deleteDoc(doc(db, 'books', bookId));
                 await deleteDoc(doc(db, 'book_covers', bookId)).catch(() => { });
                 alert('Book deleted!');
-                setSearchParams({});
+                setSearchParams({}, { replace: true });
                 loadBooks();
             } catch (error) {
                 alert('Delete failed: ' + error.message);
@@ -529,7 +529,7 @@ const AdminBookManagement = () => {
                             </div>
 
                             <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                                <button type="button" onClick={() => setSearchParams({})} style={{ flex: 1, padding: '1rem', borderRadius: '1rem', border: '1px solid #d1d5db', backgroundColor: 'white', color: '#4b5563', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
+                                <button type="button" onClick={() => setSearchParams({}, { replace: true })} style={{ flex: 1, padding: '1rem', borderRadius: '1rem', border: '1px solid #d1d5db', backgroundColor: 'white', color: '#4b5563', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
                                 <button type="submit" disabled={uploading} style={{ flex: 2, padding: '1rem', borderRadius: '1rem', border: 'none', backgroundColor: 'var(--color-primary)', color: 'white', fontWeight: 700, cursor: uploading ? 'not-allowed' : 'pointer', opacity: uploading ? 0.7 : 1, boxShadow: '0 4px 6px -1px rgba(249, 115, 22, 0.2)' }}>
                                     {uploading ? 'Saving...' : (editingBook ? 'Update Book' : 'Add Book')}
                                 </button>

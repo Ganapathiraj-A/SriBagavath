@@ -12,6 +12,7 @@ import {
 import { Share } from '@capacitor/share';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { db } from '../firebase';
+import { getLocalDateString } from '../utils/dateUtils';
 import {
     doc,
     getDoc,
@@ -51,8 +52,8 @@ const BackOfficeAttendance = () => {
             const txRef = collection(db, 'transactions');
             const archTxRef = collection(db, 'archived_transactions');
 
-            const q = query(txRef, where('programId', '==', programId), where('status', '==', 'BNK_VERIFIED'));
-            const aq = query(archTxRef, where('programId', '==', programId), where('status', '==', 'BNK_VERIFIED'));
+            const q = query(txRef, where('programId', '==', programId), where('status', 'in', ['COMPLETED', 'REGISTERED']));
+            const aq = query(archTxRef, where('programId', '==', programId), where('status', 'in', ['COMPLETED', 'REGISTERED']));
 
             const fetchDocs = async (qr) => {
                 try {
@@ -153,7 +154,7 @@ const BackOfficeAttendance = () => {
                 ].join(',');
             });
             const csvContent = [headers.join(','), ...rows].join('\n');
-            const filename = `attendance_${program?.programName || 'export'}_${new Date().toISOString().split('T')[0]}.csv`.replace(/\s+/g, '_');
+            const filename = `attendance_${program?.programName || 'export'}_${getLocalDateString()}.csv`.replace(/\s+/g, '_');
 
             const base64Data = btoa(unescape(encodeURIComponent(csvContent)));
             const result = await Filesystem.writeFile({
@@ -230,7 +231,15 @@ const BackOfficeAttendance = () => {
                             <ChevronLeft size={24} />
                         </button>
                         <div>
-                            <h2 style={{ fontSize: '1.125rem', fontWeight: 700 }}>{program?.programName}</h2>
+                            <h2 style={{ fontSize: '1.125rem', fontWeight: 700 }}>
+                                {program?.programName}
+                                {program?.programDate && (
+                                    <span style={{ fontSize: '0.85rem', fontWeight: 'normal', color: '#4b5563', marginLeft: '0.5rem' }}>
+                                        ({new Date(program.programDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                        {program.programCity ? ` - ${program.programCity}` : ''})
+                                    </span>
+                                )}
+                            </h2>
                             <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>Attendance Tracking</span>
                         </div>
                     </div>

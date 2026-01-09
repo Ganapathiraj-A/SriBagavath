@@ -109,14 +109,7 @@ const Consultation = () => {
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
-            <PageHeader
-                title="Consultation"
-                leftAction={
-                    <button onClick={() => navigate('/programs')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
-                        <ChevronLeft size={24} />
-                    </button>
-                }
-            />
+            <PageHeader title="Consultation" />
 
             <div style={{ padding: '1.5rem', maxWidth: '28rem', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <p style={{ color: '#6b7280', textAlign: 'center', marginBottom: '1rem', fontSize: '0.95rem' }}>

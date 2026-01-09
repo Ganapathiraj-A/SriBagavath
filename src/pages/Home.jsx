@@ -173,7 +173,12 @@ const Home = () => {
 
 
     // Final Menu List
-    let menuItems = [...baseMenu];
+    let menuItems = isAdmin
+        ? [
+            { title: "Admin Panel", icon: LayoutDashboard, path: "/configuration", delay: 0.1, isAdmin: true },
+            ...baseMenu.slice(1)
+        ]
+        : [...baseMenu];
 
     return (
         <div style={{
@@ -259,49 +264,7 @@ const Home = () => {
                             </button>
                         )}
 
-                        {isAdmin && (
-                            <button
-                                onClick={() => navigate('/configuration')}
-                                style={{
-                                    background: 'none',
-                                    border: 'none',
-                                    color: 'var(--color-primary)',
-                                    fontSize: '0.9rem',
-                                    fontWeight: 500,
-                                    cursor: 'pointer',
-                                    textDecoration: 'underline',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '4px',
-                                    position: 'relative'
-                                }}
-                            >
-                                <Settings size={14} />
-                                Admin
-                                {totalPending > 0 && (
-                                    <div style={{
-                                        position: 'absolute',
-                                        top: '-6px',
-                                        right: '-10px',
-                                        backgroundColor: '#ef4444',
-                                        color: 'white',
-                                        fontSize: '0.65rem',
-                                        fontWeight: 'bold',
-                                        minWidth: '16px',
-                                        height: '16px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        borderRadius: '9999px',
-                                        padding: '0 4px',
-                                        border: '1.5px solid white',
-                                        boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
-                                    }}>
-                                        {totalPending > 99 ? '99+' : totalPending}
-                                    </div>
-                                )}
-                            </button>
-                        )}
+
                     </div>
                 </div>
 
@@ -315,9 +278,11 @@ const Home = () => {
                             path={item.path}
                             delay={item.delay}
                             badgeCount={
-                                item.path === '/programs'
-                                    ? (counts.hasNewPrograms || counts.hasNewMeetings || counts.hasNewSatsangs || counts.hasNewSchedule ? 1 : 0) // Include Schedule in Programs badge
-                                    : 0
+                                item.isAdmin
+                                    ? totalPending
+                                    : (item.path === '/programs'
+                                        ? (counts.hasNewPrograms || counts.hasNewMeetings || counts.hasNewSatsangs || counts.hasNewSchedule ? 1 : 0)
+                                        : 0)
                             }
                         />
                     ))}

@@ -3,18 +3,22 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Plus, Minus, Search, Camera, RotateCcw } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { db } from '../firebase';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, getDoc, doc } from 'firebase/firestore';
 import { TransactionService } from '../services/TransactionService';
 import { Camera as CameraPlugin, CameraResultType } from '@capacitor/camera';
+import { motion } from 'framer-motion';
 
 const BackOfficeOfflineBooks = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
+    const [pageLoading, setPageLoading] = useState(true);
 
     // Data State
     const [books, setBooks] = useState([]);
+    const [covers, setCovers] = useState({});
     const [cart, setCart] = useState({});
     const [search, setSearch] = useState('');
+    const [activeTab, setActiveTab] = useState('Tamil Books');
 
     // Form State
     const [customerName, setCustomerName] = useState('');
@@ -25,11 +29,44 @@ const BackOfficeOfflineBooks = () => {
     const [refNo, setRefNo] = useState('');
     const [image, setImage] = useState(null);
 
+    // Amount State
+    const [amount, setAmount] = useState('');
+    const [isManualAmount, setIsManualAmount] = useState(false);
+
     useEffect(() => {
         const fetchBooks = async () => {
-            const q = query(collection(db, 'products'), orderBy('title'));
-            const snap = await getDocs(q);
-            setBooks(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+            try {
+                setPageLoading(true);
+                const q = query(collection(db, 'books'), orderBy('title', 'asc')); // Changed from 'products' to 'books' to match BookStore
+                const snap = await getDocs(q);
+                const loadedBooks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                setBooks(loadedBooks);
+
+                // Fetch covers
+                const booksWithCovers = loadedBooks.filter(b => b.hasCover);
+                const coverPromises = booksWithCovers.map(async (book) => {
+                    try {
+                        const coverSnap = await getDoc(doc(db, 'book_covers', book.id));
+                        if (coverSnap.exists()) {
+                            return { id: book.id, cover: coverSnap.data().cover };
+                        }
+                    } catch (e) {
+                        console.error(`Error fetching cover for ${book.title}:`, e);
+                    }
+                    return null;
+                });
+
+                const resolvedCovers = await Promise.all(coverPromises);
+                const coverMap = {};
+                resolvedCovers.forEach(c => {
+                    if (c) coverMap[c.id] = c.cover;
+                });
+                setCovers(coverMap);
+            } catch (error) {
+                console.error("Error loading books:", error);
+            } finally {
+                setPageLoading(false);
+            }
         };
         fetchBooks();
     }, []);
@@ -75,13 +112,21 @@ const BackOfficeOfflineBooks = () => {
         }, 0);
     };
 
+    // Auto-update amount unless manually edited
+    useEffect(() => {
+        if (!isManualAmount) {
+            setAmount(getCartTotal().toString());
+        }
+    }, [cart, books, isManualAmount]);
+
+
     const getOrderItems = () => {
         return Object.entries(cart).map(([id, qty]) => {
             const book = books.find(b => b.id === id);
             return {
                 id,
-                title: book.title,
-                price: book.price,
+                title: book?.title || 'Unknown Book',
+                price: book?.price || 0,
                 quantity: qty
             };
         });
@@ -101,9 +146,14 @@ const BackOfficeOfflineBooks = () => {
     };
 
     const handleSubmit = async () => {
-        if (!customerName || !mobile || !address || !refNo || Object.keys(cart).length === 0) {
-            alert("Please fill all required fields and select books.");
+        if (!customerName || !mobile || !address || Object.keys(cart).length === 0) {
+            alert("Please fill all required fields (Name, Mobile, Address) and select at least one book.");
             return;
+        }
+
+        const finalAmount = parseFloat(amount);
+        if (isNaN(finalAmount) || finalAmount < 0) { // Allow 0 if they really want to define it as free? usually > 0. Let's say warn on 0
+            if (!confirm("Total amount is 0. Are you sure?")) return;
         }
 
         setLoading(true);
@@ -117,7 +167,6 @@ const BackOfficeOfflineBooks = () => {
                     city: city,
                     pincode: pincode
                 };
-                // Merge with existing
                 const existing = localStorage.getItem('last_offline_transaction_details');
                 const merged = existing ? { ...JSON.parse(existing), ...dataToSave } : dataToSave;
                 localStorage.setItem('last_offline_transaction_details', JSON.stringify(merged));
@@ -127,17 +176,16 @@ const BackOfficeOfflineBooks = () => {
 
             const orderItems = getOrderItems();
             const orderSummary = orderItems.map(p => `${p.title} x${p.quantity}`).join(", ");
-            const total = getCartTotal();
 
             await TransactionService.recordTransaction({
                 itemName: `Offline Order: ${orderSummary.substring(0, 30)}...`,
                 itemType: 'BOOK',
-                amount: total,
+                amount: finalAmount,
 
                 // Offline Spec
-                status: 'BNK_VERIFIED',
+                status: 'PROCESSING', // Changed to PROCESSING to match Book Store workflow
                 isOffline: true,
-                offlineRefNo: refNo,
+                offlineRefNo: refNo || '', // Optional
 
                 // Book Specific
                 orderItems: orderItems,
@@ -164,10 +212,16 @@ const BackOfficeOfflineBooks = () => {
         }
     };
 
-    const filteredBooks = books.filter(b => b.title.toLowerCase().includes(search.toLowerCase()));
+    const filteredBooks = books.filter(b => {
+        const matchesSearch = b.title?.toLowerCase().includes(search.toLowerCase());
+        const matchesCategory = activeTab === 'All' || b.category === activeTab;
+        return matchesSearch && matchesCategory;
+    });
+
+    const totalCount = Object.values(cart).reduce((a, b) => a + b, 0);
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', paddingBottom: '20px' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', paddingBottom: '100px' }}>
             <PageHeader
                 title="Offline Book Order"
                 leftAction={
@@ -177,10 +231,11 @@ const BackOfficeOfflineBooks = () => {
                 }
             />
 
-            <div style={{ padding: '16px', maxWidth: '600px', margin: '0 auto' }}>
+            <div style={{ padding: '0 16px', maxWidth: '600px', margin: '0 auto' }}>
 
-                {hasPreviousInfo && (
-                    <div style={{ marginBottom: '16px' }}>
+                {/* Top Controls */}
+                <div style={{ marginTop: '16px', marginBottom: '16px' }}>
+                    {hasPreviousInfo && (
                         <button
                             onClick={handleUsePrevious}
                             style={{
@@ -195,85 +250,168 @@ const BackOfficeOfflineBooks = () => {
                                 padding: '10px',
                                 borderRadius: '8px',
                                 fontWeight: 600,
-                                cursor: 'pointer'
+                                cursor: 'pointer',
+                                marginBottom: '16px'
                             }}
                         >
                             <RotateCcw size={16} />
                             Use Previous Info
                         </button>
+                    )}
+
+                    {/* Tabs */}
+                    <div style={{ display: 'flex', gap: '16px', borderBottom: '1px solid #e5e7eb', marginBottom: '16px' }}>
+                        {['Tamil Books', 'English Books'].map(tab => (
+                            <button
+                                key={tab}
+                                onClick={() => setActiveTab(tab)}
+                                style={{
+                                    padding: '8px 0',
+                                    border: 'none',
+                                    borderBottom: activeTab === tab ? '2px solid var(--color-primary)' : '2px solid transparent',
+                                    backgroundColor: 'transparent',
+                                    color: activeTab === tab ? 'var(--color-primary)' : '#6b7280',
+                                    fontWeight: activeTab === tab ? '600' : '500',
+                                    fontSize: '0.95rem',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                {tab}
+                            </button>
+                        ))}
                     </div>
-                )}
 
-                {/* Book Selection */}
-                <div className="card" style={{ padding: '16px', borderRadius: '12px', backgroundColor: 'white', marginBottom: '16px', border: '1px solid #e5e7eb' }}>
-                    <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>Select Books</h3>
-
-                    <div style={{ position: 'relative', marginBottom: '12px' }}>
-                        <Search size={18} style={{ position: 'absolute', left: '10px', top: '10px', color: '#9ca3af' }} />
+                    {/* Search */}
+                    <div style={{ position: 'relative' }}>
+                        <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
                         <input
                             placeholder="Search Books..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            style={{ width: '100%', padding: '10px 10px 10px 36px', borderRadius: '8px', border: '1px solid #d1d5db' }}
+                            style={{ width: '100%', padding: '10px 10px 10px 40px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }}
                         />
                     </div>
-
-                    <div style={{ maxHeight: '300px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        {filteredBooks.map(book => (
-                            <div key={book.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px', borderBottom: '1px solid #f3f4f6' }}>
-                                <div style={{ flex: 1 }}>
-                                    <div style={{ fontSize: '14px', fontWeight: 500 }}>{book.title}</div>
-                                    <div style={{ fontSize: '12px', color: '#6b7280' }}>₹{book.price}</div>
-                                </div>
-
-                                {cart[book.id] ? (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <button onClick={() => removeFromCart(book.id)} style={{ padding: '4px', borderRadius: '4px', backgroundColor: '#fee2e2', color: '#dc2626', border: 'none' }}><Minus size={14} /></button>
-                                        <span style={{ fontWeight: 600, fontSize: '14px' }}>{cart[book.id]}</span>
-                                        <button onClick={() => addToCart(book.id)} style={{ padding: '4px', borderRadius: '4px', backgroundColor: '#dcfce7', color: '#166534', border: 'none' }}><Plus size={14} /></button>
-                                    </div>
-                                ) : (
-                                    <button onClick={() => addToCart(book.id)} style={{ padding: '6px 12px', borderRadius: '6px', backgroundColor: '#eff6ff', color: '#2563eb', border: 'none', fontSize: '12px', fontWeight: 600 }}>Add</button>
-                                )}
-                            </div>
-                        ))}
-                    </div>
                 </div>
 
-                {/* Shipping Details */}
-                <div className="card" style={{ padding: '16px', borderRadius: '12px', backgroundColor: 'white', marginBottom: '16px', border: '1px solid #e5e7eb' }}>
-                    <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>Shipping Details</h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        <input placeholder="Customer Name" value={customerName} onChange={(e) => setCustomerName(e.target.value)} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db' }} />
-                        <input placeholder="Mobile Number" type="tel" value={mobile} onChange={(e) => setMobile(e.target.value)} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db' }} />
-                        <textarea placeholder="Address" value={address} onChange={(e) => setAddress(e.target.value)} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', minHeight: '60px' }} />
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                            <input placeholder="City" value={city} onChange={(e) => setCity(e.target.value)} style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db' }} />
-                            <input placeholder="Pincode" type="tel" value={pincode} onChange={(e) => setPincode(e.target.value)} style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db' }} />
+                {/* Books List */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+                    {pageLoading ? (
+                        <div style={{ textAlign: 'center', padding: '20px' }}>Loading books...</div>
+                    ) : filteredBooks.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>No books found</div>
+                    ) : (
+                        filteredBooks.map(book => (
+                            <motion.div
+                                key={book.id}
+                                layout
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="card"
+                                style={{
+                                    display: 'flex',
+                                    gap: '12px',
+                                    alignItems: 'center',
+                                    padding: '12px',
+                                    borderRadius: '12px',
+                                    backgroundColor: 'white',
+                                    border: '1px solid #e5e7eb',
+                                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                                }}
+                            >
+                                <div style={{ width: '50px', height: '70px', backgroundColor: '#f3f4f6', borderRadius: '6px', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    {covers[book.id] ? (
+                                        <img src={covers[book.id]} alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    ) : (
+                                        <div style={{ fontSize: '9px', color: '#9ca3af' }}>No Cover</div>
+                                    )}
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                    <h4 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 600, color: '#1f2937' }}>{book.title}</h4>
+                                    <div style={{ fontWeight: 700, color: 'var(--color-primary)' }}>₹{book.price}</div>
+                                </div>
+                                <div>
+                                    {cart[book.id] ? (
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#eff6ff', borderRadius: '6px', padding: '4px' }}>
+                                            <button onClick={() => removeFromCart(book.id)} style={{ width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '4px', backgroundColor: '#fff', color: '#2563eb', border: 'none', cursor: 'pointer' }}><Minus size={14} /></button>
+                                            <span style={{ fontWeight: 600, fontSize: '14px', minWidth: '16px', textAlign: 'center' }}>{cart[book.id]}</span>
+                                            <button onClick={() => addToCart(book.id)} style={{ width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '4px', backgroundColor: '#2563eb', color: '#fff', border: 'none', cursor: 'pointer' }}><Plus size={14} /></button>
+                                        </div>
+                                    ) : (
+                                        <button onClick={() => addToCart(book.id)} style={{ padding: '6px 16px', borderRadius: '6px', backgroundColor: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
+                                            Add
+                                        </button>
+                                    )}
+                                </div>
+                            </motion.div>
+                        ))
+                    )}
+                </div>
+
+                {/* Customer & Payment Form */}
+                <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '24px', paddingBottom: '24px' }}>
+
+                    {/* Order Summary */}
+                    {totalCount > 0 && (
+                        <div style={{ marginBottom: '24px', backgroundColor: '#f9fafb', padding: '16px', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+                            <h3 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '12px', color: '#374151' }}>Selected Books ({totalCount})</h3>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                {getOrderItems().map(item => (
+                                    <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+                                        <span style={{ color: '#4b5563', flex: 1, paddingRight: '12px' }}>{item.title} <span style={{ fontWeight: 600, color: '#111827' }}>x{item.quantity}</span></span>
+                                        <span style={{ fontWeight: 600, color: '#111827' }}>₹{item.price * item.quantity}</span>
+                                    </div>
+                                ))}
+                                <div style={{ borderTop: '1px solid #e5e7eb', marginTop: '8px', paddingTop: '8px', display: 'flex', justifyContent: 'space-between', fontWeight: 700 }}>
+                                    <span>Total</span>
+                                    <span>₹{getCartTotal()}</span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>Shipping Details</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
+                        <input placeholder="Customer Name *" value={customerName} onChange={(e) => setCustomerName(e.target.value)} style={{ padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db', boxSizing: 'border-box', width: '100%' }} />
+                        <input placeholder="Mobile Number *" type="tel" value={mobile} onChange={(e) => setMobile(e.target.value)} style={{ padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db', boxSizing: 'border-box', width: '100%' }} />
+                        <textarea placeholder="Address *" value={address} onChange={(e) => setAddress(e.target.value)} style={{ padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db', minHeight: '80px', boxSizing: 'border-box', width: '100%' }} />
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                            <input placeholder="City" value={city} onChange={(e) => setCity(e.target.value)} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db', minWidth: 0, boxSizing: 'border-box' }} />
+                            <input placeholder="Pincode" type="tel" value={pincode} onChange={(e) => setPincode(e.target.value)} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db', minWidth: 0, boxSizing: 'border-box' }} />
                         </div>
                     </div>
-                </div>
 
-                {/* Payment */}
-                <div className="card" style={{ padding: '16px', borderRadius: '12px', backgroundColor: 'white', marginBottom: '20px', border: '1px solid #e5e7eb' }}>
-                    <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>Payment Info</h3>
-
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                        <span style={{ color: '#6b7280' }}>Total Amount</span>
-                        <span style={{ fontWeight: 700, fontSize: '18px' }}>₹{getCartTotal()}</span>
-                    </div>
-
+                    <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>Payment Info</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <div style={{ position: 'relative' }}>
+                            <span style={{ position: 'absolute', left: '12px', top: '12px', color: '#6b7280', fontWeight: 600 }}>Total ₹</span>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <input
+                                    type="number"
+                                    value={amount}
+                                    onChange={(e) => {
+                                        setAmount(e.target.value);
+                                        setIsManualAmount(true);
+                                    }}
+                                    style={{ flex: 1, padding: '12px 12px 12px 70px', borderRadius: '8px', border: '1px solid #d1d5db', fontWeight: 'bold', fontSize: '16px' }}
+                                />
+                                {!isManualAmount && (
+                                    <div style={{ display: 'flex', alignItems: 'center', padding: '0 12px', backgroundColor: '#f3f4f6', borderRadius: '8px', fontSize: '12px', color: '#6b7280' }}>
+                                        Auto
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
                         <input
-                            placeholder="Payment Reference No"
+                            placeholder="Payment Reference No (Optional)"
                             value={refNo}
                             onChange={(e) => setRefNo(e.target.value)}
-                            style={{ padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db' }}
+                            style={{ padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db' }}
                         />
                         <div
                             onClick={captureImage}
                             style={{
-                                padding: '12px',
+                                padding: '16px',
                                 border: '2px dashed #d1d5db',
                                 borderRadius: '8px',
                                 display: 'flex',
@@ -281,34 +419,58 @@ const BackOfficeOfflineBooks = () => {
                                 justifyContent: 'center',
                                 gap: '8px',
                                 color: image ? '#166534' : '#6b7280',
-                                backgroundColor: image ? '#f0fdf4' : 'transparent',
+                                backgroundColor: image ? '#f0fdf4' : 'white',
                                 cursor: 'pointer'
                             }}
                         >
                             <Camera size={20} />
-                            <span>{image ? "Receipt Attached" : "Attach Payment Receipt"}</span>
+                            <span>{image ? "Receipt Attached" : "Attach Payment Receipt (Optional)"}</span>
                         </div>
                     </div>
                 </div>
 
-                <button
-                    onClick={handleSubmit}
-                    disabled={loading}
-                    style={{
-                        width: '100%',
-                        padding: '16px',
-                        backgroundColor: '#2563eb',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '12px',
-                        fontSize: '16px',
-                        fontWeight: 600,
-                        opacity: loading ? 0.7 : 1
-                    }}
-                >
-                    {loading ? "Registering..." : "Place Offline Order"}
-                </button>
             </div>
+
+            {/* Footer Action */}
+            {totalCount > 0 && (
+                <div style={{
+                    position: 'fixed',
+                    bottom: '0',
+                    left: '0',
+                    right: '0',
+                    backgroundColor: 'white',
+                    padding: '16px',
+                    borderTop: '1px solid #e5e7eb',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '16px',
+                    zIndex: 50
+                }}>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: '12px', color: '#6b7280' }}>{totalCount} Items</span>
+                        <span style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-primary)' }}>₹{amount}</span>
+                    </div>
+                    <button
+                        onClick={handleSubmit}
+                        disabled={loading}
+                        style={{
+                            flex: 1,
+                            padding: '12px',
+                            backgroundColor: 'var(--color-primary)',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            fontSize: '16px',
+                            fontWeight: 600,
+                            opacity: loading ? 0.7 : 1,
+                            cursor: loading ? 'wait' : 'pointer'
+                        }}
+                    >
+                        {loading ? "Registering..." : "Confirm Info"}
+                    </button>
+                </div>
+            )}
         </div>
     );
 };

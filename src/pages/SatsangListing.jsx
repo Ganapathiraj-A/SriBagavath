@@ -1,10 +1,65 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Clock, MapPin, ChevronLeft, Users } from 'lucide-react';
+import { Calendar, Clock, MapPin, ChevronLeft, Users, RefreshCw } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { db } from '../firebase';
 import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
+import { getLocalDateString } from '../utils/dateUtils';
+
+const formatRecurrenceRule = (master) => {
+    if (!master.isRecurring) return null;
+    const daysMap = { '0': 'Sun', '1': 'Mon', '2': 'Tue', '3': 'Wed', '4': 'Thu', '5': 'Fri', '6': 'Sat' };
+    if (master.frequency === 'daily') return 'Daily';
+    if (master.frequency === 'weekly') {
+        const days = master.recurringDays?.map(d => daysMap[d]).join(', ');
+        return `Weekly on ${days}`;
+    }
+    if (master.frequency === 'monthly') return 'Monthly';
+    return 'Recurring';
+};
+
+const getNextOccurrence = (master, todayStr) => {
+    if (!master.isRecurring) return master;
+
+    let currentDate = new Date(master.date);
+    const today = new Date(todayStr);
+    const ruleEndDate = master.recurringEndDateType === 'date' ? new Date(master.recurringEndDate) : null;
+    const exceptions = master.exceptions || [];
+
+    // Max search window: 1 year
+    const maxDate = new Date();
+    maxDate.setFullYear(maxDate.getFullYear() + 1);
+
+    while (currentDate <= maxDate) {
+        if (ruleEndDate && currentDate > ruleEndDate) break;
+
+        const d = new Date(currentDate);
+        const dateStr = d.toLocaleDateString('en-CA');
+        let isMatch = false;
+
+        if (master.frequency === 'daily') isMatch = true;
+        else if (master.frequency === 'weekly') {
+            if (master.recurringDays?.includes(currentDate.getDay().toString())) isMatch = true;
+        } else if (master.frequency === 'monthly') {
+            const startDay = new Date(master.date).getDate();
+            if (currentDate.getDate() === startDay) isMatch = true;
+        }
+
+        if (isMatch && !exceptions.includes(dateStr) && dateStr >= todayStr) {
+            return {
+                ...master,
+                id: `${master.id}_${dateStr}`,
+                masterId: master.id,
+                date: dateStr,
+                isVirtual: true,
+                recurrenceText: formatRecurrenceRule(master)
+            };
+        }
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+    return null;
+};
 
 const SatsangListing = () => {
     const navigate = useNavigate();
@@ -14,21 +69,43 @@ const SatsangListing = () => {
     const ORANGE = '#f97316';
 
     useEffect(() => {
-        // Track visit for badge reset
         localStorage.setItem('lastVisited_satsangs', new Date().toISOString());
 
         const fetchMeetings = async () => {
             try {
-                const today = new Date().toISOString().split('T')[0];
+                const todayStr = getLocalDateString();
                 const meetingsRef = collection(db, 'satsangs');
-                const q = query(
-                    meetingsRef,
-                    where('date', '>=', today),
-                    orderBy('date', 'asc')
-                );
 
-                const snapshot = await getDocs(q);
-                setMeetings(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+                const snapshot = await getDocs(meetingsRef);
+                const raw = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                const groups = {};
+                raw.forEach(m => {
+                    // Filter out ALL instances from DB (Legacy or pre-generated)
+                    if (m.isRecurringInstance || m.masterId) return;
+
+                    if (m.isRecurring) {
+                        const key = `${m.conductedBy}_${m.startTime}_${m.city}_${m.frequency}_${(m.recurringDays || []).sort().join(',')}`;
+                        if (!groups[key] || new Date(m.date) < new Date(groups[key].date)) {
+                            groups[key] = m;
+                        }
+                    } else if (m.date >= todayStr) {
+                        groups[m.id] = m;
+                    }
+                });
+
+                const processed = [];
+                Object.values(groups).forEach(m => {
+                    if (m.isRecurring) {
+                        const next = getNextOccurrence(m, todayStr);
+                        if (next) processed.push(next);
+                    } else if (m.date >= todayStr) {
+                        processed.push(m);
+                    }
+                });
+
+                processed.sort((a, b) => a.date.localeCompare(b.date));
+                setMeetings(processed);
             } catch (error) {
                 console.error("Error fetching satsangs:", error);
             } finally {
@@ -40,14 +117,7 @@ const SatsangListing = () => {
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', paddingBottom: '3rem' }}>
-            <PageHeader
-                title="Satsang"
-                leftAction={
-                    <button onClick={() => navigate('/programs')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
-                        <ChevronLeft size={24} />
-                    </button>
-                }
-            />
+            <PageHeader title="Satsang" />
 
             <div style={{ padding: '1.5rem', maxWidth: '42rem', margin: '0 auto', width: '100%' }}>
 
@@ -85,43 +155,93 @@ const SatsangListing = () => {
                                     backgroundColor: ORANGE
                                 }} />
 
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                                    <div>
-                                        <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#111827', margin: 0 }}>
-                                            {meeting.conductedBy}
-                                        </h2>
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.75rem' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: ORANGE, fontWeight: 500 }}>
-                                                <Calendar size={16} />
-                                                {new Date(meeting.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', weekday: 'short' })}
-                                            </div>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#4b5563' }}>
-                                                <MapPin size={16} />
-                                                {meeting.city}
+                                <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
+                                    {/* Date Box */}
+                                    <div style={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        backgroundColor: '#fff7ed',
+                                        color: ORANGE,
+                                        padding: '0.875rem',
+                                        borderRadius: '0.75rem',
+                                        minWidth: '4.5rem',
+                                        flexShrink: 0,
+                                        border: `1px solid #ffedd5`
+                                    }}>
+                                        <span style={{
+                                            fontSize: '0.75rem',
+                                            fontWeight: 600,
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.05em'
+                                        }}>
+                                            {new Date(meeting.date).toLocaleDateString('en-US', { month: 'short' })}
+                                        </span>
+                                        <span style={{
+                                            fontSize: '1.5rem',
+                                            fontWeight: 'bold',
+                                            lineHeight: 1,
+                                            marginTop: '2px'
+                                        }}>
+                                            {new Date(meeting.date).getDate()}
+                                        </span>
+                                    </div>
+
+                                    {/* Content Column */}
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                            <h2 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#111827', margin: 0 }}>
+                                                {meeting.conductedBy}
+                                            </h2>
+                                            <div style={{ padding: '0.4rem', backgroundColor: '#fff7ed', borderRadius: '50%', color: ORANGE, flexShrink: 0, marginLeft: '0.5rem' }}>
+                                                <Users size={16} />
                                             </div>
                                         </div>
-                                    </div>
-                                    <div style={{ padding: '0.5rem', backgroundColor: '#fff7ed', borderRadius: '9999px', color: ORANGE }}>
-                                        <Users size={20} />
-                                    </div>
-                                </div>
 
-                                <div style={{ borderTop: '1px solid #f3f4f6', paddingTop: '1rem', marginTop: '1rem', display: 'flex', justifyContent: 'flex-end' }}>
-                                    <button
-                                        onClick={() => navigate(`/programs/satsang/${meeting.id}`)}
-                                        style={{
-                                            padding: '0.625rem 1.25rem',
-                                            backgroundColor: 'white',
-                                            color: ORANGE,
-                                            border: `1px solid ${ORANGE}`,
-                                            borderRadius: '0.5rem',
-                                            fontWeight: 600,
-                                            cursor: 'pointer',
-                                            fontSize: '0.875rem'
-                                        }}
-                                    >
-                                        Details
-                                    </button>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.5rem' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: '#4b5563', fontSize: '0.875rem' }}>
+                                                    <MapPin size={14} />
+                                                    {meeting.city}
+                                                </div>
+                                                {meeting.recurrenceText && (
+                                                    <div style={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '0.25rem',
+                                                        fontSize: '0.7rem',
+                                                        backgroundColor: '#f3f4f6',
+                                                        padding: '2px 8px',
+                                                        borderRadius: '999px',
+                                                        color: '#374151',
+                                                        border: `1px solid #e5e7eb`
+                                                    }}>
+                                                        <RefreshCw size={10} />
+                                                        {meeting.recurrenceText}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
+                                            <button
+                                                onClick={() => navigate(`/programs/satsang/${meeting.id}`)}
+                                                style={{
+                                                    padding: '0.5rem 1rem',
+                                                    backgroundColor: 'white',
+                                                    color: ORANGE,
+                                                    border: `1px solid ${ORANGE}`,
+                                                    borderRadius: '0.5rem',
+                                                    fontWeight: 600,
+                                                    cursor: 'pointer',
+                                                    fontSize: '0.8125rem'
+                                                }}
+                                            >
+                                                Details
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </motion.div>
                         ))}

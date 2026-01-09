@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Headphones } from 'lucide-react';
+import { Headphones, ChevronLeft } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 import { useDriveFiles } from '../hooks/useDriveFiles';
 
 // Audio Book folder:
@@ -101,13 +102,8 @@ const AudioBooks = () => {
   };
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        backgroundColor: 'var(--color-surface)',
-        padding: '1.5rem'
-      }}
-    >
+    <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-surface)', padding: '1.5rem' }}>
+      <PageHeader title="Audio Books" />
       <div style={{ maxWidth: '28rem', margin: '0 auto' }}>
 
         <motion.div
@@ -120,22 +116,12 @@ const AudioBooks = () => {
             boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)'
           }}
         >
-          <h1
-            style={{
-              fontSize: '1.875rem',
-              fontWeight: 'bold',
-              color: '#111827',
-              marginBottom: '2rem',
-              textAlign: 'center'
-            }}
-          >
-            Audio Books
-          </h1>
+
 
           {renderAudioLinks()}
         </motion.div>
       </div>
-    </div>
+    </div >
   );
 };
 

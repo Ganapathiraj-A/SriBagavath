@@ -1,11 +1,12 @@
 import { db } from '../firebase';
 import { collection, query, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { getLocalDateString } from './dateUtils';
 
 export const cleanupOldSchedules = async () => {
     try {
-        const today = new Date().toISOString().split('T')[0];
+        const today = getLocalDateString();
         const schedulesRef = collection(db, 'schedules');
-        
+
         // Query for schedules where toDate is strictly less than today
         // This effectively deletes anything that ended yesterday or before
         const q = query(
@@ -14,7 +15,7 @@ export const cleanupOldSchedules = async () => {
         );
 
         const querySnapshot = await getDocs(q);
-        
+
         if (querySnapshot.empty) {
             console.log('No old schedules to cleanup.');
             return;
@@ -23,7 +24,7 @@ export const cleanupOldSchedules = async () => {
         console.log(`Found ${querySnapshot.size} old schedules to delete.`);
 
         // Delete documents in parallel
-        const deletePromises = querySnapshot.docs.map(document => 
+        const deletePromises = querySnapshot.docs.map(document =>
             deleteDoc(doc(db, 'schedules', document.id))
         );
 

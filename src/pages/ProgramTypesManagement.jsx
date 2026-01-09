@@ -42,7 +42,10 @@ const ProgramTypesManagement = () => {
         gentsMaxDorm: '',
         roomMax: '',
         roomFees: '',
-        dormFees: ''
+        dormFees: '',
+        isConsentNeeded: 'N',
+        consentText: '',
+        consentQuestion: ''
     });
 
     useEffect(() => {
@@ -80,7 +83,10 @@ const ProgramTypesManagement = () => {
             gentsMaxDorm: '',
             roomMax: '',
             roomFees: '',
-            dormFees: ''
+            dormFees: '',
+            isConsentNeeded: 'N',
+            consentText: '',
+            consentQuestion: ''
         });
         setIsEditing(false);
         setEditingId(null);
@@ -116,7 +122,10 @@ const ProgramTypesManagement = () => {
             gentsMaxDorm: type.gentsMaxDorm || '',
             roomMax: type.roomMax || '',
             roomFees: type.roomFees || '',
-            dormFees: type.dormFees || ''
+            dormFees: type.dormFees || '',
+            isConsentNeeded: type.isConsentNeeded || 'N',
+            consentText: type.consentText || '',
+            consentQuestion: type.consentQuestion || ''
         });
         setEditingId(type.id);
         setIsEditing(true);
@@ -268,6 +277,49 @@ const ProgramTypesManagement = () => {
                                 </div>
                             </div>
 
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
+                                <div style={{ display: 'grid', gap: '0.5rem' }}>
+                                    <label style={{ fontWeight: 500 }}>Is Consent Needed?</label>
+                                    <select
+                                        name="isConsentNeeded"
+                                        value={formData.isConsentNeeded}
+                                        onChange={handleInputChange}
+                                        style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%' }}
+                                    >
+                                        <option value="N">No</option>
+                                        <option value="Y">Yes</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {formData.isConsentNeeded === 'Y' && (
+                                <>
+                                    <div style={{ display: 'grid', gap: '0.5rem' }}>
+                                        <label style={{ fontWeight: 500 }}>Consent Screen Text</label>
+                                        <textarea
+                                            name="consentText"
+                                            className="consent-text-container"
+                                            value={formData.consentText}
+                                            onChange={handleInputChange}
+                                            placeholder="Detailed consent information..."
+                                            rows={4}
+                                            style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%', fontFamily: 'inherit' }}
+                                        />
+                                    </div>
+                                    <div style={{ display: 'grid', gap: '0.5rem' }}>
+                                        <label style={{ fontWeight: 500 }}>Consent Question</label>
+                                        <input
+                                            type="text"
+                                            name="consentQuestion"
+                                            value={formData.consentQuestion}
+                                            onChange={handleInputChange}
+                                            placeholder="e.g., Do you agree to the above terms?"
+                                            style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%' }}
+                                        />
+                                    </div>
+                                </>
+                            )}
+
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
                                 <div style={{ display: 'flex', gap: '1rem' }}>
                                     <button
@@ -362,8 +414,8 @@ const ProgramTypesManagement = () => {
                         </div>
                     </div>
                 </motion.div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 

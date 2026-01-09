@@ -45,6 +45,7 @@ const EventRegistration = () => {
     const [place, setPlace] = useState(savedState?.place || '');
 
     const [primaryIndex, setPrimaryIndex] = useState(savedState?.primaryIndex || 0);
+    const [consentAccepted, setConsentAccepted] = useState(false);
 
     // Persistence Check
     const [hasPreviousInfo, setHasPreviousInfo] = useState(false);
@@ -179,9 +180,93 @@ const EventRegistration = () => {
         });
     };
 
+    if (program?.isConsentNeeded === 'Y' && !consentAccepted) {
+        return (
+            <div className="payment-container" style={{ paddingTop: 0, backgroundColor: 'var(--color-surface)', minHeight: '100vh' }}>
+                <PageHeader
+                    title="Terms & Conditions"
+                    leftAction={
+                        <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
+                            <ChevronLeft size={24} />
+                        </button>
+                    }
+                />
+
+                <div style={{ padding: '1.5rem', maxWidth: '42rem', margin: '0 auto' }}>
+                    <div className="card" style={{ padding: '2rem', display: 'grid', gap: '1.5rem' }}>
+                        <div style={{ textAlign: 'center' }}>
+                            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.5rem' }}>
+                                Registration Consent
+                            </h2>
+                            <p style={{ color: '#4b5563', fontSize: '1rem' }}>
+                                Please review and accept the following terms to proceed with your registration for <strong>{program.programName}</strong>.
+                            </p>
+                        </div>
+
+                        <div
+                            className="consent-text-container"
+                            style={{
+                                backgroundColor: '#f9fafb',
+                                padding: '1.5rem',
+                                borderRadius: '0.75rem',
+                                border: '1px solid #e5e7eb',
+                                color: '#374151',
+                                fontSize: '1.0625rem',
+                                lineHeight: '1.6',
+                                whiteSpace: 'pre-wrap',
+                                maxHeight: '45vh', // Slightly increased height
+                                overflowY: 'scroll', // Force scrollbar
+                                WebkitOverflowScrolling: 'touch'
+                            }}
+                        >
+                            {program.consentText || "No detailed terms provided."}
+                        </div>
+
+                        <div style={{
+                            backgroundColor: '#fff7ed',
+                            padding: '1.25rem',
+                            borderRadius: '0.75rem',
+                            border: '1px solid #ffedd5',
+                            display: 'grid',
+                            gap: '0.75rem'
+                        }}>
+                            <p style={{ fontWeight: 600, color: '#9a3412', margin: 0, fontSize: '1.125rem' }}>
+                                {program.consentQuestion || "Do you agree to the terms mentioned above?"}
+                            </p>
+                        </div>
+
+                        <div style={{ display: 'grid', gap: '1rem', marginTop: '0.5rem' }}>
+                            <button
+                                onClick={() => setConsentAccepted(true)}
+                                className="btn-primary"
+                                style={{ width: '100%', padding: '1rem', fontSize: '1.125rem' }}
+                            >
+                                I Agree & Proceed
+                            </button>
+                            <button
+                                onClick={() => navigate(-1)}
+                                className="btn-secondary"
+                                style={{ width: '100%', padding: '1rem', fontSize: '1.125rem', backgroundColor: 'transparent' }}
+                            >
+                                Decline
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="payment-container" style={{ paddingTop: 0 }}>
-            <PageHeader title="Event Registration" />
+            <PageHeader
+                title="Event Registration"
+                leftAction={
+                    <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
+                        <ChevronLeft size={24} />
+                    </button>
+                }
+            />
 
             <div style={{
                 textAlign: 'center',

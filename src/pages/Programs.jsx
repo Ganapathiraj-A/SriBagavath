@@ -9,6 +9,7 @@ import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { auth, db } from '../firebase';
 import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
 import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
+import { getLocalDateString } from '../utils/dateUtils';
 
 import '../components/RegistrationStyles.css';
 
@@ -57,7 +58,7 @@ const Programs = () => {
                 // Track visit for badge reset
                 localStorage.setItem('lastVisited_programs', new Date().toISOString());
 
-                const today = new Date().toISOString().split('T')[0];
+                const today = getLocalDateString();
                 const programsRef = collection(db, 'programs');
                 const q = query(
                     programsRef,
@@ -264,7 +265,8 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
         }
     };
 
-    if (loading) {
+    // Unified Loading State
+    if (viewingProgramId ? specificLoading : loading) {
         return (
             <div style={{
                 minHeight: '100vh',
@@ -273,21 +275,9 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
                 alignItems: 'center',
                 justifyContent: 'center'
             }}>
-                <p style={{ fontSize: '1.125rem', color: '#6b7280' }}>Loading upcoming programs...</p>
-            </div>
-        );
-    }
-
-    if (specificLoading) {
-        return (
-            <div style={{
-                minHeight: '100vh',
-                backgroundColor: 'var(--color-surface)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-            }}>
-                <p style={{ fontSize: '1.125rem', color: '#6b7280' }}>Loading program details...</p>
+                <p style={{ fontSize: '1.125rem', color: '#6b7280' }}>
+                    {viewingProgramId ? 'Loading program details...' : 'Loading upcoming programs...'}
+                </p>
             </div>
         );
     }
@@ -300,11 +290,6 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
         }}>
             <PageHeader
                 title={viewingProgram ? viewingProgram.programName : "Programs"}
-                leftAction={
-                    <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
-                        <ChevronLeft size={24} />
-                    </button>
-                }
             />
             <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ maxWidth: '42rem', margin: '0 auto', width: '100%' }}>
@@ -544,116 +529,138 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
                                                 style={{
                                                     backgroundColor: 'white',
                                                     borderRadius: '1rem',
-                                                    padding: '1.5rem',
+                                                    padding: '1.25rem',
                                                     boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
                                                     border: '1px solid #f3f4f6'
                                                 }}
                                             >
-                                                <div style={{ marginBottom: '1rem' }}>
+                                                <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'flex-start' }}>
+                                                    {/* Date Box */}
                                                     <div style={{
                                                         display: 'flex',
-                                                        justifyContent: 'space-between',
-                                                        alignItems: 'flex-start',
-                                                        marginBottom: '0.5rem'
+                                                        flexDirection: 'column',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        backgroundColor: '#fff7ed',
+                                                        color: 'var(--color-primary)',
+                                                        padding: '0.75rem 0.5rem',
+                                                        borderRadius: '0.75rem',
+                                                        minWidth: '4rem',
+                                                        flexShrink: 0,
+                                                        border: '1px solid #ffedd5'
                                                     }}>
+                                                        <span style={{
+                                                            fontSize: '0.7rem',
+                                                            fontWeight: 600,
+                                                            textTransform: 'uppercase',
+                                                            letterSpacing: '0.05em'
+                                                        }}>
+                                                            {new Date(program.programDate).toLocaleDateString('en-US', { month: 'short' })}
+                                                        </span>
+                                                        <span style={{
+                                                            fontSize: '1.375rem',
+                                                            fontWeight: 'bold',
+                                                            lineHeight: 1,
+                                                            marginTop: '2px'
+                                                        }}>
+                                                            {new Date(program.programDate).getDate()}
+                                                        </span>
+                                                    </div>
+
+                                                    {/* Content Column */}
+                                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                                        {/* Row 1: Program Title */}
                                                         <h2 style={{
                                                             fontSize: '1.125rem',
                                                             fontWeight: 600,
                                                             color: '#111827',
-                                                            margin: 0,
-                                                            paddingRight: '0.5rem'
+                                                            margin: '0 0 0.4rem 0',
+                                                            lineHeight: '1.3'
                                                         }}>
                                                             {program.programName}
                                                         </h2>
 
-                                                        {program.registrationStatus === 'Open' ? (
-                                                            <button
-                                                                onClick={async () => {
-                                                                    if (await ensureAuth()) {
-                                                                        navigate('/event-registration', { state: { program } });
-                                                                    }
-                                                                }}
-                                                                className="btn-primary"
-                                                                disabled={authLoading}
-                                                                style={{
-                                                                    width: 'auto',
-                                                                    padding: '0.5rem 1rem',
-                                                                    fontSize: '0.875rem',
-                                                                    borderRadius: '20px', // Match other buttons
-                                                                    opacity: authLoading ? 0.7 : 1
-                                                                }}
-                                                            >
-                                                                {authLoading ? '...' : 'Register Now'}
-                                                            </button>
-                                                        ) : (
-                                                            <span style={{
-                                                                padding: '0.25rem 0.5rem',
-                                                                borderRadius: '9999px',
-                                                                fontSize: '0.75rem',
-                                                                fontWeight: 500,
-                                                                whiteSpace: 'nowrap',
-                                                                flexShrink: 0,
-                                                                backgroundColor: '#fef2f2',
-                                                                color: '#dc2626',
-                                                                border: '1px solid #fecaca'
-                                                            }}>
-                                                                Registration Closed
-                                                            </span>
-                                                        )}
-                                                    </div>
+                                                        {/* Row 2: Date Range & Location */}
+                                                        <div style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '0.75rem',
+                                                            flexWrap: 'wrap',
+                                                            color: '#6b7280',
+                                                            fontSize: '0.8125rem',
+                                                            marginBottom: '1rem'
+                                                        }}>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                                                <Calendar size={14} style={{ color: 'var(--color-primary)' }} />
+                                                                {new Date(program.programDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                                                {program.programEndDate && (
+                                                                    <> - {new Date(program.programEndDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</>
+                                                                )}
+                                                            </div>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                                                <MapPin size={14} style={{ color: 'var(--color-primary)' }} />
+                                                                {program.programCity}
+                                                            </div>
+                                                        </div>
 
-                                                    <div style={{
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        color: 'var(--color-primary)',
-                                                        fontWeight: 500
-                                                    }}>
-                                                        <Calendar size={16} style={{ marginRight: '0.5rem' }} />
-                                                        {new Date(program.programDate).toLocaleDateString('en-US', {
-                                                            weekday: 'long',
-                                                            month: 'short',
-                                                            day: 'numeric'
-                                                        })}
-                                                    </div>
-                                                </div>
+                                                        {/* Row 3: Action Buttons (User Requested Swap) */}
+                                                        <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: '0.75rem' }}>
+                                                            {program.registrationStatus === 'Open' ? (
+                                                                <button
+                                                                    onClick={async () => {
+                                                                        if (await ensureAuth()) {
+                                                                            navigate('/event-registration', { state: { program } });
+                                                                        }
+                                                                    }}
+                                                                    className="btn-primary"
+                                                                    disabled={authLoading}
+                                                                    style={{
+                                                                        width: 'auto',
+                                                                        padding: '0.45rem 1rem',
+                                                                        fontSize: '0.8125rem',
+                                                                        borderRadius: '20px',
+                                                                        opacity: authLoading ? 0.7 : 1
+                                                                    }}
+                                                                >
+                                                                    {authLoading ? '...' : 'Register Now'}
+                                                                </button>
+                                                            ) : (
+                                                                <span style={{
+                                                                    padding: '0.25rem 0.625rem',
+                                                                    borderRadius: '9999px',
+                                                                    fontSize: '0.7rem',
+                                                                    fontWeight: 500,
+                                                                    whiteSpace: 'nowrap',
+                                                                    backgroundColor: '#fef2f2',
+                                                                    color: '#dc2626',
+                                                                    border: '1px solid #fecaca'
+                                                                }}>
+                                                                    Registration Closed
+                                                                </span>
+                                                            )}
 
-                                                <div style={{
-                                                    display: 'flex',
-                                                    justifyContent: 'space-between',
-                                                    alignItems: 'center',
-                                                    marginTop: '1rem',
-                                                    paddingTop: '1rem',
-                                                    borderTop: '1px solid #f3f4f6'
-                                                }}>
-                                                    <div style={{
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        color: '#4b5563',
-                                                    }}>
-                                                        <MapPin size={18} style={{ marginRight: '0.5rem', flexShrink: 0 }} />
-                                                        <span style={{ lineHeight: '1.5' }}>{program.programCity}</span>
+                                                            {program.registrationStatus === 'Open' && (
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setSearchParams({ id: program.id });
+                                                                    }}
+                                                                    style={{
+                                                                        padding: '0.4rem 0.875rem',
+                                                                        backgroundColor: 'white',
+                                                                        color: '#374151',
+                                                                        border: '1px solid #d1d5db',
+                                                                        borderRadius: '0.5rem',
+                                                                        cursor: 'pointer',
+                                                                        fontSize: '0.8125rem',
+                                                                        fontWeight: 500
+                                                                    }}
+                                                                >
+                                                                    Details
+                                                                </button>
+                                                            )}
+                                                        </div>
                                                     </div>
-
-                                                    {program.registrationStatus === 'Open' && (
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setSearchParams({ id: program.id });
-                                                            }}
-                                                            style={{
-                                                                padding: '0.5rem 1rem',
-                                                                backgroundColor: 'white',
-                                                                color: '#374151',
-                                                                border: '1px solid #d1d5db',
-                                                                borderRadius: '0.375rem',
-                                                                cursor: 'pointer',
-                                                                fontSize: '0.875rem',
-                                                                fontWeight: 500
-                                                            }}
-                                                        >
-                                                            Details
-                                                        </button>
-                                                    )}
                                                 </div>
                                             </motion.div>
                                         ))}

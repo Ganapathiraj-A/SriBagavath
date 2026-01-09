@@ -102,13 +102,6 @@ const BookDetails = () => {
             <PageHeader title="Book Details" />
 
             <div style={{ padding: '16px' }}>
-                <button
-                    onClick={() => navigate(-1)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', color: '#6b7280', marginBottom: '16px', cursor: 'pointer' }}
-                >
-                    <ChevronLeft size={20} /> Back
-                </button>
-
                 <div className="card" style={{ padding: '20px', overflow: 'hidden' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'center' }}>
                         <div style={{ width: '100%', maxWidth: '300px', aspectRatio: '3/4', backgroundColor: '#f3f4f6', borderRadius: '12px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>

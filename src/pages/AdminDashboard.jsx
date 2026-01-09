@@ -7,6 +7,7 @@ import { StatsService } from '../services/StatsService';
 import { doc, getDoc, collection, getDocs, query, where, count, getCountFromServer } from 'firebase/firestore';
 
 import { useUnseenCounts } from '../hooks/useUnseenCounts';
+import { getLocalDateString } from '../utils/dateUtils';
 
 const SystemHealthCard = ({ health, onClick }) => (
     <div
@@ -96,7 +97,7 @@ Otherwise, it stays 'Good'.`;
             const geoSnap = await getDoc(geoRef);
 
             // Fetch Today's Count
-            const today = new Date().toISOString().split('T')[0];
+            const today = getLocalDateString();
             const todayRef = doc(db, "system_stats", `daily_${today}`);
             const todaySnap = await getDoc(todayRef);
 

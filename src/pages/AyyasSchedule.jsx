@@ -6,6 +6,7 @@ import PageHeader from '../components/PageHeader';
 import { Share } from '@capacitor/share';
 import { db } from '../firebase';
 import { collection, query, orderBy, getDocs, where } from 'firebase/firestore';
+import { getLocalDateString } from '../utils/dateUtils';
 
 const AyyasSchedule = () => {
     const navigate = useNavigate();
@@ -24,7 +25,7 @@ const AyyasSchedule = () => {
                     ...doc.data()
                 }));
 
-                const today = new Date().toISOString().split('T')[0];
+                const today = getLocalDateString();
 
                 // Client-side filter: include ongoing or future schedules
                 const currentAndUpcoming = schedulesList.filter(s => {
@@ -60,8 +61,8 @@ const AyyasSchedule = () => {
 *Ayya's Schedule*
 
 📍 *Place:* ${schedule.place}
-📅 *From:* ${fromStr}
-📅 *To:* ${communitiesStr}
+📅 ${fromStr}
+📅 ${communitiesStr}
         `.trim();
 
         try {
@@ -201,7 +202,6 @@ const AyyasSchedule = () => {
                                             fontSize: '0.925rem'
                                         }}>
                                             <div style={{ display: 'flex', alignItems: 'center' }}>
-                                                <span style={{ fontWeight: 500, color: '#6b7280', marginRight: '0.375rem' }}>From:</span>
                                                 {new Date(schedule.fromDate).toLocaleDateString(undefined, {
                                                     weekday: 'short',
                                                     month: 'short',
@@ -210,7 +210,6 @@ const AyyasSchedule = () => {
                                             </div>
 
                                             <div style={{ display: 'flex', alignItems: 'center' }}>
-                                                <span style={{ fontWeight: 500, color: '#6b7280', marginRight: '0.375rem' }}>To:</span>
                                                 {new Date(schedule.toDate).toLocaleDateString(undefined, {
                                                     weekday: 'short',
                                                     month: 'short',

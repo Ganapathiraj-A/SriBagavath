@@ -130,6 +130,7 @@ const Configuration = () => {
                         {user?.email}
                     </div>
 
+
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         {hasAccess('ADMIN_REVIEW') && <ConfigButton title="Registration" icon={Shield} path="/admin-review" delay={0.1} badgeCount={counts.registrations} />}
                         {hasAccess('ADMIN_REVIEW') && <ConfigButton title="Purchases" icon={IndianRupee} path="/admin/purchases" delay={0.15} color="#10b981" bgColor="#f0fdf4" badgeCount={counts.purchases} />}

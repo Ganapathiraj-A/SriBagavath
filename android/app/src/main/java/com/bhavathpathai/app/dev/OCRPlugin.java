@@ -250,23 +250,36 @@ public class OCRPlugin extends Plugin {
     }
 
     private String parseTransactionId(String text) {
-        // Regex for UPI Ref No or Transaction ID
-        // Supports GPay's "Google transaction ID \n <ID>" format
-        // Supports "UPI transaction ID \n <ID>"
-        // Added flexible spacing and newline handling
+        // Regex for UPI Ref No or Transaction ID or UTR
+        // Supports GPay, PhonePe, Paytm formats
         
-        // Pattern 1: Google / UPI specific headers
-        Pattern p1 = Pattern.compile("(?:Google transaction ID|UPI transaction ID|UPI Ref\\.? No\\.|Ref No\\.)\\s*[:\\-]?\\s*([a-zA-Z0-9]+)", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
-        Matcher m1 = p1.matcher(text);
-        if (m1.find()) {
-            return m1.group(1);
+        String[] keywords = {
+            "UTR",
+            "UTR No\\.?",
+            "UPI Ref\\.? No\\.?",
+            "Ref No\\.?",
+            "Google transaction ID",
+            "UPI transaction ID",
+            "Transaction ID"
+        };
+
+        // 1. First Pass: Look for exactly 12 digits (Strong UTR candidate) near keywords
+        // Use DOTALL (?s) to allow matching across newlines with '.' 
+        // Use a radius of 100 characters to skip button noise like "Pay again"
+        for (String kw : keywords) {
+            Pattern p = Pattern.compile("(?is)" + kw + ".{0,100}?(\\d{12})");
+            Matcher m = p.matcher(text);
+            if (m.find()) {
+                return m.group(1);
+            }
         }
 
-        // Pattern 2: Generic "Transaction ID" (Fallback)
-        Pattern p2 = Pattern.compile("Transaction ID\\s*[:\\-]?\\s*([a-zA-Z0-9]+)", Pattern.CASE_INSENSITIVE);
-        Matcher m2 = p2.matcher(text);
-        if (m2.find()) {
-            return m2.group(1);
+        // 2. Second Pass: Fallback to alpha-numeric if no 12-digit number found
+        // Restricted to 8+ characters to avoid capturing button text like "Pay" or "Paid"
+        Pattern pGeneric = Pattern.compile("(?i)(?:UTR|UTR No\\.?|UPI Ref\\.? No\\.?|Ref No\\.?|Google transaction ID|UPI transaction ID|Transaction ID)\\s*[:\\-]?\\s*([a-zA-Z0-9]{8,})", Pattern.MULTILINE);
+        Matcher mGeneric = pGeneric.matcher(text);
+        if (mGeneric.find()) {
+            return mGeneric.group(1);
         }
 
         return null;

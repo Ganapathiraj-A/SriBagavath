@@ -61,12 +61,19 @@ const AdminSettings = () => {
     const { hasAccess } = useAdminAuth();
     const { onlineTransactionsEnabled, toggleOnlineTransactions } = useGlobalSettings();
     const [landingPage, setLandingPage] = useState(localStorage.getItem('admin_landing_page') || '/');
+    const [bankPassword, setBankPassword] = useState(localStorage.getItem('bank_statement_password') || '');
 
     const handleLandingPageChange = (e) => {
         const newValue = e.target.value;
         setLandingPage(newValue);
         localStorage.setItem('admin_landing_page', newValue);
         window.dispatchEvent(new Event('storage'));
+    };
+
+    const handleBankPasswordChange = (e) => {
+        const newValue = e.target.value;
+        setBankPassword(newValue);
+        localStorage.setItem('bank_statement_password', newValue);
     };
 
     const sections = [
@@ -253,10 +260,7 @@ const AdminSettings = () => {
                                 <div style={{ fontSize: '1rem', fontWeight: 600, color: '#111827' }}>Landing Page</div>
                             </div>
 
-                            <div>
-                                <p style={{ fontSize: '0.8125rem', color: '#6b7280', margin: '0 0 0.75rem 0' }}>
-                                    Default screen on app launch.
-                                </p>
+                            <div style={{ flex: 1, maxWidth: '200px' }}>
                                 <select
                                     value={landingPage}
                                     onChange={handleLandingPageChange}
@@ -274,9 +278,56 @@ const AdminSettings = () => {
                                 >
                                     <option value="/">Default Home Page</option>
                                     <option value="/configuration">Admin Home Screen</option>
+                                    <option value="/admin/back-office">Admin - Back Office</option>
                                     <option value="/admin/program-management">Admin - Program Hub</option>
                                     <option value="/admin-dashboard">Analytics Dashboard</option>
                                 </select>
+                            </div>
+                        </motion.div>
+
+                        <motion.div
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.15 }}
+                            style={{
+                                backgroundColor: 'white',
+                                borderRadius: '1rem',
+                                padding: '1.5rem',
+                                border: '1px solid #e5e7eb',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '1rem'
+                            }}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <div style={{
+                                    padding: '0.5rem',
+                                    borderRadius: '8px',
+                                    backgroundColor: '#f3f4f6',
+                                    color: '#374151'
+                                }}>
+                                    <Landmark size={20} />
+                                </div>
+                                <div style={{ fontSize: '1rem', fontWeight: 600, color: '#111827' }}>Bank Reconciliation</div>
+                            </div>
+
+                            <div>
+                                <p style={{ fontSize: '0.8125rem', color: '#6b7280', margin: '0 0 0.75rem 0' }}>
+                                    Password for bank statement PDF decryption.
+                                </p>
+                                <input
+                                    type="password"
+                                    placeholder="Enter PDF Password"
+                                    value={bankPassword}
+                                    onChange={handleBankPasswordChange}
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.75rem',
+                                        borderRadius: '0.5rem',
+                                        border: '1px solid #e5e7eb',
+                                        fontSize: '0.9375rem',
+                                        outline: 'none'
+                                    }}
+                                />
                             </div>
                         </motion.div>
                     </div>

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { FileText, Folder } from 'lucide-react';
+import { FileText, Folder, ChevronLeft } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 import { useDriveFiles } from '../hooks/useDriveFiles';
 import { DRIVE_CONFIG } from '../data/driveConfig';
 
@@ -159,33 +160,8 @@ const MonthlyMagazine = () => {
             backgroundColor: 'var(--color-surface)',
             padding: '1.5rem'
         }}>
+            <PageHeader title="Monthly Magazine" />
             <div style={{ maxWidth: '28rem', margin: '0 auto' }}>
-                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem', gap: '0.5rem' }}>
-                    {folderIdParam && (
-                        <motion.button
-                            whileTap={{ scale: 0.95 }}
-                            onClick={handleBackClick}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                width: '2.5rem',
-                                height: '2.5rem',
-                                borderRadius: '50%',
-                                backgroundColor: 'white',
-                                border: '1px solid #e5e7eb',
-                                color: '#374151',
-                                cursor: 'pointer',
-                                boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)'
-                            }}
-                        >
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M19 12H5" />
-                                <path d="M12 19l-7-7 7-7" />
-                            </svg>
-                        </motion.button>
-                    )}
-                </div>
 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -197,9 +173,7 @@ const MonthlyMagazine = () => {
                         boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)'
                     }}
                 >
-                    <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#111827', marginBottom: '2rem', textAlign: 'center' }}>
-                        Monthly Magazine
-                    </h1>
+
 
                     {loading ? (
                         <div style={{ textAlign: 'center', color: '#4b5563', padding: '2rem' }}>Loading...</div>

@@ -9,7 +9,7 @@ import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 
 const SatsangDetails = () => {
-    const { id } = useParams();
+    const { id: rawId } = useParams();
     const navigate = useNavigate();
     const [meeting, setMeeting] = useState(null);
     const [banner, setBanner] = useState(null);
@@ -20,14 +20,25 @@ const SatsangDetails = () => {
     useEffect(() => {
         const fetchDetails = async () => {
             try {
-                const docRef = doc(db, 'satsangs', id);
+                // Support virtual IDs: masterId_YYYY-MM-DD
+                const parts = rawId.split('_');
+                const masterId = parts[0];
+                const instanceDate = parts[1]; // might be undefined
+
+                const docRef = doc(db, 'satsangs', masterId);
                 const snap = await getDoc(docRef);
                 if (snap.exists()) {
                     const data = { id: snap.id, ...snap.data() };
+
+                    // Override date if it's a virtual instance
+                    if (instanceDate) {
+                        data.date = instanceDate;
+                    }
+
                     setMeeting(data);
 
                     if (data.hasBanner) {
-                        const bannerSnap = await getDoc(doc(db, 'satsang_banners', id));
+                        const bannerSnap = await getDoc(doc(db, 'satsang_banners', masterId));
                         if (bannerSnap.exists()) {
                             setBanner(bannerSnap.data().banner);
                         }
@@ -40,7 +51,7 @@ const SatsangDetails = () => {
             }
         };
         fetchDetails();
-    }, [id]);
+    }, [rawId]);
 
     const handleShare = async () => {
         if (!meeting) return;

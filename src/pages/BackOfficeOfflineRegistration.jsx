@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Plus, Trash2, Camera, RotateCcw } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { db } from '../firebase';
+import { getLocalDateString } from '../utils/dateUtils';
 import { collection, query, where, getDocs, Timestamp, orderBy } from 'firebase/firestore';
 import { TransactionService } from '../services/TransactionService';
 import { Camera as CameraPlugin, CameraResultType } from '@capacitor/camera';
@@ -21,6 +22,7 @@ const BackOfficeOfflineRegistration = () => {
     const [newParticipant, setNewParticipant] = useState({ name: '', gender: '', age: '' });
     const [refNo, setRefNo] = useState('');
     const [image, setImage] = useState(null);
+    const [amount, setAmount] = useState(0); // Editable Amount State
 
     // Derived
     const selectedProgram = programs.find(p => p.id === selectedProgramId);
@@ -34,7 +36,7 @@ const BackOfficeOfflineRegistration = () => {
 
                 console.log("OfflineReg: Fetched All Programs Snap Size:", snap.size);
 
-                const today = new Date().toISOString().split('T')[0];
+                const today = getLocalDateString();
                 const loaded = snap.docs
                     .map(d => ({ id: d.id, ...d.data() }))
                     .filter(p => p.programDate >= today)
@@ -72,13 +74,18 @@ const BackOfficeOfflineRegistration = () => {
         }
     };
 
-    const calculateTotal = () => {
-        if (!selectedProgram) return 0;
-        const count = participants.length + 1; // +1 for primary
-        const price = parseFloat(selectedProgram.price);
-        if (isNaN(price)) return 0;
-        return count * price;
-    };
+    // Auto-Calculate Amount
+    useEffect(() => {
+        if (!selectedProgram) {
+            setAmount(0);
+            return;
+        }
+        const count = participants.length + 1;
+        const price = selectedProgram.price ? parseFloat(selectedProgram.price) : 0;
+        if (!isNaN(price)) {
+            setAmount(count * price);
+        }
+    }, [selectedProgram, participants]);
 
     const handleAddParticipant = () => {
         if (newParticipant.name && newParticipant.gender && newParticipant.age) {
@@ -107,14 +114,20 @@ const BackOfficeOfflineRegistration = () => {
     };
 
     const handleSubmit = async () => {
-        if (!selectedProgram || !primaryName || !mobile || !refNo) {
-            alert("Please fill all required fields");
+        if (!selectedProgram || !primaryName || !mobile) {
+            alert("Please fill all required fields (Program, Name, Mobile)");
             return;
         }
 
         if (participants.length + 1 > selectedProgram.seatsAvailable) {
             alert("Not enough seats available!");
             return;
+        }
+
+        if (amount <= 0) {
+            if (!confirm("Warning: Total Amount is 0. Do you want to proceed?")) {
+                return;
+            }
         }
 
         setLoading(true);
@@ -139,12 +152,12 @@ const BackOfficeOfflineRegistration = () => {
             await TransactionService.recordTransaction({
                 itemName: selectedProgram.programName,
                 itemType: 'PROGRAM',
-                amount: calculateTotal(),
+                amount: parseFloat(amount), // Use state amount
 
                 // Offline Spec
-                status: 'BNK_VERIFIED',
+                status: 'REGISTERED', // Changed to REGISTERED to show in 'Approved' tab
                 isOffline: true,
-                offlineRefNo: refNo,
+                offlineRefNo: refNo || '', // Optional
 
                 // Program Data
                 programId: selectedProgram.id,
@@ -163,7 +176,7 @@ const BackOfficeOfflineRegistration = () => {
             }, image);
 
             alert("Offline Registration Recorded Successfully!");
-            navigate('/admin/back-office/offline-hub');
+            navigate('/admin/back-office');
         } catch (error) {
             console.error(error);
             alert("Error recording transaction: " + error.message);
@@ -303,9 +316,22 @@ const BackOfficeOfflineRegistration = () => {
                 <div className="card" style={{ padding: '16px', borderRadius: '12px', backgroundColor: 'white', marginBottom: '20px', border: '1px solid #e5e7eb' }}>
                     <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>Payment Reference</h3>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', alignItems: 'center' }}>
                         <span style={{ color: '#6b7280' }}>Total Amount</span>
-                        <span style={{ fontWeight: 700, fontSize: '18px' }}>₹{calculateTotal()}</span>
+                        <input
+                            type="number"
+                            value={amount}
+                            onChange={(e) => setAmount(e.target.value)}
+                            style={{
+                                fontWeight: 700,
+                                fontSize: '18px',
+                                textAlign: 'right',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '6px',
+                                padding: '4px 8px',
+                                width: '120px'
+                            }}
+                        />
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>

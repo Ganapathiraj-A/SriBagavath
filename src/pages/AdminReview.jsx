@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Check, Trash2, Rewind, AlertCircle, X, LogOut, Package } from 'lucide-react';
+import { ChevronLeft, Check, Trash2, Rewind, AlertCircle, X, LogOut, Package, Image, Info } from 'lucide-react';
 import { TransactionService } from '../services/TransactionService';
 import PageHeader from '../components/PageHeader';
 import '../components/RegistrationStyles.css';
 
-const TABS = ['PENDING', 'REGISTERED', 'HOLD', 'BNK_VERIFIED'];
+const TABS = ['PENDING', 'REGISTERED', 'HOLD', 'COMPLETED'];
 const TAB_LABELS = {
     'PENDING': 'Pending',
     'REGISTERED': 'Approved',
     'HOLD': 'Hold',
-    'BNK_VERIFIED': 'Completed'
+    'COMPLETED': 'Completed'
 };
 
 import { signOut } from 'firebase/auth';
@@ -24,6 +24,13 @@ const AdminReview = () => {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('PENDING');
     const [filterProduct, setFilterProduct] = useState("All");
+    const [filterSource, setFilterSource] = useState("All"); // All, Online, Offline
+
+    // Receipt Editing States
+    const [editingUtrValue, setEditingUtrValue] = useState('');
+    const [editingAmountValue, setEditingAmountValue] = useState('');
+    const [editingParsedAmountValue, setEditingParsedAmountValue] = useState('');
+    const [savingDetails, setSavingDetails] = useState(false);
 
     const handleLogout = async () => {
         if (confirm("Logout?")) {
@@ -124,15 +131,22 @@ const AdminReview = () => {
             } catch (e) { return true; }
         });
 
-    const displayedRegs = filteredByProduct.filter(r => {
-        if (activeTab === 'PENDING') return r.status === 'PENDING' || (r.status !== 'REGISTERED' && r.status !== 'HOLD' && r.status !== 'BNK_VERIFIED' && r.status !== 'REJECTED');
+    // Filter by Source (Refactored to be reusable)
+    const filteredBySource = filteredByProduct.filter(r => {
+        if (filterSource === 'Online' && r.isOffline) return false;
+        if (filterSource === 'Offline' && !r.isOffline) return false;
+        return true;
+    });
+
+    const displayedRegs = filteredBySource.filter(r => {
+        if (activeTab === 'PENDING') return r.status === 'PENDING' || (r.status !== 'REGISTERED' && r.status !== 'HOLD' && r.status !== 'COMPLETED' && r.status !== 'REJECTED');
         return r.status === activeTab;
     });
 
     // Counts
     const getCount = (status) => {
-        return filteredByProduct.filter(r => {
-            if (status === 'PENDING') return r.status === 'PENDING' || (r.status !== 'REGISTERED' && r.status !== 'HOLD' && r.status !== 'BNK_VERIFIED' && r.status !== 'REJECTED');
+        return filteredBySource.filter(r => {
+            if (status === 'PENDING') return r.status === 'PENDING' || (r.status !== 'REGISTERED' && r.status !== 'HOLD' && r.status !== 'COMPLETED' && r.status !== 'REJECTED');
             return r.status === status;
         }).reduce((acc, r) => acc + (r.participantCount || 1), 0);
     };
@@ -173,7 +187,7 @@ const AdminReview = () => {
     };
 
     const handleArchiveAll = async () => {
-        const toArchive = filteredByProduct.filter(r => r.status === 'BNK_VERIFIED');
+        const toArchive = filteredByProduct.filter(r => r.status === 'COMPLETED');
         if (toArchive.length === 0) return;
 
         if (confirm(`Move ALL ${toArchive.length} Completed transactions to Storage?`)) {
@@ -192,7 +206,7 @@ const AdminReview = () => {
     };
 
     const handleDeleteAllVerified = async () => {
-        const toDelete = filteredByProduct.filter(r => r.status === 'BNK_VERIFIED');
+        const toDelete = filteredByProduct.filter(r => r.status === 'COMPLETED');
         if (toDelete.length === 0) return;
 
         const password = prompt("Final Warning: This will permanently delete ALL completed records. Enter password to proceed:");
@@ -210,28 +224,283 @@ const AdminReview = () => {
     const [viewingImage, setViewingImage] = useState(null);
     const [viewingReg, setViewingReg] = useState(null);
 
-    const handleViewImage = async (id) => {
+    const extractUtrSuggestions = (text) => {
+        if (!text) return [];
+        const matches = text.match(/\b\d{12}\b/g) || [];
+        return [...new Set(matches)];
+    };
+
+    const highlightUTR = (text, utr) => {
+        if (!utr || !text) return text;
+        const parts = text.split(new RegExp(`(${utr})`, 'gi'));
+        return (
+            <span>
+                {parts.map((part, i) =>
+                    part.toLowerCase() === utr.toLowerCase()
+                        ? <span key={i} style={{ backgroundColor: '#fef08a', color: '#854d0e', fontWeight: 600, padding: '0 2px', borderRadius: '2px' }}>{part}</span>
+                        : part
+                )}
+            </span>
+        );
+    };
+
+    const handleViewImage = async (tx) => {
         try {
-            const base64 = await TransactionService.getImage(id);
+            const base64 = await TransactionService.getImage(tx.id);
             if (base64) {
-                setViewingImage(base64);
+                setViewingImage({
+                    base64,
+                    utr: tx.utr,
+                    amount: tx.amount,
+                    parsedAmount: tx.parsedAmount,
+                    id: tx.id,
+                    ocrText: tx.ocrText || '',
+                    mismatchedBankEntryId: tx.mismatchedBankEntryId,
+                    mismatchedBankAmount: tx.mismatchedBankAmount,
+                    mismatchedBankDesc: tx.mismatchedBankDesc,
+                    mismatchedBankDate: tx.mismatchedBankDate
+                });
+                setEditingUtrValue(tx.utr || '');
+                setEditingAmountValue(tx.amount?.toString() || '');
+                setEditingParsedAmountValue(tx.parsedAmount?.toString() || '');
             } else {
                 alert("No Image Found");
             }
-        } catch (e) { alert("Error"); }
+        } catch (e) {
+            console.error("Error fetching receipt:", e);
+            alert("Error loading receipt.");
+        }
+    };
+
+    const handleSaveDetails = async () => {
+        if (!viewingImage || savingDetails) return;
+        setSavingDetails(true);
+        try {
+            const { updateDoc, doc, deleteField, serverTimestamp, writeBatch } = await import('firebase/firestore');
+            const { db } = await import('../firebase');
+            const newAmount = parseFloat(editingAmountValue);
+            const newParsedAmount = parseFloat(editingParsedAmountValue);
+
+            if (isNaN(newAmount)) {
+                alert("Please enter a valid number for the registration amount.");
+                setSavingDetails(false);
+                return;
+            }
+
+            const batch = writeBatch(db);
+            let updateCount = 0;
+
+            const updates = {
+                utr: editingUtrValue,
+                amount: newAmount,
+                parsedAmount: isNaN(newParsedAmount) ? deleteField() : newParsedAmount,
+            };
+
+            const isNowMatchingBank = viewingImage.mismatchedBankEntryId &&
+                (Math.abs(parseFloat(newAmount)) === Math.abs(parseFloat(viewingImage.mismatchedBankAmount)));
+
+            if (isNowMatchingBank) {
+                updates.reconciled = true;
+                updates.reconciledAt = serverTimestamp();
+                updates.reconciledBy = 'MANUAL_FIX_REVIEW';
+                updates.bankEntryId = viewingImage.mismatchedBankEntryId;
+                updates.bankDescription = viewingImage.mismatchedBankDesc;
+                updates.bankDate = viewingImage.mismatchedBankDate;
+
+                updates.amountMismatch = deleteField();
+                updates.mismatchedBankAmount = deleteField();
+                updates.mismatchedBankDesc = deleteField();
+                updates.mismatchedBankDate = deleteField();
+                updates.mismatchedBankEntryId = deleteField();
+
+                batch.update(doc(db, 'transactions', viewingImage.id), updates);
+                updateCount++;
+
+                const bankRef = doc(db, 'bank_entries', viewingImage.mismatchedBankEntryId);
+                batch.update(bankRef, {
+                    status: 'MATCHED',
+                    matchedTransactionId: viewingImage.id,
+                    matchedAt: serverTimestamp()
+                });
+                updateCount++;
+            } else {
+                updates.amountMismatch = deleteField();
+                updates.mismatchedBankAmount = deleteField();
+                updates.mismatchedBankDesc = deleteField();
+                updates.mismatchedBankDate = deleteField();
+                updates.mismatchedBankEntryId = deleteField();
+
+                batch.update(doc(db, 'transactions', viewingImage.id), updates);
+                updateCount++;
+            }
+
+            if (updateCount > 0) {
+                await batch.commit();
+            }
+            setViewingImage(null);
+            alert(isNowMatchingBank ? "Match verified and corrected!" : "Details updated successfully!");
+        } catch (e) {
+            alert("Failed to update details: " + e.message);
+        } finally {
+            setSavingDetails(false);
+        }
     };
 
     // Render Logic
     return (
         <div className="payment-container screen-wrapper" style={{ paddingBottom: '80px' }}>
-            {/* Image Modal */}
+            {/* Advanced Receipt View / Edit Modal */}
             {viewingImage && (
-                <div className="modal-overlay" onClick={() => setViewingImage(null)}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ flexDirection: 'column', alignItems: 'center', gap: '10px', background: 'white', padding: '10px' }}>
-                        <img src={`data:image/jpeg;base64,${viewingImage}`} alt="Receipt" className="modal-image" style={{ maxHeight: '80vh' }} />
-                        <button className="btn-primary" onClick={() => setViewingImage(null)} style={{ width: '100%', background: '#2563eb' }}>
-                            Close
-                        </button>
+                <div className="modal-overlay" onClick={() => setViewingImage(null)} style={{ zIndex: 1100 }}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{
+                        background: 'white',
+                        padding: '1.25rem',
+                        borderRadius: '1.5rem',
+                        maxWidth: '28rem',
+                        width: '100%',
+                        maxHeight: '92vh',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '1rem',
+                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                        overflow: 'hidden',
+                        position: 'relative'
+                    }}>
+                        {/* Header */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div>
+                                <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: '#111827' }}>Verify Receipt</h2>
+                                <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '2px' }}>Check UTR and Amount against the image</div>
+                            </div>
+                            <button onClick={() => setViewingImage(null)} style={{ border: 'none', background: '#f3f4f6', padding: '8px', borderRadius: '50%', cursor: 'pointer' }}>
+                                <X size={20} color="#6b7280" />
+                            </button>
+                        </div>
+
+                        {/* Content Area - Scrollable */}
+                        <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem', paddingRight: '4px' }}>
+                            {/* Receipt Image */}
+                            <div style={{ position: 'relative', borderRadius: '1rem', overflow: 'hidden', border: '1px solid #e5e7eb', backgroundColor: '#f9fafb', minHeight: '200px' }}>
+                                <img src={`data:image/jpeg;base64,${viewingImage.base64}`} alt="Receipt" style={{ width: '100%', display: 'block' }} />
+                                <div style={{ position: 'absolute', top: '0.75rem', right: '0.75rem', backgroundColor: 'rgba(255,255,255,0.9)', padding: '4px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, color: '#374151', backdropFilter: 'blur(4px)', border: '1px solid rgba(0,0,0,0.05)' }}>
+                                    Receipt Image
+                                </div>
+                            </div>
+
+                            {/* OCR Text / Suggestions */}
+                            <div style={{ backgroundColor: '#f8fafc', padding: '15px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                    <span style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748b', fontWeight: 700, letterSpacing: '0.05em' }}>Detecting UTR from Receipt</span>
+                                    {extractUtrSuggestions(viewingImage.ocrText).length > 0 && <span style={{ fontSize: '10px', backgroundColor: '#dcfce7', color: '#166534', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>Found Suggestions</span>}
+                                </div>
+
+                                {extractUtrSuggestions(viewingImage.ocrText).length > 0 ? (
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                        {extractUtrSuggestions(viewingImage.ocrText).map(sug => (
+                                            <button
+                                                key={sug}
+                                                onClick={() => setEditingUtrValue(sug)}
+                                                style={{ padding: '6px 12px', backgroundColor: editingUtrValue === sug ? '#dbeafe' : 'white', color: editingUtrValue === sug ? '#1e40af' : '#475569', border: `1px solid ${editingUtrValue === sug ? '#3b82f6' : '#cbd5e1'}`, borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+                                            >
+                                                {sug}
+                                            </button>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div style={{ fontSize: '13px', color: '#94a3b8', fontStyle: 'italic' }}>No UTR-like numbers detected. Please enter manually.</div>
+                                )}
+
+                                <div style={{ marginTop: '12px', borderTop: '1px solid #e2e8f0', paddingTop: '10px' }}>
+                                    <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748b', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '4px' }}>Raw OCR Preview</div>
+                                    <div style={{ fontSize: '12px', color: '#4b5563', lineHeight: '1.5', maxHeight: '100px', overflowY: 'auto', backgroundColor: 'white', padding: '8px', borderRadius: '6px', border: '1px solid #f1f5f9', whiteSpace: 'pre-wrap' }}>
+                                        {highlightUTR(viewingImage.ocrText, editingUtrValue)}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Edit Fields */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        <label style={{ fontSize: '12px', fontWeight: 600, color: '#4b5563' }}>Edit UTR</label>
+                                        <input
+                                            type="text"
+                                            value={editingUtrValue}
+                                            onChange={(e) => setEditingUtrValue(e.target.value)}
+                                            placeholder="UTR..."
+                                            style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '14px', outline: 'none' }}
+                                        />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        <label style={{ fontSize: '12px', fontWeight: 600, color: '#4b5563' }}>Reg. Amount</label>
+                                        <input
+                                            type="number"
+                                            value={editingAmountValue}
+                                            onChange={(e) => setEditingAmountValue(e.target.value)}
+                                            placeholder="Reg Amount..."
+                                            style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '14px', outline: 'none' }}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                    <label style={{ fontSize: '12px', fontWeight: 600, color: '#4b5563' }}>OCR Amount (Detected from Receipt)</label>
+                                    <input
+                                        type="number"
+                                        value={editingParsedAmountValue}
+                                        onChange={(e) => setEditingParsedAmountValue(e.target.value)}
+                                        placeholder="OCR Amount..."
+                                        style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px', outline: 'none', backgroundColor: '#fdf2f2' }}
+                                    />
+                                </div>
+
+                                <button
+                                    onClick={handleSaveDetails}
+                                    disabled={savingDetails}
+                                    style={{
+                                        width: '100%',
+                                        height: '48px',
+                                        backgroundColor: '#2563eb',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '12px',
+                                        fontWeight: 700,
+                                        fontSize: '15px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        cursor: savingDetails ? 'wait' : 'pointer',
+                                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                                        marginTop: '4px'
+                                    }}
+                                >
+                                    {savingDetails ? 'Saving Changes...' : 'Save Updated Details'}
+                                </button>
+                            </div>
+
+                            <button
+                                onClick={() => setViewingImage(null)}
+                                style={{
+                                    width: '100%',
+                                    height: '48px',
+                                    background: '#f3f4f6',
+                                    color: '#4b5563',
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: '12px',
+                                    fontWeight: 700,
+                                    fontSize: '15px',
+                                    cursor: 'pointer',
+                                    marginTop: '8px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    transition: 'all 0.2s',
+                                    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                                }}
+                            >
+                                Dismiss
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
@@ -352,6 +621,17 @@ const AdminReview = () => {
                         ))}
                     </select>
 
+                    <select
+                        value={filterSource}
+                        onChange={e => setFilterSource(e.target.value)}
+                        className="styled-select"
+                        style={{ width: '100%' }}
+                    >
+                        <option value="All">All Sources</option>
+                        <option value="Online">Online Registration</option>
+                        <option value="Offline">Offline Registration</option>
+                    </select>
+
                     {/* Totals Summary */}
                     <div style={{
                         width: '100%',
@@ -423,10 +703,10 @@ const AdminReview = () => {
                 </div>
 
                 {/* Specific Tab Action: Archive/Delete */}
-                {activeTab === 'BNK_VERIFIED' && getCount('BNK_VERIFIED') > 0 && (
+                {activeTab === 'COMPLETED' && getCount('COMPLETED') > 0 && (
                     <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
                         <button className="btn-approve" style={{ flex: 1, backgroundColor: '#4f46e5', color: 'white' }} onClick={handleArchiveAll}>
-                            <Package size={16} /> Move All to Storage ({getCount('BNK_VERIFIED')} Participants)
+                            <Package size={16} /> Move All to Storage ({getCount('COMPLETED')} Participants)
                         </button>
                         <button className="btn-danger" style={{ padding: '10px' }} onClick={handleDeleteAllVerified}>
                             <Trash2 size={16} />
@@ -451,10 +731,24 @@ const AdminReview = () => {
                     return (
                         <div key={tx.id} className="card">
                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <h3 style={{ margin: 0, fontSize: '16px' }}>
+                                <h3 style={{ margin: 0, fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                                     {tx.itemName}
+                                    {tx.reconciled && (
+                                        <span style={{
+                                            backgroundColor: '#dbeafe',
+                                            color: '#1e40af',
+                                            fontSize: '10px',
+                                            padding: '2px 6px',
+                                            borderRadius: '4px',
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '4px'
+                                        }}>
+                                            <Check size={10} /> Bank Verified
+                                        </span>
+                                    )}
                                     {details.date && (
-                                        <span style={{ fontSize: '14px', fontWeight: 'normal', color: '#555', marginLeft: '6px' }}>
+                                        <span style={{ fontSize: '14px', fontWeight: 'normal', color: '#555' }}>
                                             ({new Date(details.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                                             {details.city ? ` - ${details.city}` : ''})
                                         </span>
@@ -464,6 +758,22 @@ const AdminReview = () => {
                                     ₹{tx.amount}
                                 </span>
                             </div>
+
+                            {/* Offline Indicator */}
+                            {tx.isOffline && (
+                                <div style={{
+                                    display: 'inline-block',
+                                    backgroundColor: '#e0f2fe',
+                                    color: '#0284c7',
+                                    fontSize: '11px',
+                                    fontWeight: 'bold',
+                                    padding: '2px 6px',
+                                    borderRadius: '4px',
+                                    marginBottom: '4px'
+                                }}>
+                                    OFFLINE REGISTRATION
+                                </div>
+                            )}
 
                             <div className="meta-row" style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '8px' }}>
                                 {tx.participantCount > 1 && (
@@ -486,6 +796,11 @@ const AdminReview = () => {
                                     <strong>Detected Amount:</strong> ₹{tx.parsedAmount || '0'}
                                     {isMatch ? <Check size={16} color="green" /> : <X size={16} color="red" />}
                                 </div>
+                                {tx.utr && (
+                                    <div style={{ fontSize: '14px', color: '#1e40af', fontWeight: 600 }}>
+                                        <strong>UTR:</strong> {tx.utr}
+                                    </div>
+                                )}
                             </div>
 
                             {/* Participants List */}
@@ -507,11 +822,45 @@ const AdminReview = () => {
                                 </div>
                             )}
 
-                            <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginTop: '8px' }}>
+                            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginTop: '12px' }}>
                                 {tx.hasImage && (
-                                    <button className="btn-text" onClick={() => handleViewImage(tx.id)} style={{ padding: 0 }}>View Receipt</button>
+                                    <button
+                                        onClick={() => handleViewImage(tx)}
+                                        style={{
+                                            background: '#eff6ff',
+                                            color: '#1e40af',
+                                            border: '1px solid #dbeafe',
+                                            padding: '8px 16px',
+                                            borderRadius: '10px',
+                                            fontSize: '13px',
+                                            fontWeight: 600,
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '6px'
+                                        }}
+                                    >
+                                        <Image size={14} /> View Receipt
+                                    </button>
                                 )}
-                                <button className="btn-text" onClick={() => setViewingReg(tx)} style={{ padding: 0 }}>View Registration Info</button>
+                                <button
+                                    onClick={() => setViewingReg(tx)}
+                                    style={{
+                                        background: '#f8fafc',
+                                        color: '#475569',
+                                        border: '1px solid #e2e8f0',
+                                        padding: '8px 16px',
+                                        borderRadius: '10px',
+                                        fontSize: '13px',
+                                        fontWeight: 600,
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px'
+                                    }}
+                                >
+                                    <Info size={14} /> Details
+                                </button>
                             </div>
 
                             {/* Workflows */}
@@ -527,7 +876,7 @@ const AdminReview = () => {
                                 {/* APPROVED (Registered) Tab Actions */}
                                 {activeTab === 'REGISTERED' && (
                                     <>
-                                        <button className="btn-bnk" onClick={() => handleUpdate(tx.id, 'BNK_VERIFIED')}><Check size={16} /> Mark Completed</button>
+                                        <button className="btn-bnk" onClick={() => handleUpdate(tx.id, 'COMPLETED')}><Check size={16} /> Mark Completed</button>
                                         <button className="btn-pink" onClick={() => handleUpdate(tx.id, 'PENDING')}><Rewind size={16} /> Pending</button>
                                         <button className="btn-hold" onClick={() => handleUpdate(tx.id, 'HOLD')}><AlertCircle size={16} /> Hold</button>
                                     </>
@@ -542,7 +891,7 @@ const AdminReview = () => {
                                     </>
                                 )}
 
-                                {activeTab === 'BNK_VERIFIED' && (
+                                {activeTab === 'COMPLETED' && (
                                     <>
                                         <button className="btn-approve" onClick={() => handleUpdate(tx.id, 'REGISTERED')}><Rewind size={16} /> Revert</button>
                                         <button

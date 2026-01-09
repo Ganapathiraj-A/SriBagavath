@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Camera, CameraResultType } from '@capacitor/camera';
 import { App } from '@capacitor/app';
-import { Trash2, CheckCircle2, QrCode as QrIcon, Camera as CameraIcon } from 'lucide-react';
+import { Trash2, CheckCircle2, QrCode as QrIcon, Camera as CameraIcon, PlayCircle, Eye, EyeOff, ChevronDown, ChevronUp } from 'lucide-react';
 import { Clipboard } from '@capacitor/clipboard';
 
 import { TransactionService } from '../services/TransactionService';
@@ -29,6 +29,7 @@ const PaymentFlow = () => {
     const [image, setImage] = useState(null);
     const [rawText, setRawText] = useState("");
     const [parsedAmount, setParsedAmount] = useState(null);
+    const [utr, setUtr] = useState(null);
     const [ocrStatus, setOcrStatus] = useState("");
     const [submissionAmount, setSubmissionAmount] = useState(amount?.toString() || "");
     const [submissionName, setSubmissionName] = useState(programName || itemName || "");
@@ -54,6 +55,7 @@ const PaymentFlow = () => {
         try {
             const result = await OCR.detectText({ base64Image: base64 });
             setRawText(result.rawText || "");
+            if (result.transactionId) setUtr(result.transactionId);
             setOcrStatus(result.transactionId ? `Ref: ${result.transactionId}` : "No Ref Found");
 
             if (result.amount) {
@@ -128,6 +130,7 @@ const PaymentFlow = () => {
                 itemType: location.state?.itemType || 'PROGRAM',
                 amount: parseFloat(submissionAmount),
                 ocrText: rawText,
+                utr: utr,
                 parsedAmount: parsedAmount,
                 // Bookstore specific
                 orderItems: location.state?.orderItems || [],
@@ -216,10 +219,33 @@ const PaymentFlow = () => {
 
             <button
                 className="btn-secondary full-width"
-                style={{ marginBottom: '16px', backgroundColor: '#f3f4f6', border: '1px solid #d1d5db' }}
+                style={{
+                    marginBottom: '16px',
+                    backgroundColor: '#fff7ed',
+                    border: '1px solid #ffedd5',
+                    color: '#c2410c',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    fontWeight: 600,
+                    height: '48px'
+                }}
                 onClick={() => setShowDemo(!showDemo)}
             >
-                {showDemo ? "Hide Demo" : "Click here to view demo"}
+                {showDemo ? (
+                    <>
+                        <EyeOff size={20} />
+                        Hide Demo
+                        <ChevronUp size={20} />
+                    </>
+                ) : (
+                    <>
+                        <PlayCircle size={20} />
+                        Click here to view demo
+                        <ChevronDown size={20} />
+                    </>
+                )}
             </button>
 
             {showDemo && (
@@ -373,7 +399,10 @@ const PaymentFlow = () => {
             {(rawText || ocrStatus) && (
                 <div style={{ marginTop: '16px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div style={{ fontSize: '14px', color: '#2563eb', fontWeight: 600 }}>{ocrStatus}</div>
+                        <div style={{ fontSize: '14px', color: '#2563eb', fontWeight: 600 }}>
+                            {ocrStatus}
+                            {utr && <div style={{ fontSize: '12px', color: '#1d4ed8' }}>UTR: {utr}</div>}
+                        </div>
                         <button
                             onClick={() => setShowFullOcr(!showFullOcr)}
                             style={{ border: 'none', background: 'none', color: '#666', fontSize: '12px', textDecoration: 'underline' }}

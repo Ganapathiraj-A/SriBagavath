@@ -10,6 +10,7 @@ import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import '../components/RegistrationStyles.css';
+import { getLocalDateString } from '../utils/dateUtils';
 
 const ScheduleManagement = () => {
     const navigate = useNavigate();
@@ -72,7 +73,7 @@ const ScheduleManagement = () => {
 
             // Client-side strict filter to ensure no history is shown
             // (in case cleanup hasn't finished or failed)
-            const today = new Date().toISOString().split('T')[0];
+            const today = getLocalDateString();
             const filteredSchedules = schedulesList.filter(s => s.toDate >= today);
 
             setSchedules(filteredSchedules);
@@ -132,6 +133,8 @@ const ScheduleManagement = () => {
                 await updateDoc(doc(db, 'schedules', editingSchedule.id), scheduleData);
                 alert('Schedule updated successfully!');
             } else {
+                await addDoc(collection(db, 'schedules'), scheduleData);
+                alert('Schedule added successfully!');
             }
 
             // Update Global Metadata for notification badges

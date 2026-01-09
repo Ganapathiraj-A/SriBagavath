@@ -54,7 +54,7 @@ const BackOfficeOfflineDonation = () => {
     };
 
     const handleSubmit = async () => {
-        if (!donorName || !mobile || !amount || !refNo) {
+        if (!donorName || !mobile || !amount) { // Removed refNo check
             alert("Please fill all required fields");
             return;
         }
@@ -82,12 +82,12 @@ const BackOfficeOfflineDonation = () => {
                 amount: parseFloat(amount),
 
                 // Offline Spec
-                status: 'BNK_VERIFIED',
+                status: 'COMPLETED', // Changed to COMPLETED to show in 'Accepted' tab
                 isOffline: true,
-                offlineRefNo: refNo,
+                offlineRefNo: refNo || '', // Optional
 
                 // User Data
-                primaryApplicant: {
+                shippingAddress: {
                     name: donorName,
                     mobile: mobile,
                     pan: pan
@@ -184,7 +184,7 @@ const BackOfficeOfflineDonation = () => {
                         </div>
 
                         <input
-                            placeholder="Payment Reference No"
+                            placeholder="Payment Reference No (Optional)"
                             value={refNo}
                             onChange={(e) => setRefNo(e.target.value)}
                             style={{ padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db' }}
@@ -206,7 +206,7 @@ const BackOfficeOfflineDonation = () => {
                             }}
                         >
                             <Camera size={20} />
-                            <span>{image ? "Receipt Attached" : "Attach Payment Receipt"}</span>
+                            <span>{image ? "Receipt Attached" : "Attach Payment Receipt (Optional)"}</span>
                         </div>
                     </div>
                 </div>

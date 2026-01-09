@@ -70,7 +70,7 @@ const ProgramCategories = () => {
     useEffect(() => {
         const programId = searchParams.get('id');
         if (programId) {
-            navigate(`/programs/programs?id=${programId}`, { replace: true });
+            navigate(`/programs/retreat?id=${programId}`, { replace: true });
         }
     }, [searchParams, navigate]);
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Send, Youtube } from 'lucide-react';
+import { Send, Youtube, ChevronLeft } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 
 const LinkButton = ({ title, icon: Icon, url, delay }) => {
   return (
@@ -59,15 +60,9 @@ const LinkButton = ({ title, icon: Icon, url, delay }) => {
 
 const Conversations = () => {
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        backgroundColor: 'var(--color-surface)',
-        padding: '1.5rem'
-      }}
-    >
+    <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-surface)', padding: '1.5rem' }}>
+      <PageHeader title="Conversations" />
       <div style={{ maxWidth: '28rem', margin: '0 auto' }}>
-
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -78,18 +73,6 @@ const Conversations = () => {
             boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)'
           }}
         >
-          {/* ✅ Title retained like other pages */}
-          <h1
-            style={{
-              fontSize: '1.875rem',
-              fontWeight: 'bold',
-              color: '#111827',
-              marginBottom: '2rem',
-              textAlign: 'center'
-            }}
-          >
-            Conversations
-          </h1>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <LinkButton
@@ -107,8 +90,8 @@ const Conversations = () => {
             />
           </div>
         </motion.div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 };
 

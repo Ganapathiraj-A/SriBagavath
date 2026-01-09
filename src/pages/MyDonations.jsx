@@ -52,7 +52,7 @@ const MyDonations = () => {
 
     const getStatusColor = (status) => {
         switch (status) {
-            case 'BNK_VERIFIED': return '#16a34a';
+            case 'COMPLETED': return '#16a34a';
             case 'PROCESSING': return '#2563eb';
             case 'PENDING': return '#f59e0b';
             case 'REJECTED': return '#dc2626';
@@ -172,7 +172,7 @@ const MyDonations = () => {
                                         borderRadius: '20px',
                                         boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
                                     }}>
-                                        {donation.status === 'BNK_VERIFIED' ? 'COMPLETED' : donation.status}
+                                        {donation.status === 'COMPLETED' ? 'COMPLETED' : donation.status}
                                     </span>
                                 </div>
 

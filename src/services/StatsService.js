@@ -1,5 +1,6 @@
 import { db } from '../firebase';
 import { doc, updateDoc, increment, setDoc, getDoc, getDocs, collection, deleteDoc, Timestamp } from 'firebase/firestore';
+import { getLocalDateString } from '../utils/dateUtils';
 
 export const StatsService = {
     // 1. Overall Totals (Programs, Registrations, Images, Size)
@@ -215,7 +216,7 @@ export const StatsService = {
     // 5. User Tracking (Today/Past Month & Geographic)
     trackUserLogin: async (force = false) => {
         try {
-            const today = new Date().toISOString().split('T')[0];
+            const today = getLocalDateString();
             const month = today.substring(0, 7);
             const sessionKey = `last_stat_log_${today}`;
             const alreadyLoggedToday = localStorage.getItem(sessionKey);

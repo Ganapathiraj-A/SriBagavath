@@ -14,6 +14,7 @@ import {
     Search
 } from 'lucide-react';
 import { db } from '../firebase';
+import { getLocalDateString } from '../utils/dateUtils';
 import { collection, query, where, getDocs, orderBy, Timestamp } from 'firebase/firestore';
 import { Share } from '@capacitor/share';
 import { Filesystem, Directory } from '@capacitor/filesystem';
@@ -101,8 +102,8 @@ const BackOfficeReporting = () => {
             const archRef = collection(db, 'archived_transactions');
 
             if (dateRange.allTime) {
-                transQuery = query(transRef, where('status', '==', 'BNK_VERIFIED'));
-                archQuery = query(archRef, where('status', '==', 'BNK_VERIFIED'));
+                transQuery = query(transRef, where('status', '==', 'COMPLETED'));
+                archQuery = query(archRef, where('status', '==', 'COMPLETED'));
             } else if (dateRange.start && dateRange.end) {
                 const startDate = new Date(dateRange.start);
                 const endDate = new Date(dateRange.end);
@@ -110,13 +111,13 @@ const BackOfficeReporting = () => {
 
                 transQuery = query(
                     transRef,
-                    where('status', '==', 'BNK_VERIFIED'),
+                    where('status', '==', 'COMPLETED'),
                     where('createdAt', '>=', startDate.toISOString()),
                     where('createdAt', '<=', endDate.toISOString())
                 );
                 archQuery = query(
                     archRef,
-                    where('status', '==', 'BNK_VERIFIED'),
+                    where('status', '==', 'COMPLETED'),
                     where('createdAt', '>=', startDate.toISOString()),
                     where('createdAt', '<=', endDate.toISOString())
                 );
@@ -222,7 +223,7 @@ const BackOfficeReporting = () => {
 
     const handleExport = async () => {
         let data = [];
-        let filename = `report_${activeTab}_${new Date().toISOString().split('T')[0]}.csv`;
+        let filename = `report_${activeTab}_${getLocalDateString()}.csv`;
 
         if (activeTab === 'overall') {
             data = [{

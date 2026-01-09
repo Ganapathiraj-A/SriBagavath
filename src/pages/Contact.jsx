@@ -60,7 +60,7 @@ const Contact = () => {
                     </button>
                 }
             />
-            <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ padding: '0 1.5rem 1.5rem 1.5rem', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ maxWidth: '42rem', margin: '0 auto', width: '100%' }}>
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}

@@ -51,11 +51,11 @@ const MyOrders = () => {
         return () => unsubscribe();
     }, []);
 
-    const handleViewReceipt = async (id) => {
+    const handleViewReceipt = async (id, utr) => {
         try {
             const base64 = await TransactionService.getImage(id);
             if (base64) {
-                setViewingImage(base64);
+                setViewingImage({ base64, utr });
             } else {
                 alert("No receipt image found for this order.");
             }
@@ -67,7 +67,7 @@ const MyOrders = () => {
 
     const getStatusColor = (status) => {
         switch (status) {
-            case 'BNK_VERIFIED': return 'green';
+            case 'COMPLETED': return 'green';
             case 'PENDING': return 'orange';
             case 'REJECTED': return 'red';
             default: return 'gray';
@@ -157,13 +157,16 @@ const MyOrders = () => {
                                     boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)'
                                 }}>
                                     <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                                        <h2 style={{ margin: 0, fontSize: '18px' }}>Payment Receipt</h2>
+                                        <div>
+                                            <h2 style={{ margin: 0, fontSize: '18px' }}>Payment Receipt</h2>
+                                            {viewingImage.utr && <div style={{ fontSize: '12px', color: '#1e40af', fontWeight: 600 }}>UTR: {viewingImage.utr}</div>}
+                                        </div>
                                         <button onClick={() => setViewingImage(null)} style={{ border: 'none', background: 'none', padding: '5px' }}>
                                             <X size={24} color="#666" />
                                         </button>
                                     </div>
                                     <img
-                                        src={`data:image/jpeg;base64,${viewingImage}`}
+                                        src={`data:image/jpeg;base64,${viewingImage.base64}`}
                                         alt="Receipt"
                                         style={{ width: '100%', borderRadius: '8px', maxHeight: '65vh', objectFit: 'contain', border: '1px solid #eee' }}
                                     />
@@ -190,7 +193,7 @@ const MyOrders = () => {
                                         padding: '2px 8px',
                                         borderRadius: '12px'
                                     }}>
-                                        {order.status === 'BNK_VERIFIED' ? 'COMPLETED' : order.status}
+                                        {order.status === 'COMPLETED' ? 'COMPLETED' : order.status}
                                     </span>
                                 </div>
 
@@ -205,10 +208,11 @@ const MyOrders = () => {
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #eee' }}>
                                     <div style={{ fontSize: '13px', color: '#4b5563' }}>
                                         Total: <strong style={{ color: '#111827' }}>₹{order.amount}</strong>
+                                        {order.utr && <div style={{ fontSize: '11px', color: '#1e40af', fontWeight: 600, marginTop: '2px' }}>UTR: {order.utr}</div>}
                                     </div>
                                     {order.hasImage && (
                                         <div
-                                            onClick={() => handleViewReceipt(order.id)}
+                                            onClick={() => handleViewReceipt(order.id, order.utr)}
                                             style={{ fontSize: '12px', color: '#2563eb', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
                                         >
                                             <Receipt size={14} /> View Receipt ↗

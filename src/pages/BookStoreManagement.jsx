@@ -5,12 +5,12 @@ import { TransactionService } from '../services/TransactionService';
 import PageHeader from '../components/PageHeader';
 import '../components/RegistrationStyles.css';
 
-const TABS = ['PENDING', 'PROCESSING', 'SHIPPED', 'BNK_VERIFIED'];
+const TABS = ['PENDING', 'PROCESSING', 'SHIPPED', 'COMPLETED'];
 const TAB_LABELS = {
     'PENDING': 'New Orders',
     'PROCESSING': 'Processing',
     'SHIPPED': 'Shipped',
-    'BNK_VERIFIED': 'Completed'
+    'COMPLETED': 'Completed'
 };
 
 const BookStoreManagement = () => {
@@ -18,6 +18,7 @@ const BookStoreManagement = () => {
     const [allOrders, setAllOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('PENDING');
+    const [filterSource, setFilterSource] = useState("All"); // All, Online, Offline
 
     useEffect(() => {
         // Clear badges
@@ -33,14 +34,20 @@ const BookStoreManagement = () => {
         return () => unsubscribe();
     }, []);
 
-    const displayedOrders = allOrders.filter(order => {
-        if (activeTab === 'PENDING') return order.status === 'PENDING' || (order.status !== 'BNK_VERIFIED' && order.status !== 'PROCESSING' && order.status !== 'SHIPPED' && order.status !== 'REJECTED');
+    const filteredBySource = allOrders.filter(order => {
+        if (filterSource === 'Online' && order.isOffline) return false;
+        if (filterSource === 'Offline' && !order.isOffline) return false;
+        return true;
+    });
+
+    const displayedOrders = filteredBySource.filter(order => {
+        if (activeTab === 'PENDING') return order.status === 'PENDING' || (order.status !== 'COMPLETED' && order.status !== 'PROCESSING' && order.status !== 'SHIPPED' && order.status !== 'REJECTED');
         return order.status === activeTab;
     });
 
     const getCount = (status) => {
-        return allOrders.filter(order => {
-            if (status === 'PENDING') return order.status === 'PENDING' || (order.status !== 'BNK_VERIFIED' && order.status !== 'PROCESSING' && order.status !== 'SHIPPED' && order.status !== 'REJECTED');
+        return filteredBySource.filter(order => {
+            if (status === 'PENDING') return order.status === 'PENDING' || (order.status !== 'COMPLETED' && order.status !== 'PROCESSING' && order.status !== 'SHIPPED' && order.status !== 'REJECTED');
             return order.status === status;
         }).length;
     };
@@ -95,8 +102,21 @@ const BookStoreManagement = () => {
                 }
             />
 
-            {/* Tabs */}
+            {/* Filter & Tabs */}
             <div style={{ backgroundColor: 'white', padding: '10px 16px', borderBottom: '1px solid #eee' }}>
+                <div style={{ marginBottom: '10px' }}>
+                    <select
+                        value={filterSource}
+                        onChange={e => setFilterSource(e.target.value)}
+                        className="styled-select"
+                        style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #d1d5db' }}
+                    >
+                        <option value="All">All Sources</option>
+                        <option value="Online">Online Orders</option>
+                        <option value="Offline">Offline Orders</option>
+                    </select>
+                </div>
+
                 <div className="tabs-row" style={{ justifyContent: 'center' }}>
                     {TABS.map(tab => {
                         const count = getCount(tab);
@@ -115,11 +135,11 @@ const BookStoreManagement = () => {
             </div>
 
             {/* Sub-Header Actions */}
-            {activeTab === 'BNK_VERIFIED' && getCount('BNK_VERIFIED') > 0 && (
+            {activeTab === 'COMPLETED' && getCount('COMPLETED') > 0 && (
                 <div style={{ padding: '0 16px', marginTop: '8px' }}>
                     <button
                         onClick={async () => {
-                            const toArchive = allOrders.filter(o => o.status === 'BNK_VERIFIED');
+                            const toArchive = allOrders.filter(o => o.status === 'COMPLETED');
                             if (confirm(`Move ALL ${toArchive.length} Completed orders to Storage?`)) {
                                 setLoading(true);
                                 try {
@@ -132,7 +152,7 @@ const BookStoreManagement = () => {
                         }}
                         style={{ width: '100%', padding: '10px', borderRadius: '8px', border: 'none', backgroundColor: '#4f46e5', color: 'white', fontSize: '14px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                     >
-                        <Package size={18} /> Move All to Storage ({getCount('BNK_VERIFIED')})
+                        <Package size={18} /> Move All to Storage ({getCount('COMPLETED')})
                     </button>
                 </div>
             )}
@@ -148,13 +168,43 @@ const BookStoreManagement = () => {
                 {displayedOrders.map(order => (
                     <div key={order.id} className="card" style={{ marginBottom: '16px', borderLeft: order.status === 'PENDING' ? '4px solid #f59e0b' : '4px solid #10b981' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                            <span style={{ fontSize: '13px', fontWeight: 600, color: '#111827' }}>
+                            <span style={{ fontSize: '13px', fontWeight: 600, color: '#111827', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 Order #{order.id.substring(0, 8)}
+                                {order.reconciled && (
+                                    <span style={{
+                                        backgroundColor: '#dbeafe',
+                                        color: '#1e40af',
+                                        fontSize: '10px',
+                                        padding: '2px 6px',
+                                        borderRadius: '4px',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '4px'
+                                    }}>
+                                        <Check size={10} /> Bank Verified
+                                    </span>
+                                )}
                             </span>
                             <span style={{ fontSize: '12px', color: '#6b7280' }}>
                                 {new Date(order.timestamp?.seconds * 1000 || Date.now()).toLocaleDateString()}
                             </span>
                         </div>
+
+                        {/* Offline Indicator */}
+                        {order.isOffline && (
+                            <div style={{
+                                display: 'inline-block',
+                                backgroundColor: '#e0f2fe',
+                                color: '#0284c7',
+                                fontSize: '11px',
+                                fontWeight: 'bold',
+                                padding: '2px 6px',
+                                borderRadius: '4px',
+                                marginBottom: '8px'
+                            }}>
+                                OFFLINE ORDER
+                            </div>
+                        )}
 
                         {/* Items summary */}
                         <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '8px', marginBottom: '12px' }}>
@@ -171,6 +221,11 @@ const BookStoreManagement = () => {
                                 <span>Total Paid</span>
                                 <span>₹{order.amount}</span>
                             </div>
+                            {order.utr && (
+                                <div style={{ fontSize: '12px', fontWeight: 600, color: '#2563eb', marginTop: '4px', textAlign: 'right' }}>
+                                    UTR: {order.utr}
+                                </div>
+                            )}
                         </div>
 
                         {/* Shipping details */}
@@ -231,14 +286,14 @@ const BookStoreManagement = () => {
                                         <Rewind size={16} /> Revert
                                     </button>
                                     <button
-                                        onClick={() => handleUpdateStatus(order.id, 'BNK_VERIFIED')}
+                                        onClick={() => handleUpdateStatus(order.id, 'COMPLETED')}
                                         style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', backgroundColor: '#10b981', color: 'white', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                                     >
                                         <Check size={16} /> Mark Completed
                                     </button>
                                 </>
                             )}
-                            {order.status === 'BNK_VERIFIED' ? (
+                            {order.status === 'COMPLETED' ? (
                                 <>
                                     <button
                                         onClick={() => handleUpdateStatus(order.id, 'SHIPPED')}

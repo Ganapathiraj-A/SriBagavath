@@ -32,14 +32,14 @@ const DonationManagement = () => {
     }, []);
 
     const displayedDonations = allDonations.filter(donation => {
-        if (activeTab === 'RECEIVED') return donation.status === 'PENDING' || (donation.status !== 'BNK_VERIFIED' && donation.status !== 'REJECTED');
-        return donation.status === 'BNK_VERIFIED';
+        if (activeTab === 'RECEIVED') return donation.status === 'PENDING';
+        return donation.status === 'COMPLETED' || donation.status === 'REGISTERED';
     });
 
     const getCount = (tab) => {
         return allDonations.filter(donation => {
-            if (tab === 'RECEIVED') return donation.status === 'PENDING' || (donation.status !== 'BNK_VERIFIED' && donation.status !== 'REJECTED');
-            return donation.status === 'BNK_VERIFIED';
+            if (tab === 'RECEIVED') return donation.status === 'PENDING';
+            return donation.status === 'COMPLETED' || donation.status === 'REGISTERED';
         }).length;
     };
 
@@ -115,7 +115,7 @@ const DonationManagement = () => {
                 <div style={{ padding: '0 16px', marginTop: '8px' }}>
                     <button
                         onClick={async () => {
-                            const toArchive = allDonations.filter(o => o.status === 'BNK_VERIFIED');
+                            const toArchive = allDonations.filter(o => o.status === 'COMPLETED' || o.status === 'REGISTERED');
                             if (confirm(`Move ALL ${toArchive.length} Accepted donations to Storage?`)) {
                                 setLoading(true);
                                 try {
@@ -160,18 +160,32 @@ const DonationManagement = () => {
                             <div style={{ fontSize: '18px', fontWeight: 700, color: '#1e293b' }}>
                                 ₹{donation.amount}
                             </div>
+                            {donation.utr && (
+                                <div style={{ fontSize: '12px', fontWeight: 600, color: '#2563eb', marginTop: '4px' }}>
+                                    UTR: {donation.utr}
+                                </div>
+                            )}
                         </div>
 
                         {/* Donor details */}
-                        {donation.shippingAddress && (
+                        {(donation.shippingAddress || donation.primaryApplicant) && (
                             <div style={{ background: '#f0fdf4', padding: '10px', borderRadius: '8px', marginBottom: '12px' }}>
                                 <div style={{ fontSize: '12px', color: '#166534', fontWeight: 600, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    <User size={14} /> DONOR DETAILS
+                                    <User size={14} /> DONOR DETAILS {donation.isOffline && <span style={{ color: '#059669', fontSize: '10px' }}>(OFFLINE)</span>}
                                 </div>
-                                <div style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>{donation.shippingAddress.name}</div>
-                                <div style={{ fontSize: '14px', color: '#4b5563' }}>{donation.shippingAddress.mobile}</div>
+                                <div style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>
+                                    {(donation.shippingAddress || donation.primaryApplicant).name}
+                                </div>
+                                <div style={{ fontSize: '14px', color: '#4b5563' }}>
+                                    {(donation.shippingAddress || donation.primaryApplicant).mobile}
+                                </div>
+                                {(donation.shippingAddress || donation.primaryApplicant).pan && (
+                                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                                        PAN: {(donation.shippingAddress || donation.primaryApplicant).pan}
+                                    </div>
+                                )}
                                 <div style={{ fontSize: '13px', color: '#4b5563', marginTop: '4px' }}>
-                                    {donation.shippingAddress.city}
+                                    {(donation.shippingAddress || donation.primaryApplicant).city || donation.place}
                                 </div>
                             </div>
                         )}
@@ -185,15 +199,15 @@ const DonationManagement = () => {
                                     View Receipt
                                 </button>
                             )}
-                            {donation.status === 'PENDING' && (
+                            {(donation.status === 'PENDING' || (donation.isOffline && donation.status === 'REGISTERED' && activeTab === 'RECEIVED')) && (
                                 <button
-                                    onClick={() => handleUpdateStatus(donation.id, 'BNK_VERIFIED')}
+                                    onClick={() => handleUpdateStatus(donation.id, 'COMPLETED')}
                                     style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', backgroundColor: '#16a34a', color: 'white', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                                 >
                                     <Check size={16} /> Accept Donation
                                 </button>
                             )}
-                            {donation.status === 'BNK_VERIFIED' && (
+                            {(donation.status === 'COMPLETED' || (donation.isOffline && donation.status === 'REGISTERED' && activeTab === 'ACCEPTED')) && (
                                 <>
                                     <button
                                         onClick={() => handleUpdateStatus(donation.id, 'PENDING')}

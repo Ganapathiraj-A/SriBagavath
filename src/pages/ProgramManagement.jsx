@@ -16,83 +16,11 @@ import { TransactionService } from '../services/TransactionService';
 import { StatsService } from '../services/StatsService';
 import { increment as firestoreIncrement } from 'firebase/firestore';
 import { useUnseenCounts } from '../hooks/useUnseenCounts';
+import { getLocalDateString } from '../utils/dateUtils';
 
 // Helper to compress image to Base64
 // Helper to compress image to Base64
-const compressImage = (file) => {
-    return new Promise((resolve, reject) => {
-        // 1. Check for HEIC/HEIF which browsers often can't render in <img>/Canvas directly
-        if (file.type === "image/heic" || file.type === "image/heif" || file.name.toLowerCase().endsWith('.heic')) {
-            reject(new Error("HEIC format is not supported by the browser. Please use a standard JPEG or PNG image."));
-            return;
-        }
-
-        const attemptLoad = (src, isBlob) => {
-            const img = new Image();
-            img.onload = () => {
-                if (isBlob) URL.revokeObjectURL(src);
-                try {
-                    const canvas = document.createElement('canvas');
-                    let width = img.width;
-                    let height = img.height;
-                    const MAX_WIDTH = 800; // Increased slightly for better quality on tablets
-
-                    if (width > MAX_WIDTH) {
-                        height = (height * MAX_WIDTH) / width;
-                        width = MAX_WIDTH;
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
-
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-
-                    // Adaptive Quality Reduction
-                    let quality = 0.8;
-                    let dataUrl = canvas.toDataURL('image/jpeg', quality);
-                    const TARGET_SIZE = 350000; // 350KB target
-
-                    while (dataUrl.length * 0.75 > TARGET_SIZE && quality > 0.3) {
-                        quality -= 0.1;
-                        dataUrl = canvas.toDataURL('image/jpeg', quality);
-                    }
-
-                    resolve(dataUrl);
-                } catch (e) {
-                    reject(new Error("Image processing error: " + e.message));
-                }
-            };
-
-            img.onerror = (e) => {
-                if (isBlob) {
-                    URL.revokeObjectURL(src);
-                    console.warn("createObjectURL failed, falling back to FileReader...");
-                    // Fallback to FileReader
-                    const reader = new FileReader();
-                    reader.onload = (re) => attemptLoad(re.target.result, false);
-                    reader.onerror = (err) => reject(new Error("Failed to read file: " + err.message));
-                    reader.readAsDataURL(file);
-                } else {
-                    reject(new Error("Unable to load image. Only JPEG/PNG are supported. If using HEIC, please convert it first."));
-                }
-            };
-
-            img.src = src;
-        };
-
-        // Start with createObjectURL for memory efficiency
-        try {
-            const objectUrl = URL.createObjectURL(file);
-            attemptLoad(objectUrl, true);
-        } catch (e) {
-            // Immediate fallback if createObjectURL crashes (unlikely but possible)
-            const reader = new FileReader();
-            reader.onload = (re) => attemptLoad(re.target.result, false);
-            reader.readAsDataURL(file);
-        }
-    });
-};
+import { compressImage } from '../utils/imageUtils';
 
 // Removed hardcoded PROGRAM_TYPES
 
@@ -153,7 +81,10 @@ const ProgramManagement = () => {
         gentsMaxDorm: '',
         roomMax: '',
         roomFees: '',
-        dormFees: ''
+        dormFees: '',
+        isConsentNeeded: 'N',
+        consentText: '',
+        consentQuestion: ''
     });
 
     // Load programs from Firebase when tab changes
@@ -186,7 +117,10 @@ const ProgramManagement = () => {
                 gentsMaxDorm: editingProgram.gentsMaxDorm || '',
                 roomMax: editingProgram.roomMax || '',
                 roomFees: editingProgram.roomFees || '',
-                dormFees: editingProgram.dormFees || ''
+                dormFees: editingProgram.dormFees || '',
+                isConsentNeeded: editingProgram.isConsentNeeded || 'N',
+                consentText: editingProgram.consentText || '',
+                consentQuestion: editingProgram.consentQuestion || ''
             });
 
             if (isOtherCity) {
@@ -253,7 +187,7 @@ const ProgramManagement = () => {
     const loadPrograms = async () => {
         try {
             setLoading(true);
-            const today = new Date().toISOString().split('T')[0];
+            const today = getLocalDateString();
             const programsRef = collection(db, 'programs');
             let q;
 
@@ -322,6 +256,9 @@ const ProgramManagement = () => {
                         updates.roomMax = selectedType.roomMax || '';
                         updates.roomFees = selectedType.roomFees || '';
                         updates.dormFees = selectedType.dormFees || '';
+                        updates.isConsentNeeded = selectedType.isConsentNeeded || 'N';
+                        updates.consentText = selectedType.consentText || '';
+                        updates.consentQuestion = selectedType.consentQuestion || '';
                     }
                 }
             }
@@ -408,6 +345,9 @@ const ProgramManagement = () => {
                 roomMax: formData.roomMax,
                 roomFees: formData.roomFees,
                 dormFees: formData.dormFees,
+                isConsentNeeded: formData.isConsentNeeded || 'N',
+                consentText: formData.consentText || '',
+                consentQuestion: formData.consentQuestion || '',
                 createdAt: new Date().toISOString()
             };
 
@@ -434,7 +374,7 @@ const ProgramManagement = () => {
                 const sizeInBytes = bannerUrl.length * 0.75;
                 StatsService.recordImage(sizeInBytes, 'BANNER').catch(() => { });
             }
-            setSearchParams({});
+            setSearchParams({}, { replace: true });
             setBannerImage(null);
             loadPrograms();
 
@@ -499,12 +439,15 @@ const ProgramManagement = () => {
             gentsMaxDorm: '',
             roomMax: '',
             roomFees: '',
-            dormFees: ''
+            dormFees: '',
+            isConsentNeeded: 'N',
+            consentText: '',
+            consentQuestion: ''
         });
 
         setBannerImage(null);
         setCitySearch('');
-        setSearchParams({});
+        setSearchParams({}, { replace: true });
     };
 
     const ProgramCard = ({ program }) => (
@@ -1182,6 +1125,49 @@ const ProgramManagement = () => {
                                         />
                                     </div>
                                 </div>
+
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
+                                    <div style={{ display: 'grid', gap: '0.5rem' }}>
+                                        <label style={{ fontWeight: 500, color: '#374151' }}>Is Consent Needed?</label>
+                                        <select
+                                            name="isConsentNeeded"
+                                            value={formData.isConsentNeeded}
+                                            onChange={handleInputChange}
+                                            style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%', backgroundColor: 'white' }}
+                                        >
+                                            <option value="N">No</option>
+                                            <option value="Y">Yes</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {formData.isConsentNeeded === 'Y' && (
+                                    <>
+                                        <div style={{ display: 'grid', gap: '0.5rem' }}>
+                                            <label style={{ fontWeight: 500, color: '#374151' }}>Consent Screen Text</label>
+                                            <textarea
+                                                name="consentText"
+                                                className="consent-text-container"
+                                                value={formData.consentText}
+                                                onChange={handleInputChange}
+                                                placeholder="Detailed consent information..."
+                                                rows={4}
+                                                style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%', fontFamily: 'inherit' }}
+                                            />
+                                        </div>
+                                        <div style={{ display: 'grid', gap: '0.5rem' }}>
+                                            <label style={{ fontWeight: 500, color: '#374151' }}>Consent Question</label>
+                                            <input
+                                                type="text"
+                                                name="consentQuestion"
+                                                value={formData.consentQuestion}
+                                                onChange={handleInputChange}
+                                                placeholder="e.g., Do you agree to the above terms?"
+                                                style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%' }}
+                                            />
+                                        </div>
+                                    </>
+                                )}
 
                                 {/* Form Actions */}
                                 <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
