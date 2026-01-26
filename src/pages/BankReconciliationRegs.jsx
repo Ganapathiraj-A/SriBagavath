@@ -6,6 +6,7 @@ import PageHeader from '../components/PageHeader';
 import { db } from '../firebase';
 import { collection, query, orderBy, limit, getDocs, onSnapshot } from 'firebase/firestore';
 import { TransactionService } from '../services/TransactionService';
+import { compressImage } from '../utils/imageUtils';
 
 const BankReconciliationRegs = () => {
     const navigate = useNavigate();
@@ -20,6 +21,8 @@ const BankReconciliationRegs = () => {
     const [editingAmountValue, setEditingAmountValue] = useState('');
     const [editingParsedAmountValue, setEditingParsedAmountValue] = useState('');
     const [savingUtr, setSavingUtr] = useState(false);
+    const [selectedProgramId, setSelectedProgramId] = useState('ALL');
+    const [uploadingReceipt, setUploadingReceipt] = useState(null); // stores id of tx being updated
 
     useEffect(() => {
         const txRef = collection(db, 'transactions');
@@ -48,11 +51,21 @@ const BankReconciliationRegs = () => {
         return () => unsubscribe();
     }, []);
 
+    const baseProgramTransactions = selectedProgramId === 'ALL'
+        ? transactions
+        : transactions.filter(tx => tx.programId === selectedProgramId);
+
     const counts = {
-        'All': transactions.length,
-        'Matched': transactions.filter(tx => tx.reconciled === true).length,
-        'Amount Mismatch': transactions.filter(tx => tx.amountMismatch === true).length,
-        'Unmatched': transactions.filter(tx => tx.reconciled !== true && tx.amountMismatch !== true).length,
+        'All': baseProgramTransactions.length,
+        'Matched': baseProgramTransactions.filter(tx => tx.reconciled === true).length,
+        'Unmatched': baseProgramTransactions.filter(tx => tx.reconciled !== true && tx.amountMismatch !== true).length,
+        'Amount Mismatch': baseProgramTransactions.filter(tx => tx.amountMismatch === true).length,
+        'Multi Match': (() => {
+            const utrs = baseProgramTransactions.map(tx => tx.utr).filter(u => u && u.length > 5);
+            const duplicates = utrs.filter((u, i) => utrs.indexOf(u) !== i);
+            const uniqueDuplicates = [...new Set(duplicates)];
+            return baseProgramTransactions.filter(tx => tx.utr && uniqueDuplicates.includes(tx.utr)).length;
+        })()
     };
 
     const handleRunMatch = async () => {
@@ -95,6 +108,24 @@ const BankReconciliationRegs = () => {
         } catch (e) {
             console.error("Error fetching receipt:", e);
             alert("Error loading receipt.");
+        }
+    };
+
+    const handleAddReceipt = async (e, id) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+            setUploadingReceipt(id);
+            const base64 = await compressImage(file);
+            await TransactionService.uploadReceipt(id, base64);
+            alert("Receipt uploaded successfully!");
+        } catch (error) {
+            console.error("Upload failed", error);
+            alert("Upload failed: " + error.message);
+        } finally {
+            setUploadingReceipt(null);
+            if (e.target) e.target.value = ''; // Reset input
         }
     };
 
@@ -226,11 +257,17 @@ const BankReconciliationRegs = () => {
         }
     };
 
-    const filteredTransactions = transactions.filter(tx => {
+    const filteredTransactions = baseProgramTransactions.filter(tx => {
         // Tab Filtering
         if (activeTab === 'Matched') return tx.reconciled === true;
-        if (activeTab === 'Amount Mismatch') return tx.amountMismatch === true;
         if (activeTab === 'Unmatched') return tx.reconciled !== true && tx.amountMismatch !== true;
+        if (activeTab === 'Amount Mismatch') return tx.amountMismatch === true;
+        if (activeTab === 'Multi Match') {
+            const utrs = baseProgramTransactions.map(t => t.utr).filter(u => u && u.length > 5);
+            const duplicates = utrs.filter((u, i) => utrs.indexOf(u) !== i);
+            const uniqueDuplicates = [...new Set(duplicates)];
+            return tx.utr && uniqueDuplicates.includes(tx.utr);
+        }
 
         // Search Filtering
         if (searchQuery.trim()) {
@@ -246,10 +283,21 @@ const BankReconciliationRegs = () => {
         return true;
     });
 
+    const sortedPrograms = [...allPrograms].sort((a, b) => {
+        const dateA = a.programDate || '';
+        const dateB = b.programDate || '';
+        return dateB.localeCompare(dateA); // Newest first
+    });
+
+    const today = new Date().toISOString().split('T')[0];
+    const activePrograms = sortedPrograms.filter(p => (p.programDate || '') >= today);
+    const pastPrograms = sortedPrograms.filter(p => (p.programDate || '') < today);
+
     return (
         <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
             <PageHeader
                 title="Registrations & Orders"
+                subtitle="v2.8.299"
                 leftAction={
                     <button onClick={() => navigate('/admin/back-office/reconciliation')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
                         <ChevronLeft size={24} />
@@ -311,11 +359,13 @@ const BankReconciliationRegs = () => {
                                         <X size={24} color="#666" />
                                     </button>
                                 </div>
-                                <img
-                                    src={`data:image/jpeg;base64,${viewingImage.base64}`}
-                                    alt="Receipt"
-                                    style={{ width: '100%', borderRadius: '8px', maxHeight: '50vh', objectFit: 'contain', border: '1px solid #eee' }}
-                                />
+                                <div style={{ width: '100%', overflowY: 'auto', maxHeight: '50vh', border: '1px solid #eee', borderRadius: '8px' }}>
+                                    <img
+                                        src={viewingImage.base64.startsWith('data:') ? viewingImage.base64 : `data:image/jpeg;base64,${viewingImage.base64}`}
+                                        alt="Receipt"
+                                        style={{ width: '100%', display: 'block' }}
+                                    />
+                                </div>
 
                                 <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                     <div>
@@ -411,6 +461,8 @@ const BankReconciliationRegs = () => {
                                     style={{
                                         width: '100%',
                                         height: '48px',
+                                        minHeight: '48px',
+                                        flexShrink: 0,
                                         background: '#f3f4f6',
                                         color: '#4b5563',
                                         border: '1px solid #e5e7eb',
@@ -489,6 +541,44 @@ const BankReconciliationRegs = () => {
                         </div>
                     )}
 
+                    {/* Program Filter */}
+                    <div style={{ backgroundColor: 'white', padding: '12px', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+                        <label style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', marginBottom: '8px', display: 'block' }}>Filter by Program</label>
+                        <select
+                            value={selectedProgramId}
+                            onChange={(e) => setSelectedProgramId(e.target.value)}
+                            style={{
+                                width: '100%',
+                                padding: '10px',
+                                borderRadius: '8px',
+                                border: '1px solid #d1d5db',
+                                fontSize: '14px',
+                                outline: 'none',
+                                backgroundColor: '#f9fafb'
+                            }}
+                        >
+                            <option value="ALL">All Programs</option>
+                            {activePrograms.length > 0 && (
+                                <optgroup label="Active / Upcoming">
+                                    {activePrograms.map(p => (
+                                        <option key={p.id} value={p.id}>
+                                            {p.programName} ({formatProgramDate(p.programDate)}{p.programCity ? ` - ${p.programCity}` : ''})
+                                        </option>
+                                    ))}
+                                </optgroup>
+                            )}
+                            {pastPrograms.length > 0 && (
+                                <optgroup label="Past Programs">
+                                    {pastPrograms.map(p => (
+                                        <option key={p.id} value={p.id}>
+                                            {p.programName} ({formatProgramDate(p.programDate)}{p.programCity ? ` - ${p.programCity}` : ''})
+                                        </option>
+                                    ))}
+                                </optgroup>
+                            )}
+                        </select>
+                    </div>
+
                     <div style={{ position: 'relative' }}>
                         <Search size={18} color="#9ca3af" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)' }} />
                         <input
@@ -525,7 +615,7 @@ const BankReconciliationRegs = () => {
                     </div>
 
                     <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem', alignItems: 'center' }}>
-                        {['All', 'Matched', 'Amount Mismatch', 'Unmatched'].map(tab => (
+                        {['All', 'Matched', 'Unmatched', 'Amount Mismatch', 'Multi Match'].map(tab => (
                             <button
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
@@ -634,18 +724,18 @@ const BankReconciliationRegs = () => {
                                     </div>
 
                                     <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-                                        {tx.hasImage && (
+                                        {tx.hasImage ? (
                                             <button
                                                 onClick={() => handleViewReceipt(tx)}
                                                 style={{
                                                     flex: 1,
                                                     padding: '0.5rem',
-                                                    backgroundColor: '#f9fafb',
-                                                    border: '1px solid #e5e7eb',
+                                                    backgroundColor: 'white',
+                                                    border: '1px solid #ddd',
                                                     borderRadius: '0.5rem',
                                                     fontSize: '0.8125rem',
                                                     fontWeight: 600,
-                                                    color: '#4b5563',
+                                                    color: '#1e40af',
                                                     display: 'flex',
                                                     alignItems: 'center',
                                                     justifyContent: 'center',
@@ -653,8 +743,38 @@ const BankReconciliationRegs = () => {
                                                     cursor: 'pointer'
                                                 }}
                                             >
-                                                <Receipt size={16} /> View Receipt
+                                                Verify Receipt
                                             </button>
+                                        ) : (
+                                            <div style={{ flex: 1, position: 'relative' }}>
+                                                <button
+                                                    disabled={uploadingReceipt === tx.id}
+                                                    onClick={() => document.getElementById(`receipt-input-${tx.id}`).click()}
+                                                    style={{
+                                                        width: '100%',
+                                                        padding: '0.5rem',
+                                                        borderRadius: '0.5rem',
+                                                        border: '1px solid #2563eb',
+                                                        backgroundColor: '#eff6ff',
+                                                        color: '#2563eb',
+                                                        fontSize: '0.8125rem',
+                                                        fontWeight: 600,
+                                                        cursor: uploadingReceipt === tx.id ? 'wait' : 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center'
+                                                    }}
+                                                >
+                                                    {uploadingReceipt === tx.id ? 'Uploading...' : 'Add Receipt'}
+                                                </button>
+                                                <input
+                                                    type="file"
+                                                    id={`receipt-input-${tx.id}`}
+                                                    style={{ display: 'none' }}
+                                                    accept="image/*"
+                                                    onChange={(e) => handleAddReceipt(e, tx.id)}
+                                                />
+                                            </div>
                                         )}
                                         {tx.reconciled && (
                                             <button
@@ -662,8 +782,8 @@ const BankReconciliationRegs = () => {
                                                 style={{
                                                     flex: 1,
                                                     padding: '0.5rem',
-                                                    backgroundColor: '#eff6ff',
-                                                    border: '1px solid #bfdbfe',
+                                                    backgroundColor: 'white',
+                                                    border: '1px solid #ddd',
                                                     borderRadius: '0.5rem',
                                                     fontSize: '0.8125rem',
                                                     fontWeight: 600,

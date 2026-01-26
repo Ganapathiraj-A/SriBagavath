@@ -17,7 +17,8 @@ import { db } from '../firebase';
 import { getLocalDateString } from '../utils/dateUtils';
 import { collection, query, where, getDocs, orderBy, Timestamp } from 'firebase/firestore';
 import { Share } from '@capacitor/share';
-import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+import { Capacitor } from '@capacitor/core';
 
 const ReportCard = ({ title, icon: Icon, value, subtitle, delay, color = 'var(--color-primary)' }) => (
     <motion.div
@@ -271,28 +272,33 @@ const BackOfficeReporting = () => {
         const csvContent = csvRows.join('\n');
 
         try {
-            const base64Data = btoa(unescape(encodeURIComponent(csvContent)));
-            const result = await Filesystem.writeFile({
-                path: filename,
-                data: base64Data,
-                directory: Directory.Cache
-            });
+            if (Capacitor.isNativePlatform()) {
+                const base64Data = btoa(unescape(encodeURIComponent(csvContent)));
+                const result = await Filesystem.writeFile({
+                    path: filename,
+                    data: base64Data,
+                    directory: Directory.Cache,
+                    encoding: Encoding.UTF8
+                });
 
-            await Share.share({
-                title: `Export: ${activeTab}`,
-                text: `SBB Admin Report - ${activeTab}`,
-                url: result.uri,
-                dialogTitle: 'Share Report CSV'
-            });
+                await Share.share({
+                    title: `Export: ${activeTab}`,
+                    text: `SBB Admin Report - ${activeTab}`,
+                    url: result.uri,
+                    dialogTitle: 'Share Report CSV'
+                });
+            } else {
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.click();
+                setTimeout(() => window.URL.revokeObjectURL(url), 100);
+            }
         } catch (err) {
-            console.error("Native export failed, falling back to web:", err);
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            a.click();
-            setTimeout(() => window.URL.revokeObjectURL(url), 100);
+            console.error("Native export failed:", err);
+            alert("Export failed: " + err.message);
         }
     };
 

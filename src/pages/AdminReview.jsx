@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Check, Trash2, Rewind, AlertCircle, X, LogOut, Package, Image, Info } from 'lucide-react';
 import { TransactionService } from '../services/TransactionService';
 import PageHeader from '../components/PageHeader';
+import { compressImage } from '../utils/imageUtils';
 import '../components/RegistrationStyles.css';
 
 const TABS = ['PENDING', 'REGISTERED', 'HOLD', 'COMPLETED'];
@@ -31,6 +32,7 @@ const AdminReview = () => {
     const [editingAmountValue, setEditingAmountValue] = useState('');
     const [editingParsedAmountValue, setEditingParsedAmountValue] = useState('');
     const [savingDetails, setSavingDetails] = useState(false);
+    const [uploadingReceipt, setUploadingReceipt] = useState(null); // stores id of tx being updated
 
     const handleLogout = async () => {
         if (confirm("Logout?")) {
@@ -272,6 +274,24 @@ const AdminReview = () => {
         }
     };
 
+    const handleAddReceipt = async (e, id) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+            setUploadingReceipt(id);
+            const base64 = await compressImage(file);
+            await TransactionService.uploadReceipt(id, base64);
+            alert("Receipt uploaded successfully!");
+        } catch (error) {
+            console.error("Upload failed", error);
+            alert("Upload failed: " + error.message);
+        } finally {
+            setUploadingReceipt(null);
+            if (e.target) e.target.value = ''; // Reset input
+        }
+    };
+
     const handleSaveDetails = async () => {
         if (!viewingImage || savingDetails) return;
         setSavingDetails(true);
@@ -377,130 +397,133 @@ const AdminReview = () => {
                             </button>
                         </div>
 
-                        {/* Content Area - Scrollable */}
-                        <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem', paddingRight: '4px' }}>
-                            {/* Receipt Image */}
-                            <div style={{ position: 'relative', borderRadius: '1rem', overflow: 'hidden', border: '1px solid #e5e7eb', backgroundColor: '#f9fafb', minHeight: '200px' }}>
-                                <img src={`data:image/jpeg;base64,${viewingImage.base64}`} alt="Receipt" style={{ width: '100%', display: 'block' }} />
-                                <div style={{ position: 'absolute', top: '0.75rem', right: '0.75rem', backgroundColor: 'rgba(255,255,255,0.9)', padding: '4px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, color: '#374151', backdropFilter: 'blur(4px)', border: '1px solid rgba(0,0,0,0.05)' }}>
-                                    Receipt Image
-                                </div>
+                        {/* Receipt Image */}
+                        <div style={{ position: 'relative', borderRadius: '1rem', overflowY: 'auto', border: '1px solid #e5e7eb', backgroundColor: '#f9fafb', maxHeight: '400px', display: 'flex', flexDirection: 'column' }}>
+                            <img
+                                src={viewingImage.base64.startsWith('data:') ? viewingImage.base64 : `data:image/jpeg;base64,${viewingImage.base64}`}
+                                alt="Receipt"
+                                style={{ width: '100%', display: 'block' }}
+                            />
+                            <div style={{ position: 'absolute', top: '0.75rem', right: '0.75rem', backgroundColor: 'rgba(255,255,255,0.9)', padding: '4px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, color: '#374151', backdropFilter: 'blur(4px)', border: '1px solid rgba(0,0,0,0.05)' }}>
+                                Receipt Image
+                            </div>
+                        </div>
+
+                        {/* OCR Text / Suggestions */}
+                        <div style={{ backgroundColor: '#f8fafc', padding: '15px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                <span style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748b', fontWeight: 700, letterSpacing: '0.05em' }}>Detecting UTR from Receipt</span>
+                                {extractUtrSuggestions(viewingImage.ocrText).length > 0 && <span style={{ fontSize: '10px', backgroundColor: '#dcfce7', color: '#166534', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>Found Suggestions</span>}
                             </div>
 
-                            {/* OCR Text / Suggestions */}
-                            <div style={{ backgroundColor: '#f8fafc', padding: '15px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                    <span style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748b', fontWeight: 700, letterSpacing: '0.05em' }}>Detecting UTR from Receipt</span>
-                                    {extractUtrSuggestions(viewingImage.ocrText).length > 0 && <span style={{ fontSize: '10px', backgroundColor: '#dcfce7', color: '#166534', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>Found Suggestions</span>}
+                            {extractUtrSuggestions(viewingImage.ocrText).length > 0 ? (
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                    {extractUtrSuggestions(viewingImage.ocrText).map(sug => (
+                                        <button
+                                            key={sug}
+                                            onClick={() => setEditingUtrValue(sug)}
+                                            style={{ padding: '6px 12px', backgroundColor: editingUtrValue === sug ? '#dbeafe' : 'white', color: editingUtrValue === sug ? '#1e40af' : '#475569', border: `1px solid ${editingUtrValue === sug ? '#3b82f6' : '#cbd5e1'}`, borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+                                        >
+                                            {sug}
+                                        </button>
+                                    ))}
                                 </div>
+                            ) : (
+                                <div style={{ fontSize: '13px', color: '#94a3b8', fontStyle: 'italic' }}>No UTR-like numbers detected. Please enter manually.</div>
+                            )}
 
-                                {extractUtrSuggestions(viewingImage.ocrText).length > 0 ? (
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                                        {extractUtrSuggestions(viewingImage.ocrText).map(sug => (
-                                            <button
-                                                key={sug}
-                                                onClick={() => setEditingUtrValue(sug)}
-                                                style={{ padding: '6px 12px', backgroundColor: editingUtrValue === sug ? '#dbeafe' : 'white', color: editingUtrValue === sug ? '#1e40af' : '#475569', border: `1px solid ${editingUtrValue === sug ? '#3b82f6' : '#cbd5e1'}`, borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
-                                            >
-                                                {sug}
-                                            </button>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div style={{ fontSize: '13px', color: '#94a3b8', fontStyle: 'italic' }}>No UTR-like numbers detected. Please enter manually.</div>
-                                )}
-
-                                <div style={{ marginTop: '12px', borderTop: '1px solid #e2e8f0', paddingTop: '10px' }}>
-                                    <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748b', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '4px' }}>Raw OCR Preview</div>
-                                    <div style={{ fontSize: '12px', color: '#4b5563', lineHeight: '1.5', maxHeight: '100px', overflowY: 'auto', backgroundColor: 'white', padding: '8px', borderRadius: '6px', border: '1px solid #f1f5f9', whiteSpace: 'pre-wrap' }}>
-                                        {highlightUTR(viewingImage.ocrText, editingUtrValue)}
-                                    </div>
+                            <div style={{ marginTop: '12px', borderTop: '1px solid #e2e8f0', paddingTop: '10px' }}>
+                                <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748b', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '4px' }}>Raw OCR Preview</div>
+                                <div style={{ fontSize: '12px', color: '#4b5563', lineHeight: '1.5', maxHeight: '100px', overflowY: 'auto', backgroundColor: 'white', padding: '8px', borderRadius: '6px', border: '1px solid #f1f5f9', whiteSpace: 'pre-wrap' }}>
+                                    {highlightUTR(viewingImage.ocrText, editingUtrValue)}
                                 </div>
                             </div>
+                        </div>
 
-                            {/* Edit Fields */}
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                        <label style={{ fontSize: '12px', fontWeight: 600, color: '#4b5563' }}>Edit UTR</label>
-                                        <input
-                                            type="text"
-                                            value={editingUtrValue}
-                                            onChange={(e) => setEditingUtrValue(e.target.value)}
-                                            placeholder="UTR..."
-                                            style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '14px', outline: 'none' }}
-                                        />
-                                    </div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                        <label style={{ fontSize: '12px', fontWeight: 600, color: '#4b5563' }}>Reg. Amount</label>
-                                        <input
-                                            type="number"
-                                            value={editingAmountValue}
-                                            onChange={(e) => setEditingAmountValue(e.target.value)}
-                                            placeholder="Reg Amount..."
-                                            style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '14px', outline: 'none' }}
-                                        />
-                                    </div>
-                                </div>
-
+                        {/* Edit Fields */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                    <label style={{ fontSize: '12px', fontWeight: 600, color: '#4b5563' }}>OCR Amount (Detected from Receipt)</label>
+                                    <label style={{ fontSize: '12px', fontWeight: 600, color: '#4b5563' }}>Edit UTR</label>
                                     <input
-                                        type="number"
-                                        value={editingParsedAmountValue}
-                                        onChange={(e) => setEditingParsedAmountValue(e.target.value)}
-                                        placeholder="OCR Amount..."
-                                        style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px', outline: 'none', backgroundColor: '#fdf2f2' }}
+                                        type="text"
+                                        value={editingUtrValue}
+                                        onChange={(e) => setEditingUtrValue(e.target.value)}
+                                        placeholder="UTR..."
+                                        style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '14px', outline: 'none' }}
                                     />
                                 </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                    <label style={{ fontSize: '12px', fontWeight: 600, color: '#4b5563' }}>Reg. Amount</label>
+                                    <input
+                                        type="number"
+                                        value={editingAmountValue}
+                                        onChange={(e) => setEditingAmountValue(e.target.value)}
+                                        placeholder="Reg Amount..."
+                                        style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '14px', outline: 'none' }}
+                                    />
+                                </div>
+                            </div>
 
-                                <button
-                                    onClick={handleSaveDetails}
-                                    disabled={savingDetails}
-                                    style={{
-                                        width: '100%',
-                                        height: '48px',
-                                        backgroundColor: '#2563eb',
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: '12px',
-                                        fontWeight: 700,
-                                        fontSize: '15px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        cursor: savingDetails ? 'wait' : 'pointer',
-                                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                                        marginTop: '4px'
-                                    }}
-                                >
-                                    {savingDetails ? 'Saving Changes...' : 'Save Updated Details'}
-                                </button>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                <label style={{ fontSize: '12px', fontWeight: 600, color: '#4b5563' }}>OCR Amount (Detected from Receipt)</label>
+                                <input
+                                    type="number"
+                                    value={editingParsedAmountValue}
+                                    onChange={(e) => setEditingParsedAmountValue(e.target.value)}
+                                    placeholder="OCR Amount..."
+                                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px', outline: 'none', backgroundColor: '#fdf2f2' }}
+                                />
                             </div>
 
                             <button
-                                onClick={() => setViewingImage(null)}
+                                onClick={handleSaveDetails}
+                                disabled={savingDetails}
                                 style={{
                                     width: '100%',
                                     height: '48px',
-                                    background: '#f3f4f6',
-                                    color: '#4b5563',
-                                    border: '1px solid #e5e7eb',
+                                    backgroundColor: '#2563eb',
+                                    color: 'white',
+                                    border: 'none',
                                     borderRadius: '12px',
                                     fontWeight: 700,
                                     fontSize: '15px',
-                                    cursor: 'pointer',
-                                    marginTop: '8px',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    transition: 'all 0.2s',
-                                    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                                    cursor: savingDetails ? 'wait' : 'pointer',
+                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                                    marginTop: '4px'
                                 }}
                             >
-                                Dismiss
+                                {savingDetails ? 'Saving Changes...' : 'Save Updated Details'}
                             </button>
                         </div>
+
+                        <button
+                            onClick={() => setViewingImage(null)}
+                            style={{
+                                width: '100%',
+                                height: '48px',
+                                minHeight: '48px',
+                                flexShrink: 0,
+                                background: '#f3f4f6',
+                                color: '#4b5563',
+                                border: '1px solid #e5e7eb',
+                                borderRadius: '12px',
+                                fontWeight: 700,
+                                fontSize: '15px',
+                                cursor: 'pointer',
+                                marginTop: '8px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'all 0.2s',
+                                boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                            }}
+                        >
+                            Dismiss
+                        </button>
                     </div>
                 </div>
             )}
@@ -823,13 +846,14 @@ const AdminReview = () => {
                             )}
 
                             <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginTop: '12px' }}>
-                                {tx.hasImage && (
+                                {tx.hasImage ? (
                                     <button
                                         onClick={() => handleViewImage(tx)}
                                         style={{
-                                            background: '#eff6ff',
+                                            flex: 1,
+                                            background: 'white',
                                             color: '#1e40af',
-                                            border: '1px solid #dbeafe',
+                                            border: '1px solid #ddd',
                                             padding: '8px 16px',
                                             borderRadius: '10px',
                                             fontSize: '13px',
@@ -837,11 +861,42 @@ const AdminReview = () => {
                                             cursor: 'pointer',
                                             display: 'flex',
                                             alignItems: 'center',
+                                            justifyContent: 'center',
                                             gap: '6px'
                                         }}
                                     >
-                                        <Image size={14} /> View Receipt
+                                        Verify Receipt
                                     </button>
+                                ) : (
+                                    <div style={{ flex: 1, position: 'relative' }}>
+                                        <button
+                                            disabled={uploadingReceipt === tx.id}
+                                            onClick={() => document.getElementById(`receipt-input-${tx.id}`).click()}
+                                            style={{
+                                                width: '100%',
+                                                padding: '8px 16px',
+                                                borderRadius: '10px',
+                                                border: '1px solid #2563eb',
+                                                backgroundColor: '#eff6ff',
+                                                color: '#2563eb',
+                                                fontSize: '13px',
+                                                fontWeight: 600,
+                                                cursor: uploadingReceipt === tx.id ? 'wait' : 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center'
+                                            }}
+                                        >
+                                            {uploadingReceipt === tx.id ? 'Uploading...' : 'Add Receipt'}
+                                        </button>
+                                        <input
+                                            type="file"
+                                            id={`receipt-input-${tx.id}`}
+                                            style={{ display: 'none' }}
+                                            accept="image/*"
+                                            onChange={(e) => handleAddReceipt(e, tx.id)}
+                                        />
+                                    </div>
                                 )}
                                 <button
                                     onClick={() => setViewingReg(tx)}

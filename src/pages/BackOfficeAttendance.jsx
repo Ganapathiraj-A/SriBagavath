@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { Share } from '@capacitor/share';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+import { Capacitor } from '@capacitor/core';
 import { db } from '../firebase';
 import { getLocalDateString } from '../utils/dateUtils';
 import {
@@ -156,43 +157,34 @@ const BackOfficeAttendance = () => {
             const csvContent = [headers.join(','), ...rows].join('\n');
             const filename = `attendance_${program?.programName || 'export'}_${getLocalDateString()}.csv`.replace(/\s+/g, '_');
 
-            const base64Data = btoa(unescape(encodeURIComponent(csvContent)));
-            const result = await Filesystem.writeFile({
-                path: filename,
-                data: base64Data,
-                directory: Directory.Cache,
-                encoding: Encoding.UTF8
-            });
+            if (Capacitor.isNativePlatform()) {
+                const base64Data = btoa(unescape(encodeURIComponent(csvContent)));
+                const result = await Filesystem.writeFile({
+                    path: filename,
+                    data: base64Data,
+                    directory: Directory.Cache,
+                    encoding: Encoding.UTF8
+                });
 
-            await Share.share({
-                title: 'Export Attendance',
-                text: `Attendance for ${program?.programName}`,
-                url: result.uri,
-                dialogTitle: 'Share Attendance CSV'
-            });
+                await Share.share({
+                    title: 'Export Attendance',
+                    text: `Attendance for ${program?.programName}`,
+                    url: result.uri,
+                    dialogTitle: 'Share Attendance CSV'
+                });
+            } else {
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', filename);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
         } catch (err) {
             console.error("Export failed:", err);
-            const headers = ['Name', 'Gender', 'Age', 'Mobile', 'Status', 'Transaction ID'];
-            const rows = participants.map(p => {
-                const isPresent = !!attendanceMap[p.id];
-                return [
-                    p.name || 'Unknown',
-                    p.gender || 'N/A',
-                    p.age || 'N/A',
-                    p.mobile || 'N/A',
-                    isPresent ? 'PRESENT' : 'ABSENT',
-                    p.transactionId
-                ].join(',');
-            });
-            const csvContent = [headers.join(','), ...rows].join('\n');
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `attendance_${program?.programName || 'export'}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            alert("Export failed: " + err.message);
         }
     };
 

@@ -9,12 +9,18 @@ import {
     Clock,
     X,
     Receipt,
-    Search
+    Search,
+    Filter,
+    FileDown,
+    CalendarDays
 } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { db } from '../firebase';
 import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { TransactionService } from '../services/TransactionService';
+import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
+import { Capacitor } from '@capacitor/core';
 
 const BankStatementView = () => {
     const navigate = useNavigate();
@@ -26,6 +32,10 @@ const BankStatementView = () => {
     const [activeTab, setActiveTab] = useState('All Entries');
     const [viewingImage, setViewingImage] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+    const [showFilters, setShowFilters] = useState(false);
+    const [exporting, setExporting] = useState(false);
 
     useEffect(() => {
         const q = query(collection(db, 'bank_entries'), orderBy('timestamp', 'desc'));
@@ -45,7 +55,6 @@ const BankStatementView = () => {
         'All Entries': bankEntries.length,
         'Matched': bankEntries.filter(e => e.status === 'MATCHED').length,
         'Unmatched': bankEntries.filter(e => e.status === 'UNMATCHED').length,
-        'Pending': bankEntries.filter(e => e.status === 'PENDING').length
     };
 
     const handleRunMatch = async () => {
@@ -81,6 +90,23 @@ const BankStatementView = () => {
         const tabMatch = activeTab === 'All Entries' || entry.status?.toUpperCase() === activeTab.toUpperCase();
         if (!tabMatch) return false;
 
+        // Date Range Filtering
+        if (startDate || endDate) {
+            const entryDateStr = entry.date; // Format is DD/MM/YYYY
+            if (!entryDateStr) return false;
+            const [d, m, y] = entryDateStr.split('/');
+            const entryTime = new Date(`${y}-${m}-${d}`).getTime();
+
+            if (startDate) {
+                const startTime = new Date(startDate).setHours(0, 0, 0, 0);
+                if (entryTime < startTime) return false;
+            }
+            if (endDate) {
+                const endTime = new Date(endDate).setHours(23, 59, 59, 999);
+                if (entryTime > endTime) return false;
+            }
+        }
+
         // Search Filtering
         if (searchQuery.trim()) {
             const query = searchQuery.toLowerCase();
@@ -91,6 +117,105 @@ const BankStatementView = () => {
 
         return true;
     });
+
+    const handleExportForTally = async () => {
+        if (filteredEntries.length === 0 || exporting) return;
+        setExporting(true);
+
+        try {
+            const { getDocs, collection, where, query } = await import('firebase/firestore');
+
+            // 1. Fetch matched transactions source info
+            const matchedIds = filteredEntries
+                .filter(e => e.status === 'MATCHED' && e.matchedTransactionId)
+                .map(e => e.matchedTransactionId);
+
+            let txMap = {};
+            if (matchedIds.length > 0) {
+                // Fetch in chunks of 30 due to Firestore 'in' limit
+                for (let i = 0; i < matchedIds.length; i += 30) {
+                    const chunk = matchedIds.slice(i, i + 30);
+                    const q = query(collection(db, 'transactions'), where('id', 'in', chunk));
+                    const snap = await getDocs(q);
+                    snap.docs.forEach(doc => {
+                        const data = doc.data();
+                        txMap[doc.id] = data;
+                    });
+                }
+            }
+
+            // 2. Format CSV
+            const headers = ['Date', 'Particulars', 'Voucher Type', 'Voucher No', 'Debit', 'Credit', 'Narration'];
+            const rows = filteredEntries.map(entry => {
+                const matchedTx = entry.matchedTransactionId ? txMap[entry.matchedTransactionId] : null;
+
+                // Tally Date format: DD-MM-YYYY or DD-MMM-YYYY
+                const dateParts = entry.date?.split('/') || [];
+                const tallyDate = dateParts.length === 3 ? `${dateParts[0]}-${dateParts[1]}-${dateParts[2]}` : entry.date;
+
+                const amount = parseFloat(entry.amount) || 0;
+                const isReceipt = amount > 0;
+
+                let particulars = "Suspense";
+                if (matchedTx) {
+                    particulars = matchedTx.itemName || matchedTx.itemType || "Matched Transaction";
+                } else if (entry.desc?.toLowerCase().includes('transfer') || entry.desc?.toLowerCase().includes('upi')) {
+                    particulars = "Bank Transfer";
+                }
+
+                return [
+                    tallyDate,
+                    particulars,
+                    isReceipt ? 'Receipt' : 'Payment',
+                    entry.utr || entry.fingerprint?.substring(0, 8) || '',
+                    !isReceipt ? Math.abs(amount).toFixed(2) : '',
+                    isReceipt ? Math.abs(amount).toFixed(2) : '',
+                    entry.desc || ''
+                ];
+            });
+
+            const csvContent = [
+                headers.join(','),
+                ...rows.map(row => row.map(cell => `"${(cell || '').toString().replace(/"/g, '""')}"`).join(','))
+            ].join('\n');
+
+            // 3. Export
+            const fileName = `BankStatement_Tally_${new Date().toISOString().split('T')[0]}.csv`;
+
+            if (Capacitor.isNativePlatform()) {
+                const savedFile = await Filesystem.writeFile({
+                    path: fileName,
+                    data: csvContent,
+                    directory: Directory.Documents,
+                    encoding: Encoding.UTF8,
+                });
+
+                await Share.share({
+                    title: 'Export Bank Statement',
+                    text: 'Bank statement for Tally',
+                    url: savedFile.uri,
+                    dialogTitle: 'Share CSV',
+                });
+            } else {
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement("a");
+                const url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", fileName);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+
+            alert("Exported successfully!");
+        } catch (error) {
+            console.error("Export failed:", error);
+            alert("Export failed: " + error.message);
+        } finally {
+            setExporting(false);
+        }
+    };
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
@@ -109,28 +234,49 @@ const BankStatementView = () => {
                     animate={{ opacity: 1, y: 0 }}
                     style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
                 >
-                    {/* Run Match Button - Centered under header */}
-                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    {/* Actions Row */}
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
                         <button
                             onClick={handleRunMatch}
                             disabled={loading}
                             style={{
-                                background: 'var(--color-primary)',
-                                color: 'white',
-                                border: 'none',
+                                background: 'white',
+                                color: 'var(--color-primary)',
+                                border: '1px solid var(--color-primary)',
                                 borderRadius: '0.75rem',
-                                padding: '10px 24px',
+                                padding: '10px 20px',
                                 fontSize: '0.875rem',
                                 fontWeight: 600,
                                 cursor: loading ? 'wait' : 'pointer',
-                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                                transition: 'all 0.2s',
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '8px'
                             }}
                         >
+                            <CalendarDays size={18} />
                             {loading ? 'Matching...' : 'Run Match Engine'}
+                        </button>
+
+                        <button
+                            onClick={handleExportForTally}
+                            disabled={exporting || bankEntries.length === 0}
+                            style={{
+                                background: 'var(--color-primary)',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '0.75rem',
+                                padding: '10px 20px',
+                                fontSize: '0.875rem',
+                                fontWeight: 700,
+                                cursor: exporting ? 'wait' : 'pointer',
+                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px'
+                            }}
+                        >
+                            <FileDown size={18} />
+                            {exporting ? 'Exporting...' : 'Export for Tally'}
                         </button>
                     </div>
 
@@ -172,43 +318,107 @@ const BankStatementView = () => {
                         </div>
                     )}
 
-                    <div style={{ position: 'relative' }}>
-                        <Search size={18} color="#9ca3af" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)' }} />
-                        <input
-                            type="text"
-                            placeholder="Search UPI or description..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
+                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                        <div style={{ position: 'relative', flex: 1 }}>
+                            <Search size={18} color="#9ca3af" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)' }} />
+                            <input
+                                type="text"
+                                placeholder="Search UPI or description..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                style={{
+                                    width: '100%',
+                                    padding: '0.75rem 1rem 0.75rem 2.75rem',
+                                    borderRadius: '0.75rem',
+                                    border: '1px solid #e5e7eb',
+                                    outline: 'none',
+                                    fontSize: '0.95rem'
+                                }}
+                            />
+                            {searchQuery && (
+                                <button
+                                    onClick={() => setSearchQuery('')}
+                                    style={{
+                                        position: 'absolute',
+                                        right: '0.75rem',
+                                        top: '50%',
+                                        transform: 'translateY(-50%)',
+                                        background: 'none',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        padding: '4px'
+                                    }}
+                                >
+                                    <X size={16} color="#9ca3af" />
+                                </button>
+                            )}
+                        </div>
+                        <button
+                            onClick={() => setShowFilters(!showFilters)}
                             style={{
-                                width: '100%',
-                                padding: '0.75rem 1rem 0.75rem 2.75rem',
+                                padding: '0.75rem',
                                 borderRadius: '0.75rem',
                                 border: '1px solid #e5e7eb',
-                                outline: 'none',
-                                fontSize: '0.95rem'
+                                backgroundColor: showFilters ? 'var(--color-primary)' : 'white',
+                                color: showFilters ? 'white' : '#6b7280',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
                             }}
-                        />
-                        {searchQuery && (
-                            <button
-                                onClick={() => setSearchQuery('')}
-                                style={{
-                                    position: 'absolute',
-                                    right: '0.75rem',
-                                    top: '50%',
-                                    transform: 'translateY(-50%)',
-                                    background: 'none',
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                    padding: '4px'
-                                }}
-                            >
-                                <X size={16} color="#9ca3af" />
-                            </button>
-                        )}
+                        >
+                            <Filter size={20} />
+                        </button>
                     </div>
 
+                    {showFilters && (
+                        <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            style={{
+                                backgroundColor: 'white',
+                                padding: '1rem',
+                                borderRadius: '1rem',
+                                border: '1px solid #e5e7eb',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '1rem',
+                                overflow: 'hidden'
+                            }}
+                        >
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                                <div>
+                                    <label style={{ fontSize: '11px', fontWeight: 600, color: '#6b7280', display: 'block', marginBottom: '4px' }}>From Date</label>
+                                    <input
+                                        type="date"
+                                        value={startDate}
+                                        onChange={(e) => setStartDate(e.target.value)}
+                                        style={{ width: '100%', padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', fontSize: '0.875rem' }}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ fontSize: '11px', fontWeight: 600, color: '#6b7280', display: 'block', marginBottom: '4px' }}>To Date</label>
+                                    <input
+                                        type="date"
+                                        value={endDate}
+                                        onChange={(e) => setEndDate(e.target.value)}
+                                        style={{ width: '100%', padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', fontSize: '0.875rem' }}
+                                    />
+                                </div>
+                            </div>
+                            {(startDate || endDate) && (
+                                <button
+                                    onClick={() => { setStartDate(''); setEndDate(''); }}
+                                    style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '12px', fontWeight: 600, cursor: 'pointer', textAlign: 'left' }}
+                                >
+                                    Clear Date Filters
+                                </button>
+                            )}
+                        </motion.div>
+                    )}
+
                     <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem', alignItems: 'center' }}>
-                        {['All Entries', 'Matched', 'Unmatched', 'Pending'].map(filter => (
+                        {['All Entries', 'Matched', 'Unmatched'].map(filter => (
                             <button
                                 key={filter}
                                 onClick={() => setActiveTab(filter)}
@@ -293,7 +503,7 @@ const BankStatementView = () => {
                                                     cursor: 'pointer'
                                                 }}
                                             >
-                                                View
+                                                Verify
                                             </button>
                                             {entry.status !== 'MATCHED' && (
                                                 <button style={{
@@ -404,9 +614,9 @@ const BankStatementView = () => {
                                         width: '100%',
                                         marginTop: '0.5rem',
                                         padding: '0.75rem',
-                                        backgroundColor: '#f3f4f6',
-                                        color: '#374151',
-                                        border: '1px solid #d1d5db',
+                                        backgroundColor: 'white',
+                                        color: '#1e40af',
+                                        border: '1px solid #ddd',
                                         borderRadius: '0.5rem',
                                         fontWeight: 600,
                                         cursor: 'pointer',
@@ -416,7 +626,7 @@ const BankStatementView = () => {
                                         gap: '0.5rem'
                                     }}
                                 >
-                                    <Receipt size={16} /> View Matched Receipt
+                                    Verify Receipt
                                 </button>
                             )}
 

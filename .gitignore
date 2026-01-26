@@ -12,3 +12,16 @@ android/app/src/main/assets/public
 android/app/src/main/assets/capacitor.config.json
 android/app/src/main/assets/capacitor.plugins.json
 service-account.json
+AgentCompanion.apk
+venv/
+temp/
+*.txt
+*.mjs
+*.js
+!src/**/*.js
+!*.config.js
+!*.config.mjs
+!*.config.cjs
+!src/**/*.mjs
+!*.sh
+

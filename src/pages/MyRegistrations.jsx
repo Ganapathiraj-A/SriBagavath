@@ -320,7 +320,7 @@ const MyRegistrations = () => {
                                                         onClick={() => handleViewReceipt(tx.id, tx.utr)}
                                                         style={{ flex: 1, fontSize: '14px', padding: '8px', border: '1px solid #ddd', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                                                     >
-                                                        View Receipt
+                                                        Verify Receipt
                                                     </button>
                                                 )}
                                             </div>

@@ -291,6 +291,8 @@ function AnimatedRoutes() {
 
 import { GlobalSettingsProvider } from './context/GlobalSettingsContext';
 
+import UpdateIcon from './components/UpdateIcon';
+
 function App() {
   useEffect(() => {
     // Centralized initialization for GoogleAuth
@@ -313,9 +315,16 @@ function App() {
       <CartProvider>
         <Router>
           <AdminAuthProvider>
-            <ErrorBoundary>
-              <AnimatedRoutes />
-            </ErrorBoundary>
+            <div style={{ position: 'relative', minHeight: '100vh', width: '100%' }}>
+              {/* Global Floating Update Icon (Dev/Beta Feature) */}
+              <div style={{ position: 'fixed', top: '60px', right: '32px', zIndex: 9999 }}>
+                <UpdateIcon />
+              </div>
+
+              <ErrorBoundary>
+                <AnimatedRoutes />
+              </ErrorBoundary>
+            </div>
           </AdminAuthProvider>
         </Router>
       </CartProvider>

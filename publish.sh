@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# Force Java 21 for this build (Required for Capacitor v7+ / Modern Gradle)
+export JAVA_HOME="/usr/lib/jvm/java-21-openjdk-amd64"
+export PATH="$JAVA_HOME/bin:$PATH"
+
+# Stop existing daemons to prevent JVM mismatch
+./android/gradlew --stop
+
 # Execute Build Script
 echo "Executing Build..."
 ./build.sh
@@ -25,13 +32,14 @@ git push origin :refs/tags/$TAG || true
 # 3. Enabled real-time data fetching for the Bank Statement view.
 # 4. Completely removed all remaining dummy data and placeholders.
 
-RELEASE_TITLE="v2.8.192 - Admin UI Polish: Buttons for Receipts"
-RELEASE_NOTES="# v2.8.192 - Admin UI Polish: Buttons for Receipts
-This release improves the user interface of the Admin Review screen:
-1. **Prominent Buttons**: Converted the text-based 'View Receipt' and 'View Registration Info' links into sleek, modern buttons with icons.
-2. **Improved Hit Areas**: Larger touch targets make it easier to view receipts and details on mobile devices.
-3. **UI Consistency**: Standardized button styling across the registration cards for a more professional look."
-gh release create "$TAG" "$APK_NAME" --title "$RELEASE_TITLE" --notes "$RELEASE_NOTES"
+# Get version from package.json
+VERSION=$(node -p "require('./package.json').version")
+
+# Create the release
+gh release create "$TAG" \
+    --title "Release v$VERSION" \
+    --notes "Fixed the Pull operation by implementing robust CSV parsing and numbered tracing. Pull now handles commas within quotes and verifies column alignment before updating Firestore." \
+    "$APK_NAME"
 
 echo "---------------------------------------------------"
 echo "Dev Clean Build Published!"

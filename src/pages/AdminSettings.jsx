@@ -58,10 +58,22 @@ const SettingItem = ({ title, subtitle, icon: Icon, path, delay, color = '#2563e
 
 const AdminSettings = () => {
     const navigate = useNavigate();
-    const { hasAccess } = useAdminAuth();
-    const { onlineTransactionsEnabled, toggleOnlineTransactions } = useGlobalSettings();
+    const { hasAccess, role } = useAdminAuth();
+
+    // Global Settings (Context)
+    const {
+        onlineTransactionsEnabled, toggleOnlineTransactions,
+        bankPassword, setBankPassword,
+        devMode, setDevMode,
+        updateSource, setUpdateSource,
+        serverUrl, setServerUrl,
+        sheetLink, setSheetLink,
+        updateSheetUrl, setUpdateSheetUrl,
+        scriptUrl, setScriptUrl
+    } = useGlobalSettings();
+
+    // Local Component Settings
     const [landingPage, setLandingPage] = useState(localStorage.getItem('admin_landing_page') || '/');
-    const [bankPassword, setBankPassword] = useState(localStorage.getItem('bank_statement_password') || '');
 
     const handleLandingPageChange = (e) => {
         const newValue = e.target.value;
@@ -71,9 +83,7 @@ const AdminSettings = () => {
     };
 
     const handleBankPasswordChange = (e) => {
-        const newValue = e.target.value;
-        setBankPassword(newValue);
-        localStorage.setItem('bank_statement_password', newValue);
+        setBankPassword(e.target.value);
     };
 
     const sections = [
@@ -170,12 +180,79 @@ const AdminSettings = () => {
                     );
                 })}
 
-                {/* Preferences Section (Consolidated from AppSettings) */}
+                {/* Preferences Section (General - Landing Page) */}
                 {hasAccess('CONFIGURATION') && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
                         <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0.5rem' }}>
                             General Preferences
                         </h3>
+
+                        {/* Landing Page - Visible to all Admins */}
+                        <motion.div
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1 }}
+                            style={{
+                                backgroundColor: 'white',
+                                borderRadius: '1rem',
+                                padding: '1.5rem',
+                                border: '1px solid #e5e7eb',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: '1rem'
+                            }}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <div style={{
+                                    padding: '0.5rem',
+                                    borderRadius: '8px',
+                                    backgroundColor: '#f3f4f6',
+                                    color: '#374151'
+                                }}>
+                                    <Settings size={20} />
+                                </div>
+                                <div style={{ fontSize: '1rem', fontWeight: 600, color: '#111827' }}>Landing Page</div>
+                            </div>
+
+                            <div style={{ flex: 1, maxWidth: '200px' }}>
+                                <select
+                                    value={landingPage}
+                                    onChange={handleLandingPageChange}
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.75rem',
+                                        borderRadius: '0.5rem',
+                                        border: '1px solid #e5e7eb',
+                                        backgroundColor: 'white',
+                                        fontSize: '0.9375rem',
+                                        color: '#1f2937',
+                                        cursor: 'pointer',
+                                        outline: 'none'
+                                    }}
+                                >
+                                    <option value="/">Default Home Page</option>
+                                    <option value="/configuration">Admin Home Screen</option>
+                                    <option value="/admin/back-office">Admin - Back Office</option>
+                                    <option value="/admin/program-management">Admin - Program Hub</option>
+                                    <option value="/admin-dashboard">Analytics Dashboard</option>
+                                    <option value="/admin/back-office/import-export">Admin - Import / Export</option>
+                                </select>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+
+                {/* Global Settings - SUPER ADMIN ONLY */}
+                {role === 'SUPER_ADMIN' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <Landmark size={16} color="#6b7280" />
+                            <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
+                                Global Settings
+                            </h3>
+                        </div>
+
+                        {/* Online Transactions */}
                         <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -234,57 +311,7 @@ const AdminSettings = () => {
                             </div>
                         </motion.div>
 
-                        <motion.div
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.1 }}
-                            style={{
-                                backgroundColor: 'white',
-                                borderRadius: '1rem',
-                                padding: '1.5rem',
-                                border: '1px solid #e5e7eb',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                gap: '1rem'
-                            }}
-                        >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                <div style={{
-                                    padding: '0.5rem',
-                                    borderRadius: '8px',
-                                    backgroundColor: '#f3f4f6',
-                                    color: '#374151'
-                                }}>
-                                    <Settings size={20} />
-                                </div>
-                                <div style={{ fontSize: '1rem', fontWeight: 600, color: '#111827' }}>Landing Page</div>
-                            </div>
-
-                            <div style={{ flex: 1, maxWidth: '200px' }}>
-                                <select
-                                    value={landingPage}
-                                    onChange={handleLandingPageChange}
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.75rem',
-                                        borderRadius: '0.5rem',
-                                        border: '1px solid #e5e7eb',
-                                        backgroundColor: 'white',
-                                        fontSize: '0.9375rem',
-                                        color: '#1f2937',
-                                        cursor: 'pointer',
-                                        outline: 'none'
-                                    }}
-                                >
-                                    <option value="/">Default Home Page</option>
-                                    <option value="/configuration">Admin Home Screen</option>
-                                    <option value="/admin/back-office">Admin - Back Office</option>
-                                    <option value="/admin/program-management">Admin - Program Hub</option>
-                                    <option value="/admin-dashboard">Analytics Dashboard</option>
-                                </select>
-                            </div>
-                        </motion.div>
-
+                        {/* Bank Reconciliation */}
                         <motion.div
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.15 }}
@@ -330,9 +357,172 @@ const AdminSettings = () => {
                                 />
                             </div>
                         </motion.div>
+
+                        {/* Developer Options */}
+                        <motion.div
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                            style={{
+                                backgroundColor: 'white',
+                                borderRadius: '1rem',
+                                padding: '1.5rem',
+                                border: '1px solid #e5e7eb',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '1rem'
+                            }}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <div style={{
+                                    padding: '0.5rem',
+                                    borderRadius: '8px',
+                                    backgroundColor: '#f3f4f6',
+                                    color: '#374151'
+                                }}>
+                                    <Settings size={20} />
+                                </div>
+                                <div style={{ fontSize: '1rem', fontWeight: 600, color: '#111827' }}>Developer Options</div>
+                            </div>
+
+                            {/* Dev Mode Toggle */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div>
+                                    <div style={{ fontWeight: 500, color: '#1f2937' }}>Developer Mode</div>
+                                    <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>Show Update Icon</div>
+                                </div>
+                                <label style={{ position: 'relative', display: 'inline-block', width: '44px', height: '24px' }}>
+                                    <input
+                                        type="checkbox"
+                                        style={{ opacity: 0, width: 0, height: 0 }}
+                                        checked={devMode}
+                                        onChange={(e) => setDevMode(e.target.checked)}
+                                    />
+                                    <span style={{
+                                        position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0,
+                                        backgroundColor: devMode ? '#2563eb' : '#ccc',
+                                        borderRadius: '34px', transition: '.4s'
+                                    }}></span>
+                                    <span style={{
+                                        position: 'absolute', content: '""', height: '18px', width: '18px', left: '3px', bottom: '3px',
+                                        backgroundColor: 'white', borderRadius: '50%', transition: '.4s',
+                                        transform: devMode ? 'translateX(20px)' : 'translateX(0)'
+                                    }}></span>
+                                </label>
+                            </div>
+
+                            {/* Update Source Selection - Only visible if Dev Mode is ON */}
+                            {devMode && (
+                                <div>
+                                    <div style={{ fontWeight: 500, color: '#1f2937', marginBottom: '0.5rem' }}>Update Source</div>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        {['auto', 'laptop', 'github'].map(source => (
+                                            <button
+                                                key={source}
+                                                onClick={() => setUpdateSource(source)}
+                                                style={{
+                                                    flex: 1,
+                                                    padding: '0.5rem',
+                                                    fontSize: '0.875rem',
+                                                    borderRadius: '0.375rem',
+                                                    border: '1px solid',
+                                                    borderColor: updateSource === source ? '#2563eb' : '#d1d5db',
+                                                    backgroundColor: updateSource === source ? '#eff6ff' : 'white',
+                                                    color: updateSource === source ? '#1d4ed8' : '#374151',
+                                                    textTransform: 'capitalize',
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                {source}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    {/* Server URL Input */}
+                                    <div style={{ marginTop: '1rem' }}>
+                                        <div style={{ fontWeight: 500, color: '#1f2937', marginBottom: '0.5rem' }}>Server URL</div>
+                                        <input
+                                            type="text"
+                                            value={serverUrl}
+                                            onChange={(e) => setServerUrl(e.target.value)}
+                                            placeholder="http://192.168.1.X:8080"
+                                            style={{
+                                                width: '100%',
+                                                padding: '0.5rem',
+                                                fontSize: '0.875rem',
+                                                borderRadius: '0.375rem',
+                                                border: '1px solid #d1d5db',
+                                                color: '#374151'
+                                            }}
+                                        />
+                                        <div style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '4px' }}>
+                                            Change this if you move to a different WiFi network.
+                                        </div>
+                                    </div>
+
+                                    {/* Google Sheet URL Input */}
+                                    <div style={{ marginTop: '1rem' }}>
+                                        <div style={{ fontWeight: 500, color: '#1f2937', marginBottom: '0.5rem' }}>Import/Export Sheet URL</div>
+                                        <input
+                                            type="text"
+                                            value={sheetLink}
+                                            onChange={(e) => setSheetLink(e.target.value)}
+                                            placeholder="Paste Google Sheet URL here..."
+                                            style={{
+                                                width: '100%',
+                                                padding: '0.5rem',
+                                                fontSize: '0.875rem',
+                                                borderRadius: '0.375rem',
+                                                border: '1px solid #d1d5db',
+                                                color: '#374151',
+                                                outline: 'none'
+                                            }}
+                                        />
+                                    </div>
+
+                                    {/* Program Update Sheet URL Input */}
+                                    <div style={{ marginTop: '1rem' }}>
+                                        <div style={{ fontWeight: 500, color: '#1f2937', marginBottom: '0.5rem' }}>Program Update Sheet URL</div>
+                                        <input
+                                            type="text"
+                                            value={updateSheetUrl}
+                                            onChange={(e) => setUpdateSheetUrl(e.target.value)}
+                                            placeholder="Paste Program Update Sheet URL here..."
+                                            style={{
+                                                width: '100%',
+                                                padding: '0.5rem',
+                                                fontSize: '0.875rem',
+                                                borderRadius: '0.375rem',
+                                                border: '1px solid #d1d5db',
+                                                color: '#374151',
+                                                outline: 'none'
+                                            }}
+                                        />
+                                    </div>
+
+                                    {/* Apps Script URL Input */}
+                                    <div style={{ marginTop: '1rem' }}>
+                                        <div style={{ fontWeight: 500, color: '#1f2937', marginBottom: '0.5rem' }}>Apps Script Web App URL</div>
+                                        <input
+                                            type="text"
+                                            value={scriptUrl}
+                                            onChange={(e) => setScriptUrl(e.target.value)}
+                                            placeholder="Paste Web App URL here..."
+                                            style={{
+                                                width: '100%',
+                                                padding: '0.5rem',
+                                                fontSize: '0.875rem',
+                                                borderRadius: '0.375rem',
+                                                border: '1px solid #d1d5db',
+                                                color: '#374151',
+                                                outline: 'none'
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                        </motion.div>
                     </div>
-                )
-                }
+                )}
 
                 <div style={{ textAlign: 'center', marginTop: '1rem' }}>
                     <p style={{ fontSize: '0.75rem', color: '#9ca3af', margin: 0 }}>

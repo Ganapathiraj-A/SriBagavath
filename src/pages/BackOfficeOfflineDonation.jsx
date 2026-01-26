@@ -82,7 +82,7 @@ const BackOfficeOfflineDonation = () => {
                 amount: parseFloat(amount),
 
                 // Offline Spec
-                status: 'COMPLETED', // Changed to COMPLETED to show in 'Accepted' tab
+                status: 'PENDING', // Changed to PENDING to show in 'Pending' tab and require verification
                 isOffline: true,
                 offlineRefNo: refNo || '', // Optional
 

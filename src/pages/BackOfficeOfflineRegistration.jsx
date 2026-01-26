@@ -155,7 +155,7 @@ const BackOfficeOfflineRegistration = () => {
                 amount: parseFloat(amount), // Use state amount
 
                 // Offline Spec
-                status: 'REGISTERED', // Changed to REGISTERED to show in 'Approved' tab
+                status: 'PENDING', // Changed to PENDING to show in 'Pending' tab and require verification
                 isOffline: true,
                 offlineRefNo: refNo || '', // Optional
 

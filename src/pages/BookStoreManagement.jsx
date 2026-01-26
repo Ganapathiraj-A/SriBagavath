@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Check, Trash2, Rewind, AlertCircle, X, LogOut, Package, Truck, User } from 'lucide-react';
 import { TransactionService } from '../services/TransactionService';
 import PageHeader from '../components/PageHeader';
+import { compressImage } from '../utils/imageUtils';
 import '../components/RegistrationStyles.css';
 
 const TABS = ['PENDING', 'PROCESSING', 'SHIPPED', 'COMPLETED'];
@@ -19,6 +20,12 @@ const BookStoreManagement = () => {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('PENDING');
     const [filterSource, setFilterSource] = useState("All"); // All, Online, Offline
+    const [uploadingReceipt, setUploadingReceipt] = useState(null); // stores id of order being updated
+    const [editingUtrValue, setEditingUtrValue] = useState('');
+    const [editingAmountValue, setEditingAmountValue] = useState('');
+    const [editingParsedAmountValue, setEditingParsedAmountValue] = useState('');
+    const [savingDetails, setSavingDetails] = useState(false);
+    const [viewingImage, setViewingImage] = useState(null);
 
     useEffect(() => {
         // Clear badges
@@ -66,29 +73,200 @@ const BookStoreManagement = () => {
         }
     };
 
-    const [viewingImage, setViewingImage] = useState(null);
-
-    const handleViewImage = async (id) => {
+    const handleViewImage = async (order) => {
         try {
-            const base64 = await TransactionService.getImage(id);
+            const base64 = await TransactionService.getImage(order.id);
             if (base64) {
-                setViewingImage(base64);
+                setViewingImage({
+                    base64,
+                    id: order.id,
+                    utr: order.utr,
+                    amount: order.amount,
+                    parsedAmount: order.parsedAmount,
+                    ocrText: order.ocrText || ''
+                });
+                setEditingUtrValue(order.utr || '');
+                setEditingAmountValue(order.amount?.toString() || '');
+                setEditingParsedAmountValue(order.parsedAmount?.toString() || '');
             } else {
                 alert("No Payment Receipt Found");
             }
         } catch (e) { alert("Error loading image"); }
     };
 
+    const handleSaveDetails = async () => {
+        if (!viewingImage || savingDetails) return;
+        setSavingDetails(true);
+        try {
+            const newAmount = parseFloat(editingAmountValue);
+            const newParsedAmount = parseFloat(editingParsedAmountValue);
+
+            if (isNaN(newAmount)) {
+                alert("Please enter a valid number for the amount.");
+                setSavingDetails(false);
+                return;
+            }
+
+            const updates = {
+                utr: editingUtrValue,
+                amount: newAmount,
+                parsedAmount: isNaN(newParsedAmount) ? null : newParsedAmount,
+            };
+
+            await TransactionService.updateTransactionDetails(viewingImage.id, updates);
+            setViewingImage(null);
+            alert("Details updated successfully!");
+        } catch (e) {
+            alert("Failed to update: " + e.message);
+        } finally {
+            setSavingDetails(false);
+        }
+    };
+
+    const extractUtrSuggestions = (text) => {
+        if (!text) return [];
+        const matches = text.match(/\b\d{12}\b/g) || [];
+        return [...new Set(matches)];
+    };
+
+    const handleAddReceipt = async (e, id) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+            setUploadingReceipt(id);
+            const base64 = await compressImage(file);
+            await TransactionService.uploadReceipt(id, base64);
+            alert("Receipt uploaded successfully!");
+        } catch (error) {
+            console.error("Upload failed", error);
+            alert("Upload failed: " + error.message);
+        } finally {
+            setUploadingReceipt(null);
+            if (e.target) e.target.value = ''; // Reset input
+        }
+    };
+
     return (
         <div className="payment-container screen-wrapper" style={{ paddingBottom: '80px' }}>
             {/* Image Modal */}
             {viewingImage && (
-                <div className="modal-overlay" onClick={() => setViewingImage(null)}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ flexDirection: 'column', alignItems: 'center', gap: '10px', background: 'white', padding: '10px' }}>
-                        <img src={`data:image/jpeg;base64,${viewingImage}`} alt="Receipt" className="modal-image" style={{ maxHeight: '80vh' }} />
-                        <button className="btn-primary" onClick={() => setViewingImage(null)} style={{ width: '100%', background: '#2563eb' }}>
-                            Close
-                        </button>
+                <div className="modal-overlay" onClick={() => setViewingImage(null)} style={{ zIndex: 1100 }}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '15px',
+                        background: 'white',
+                        padding: '15px',
+                        borderRadius: '16px',
+                        maxWidth: '30rem',
+                        width: '100%',
+                        boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)'
+                    }}>
+                        <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                            <h2 style={{ margin: 0, fontSize: '18px' }}>Verify Receipt</h2>
+                            <button onClick={() => setViewingImage(null)} style={{ border: 'none', background: 'none', padding: '5px', cursor: 'pointer' }}>
+                                <X size={24} color="#666" />
+                            </button>
+                        </div>
+
+                        <div style={{ width: '100%', overflowY: 'auto', maxHeight: '40vh', border: '1px solid #eee', borderRadius: '8px' }}>
+                            <img
+                                src={viewingImage.base64.startsWith('data:') ? viewingImage.base64 : `data:image/jpeg;base64,${viewingImage.base64}`}
+                                alt="Receipt"
+                                style={{ width: '100%', display: 'block' }}
+                            />
+                        </div>
+
+                        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            <div>
+                                <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748b', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
+                                    Detected 12-Digit Numbers
+                                </div>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                    {extractUtrSuggestions(viewingImage.ocrText).length > 0 ? (
+                                        extractUtrSuggestions(viewingImage.ocrText).map(num => (
+                                            <button
+                                                key={num}
+                                                onClick={() => setEditingUtrValue(num)}
+                                                style={{
+                                                    padding: '4px 10px',
+                                                    backgroundColor: editingUtrValue === num ? '#dbeafe' : '#f1f5f9',
+                                                    color: editingUtrValue === num ? '#1e40af' : '#475569',
+                                                    border: editingUtrValue === num ? '1px solid #3b82f6' : '1px solid #e2e8f0',
+                                                    borderRadius: '6px',
+                                                    fontSize: '12px',
+                                                    fontWeight: 600,
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                {num}
+                                            </button>
+                                        ))
+                                    ) : (
+                                        <div style={{ fontSize: '12px', color: '#94a3b8', fontStyle: 'italic' }}>No 12-digit numbers found</div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                    <label style={{ fontSize: '12px', fontWeight: 600, color: '#4b5563' }}>Edit UTR</label>
+                                    <input
+                                        type="text"
+                                        value={editingUtrValue}
+                                        onChange={(e) => setEditingUtrValue(e.target.value)}
+                                        placeholder="UTR..."
+                                        style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '14px', outline: 'none' }}
+                                    />
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                    <label style={{ fontSize: '12px', fontWeight: 600, color: '#4b5563' }}>Amount</label>
+                                    <input
+                                        type="number"
+                                        value={editingAmountValue}
+                                        onChange={(e) => setEditingAmountValue(e.target.value)}
+                                        placeholder="Amount..."
+                                        style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '14px', outline: 'none' }}
+                                    />
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                <label style={{ fontSize: '12px', fontWeight: 600, color: '#4b5563' }}>OCR Amount (Detected)</label>
+                                <input
+                                    type="number"
+                                    value={editingParsedAmountValue}
+                                    onChange={(e) => setEditingParsedAmountValue(e.target.value)}
+                                    placeholder="OCR Amount..."
+                                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px', outline: 'none', backgroundColor: '#fdf2f2' }}
+                                />
+                            </div>
+
+                            <button
+                                onClick={handleSaveDetails}
+                                disabled={savingDetails}
+                                style={{
+                                    width: '100%',
+                                    height: '48px',
+                                    backgroundColor: '#2563eb',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '12px',
+                                    fontWeight: 700,
+                                    fontSize: '15px',
+                                    cursor: savingDetails ? 'wait' : 'pointer'
+                                }}
+                            >
+                                {savingDetails ? 'Saving...' : 'Save Updated Details'}
+                            </button>
+                            <button
+                                onClick={() => setViewingImage(null)}
+                                style={{ width: '100%', height: '48px', background: '#f3f4f6', color: '#4b5563', border: '1px solid #e5e7eb', borderRadius: '12px', fontWeight: 600, cursor: 'pointer' }}
+                            >
+                                Close
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
@@ -244,13 +422,40 @@ const BookStoreManagement = () => {
                         )}
 
                         <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
-                            {order.hasImage && (
+                            {order.hasImage ? (
                                 <button
-                                    onClick={() => handleViewImage(order.id)}
+                                    onClick={() => handleViewImage(order)}
                                     style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid #ddd', backgroundColor: 'white', fontSize: '13px', fontWeight: 500 }}
                                 >
-                                    View Receipt
+                                    Verify Receipt
                                 </button>
+                            ) : (
+                                <div style={{ flex: 1, position: 'relative' }}>
+                                    <button
+                                        disabled={uploadingReceipt === order.id}
+                                        onClick={() => document.getElementById(`receipt-input-${order.id}`).click()}
+                                        style={{
+                                            width: '100%',
+                                            padding: '8px',
+                                            borderRadius: '8px',
+                                            border: '1px solid #2563eb',
+                                            backgroundColor: '#eff6ff',
+                                            color: '#2563eb',
+                                            fontSize: '13px',
+                                            fontWeight: 600,
+                                            cursor: uploadingReceipt === order.id ? 'wait' : 'pointer'
+                                        }}
+                                    >
+                                        {uploadingReceipt === order.id ? 'Uploading...' : 'Add Receipt'}
+                                    </button>
+                                    <input
+                                        type="file"
+                                        id={`receipt-input-${order.id}`}
+                                        style={{ display: 'none' }}
+                                        accept="image/*"
+                                        onChange={(e) => handleAddReceipt(e, order.id)}
+                                    />
+                                </div>
                             )}
                             {order.status === 'PENDING' && (
                                 <button

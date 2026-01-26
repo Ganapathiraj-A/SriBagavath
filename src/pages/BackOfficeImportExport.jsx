@@ -1,31 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Download, Upload, FileSpreadsheet, Check, AlertTriangle, X } from 'lucide-react';
+import { ChevronLeft, Download, Upload, FileSpreadsheet, Check, AlertTriangle, X, Users, UserPlus, CloudUpload, CloudDownload, ShoppingBag, Heart } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { db } from '../firebase';
 import { collection, getDocs, doc, writeBatch, serverTimestamp, query, where, getCountFromServer } from 'firebase/firestore';
+import { useGlobalSettings } from '../context/GlobalSettingsContext';
+import Spinner from '../components/Spinner';
+import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
+import { Capacitor } from '@capacitor/core';
 
 const BackOfficeImportExport = () => {
     const navigate = useNavigate();
     const [programs, setPrograms] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [loadingAction, setLoadingAction] = useState(null); // 'FETCH', 'IMPORT', 'MERGE', 'EXPORT_CSV', 'EXPORT_SHEET', 'PUSH', 'PULL'
 
-    // Export State
-    const [exportProgram, setExportProgram] = useState('');
+    // Selection State
+    const [selectedProgram, setSelectedProgram] = useState('');
 
     // Import State
-    const [importProgram, setImportProgram] = useState('');
     const [importData, setImportData] = useState('');
     const [parsedData, setParsedData] = useState([]);
+    const [selectedIndices, setSelectedIndices] = useState(new Set());
     const [importErrors, setImportErrors] = useState([]);
-    const [sheetLink, setSheetLink] = useState(localStorage.getItem('admin_import_export_sheet_url') || 'https://docs.google.com/spreadsheets/d/1TtzVIK28OidQQb2cuuHNqrcuSiUGgM-q28xkJHLyWrs/edit');
-    const [scriptUrl, setScriptUrl] = useState(localStorage.getItem('admin_import_export_script_url') || 'https://script.google.com/macros/s/AKfycbyZdzyrwNzIQeGwXDo6M0if45IIxHgLDr-81-puhZmfpPgl2pVk1ZK4N8L7jpDX9FrhpA/exec');
+    const [activeTab, setActiveTab] = useState('PROGRAMS'); // PROGRAMS, STORE, DONATION
 
-    // Persistence Effect
-    useEffect(() => {
-        localStorage.setItem('admin_import_export_sheet_url', sheetLink);
-        localStorage.setItem('admin_import_export_script_url', scriptUrl);
-    }, [sheetLink, scriptUrl]);
+    // Date Range State (for Store/Donation)
+    const [dateMode, setDateMode] = useState('ALL'); // ALL, RANGE
+    const [startDate, setStartDate] = useState(new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0]);
+    const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+
+    const {
+        sheetLink,
+        programImportUrl, programExportUrl, programUpdateUrl,
+        bookImportUrl, bookExportUrl, bookUpdateUrl,
+        donationImportUrl, donationExportUrl, donationUpdateUrl,
+        scriptUrl
+    } = useGlobalSettings();
 
     useEffect(() => {
         const fetchPrograms = async () => {
@@ -43,8 +55,6 @@ const BackOfficeImportExport = () => {
                         where('programId', '==', p.id),
                         where('itemType', '==', 'PROGRAM')
                     );
-                    const countSnap = await getCountFromServer(p.id === 'ALL' ? collection(db, 'transactions') : q); // Handle "ALL" if needed, but normally it's per program
-                    // Wait, getCountFromServer(q) is what we need.
                     const count = await getCountFromServer(q);
                     return { ...p, regCount: count.data().count };
                 }));
@@ -57,330 +67,954 @@ const BackOfficeImportExport = () => {
         fetchPrograms();
     }, []);
 
+    // Clear data when tab changes
+    useEffect(() => {
+        setImportData('');
+        setParsedData([]);
+        setSelectedIndices(new Set());
+    }, [activeTab]);
+
+    // --- HELPERS ---
+    const cleanAmount = (val) => {
+        if (!val) return 0;
+        // Stringify and Remove everything except digits and decimal point
+        const cleaned = val.toString().replace(/[^0-9.]/g, '');
+        return parseFloat(cleaned) || 0;
+    };
+
+    const parseCSVLine = (text) => {
+        const result = [];
+        let inQuotes = false;
+        let current = '';
+        for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            const nextChar = text[i + 1];
+            if (char === '"' && inQuotes && nextChar === '"') {
+                current += '"';
+                i++;
+            } else if (char === '"') {
+                inQuotes = !inQuotes;
+            } else if (char === ',' && !inQuotes) {
+                result.push(current.trim());
+                current = '';
+            } else {
+                current += char;
+            }
+        }
+        result.push(current.trim());
+        return result;
+    };
+
     // --- EXPORT LOGIC ---
     const handleExport = async () => {
-        if (!exportProgram) return alert("Select a program to export");
+        const config = getTargetConfig();
+        if (activeTab === 'PROGRAMS' && !selectedProgram) return alert("Select a program to export");
         setLoading(true);
+        setLoadingAction('EXPORT_CSV');
+        // await new Promise(r => setTimeout(r, 800)); // Removed delay to prevent browser blocking download
         try {
-            const q = query(
-                collection(db, 'transactions'),
-                where('programId', '==', exportProgram),
-                where('itemType', '==', 'PROGRAM')
-            );
+            let q;
+            if (activeTab === 'PROGRAMS') {
+                q = query(
+                    collection(db, 'transactions'),
+                    where('programId', '==', selectedProgram)
+                );
+            } else {
+                const wheres = [where('itemType', '==', config.itemType)];
+                if (dateMode === 'RANGE') {
+                    wheres.push(where('timestamp', '>=', new Date(startDate)));
+                    wheres.push(where('timestamp', '<=', new Date(endDate + 'T23:59:59')));
+                }
+                q = query(collection(db, 'transactions'), ...wheres);
+            }
+
             const snap = await getDocs(q);
 
             if (snap.empty) {
-                alert("No records found for this program.");
+                alert("No records found for " + activeTab);
                 setLoading(false);
                 return;
             }
 
+            const headers = activeTab === 'PROGRAMS'
+                ? ['RegID', 'Date', 'PrimaryName', 'PrimaryMobile', 'ParticipantName', 'Gender', 'Age', 'City', 'Amount', 'Status', 'Source', 'RefNo']
+                : activeTab === 'STORE'
+                    ? ['OrderID', 'Date', 'CustomerName', 'Mobile', 'Items', 'Amount', 'Status', 'City', 'Source', 'RefNo']
+                    : ['DonationID', 'Date', 'DonorName', 'Mobile', 'Amount', 'Place', 'PAN', 'UTR', 'Status', 'Source'];
+
             const records = snap.docs.map(d => {
                 const data = d.data();
-                const primary = data.primaryApplicant || {};
+                const ts = data.timestamp;
+                const dateStr = ts?.seconds
+                    ? new Date(ts.seconds * 1000).toLocaleDateString()
+                    : (ts instanceof Date ? ts.toLocaleDateString() : new Date().toLocaleDateString());
 
-                // Flatten participants
-                const rows = [];
-                // If participants array exists
-                if (data.participants && data.participants.length > 0) {
-                    data.participants.forEach((p, idx) => {
-                        rows.push({
-                            RegID: d.id,
-                            Date: new Date(data.timestamp?.seconds * 1000 || Date.now()).toLocaleDateString(),
-                            PrimaryName: primary.name || '',
-                            PrimaryMobile: primary.mobile || '',
-                            ParticipantName: p.name || '',
-                            Gender: p.gender || '',
-                            Age: p.age || '',
-                            City: data.place || primary.city || '',
-                            Amount: data.amount || 0,
-                            Status: data.status || '',
-                            Source: data.isOffline ? 'Offline' : 'Online',
-                            RefNo: data.offlineRefNo || data.paymentId || ''
-                        });
-                    });
-                } else {
-                    // Fallback for old legacy data without participants array
-                    rows.push({
+                if (activeTab === 'PROGRAMS') {
+                    const primary = data.primaryApplicant || {};
+                    const participants = data.participants || [{ name: primary.name, gender: '', age: '' }];
+
+                    return participants.map(p => ({
                         RegID: d.id,
-                        Date: new Date(data.timestamp?.seconds * 1000 || Date.now()).toLocaleDateString(),
+                        Date: dateStr,
                         PrimaryName: primary.name || '',
                         PrimaryMobile: primary.mobile || '',
-                        ParticipantName: primary.name || '',
-                        Gender: '',
-                        Age: '',
+                        ParticipantName: p.name || '',
+                        Gender: p.gender || '',
+                        Age: p.age || '',
                         City: data.place || primary.city || '',
                         Amount: data.amount || 0,
                         Status: data.status || '',
                         Source: data.isOffline ? 'Offline' : 'Online',
                         RefNo: data.offlineRefNo || data.paymentId || ''
-                    });
+                    }));
+                } else if (activeTab === 'STORE') {
+                    const contact = data.shippingAddress || data.primaryApplicant || {};
+                    const items = (data.orderItems || []).map(i => `${i.title} (x${i.quantity})`).join(', ');
+                    return [{
+                        OrderID: d.id,
+                        Date: dateStr,
+                        CustomerName: contact.name || '',
+                        Mobile: contact.mobile || '',
+                        Items: items,
+                        Amount: data.amount || 0,
+                        Status: data.status || '',
+                        City: contact.city || data.place || '',
+                        Source: data.isOffline ? 'Offline' : 'Online',
+                        RefNo: data.offlineRefNo || data.paymentId || ''
+                    }];
+                } else {
+                    const contact = data.primaryApplicant || data.shippingAddress || {};
+                    return [{
+                        DonationID: d.id,
+                        Date: dateStr,
+                        DonorName: contact.name || '',
+                        Mobile: contact.mobile || '',
+                        Amount: data.amount || 0,
+                        Place: contact.city || data.place || '',
+                        PAN: contact.pan || '',
+                        UTR: data.utr || '',
+                        Status: data.status || '',
+                        Source: data.isOffline ? 'Offline' : 'Online'
+                    }];
                 }
-                return rows;
             }).flat();
 
-            // Convert to CSV
-            const headers = ['RegID', 'Date', 'PrimaryName', 'PrimaryMobile', 'ParticipantName', 'Gender', 'Age', 'City', 'Amount', 'Status', 'Source', 'RefNo'];
-            const csvContent = [
-                headers.join(','),
-                ...records.map(r => headers.map(h => `"${(r[h] || '').toString().replace(/"/g, '""')}"`).join(','))
-            ].join('\n');
+            let csvContent = '';
 
-            // Download
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `Program_Export_${exportProgram}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            // Metadata for Programs only (as before)
+            if (activeTab === 'PROGRAMS') {
+                const program = programs.find(p => p.id === selectedProgram) || {};
+                const programMetadata = [
+                    ['Program Name:', program.programName || ''],
+                    ['City:', program.programCity || ''],
+                    ['Date:', program.programDate || ''],
+                    ['Total Count:', "'" + records.length],
+                    ['']
+                ];
 
-        } catch (e) {
-            console.error(e);
-            alert("Export Failed: " + e.message);
+                const csvPadMetadata = (row) => {
+                    const newRow = new Array(headers.length).fill('');
+                    row.forEach((val, i) => { newRow[i] = val; });
+                    return newRow;
+                };
+
+                csvContent += programMetadata.map(row =>
+                    csvPadMetadata(row).map(v => `"${v.toString().replace(/"/g, '""')}"`).join(',')
+                ).join('\n') + '\n';
+            }
+
+            // Combine Headers and Rows
+            csvContent += headers.join(',') + '\n';
+            csvContent += records.map(r =>
+                headers.map(h => `"${(r[h] !== undefined && r[h] !== null ? r[h] : '').toString().replace(/"/g, '""')}"`).join(',')
+            ).join('\n');
+
+            // Download or Share
+            const filename = activeTab === 'PROGRAMS'
+                ? `Program_Export_${programs.find(p => p.id === selectedProgram)?.programName || selectedProgram}.csv`
+                : activeTab === 'STORE' ? 'Store_Orders_Export.csv' : 'Donations_Export.csv';
+
+            if (Capacitor.isNativePlatform()) {
+                const base64Data = btoa(unescape(encodeURIComponent(csvContent)));
+                const result = await Filesystem.writeFile({
+                    path: filename,
+                    data: base64Data,
+                    directory: Directory.Cache,
+                    encoding: Encoding.UTF8
+                });
+
+                await Share.share({
+                    title: 'Export CSV',
+                    text: 'Exported CSV file',
+                    url: result.uri,
+                    dialogTitle: 'Share CSV'
+                });
+            } else {
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', filename);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        } catch (err) {
+            console.error("Export failed:", err);
+            alert("Export failed: " + err.message);
         } finally {
             setLoading(false);
+            setLoadingAction(null);
         }
     };
 
     const handleExportToSheet = async () => {
-        if (!exportProgram) return alert("Select a program to export");
-        if (!scriptUrl) return alert("Please enter the Google Apps Script Web App URL first (see help section below).");
+        const config = getTargetConfig();
+
+        // Use EXPORT URLs for this action
+        const sheetUrls = {
+            'PROGRAMS': programExportUrl,
+            'STORE': bookExportUrl,
+            'DONATION': donationExportUrl
+        };
+        const sheetUrl = sheetUrls[activeTab];
+
+        if (activeTab === 'PROGRAMS' && !selectedProgram) return alert("Select a program first");
+        if (!scriptUrl) return alert("Apps Script URL not configured.");
+        if (!sheetUrl) return alert("Sheet URL for " + activeTab + " not configured.");
 
         setLoading(true);
+        setLoadingAction('EXPORT_SHEET');
+        await new Promise(r => setTimeout(r, 800));
         try {
-            const q = query(
-                collection(db, 'transactions'),
-                where('programId', '==', exportProgram),
-                where('itemType', '==', 'PROGRAM')
-            );
-            const snap = await getDocs(q);
-
-            if (snap.empty) {
-                alert("No records found for this program.");
-                setLoading(false);
-                return;
+            let q;
+            if (activeTab === 'PROGRAMS') {
+                q = query(collection(db, 'transactions'), where('programId', '==', selectedProgram));
+            } else {
+                const wheres = [where('itemType', '==', config.itemType)];
+                if (dateMode === 'RANGE') {
+                    wheres.push(where('timestamp', '>=', new Date(startDate)));
+                    wheres.push(where('timestamp', '<=', new Date(endDate + 'T23:59:59')));
+                }
+                q = query(collection(db, 'transactions'), ...wheres);
             }
+            const snap = await getDocs(q);
+            if (snap.empty) { alert("No records found."); setLoading(false); return; }
 
-            const headers = ['RegID', 'Date', 'PrimaryName', 'PrimaryMobile', 'ParticipantName', 'Gender', 'Age', 'City', 'Amount', 'Status', 'Source', 'RefNo'];
+            const headers = activeTab === 'PROGRAMS'
+                ? ['RegID', 'Date', 'PrimaryName', 'PrimaryMobile', 'ParticipantName', 'Gender', 'Age', 'City', 'Amount', 'Status', 'Source', 'RefNo']
+                : activeTab === 'STORE'
+                    ? ['OrderID', 'Date', 'CustomerName', 'Mobile', 'Items', 'Amount', 'Status', 'City', 'Source', 'RefNo', '', '']
+                    : ['DonationID', 'Date', 'DonorName', 'Mobile', 'Amount', 'Place', 'PAN', 'UTR', 'Status', 'Source', '', ''];
+
             const dataRows = snap.docs.map(d => {
                 const data = d.data();
-                const primary = data.primaryApplicant || {};
-                const base = {
-                    RegID: d.id,
-                    Date: new Date(data.timestamp?.seconds * 1000 || Date.now()).toLocaleDateString(),
-                    PrimaryName: primary.name || '',
-                    PrimaryMobile: primary.mobile || '',
-                    City: data.place || primary.city || '',
-                    Amount: data.amount || 0,
-                    Status: data.status || '',
-                    Source: data.isOffline ? 'Offline' : 'Online',
-                    RefNo: data.offlineRefNo || data.paymentId || ''
-                };
+                const ts = data.timestamp;
+                const dateStr = ts?.seconds
+                    ? new Date(ts.seconds * 1000).toLocaleDateString()
+                    : (ts instanceof Date ? ts.toLocaleDateString() : new Date().toLocaleDateString());
 
-                if (data.participants && data.participants.length > 0) {
-                    return data.participants.map(p => headers.map(h => {
+                if (activeTab === 'PROGRAMS') {
+                    const primary = data.primaryApplicant || {};
+                    const participants = data.participants || [{ name: primary.name, gender: '', age: '' }];
+                    return participants.map(p => headers.map(h => {
                         if (h === 'ParticipantName') return p.name || '';
                         if (h === 'Gender') return p.gender || '';
                         if (h === 'Age') return p.age || '';
-                        return base[h] || '';
+                        if (h === 'RegID') return d.id;
+                        if (h === 'Date') return dateStr;
+                        if (h === 'PrimaryName') return primary.name || '';
+                        if (h === 'PrimaryMobile') return primary.mobile || '';
+                        if (h === 'City') return data.place || primary.city || '';
+                        if (h === 'Amount') return data.amount || 0;
+                        if (h === 'Status') return data.status || '';
+                        if (h === 'Source') return data.isOffline ? 'Offline' : 'Online';
+                        if (h === 'RefNo') return data.offlineRefNo || data.paymentId || '';
+                        return '';
                     }));
-                } else {
+                } else if (activeTab === 'STORE') {
+                    const contact = data.shippingAddress || data.primaryApplicant || {};
+                    const items = (data.orderItems || []).map(i => `${i.title} (x${i.quantity})`).join(', ');
                     return [headers.map(h => {
-                        if (h === 'ParticipantName') return primary.name || '';
-                        if (h === 'Gender') return '';
-                        if (h === 'Age') return '';
-                        return base[h] || '';
+                        if (h === 'OrderID') return d.id;
+                        if (h === 'Date') return dateStr;
+                        if (h === 'CustomerName') return contact.name || '';
+                        if (h === 'Mobile') return contact.mobile || '';
+                        if (h === 'Items') return items;
+                        if (h === 'Amount') return data.amount || 0;
+                        if (h === 'Status') return data.status || '';
+                        if (h === 'City') return contact.city || data.place || '';
+                        if (h === 'Source') return data.isOffline ? 'Offline' : 'Online';
+                        if (h === 'RefNo') return data.offlineRefNo || data.paymentId || '';
+                        return ''; // Pad with empty string for columns not relevant to STORE
+                    })];
+                } else { // Donations
+                    const contact = data.primaryApplicant || data.shippingAddress || {};
+                    return [headers.map(h => {
+                        if (h === 'DonationID') return d.id;
+                        if (h === 'Date') return dateStr;
+                        if (h === 'DonorName') return contact.name || '';
+                        if (h === 'Mobile') return contact.mobile || '';
+                        if (h === 'Amount') return data.amount || 0;
+                        if (h === 'Place') return contact.city || data.place || '';
+                        if (h === 'PAN') return contact.pan || '';
+                        if (h === 'UTR') return data.utr || '';
+                        if (h === 'Status') return data.status || '';
+                        if (h === 'Source') return data.isOffline ? 'Offline' : 'Online';
+                        // RefNo is not typically present for donations, so it will be an empty string
+                        return ''; // Pad with empty string for columns not relevant to DONATIONS
                     })];
                 }
             }).flat();
 
-            const response = await fetch(scriptUrl, {
-                method: 'POST',
-                mode: 'no-cors', // Apps Script requires no-cors sometimes or handles it differently
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'export', rows: dataRows })
-            });
+            const gidMatch = sheetUrl?.match(/gid=([0-9]+)/);
+            const targetGid = gidMatch ? gidMatch[1] : null;
 
-            alert("Export signal sent to Google Sheet! Please check the sheet in a few seconds.");
+            const payload = {
+                action: 'push_update',
+                targetTab: activeTab,
+                targetGid,
+                rows: [headers, ...dataRows]
+            };
+
+            await fetch(scriptUrl, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+            alert("Export signal sent! Check GSheet.");
         } catch (e) {
-            console.error(e);
-            alert("Sheet Export Failed: " + e.message);
-        } finally {
-            setLoading(false);
-        }
+            console.error("Export Error:", e);
+            alert("Export Failed: " + e.message);
+        } finally { setLoading(false); setLoadingAction(null); }
     };
 
     // --- IMPORT LOGIC ---
     const handleFetchSheet = async () => {
-        if (!sheetLink) return alert("Please enter the Google Sheet URL first.");
+        const config = getTargetConfig();
+        const importUrl = activeTab === 'PROGRAMS' ? programImportUrl : activeTab === 'STORE' ? bookImportUrl : donationImportUrl;
+        if (!importUrl) return alert("Sheet URL not configured.");
 
         setLoading(true);
+        setLoadingAction('FETCH');
+        await new Promise(r => setTimeout(r, 800));
         try {
-            const spreadsheetIdMatch = sheetLink.match(/\/d\/([a-zA-Z0-9-_]+)/);
-            const gidMatch = sheetLink.match(/gid=([0-9]+)/);
+            const spreadsheetIdMatch = importUrl.match(/\/d\/([a-zA-Z0-9-_]+)/);
+            const gidMatch = importUrl.match(/gid=([0-9]+)/);
+            const exportUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetIdMatch[1]}/export?format=csv&gid=${gidMatch ? gidMatch[1] : '0'}`;
 
-            if (!spreadsheetIdMatch) throw new Error("Could not find Spreadsheet ID in the URL. Make sure it's a full Google Sheets link.");
-
-            const spreadsheetId = spreadsheetIdMatch[1];
-            const gid = gidMatch ? gidMatch[1] : '0';
-
-            const exportUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv&gid=${gid}`;
-
-            console.log("Fetching from:", exportUrl);
             const response = await fetch(exportUrl);
-            if (!response.ok) throw new Error("Failed to fetch sheet data. Ensure the sheet is shared with 'Anyone with the link as Viewer/Editor'.");
-
             const csvContent = await response.text();
-
-            // Basic cleanup: split rows, check for headers
-            const rows = csvContent.split('\n').map(r => r.trim()).filter(r => r);
-
-            if (rows.length > 0) {
-                // If first row looks like a header, skip it
-                const firstRow = rows[0].toLowerCase();
-                if (firstRow.includes('name') || firstRow.includes('mobile') || firstRow.includes('primary')) {
-                    rows.shift();
-                }
-            }
-
-            const cleanContent = rows.join('\n');
-            setImportData(cleanContent);
-            setParsedData([]); // Reset previous parse
-            setImportErrors([]);
-
-            alert(`Fetched ${rows.length} rows of data. Please click 'Preview Data' to verify.`);
+            setImportData(csvContent);
+            setParsedData([]);
+            setTimeout(() => handleParseDirect(csvContent), 100);
+            alert(`Fetched data successfully!`);
         } catch (e) {
-            console.error(e);
             alert("Fetch Failed: " + e.message);
         } finally {
             setLoading(false);
+            setLoadingAction(null);
         }
     };
 
-    const handleParse = () => {
-        if (!importData.trim()) return;
+    const handleParseDirect = (data) => {
+        if (!data.trim()) return;
+        const isTSV = data.includes('\t');
+        const allRows = data.trim().split('\n').filter(r => r.trim());
+        if (allRows.length === 0) return;
 
-        // Detect if Tab Separated (Excel Copy) or Comma Separated
-        const isTSV = importData.includes('\t');
-        const rows = importData.trim().split('\n');
+        // Header detection logic
+        const headerRow = isTSV ? allRows[0].split('\t') : parseCSVLine(allRows[0]);
+        const mapping = {
+            name: -1,
+            mobile: -1,
+            city: -1,
+            gender: -1,
+            age: -1,
+            amount: -1
+        };
 
-        const parsed = [];
-        const errors = [];
-
-        rows.forEach((row, idx) => {
-            if (!row.trim()) return;
-            const cols = isTSV ? row.split('\t') : row.split(',');
-
-            // Expected Format: Name, Mobile, City, Gender, Age, Status(Optional)
-            // Flexible mapping: 
-            // 0: Name (Req)
-            // 1: Mobile (Req)
-            // 2: City
-            // 3: Gender
-            // 4: Age
-
-            const name = cols[0]?.trim();
-            const mobile = cols[1]?.trim();
-
-            if (!name) {
-                errors.push(`Row ${idx + 1}: Name is missing`);
-                return;
-            }
-
-            parsed.push({
-                name,
-                mobile: mobile || '',
-                city: cols[2]?.trim() || '',
-                gender: cols[3]?.trim() || '',
-                age: cols[4]?.trim() || '',
-                status: 'REGISTERED' // Default Valid Status
-            });
+        headerRow.forEach((col, idx) => {
+            const h = col.trim().toLowerCase();
+            if (h.includes('name')) mapping.name = idx;
+            if (h.includes('mobile') || h.includes('phone')) mapping.mobile = idx;
+            if (h.includes('city') || h.includes('place')) mapping.city = idx;
+            if (h.includes('gender')) mapping.gender = idx;
+            if (h.includes('age')) mapping.age = idx;
+            if (h.includes('amount') || h.includes('fees') || h.includes('price')) mapping.amount = idx;
+            if (h.includes('pan')) mapping.pan = idx;
+            if (h.includes('utr')) mapping.utr = idx;
+            if (h.includes('item')) mapping.items = idx;
         });
 
+        // Fallback to fixed positions if no clear headers detected
+        const hasHeaders = Object.values(mapping).some(v => v !== -1);
+        let dataStartIdx = hasHeaders ? 1 : 0;
+
+        if (!hasHeaders) {
+            mapping.name = 0;
+            mapping.mobile = 1;
+            mapping.city = 2;
+            mapping.gender = 3;
+            mapping.age = 4;
+            mapping.amount = 5;
+        } else {
+            // Fill in gaps for standard 6-column layout if some fields are still unmapped
+            if (headerRow.length >= 6) {
+                if (mapping.name === -1) mapping.name = 0;
+                if (mapping.mobile === -1) mapping.mobile = 1;
+                if (mapping.city === -1) mapping.city = 2;
+                if (mapping.gender === -1) mapping.gender = 3;
+                if (mapping.age === -1) mapping.age = 4;
+                if (mapping.amount === -1) mapping.amount = 5;
+            } else if (headerRow.length === 5 && mapping.amount === -1) {
+                // Legacy 5-column fallback
+                if (mapping.name === -1) mapping.name = 0;
+                if (mapping.mobile === -1) mapping.mobile = 1;
+                if (mapping.city === -1) mapping.city = 2;
+                if (mapping.gender === -1) mapping.gender = 3;
+                if (mapping.age === -1) mapping.age = 4;
+            }
+        }
+
+        const parsed = [];
+        for (let i = dataStartIdx; i < allRows.length; i++) {
+            const cols = isTSV ? allRows[i].split('\t') : parseCSVLine(allRows[i]);
+            const nameVal = mapping.name !== -1 ? cols[mapping.name]?.trim() : '';
+
+            if (!nameVal || nameVal.toLowerCase().includes('name')) continue;
+
+            parsed.push({
+                name: nameVal,
+                mobile: mapping.mobile !== -1 ? cols[mapping.mobile]?.trim() : '',
+                city: mapping.city !== -1 ? cols[mapping.city]?.trim() : '',
+                gender: mapping.gender !== -1 ? cols[mapping.gender]?.trim() : '',
+                age: mapping.age !== -1 ? cols[mapping.age]?.trim() : '',
+                amount: mapping.amount !== -1 ? cleanAmount(cols[mapping.amount]) : 0,
+                pan: mapping.pan !== -1 ? cols[mapping.pan]?.trim() : '',
+                utr: mapping.utr !== -1 ? cols[mapping.utr]?.trim() : '',
+                items: mapping.items !== -1 ? cols[mapping.items]?.trim() : '',
+                status: 'PENDING'
+            });
+        }
         setParsedData(parsed);
-        setImportErrors(errors);
+        setSelectedIndices(new Set());
     };
 
-    const handleImportSubmit = async () => {
-        if (!importProgram) return alert("Select a program first");
-        if (parsedData.length === 0) return alert("No valid data to import");
-        if (importErrors.length > 0 && !confirm(`There are ${importErrors.length} errors. Import valid rows only?`)) return;
+    const handleParse = () => {
+        handleParseDirect(importData);
+    };
+
+    const handleToggleSelect = (idx) => {
+        const next = new Set(selectedIndices);
+        if (next.has(idx)) next.delete(idx);
+        else next.add(idx);
+        setSelectedIndices(next);
+    };
+
+    const handleToggleSelectAll = () => {
+        if (selectedIndices.size === parsedData.length) {
+            setSelectedIndices(new Set());
+        } else {
+            setSelectedIndices(new Set(parsedData.map((_, i) => i)));
+        }
+    };
+
+    const handleMergeImportSelected = async () => {
+        if (!selectedProgram) return alert("Select a program first");
+        if (selectedIndices.size === 0) return alert("No rows selected");
+
+        const selectedRows = Array.from(selectedIndices).map(i => parsedData[i]);
+        if (!confirm(`Merge ${selectedRows.length} participants into ONE registration?`)) return;
 
         setLoading(true);
         try {
-            const selectedProg = programs.find(p => p.id === importProgram);
-            const batch = writeBatch(db);
+            const selectedProg = programs.find(p => p.id === selectedProgram);
             const timestamp = serverTimestamp();
 
-            let count = 0;
-            const BATCH_SIZE = 450; // Firestore limit 500
+            // First person is primary
+            const first = selectedRows[0];
 
-            // We need to commit every 450 writes
-            const chunks = [];
-            for (let i = 0; i < parsedData.length; i += BATCH_SIZE) {
-                chunks.push(parsedData.slice(i, i + BATCH_SIZE));
-            }
+            const docRef = doc(collection(db, 'transactions'));
+            const batch = writeBatch(db);
 
-            for (const chunk of chunks) {
-                const currentBatch = writeBatch(db); // Create new batch for each chunk
+            batch.set(docRef, {
+                itemName: selectedProg.programName,
+                itemType: 'PROGRAM',
+                programId: selectedProg.id,
+                programDate: selectedProg.programDate,
+                programCity: selectedProg.programCity,
 
-                chunk.forEach(row => {
+                amount: selectedRows.reduce((sum, row) => sum + (parseFloat(row.amount) || 0), 0),
+                isOffline: true,
+                status: 'PENDING',
+                offlineRefNo: 'MERGED_IMPORT',
+
+                primaryApplicant: {
+                    name: first.name,
+                    mobile: first.mobile,
+                    city: first.city
+                },
+                participants: selectedRows.map(row => ({
+                    name: row.name,
+                    gender: row.gender,
+                    age: row.age,
+                    mobile: row.mobile,
+                    accommodation: 'Not Specified'
+                })),
+                participantCount: selectedRows.length,
+                place: first.city,
+                createdAt: timestamp,
+                timestamp: timestamp,
+                importedAt: timestamp
+            });
+
+            await batch.commit();
+
+            // Success: Remove from preview
+            const remaining = parsedData.filter((_, i) => !selectedIndices.has(i));
+            setParsedData(remaining);
+            setSelectedIndices(new Set());
+            alert(`Successfully merged and imported ${selectedRows.length} participants!`);
+
+        } catch (e) {
+            console.error(e);
+            alert("Merge Import Failed: " + e.message);
+        } finally {
+            setLoading(false);
+            setLoadingAction(null);
+        }
+    };
+
+    const handleImportIndividualSelected = async () => {
+        if (activeTab === 'PROGRAMS') {
+            if (!selectedProgram) return alert("Select a Program first (Required for Programs)");
+        }
+        if (selectedIndices.size === 0) return alert("No rows selected");
+
+        const selectedRows = Array.from(selectedIndices).map(i => parsedData[i]);
+        if (!confirm(`Import ${selectedRows.length} ${activeTab.toLowerCase()} records?`)) return;
+
+        setLoading(true);
+        try {
+            const selectedProg = activeTab === 'PROGRAMS' ? programs.find(p => p.id === selectedProgram) : null;
+            const timestamp = serverTimestamp();
+            const BATCH_SIZE = 450;
+
+            const selectedIndicesArr = Array.from(selectedIndices);
+            let successCount = 0;
+
+            for (let i = 0; i < selectedIndicesArr.length; i += BATCH_SIZE) {
+                const chunkIndices = selectedIndicesArr.slice(i, i + BATCH_SIZE);
+                const batch = writeBatch(db);
+
+                chunkIndices.forEach(idx => {
+                    const row = parsedData[idx];
                     const docRef = doc(collection(db, 'transactions'));
-                    currentBatch.set(docRef, {
-                        itemName: selectedProg.programName,
-                        itemType: 'PROGRAM',
-                        programId: selectedProg.id,
-                        programDate: selectedProg.programDate,
-                        programCity: selectedProg.programCity,
 
-                        amount: 0, // Imported usually has no payment info or cash
+                    let dataToSave = {
+                        itemType: activeTab === 'PROGRAMS' ? 'PROGRAM' : activeTab === 'STORE' ? 'BOOK' : 'DONATION',
+                        amount: Number(row.amount) || 0,
                         isOffline: true,
-                        status: 'REGISTERED',
-                        offlineRefNo: 'IMPORTED',
-
-                        primaryApplicant: {
-                            name: row.name,
-                            mobile: row.mobile,
-                            city: row.city
-                        },
-                        participants: [{
-                            name: row.name,
-                            gender: row.gender,
-                            age: row.age,
-                            mobile: row.mobile,
-                            accommodation: 'Not Specified'
-                        }],
-                        participantCount: 1,
-                        place: row.city,
+                        status: 'PENDING',
                         createdAt: timestamp,
                         timestamp: timestamp,
                         importedAt: timestamp
-                    });
-                });
+                    };
 
-                await currentBatch.commit();
-                count += chunk.length;
+                    if (activeTab === 'PROGRAMS') {
+                        Object.assign(dataToSave, {
+                            itemName: selectedProg.programName,
+                            programId: selectedProg.id,
+                            programDate: selectedProg.programDate,
+                            programCity: selectedProg.programCity,
+                            offlineRefNo: 'INDIVIDUAL_IMPORT',
+                            primaryApplicant: { name: row.name, mobile: row.mobile, city: row.city },
+                            participants: [{ name: row.name, gender: row.gender, age: row.age, mobile: row.mobile, accommodation: 'Not Specified' }],
+                            participantCount: 1,
+                            place: row.city
+                        });
+                    } else if (activeTab === 'STORE') {
+                        Object.assign(dataToSave, {
+                            itemName: row.items || 'Book Order',
+                            shippingAddress: { name: row.name, mobile: row.mobile, city: row.city },
+                            place: row.city,
+                            offlineRefNo: 'STORE_IMPORT',
+                            orderItems: row.items ? [{ title: row.items, quantity: 1, price: Number(row.amount) || 0 }] : []
+                        });
+                    } else if (activeTab === 'DONATION') {
+                        Object.assign(dataToSave, {
+                            itemName: 'Donation',
+                            primaryApplicant: { name: row.name, mobile: row.mobile, city: row.city, pan: row.pan },
+                            place: row.city,
+                            utr: row.utr,
+                            offlineRefNo: 'DONATION_IMPORT'
+                        });
+                    }
+
+                    batch.set(docRef, dataToSave);
+                });
+                await batch.commit();
+                successCount += chunkIndices.length;
             }
 
-            alert(`Successfully imported ${count} records!`);
-            setImportData('');
-            setParsedData([]);
-            setImportErrors([]);
+            const remaining = parsedData.filter((_, i) => !selectedIndices.has(i));
+            setParsedData(remaining);
+            setSelectedIndices(new Set());
+            alert(`Successfully imported ${successCount} individual records!`);
 
         } catch (e) {
             console.error(e);
             alert("Import Failed: " + e.message);
         } finally {
             setLoading(false);
+            setLoadingAction(null);
         }
     };
+
+    // --- GENERIC SYNC HELPERS (Shared across tabs) ---
+    const getTargetConfig = () => {
+        if (activeTab === 'PROGRAMS') return { collection: 'transactions', itemType: 'PROGRAM', gidField: 'updateSheetUrl' };
+        if (activeTab === 'STORE') return { collection: 'transactions', itemType: 'BOOK', gidField: 'bookSheetUrl' };
+        if (activeTab === 'DONATION') return { collection: 'transactions', itemType: 'DONATION', gidField: 'donationSheetUrl' };
+        return {};
+    };
+
+    const handleUniversalPush = async () => {
+        const config = getTargetConfig();
+        // Use UPDATE URLs for Sync Push
+        const sheetUrls = {
+            'PROGRAMS': programUpdateUrl,
+            'STORE': bookUpdateUrl,
+            'DONATION': donationUpdateUrl
+        };
+        const sheetUrl = sheetUrls[activeTab];
+
+        if (activeTab === 'PROGRAMS' && !selectedProgram) return alert("Select a program first");
+        if (!scriptUrl) return alert("Apps Script URL not configured");
+
+        setLoading(true);
+        setLoadingAction('PUSH');
+        await new Promise(r => setTimeout(r, 800));
+        try {
+            let q;
+            if (activeTab === 'PROGRAMS') {
+                q = query(collection(db, 'transactions'), where('programId', '==', selectedProgram));
+            } else {
+                const wheres = [where('itemType', '==', config.itemType)];
+                if (dateMode === 'RANGE') {
+                    wheres.push(where('timestamp', '>=', new Date(startDate)));
+                    wheres.push(where('timestamp', '<=', new Date(endDate + 'T23:59:59')));
+                }
+                q = query(collection(db, 'transactions'), ...wheres);
+            }
+
+            const snap = await getDocs(q);
+            if (snap.empty) {
+                alert("No records found to push.");
+                setLoading(false);
+                return;
+            }
+
+            if (!confirm(`Found ${snap.docs.length} records. Push them to the Sheet?`)) {
+                setLoading(false);
+                return;
+            }
+
+            const gidMatch = sheetUrl?.match(/gid=([0-9]+)/);
+            const targetGid = gidMatch ? gidMatch[1] : null;
+
+            const headers = activeTab === 'PROGRAMS'
+                ? ['RegID', 'Date', 'PrimaryName', 'PrimaryMobile', 'ParticipantName', 'Gender', 'Age', 'City', 'Amount', 'Status', 'Source', 'RefNo']
+                : activeTab === 'STORE'
+                    ? ['OrderID', 'Date', 'CustomerName', 'Mobile', 'Items', 'Amount', 'Status', 'City', 'Source', 'RefNo', '', '']
+                    : ['DonationID', 'Date', 'DonorName', 'Mobile', 'Amount', 'Place', 'PAN', 'UTR', 'Status', 'Source', '', ''];
+
+            const dataRows = snap.docs.map(d => {
+                const data = d.data();
+                const dateStr = new Date(data.timestamp?.seconds * 1000 || Date.now()).toLocaleDateString();
+
+                if (activeTab === 'PROGRAMS') {
+                    const primary = data.primaryApplicant || {};
+                    const participants = data.participants || [{ name: primary.name, gender: '', age: '' }];
+                    return participants.map(p => [
+                        d.id, dateStr, primary.name || '', primary.mobile || '',
+                        p.name || '', p.gender || '', p.age || '',
+                        data.place || primary.city || '', data.amount || 0,
+                        data.status || 'REGISTERED', data.isOffline ? 'Offline' : 'Online',
+                        data.offlineRefNo || data.paymentId || ''
+                    ]);
+                } else if (activeTab === 'STORE') {
+                    const items = (data.orderItems || []).map(i => `${i.title} (x${i.quantity})`).join(', ');
+                    const contact = data.shippingAddress || data.primaryApplicant || {};
+                    return [[
+                        d.id, dateStr, contact.name || '', contact.mobile || '',
+                        items, data.amount || 0, data.status || 'PENDING',
+                        contact.city || data.place || '', data.isOffline ? 'Offline' : 'Online',
+                        data.offlineRefNo || data.paymentId || '', '', ''
+                    ]];
+                } else {
+                    const contact = data.primaryApplicant || data.shippingAddress || {};
+                    return [[
+                        d.id, dateStr, contact.name || '', contact.mobile || '',
+                        data.amount || 0, data.place || contact.city || '',
+                        contact.pan || '', data.utr || '', data.status || 'REGISTERED',
+                        data.isOffline ? 'Offline' : 'Online', '', ''
+                    ]];
+                }
+            }).flat();
+
+            const payload = { action: 'push_update', targetGid, rows: [headers, ...dataRows] };
+            await fetch(scriptUrl, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+            alert("Success! Signal sent. Check the sheet.");
+        } catch (e) {
+            alert("Push Failed: " + e.message);
+        } finally {
+            setLoading(false);
+            setLoadingAction(null);
+        }
+    };
+
+    const handleUniversalPull = async () => {
+        // Use UPDATE URLs for Sync Pull
+        const sheetUrls = {
+            'PROGRAMS': programUpdateUrl,
+            'STORE': bookUpdateUrl,
+            'DONATION': donationUpdateUrl
+        };
+        const sheetUrl = sheetUrls[activeTab];
+        if (!sheetUrl) return alert("Sheet URL not configured");
+
+        setLoading(true);
+        setLoadingAction('PULL');
+        await new Promise(r => setTimeout(r, 800));
+        try {
+            const spreadsheetIdMatch = sheetUrl.match(/\/d\/([a-zA-Z0-9-_]+)/);
+            const gidMatch = sheetUrl.match(/gid=([0-9]+)/);
+            const exportUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetIdMatch[1]}/export?format=csv&gid=${gidMatch ? gidMatch[1] : '0'}`;
+
+            const response = await fetch(exportUrl);
+            const csvContent = await response.text();
+
+            const parsedRows = csvContent.split(/\r?\n/).filter(l => l.trim()).map(parseCSVLine);
+            if (parsedRows.length === 0) return;
+
+            // Header Matching (Fuzzy)
+            const headerRow = parsedRows[0];
+            const mapping = {
+                regid: -1, orderid: -1, donationid: -1,
+                name: -1, mobile: -1, status: -1, amount: -1,
+                city: -1, place: -1, pan: -1, utr: -1,
+                primaryname: -1, customername: -1, donorname: -1
+            };
+
+            headerRow.forEach((col, idx) => {
+                const h = col.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+                if (h.includes('regid')) mapping.regid = idx;
+                if (h.includes('orderid')) mapping.orderid = idx;
+                if (h.includes('donationid')) mapping.donationid = idx;
+
+                if (h === 'name' || h.includes('participantname')) mapping.name = idx;
+                if (h.includes('primaryname')) mapping.primaryname = idx;
+                if (h.includes('customername')) mapping.customername = idx;
+                if (h.includes('donorname')) mapping.donorname = idx;
+
+                if (h.includes('mobile')) mapping.mobile = idx;
+                if (h.includes('status')) mapping.status = idx;
+                if (h.includes('amount')) mapping.amount = idx;
+                if (h.includes('city')) mapping.city = idx;
+                if (h.includes('place')) mapping.place = idx;
+                if (h.includes('pan')) mapping.pan = idx;
+                if (h.includes('utr')) mapping.utr = idx;
+            });
+
+            // Determine ID column based on tab
+            const idColIdx = activeTab === 'PROGRAMS' ? mapping.regid : activeTab === 'STORE' ? mapping.orderid : mapping.donationid;
+
+            if (idColIdx === -1) {
+                alert("Could not find ID column (RegID/OrderID/DonationID) in sheet.");
+                setLoading(false);
+                return;
+            }
+
+            const groups = {};
+            for (let i = 1; i < parsedRows.length; i++) {
+                const row = parsedRows[i];
+                const id = row[idColIdx];
+                if (id && id.length > 5) {
+                    if (!groups[id]) groups[id] = [];
+                    groups[id].push(row);
+                }
+            }
+
+            const batch = writeBatch(db);
+            let count = 0;
+            Object.entries(groups).forEach(([id, rows]) => {
+                const row = rows[0];
+                const docRef = doc(db, 'transactions', id);
+                let updates = { updatedAt: serverTimestamp() };
+
+                if (activeTab === 'PROGRAMS') {
+                    updates = {
+                        ...updates,
+                        'primaryApplicant.name': row[mapping.primaryname] || row[mapping.name],
+                        // 'primaryApplicant.mobile': Not updating mobile on pull to avoid overrides/formatting issues unless specific
+                        status: row[mapping.status],
+                        amount: cleanAmount(row[mapping.amount]),
+                        // Not updating participants array on deep sync yet to avoid complex diffs
+                    };
+                } else if (activeTab === 'STORE') {
+                    updates = {
+                        ...updates,
+                        status: row[mapping.status],
+                        'shippingAddress.name': row[mapping.customername],
+                        'shippingAddress.city': row[mapping.city],
+                        amount: cleanAmount(row[mapping.amount])
+                    };
+                } else {
+                    updates = {
+                        ...updates,
+                        status: row[mapping.status],
+                        amount: cleanAmount(row[mapping.amount]),
+                        'primaryApplicant.name': row[mapping.donorname],
+                        'primaryApplicant.pan': row[mapping.pan],
+                        place: row[mapping.place],
+                        utr: row[mapping.utr]
+                    };
+                }
+                batch.update(docRef, updates);
+                count++;
+            });
+
+            await batch.commit();
+            alert(`Updated ${count} records!`);
+        } catch (e) {
+            alert("Pull Failed: " + e.message);
+        } finally {
+            setLoading(false);
+            setLoadingAction(null);
+        }
+    };
+
+    const renderImportPreview = () => {
+        if (parsedData.length === 0) return null;
+        return (
+            <div className="card" style={{ padding: '20px', borderRadius: '16px', backgroundColor: 'white', border: '1px solid #e5e7eb', marginTop: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0 }}>{activeTab === 'PROGRAMS' ? 'Program' : activeTab === 'STORE' ? 'Store' : 'Donation'} Import Preview ({parsedData.length} records)</h3>
+                    <button onClick={() => setParsedData([])} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <X size={16} /> Clear
+                    </button>
+                </div>
+                <div style={{ overflowX: 'auto', maxHeight: '400px', border: '1px solid #eee', borderRadius: '8px' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                        <thead style={{ backgroundColor: '#f9fafb', position: 'sticky', top: 0 }}>
+                            <tr>
+                                <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #eee' }}>
+                                    <input type="checkbox" checked={selectedIndices.size === parsedData.length} onChange={handleToggleSelectAll} />
+                                </th>
+                                <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #eee' }}>Name</th>
+                                <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #eee' }}>Mobile</th>
+                                <th style={{ padding: '10px', textAlign: 'right', borderBottom: '1px solid #eee' }}>Amount</th>
+                                {activeTab === 'DONATION' && <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #eee' }}>Place</th>}
+                                {activeTab === 'DONATION' && <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #eee' }}>PAN</th>}
+                                {activeTab === 'STORE' && <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #eee' }}>Items</th>}
+                                <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #eee' }}>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {parsedData.map((row, idx) => (
+                                <tr key={idx} style={{ backgroundColor: selectedIndices.has(idx) ? '#eff6ff' : 'white' }}>
+                                    <td style={{ padding: '10px', borderBottom: '1px solid #f3f4f6' }}>
+                                        <input type="checkbox" checked={selectedIndices.has(idx)} onChange={() => handleToggleSelect(idx)} />
+                                    </td>
+                                    <td style={{ padding: '10px', borderBottom: '1px solid #f3f4f6' }}>{row.name}</td>
+                                    <td style={{ padding: '10px', borderBottom: '1px solid #f3f4f6' }}>{row.mobile}</td>
+                                    <td style={{ padding: '10px', textAlign: 'right', borderBottom: '1px solid #f3f4f6' }}>₹{row.amount}</td>
+                                    {activeTab === 'DONATION' && <td style={{ padding: '10px', borderBottom: '1px solid #f3f4f6' }}>{row.city}</td>}
+                                    {activeTab === 'DONATION' && <td style={{ padding: '10px', borderBottom: '1px solid #f3f4f6' }}>{row.pan}</td>}
+                                    {activeTab === 'STORE' && <td style={{ padding: '10px', borderBottom: '1px solid #f3f4f6' }}>{row.items}</td>}
+                                    <td style={{ padding: '10px', borderBottom: '1px solid #f3f4f6', fontSize: '11px' }}>{row.status}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+                <div style={{ marginTop: '16px', display: 'flex', gap: '12px' }}>
+                    <button
+                        onClick={handleImportIndividualSelected}
+                        disabled={loading || selectedIndices.size === 0}
+                        style={{ flex: 1, padding: '12px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, opacity: (loading || selectedIndices.size === 0) ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                    >
+                        {loadingAction === 'IMPORT' ? <Spinner size={16} /> : null} Import Selected ({selectedIndices.size})
+                    </button>
+                    {activeTab === 'PROGRAMS' && (
+                        <button
+                            onClick={handleMergeImportSelected}
+                            disabled={loading || selectedIndices.size === 0}
+                            style={{ flex: 1, padding: '12px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, opacity: (loading || selectedIndices.size === 0) ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                        >
+                            {loadingAction === 'MERGE' ? <Spinner size={16} /> : null} Merge & Import ({selectedIndices.size})
+                        </button>
+                    )}
+                </div>
+            </div>
+        );
+    };
+
+    const renderSyncSection = (title) => (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            {/* Import Data */}
+            <div className="card" style={{ padding: '20px', borderRadius: '16px', backgroundColor: 'white', border: '1px solid #e5e7eb' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', color: '#2563eb' }}>
+                    <Upload size={24} />
+                    <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>Import {title}</h2>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <button onClick={handleFetchSheet} disabled={loading} style={{ padding: '10px 20px', borderRadius: '8px', backgroundColor: '#2563eb', color: 'white', border: 'none', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', opacity: loading ? 0.7 : 1 }}>
+                        {loadingAction === 'FETCH' ? <Spinner size={18} /> : <Upload size={18} />} Sync from Sheet
+                    </button>
+                </div>
+                {renderImportPreview()}
+            </div>
+
+            {/* Export Data */}
+            <div className="card" style={{ padding: '20px', borderRadius: '16px', backgroundColor: 'white', border: '1px solid #e5e7eb' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', color: '#047857' }}>
+                    <Download size={24} />
+                    <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>Export {title}</h2>
+                </div>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                    <button onClick={handleExportToSheet} disabled={loading} style={{ flex: 1, padding: '12px', backgroundColor: '#059669', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', opacity: loading ? 0.7 : 1 }}>
+                        {loadingAction === 'EXPORT_SHEET' ? <Spinner size={16} /> : null} GSheet Export
+                    </button>
+                    <button onClick={handleExport} disabled={loading} style={{ flex: 1, padding: '12px', backgroundColor: '#f3f4f6', color: '#4b5563', border: '1px solid #d1d5db', borderRadius: '8px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', opacity: loading ? 0.7 : 1 }}>
+                        {loadingAction === 'EXPORT_CSV' ? <Spinner size={16} color="#4b5563" /> : null} CSV
+                    </button>
+                </div>
+            </div>
+
+            {/* Update Sync */}
+            <div className="card" style={{ padding: '20px', borderRadius: '16px', backgroundColor: 'white', border: '1px solid #e5e7eb' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', color: '#6366f1' }}>
+                    <CloudUpload size={24} />
+                    <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>Sync Updates</h2>
+                </div>
+                <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '16px' }}>Bulk edit details in the sheet and pull them back.</p>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                    <button onClick={handleUniversalPush} disabled={loading} style={{ flex: 1, padding: '12px', backgroundColor: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', opacity: loading ? 0.7 : 1 }}>
+                        {loadingAction === 'PUSH' ? <Spinner size={16} /> : null} Push to Sheet
+                    </button>
+                    <button onClick={handleUniversalPull} disabled={loading} style={{ flex: 1, padding: '12px', backgroundColor: '#4338ca', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', opacity: loading ? 0.7 : 1 }}>
+                        {loadingAction === 'PULL' ? <Spinner size={16} /> : null} Pull Updates
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', paddingBottom: '40px' }}>
             <PageHeader
                 title="Import / Export Data"
+                subtitle="v2.8.299"
                 leftAction={
                     <button onClick={() => navigate('/admin/back-office')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
                         <ChevronLeft size={24} />
@@ -388,257 +1022,160 @@ const BackOfficeImportExport = () => {
                 }
             />
 
-            <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-                {/* --- EXPORT SECTION --- */}
-                <div className="card" style={{ padding: '20px', borderRadius: '16px', backgroundColor: 'white', border: '1px solid #e5e7eb', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', color: '#047857' }}>
-                        <Download size={24} />
-                        <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>Export Data</h2>
+                {/* --- MASTER SPREADSHEET (TOP LVL) --- */}
+                <div className="card" style={{ padding: '16px', borderRadius: '12px', backgroundColor: '#f0f9ff', border: '1px solid #bae6fd' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                        <FileSpreadsheet size={20} color="#0284c7" />
+                        <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#0369a1', margin: 0 }}>Master Spreadsheet</h3>
                     </div>
-
-                    <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '16px' }}>Select a program to download all registrations (Online & Offline) as a CSV file.</p>
-
-                    <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                        <select
-                            value={exportProgram}
-                            onChange={(e) => setExportProgram(e.target.value)}
-                            style={{ flex: 1, minWidth: '200px', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db' }}
-                        >
-                            <option value="">-- Select Program --</option>
-                            {programs.map(p => (
-                                <option key={p.id} value={p.id}>{p.programName} ({p.programCity}) - [{p.regCount || 0}]</option>
-                            ))}
-                        </select>
+                    <div style={{ display: 'flex', gap: '10px' }}>
                         <button
-                            onClick={handleExport}
-                            disabled={loading || !exportProgram}
-                            style={{
-                                padding: '10px 20px',
-                                backgroundColor: '#f3f4f6',
-                                color: '#4b5563',
-                                border: '1px solid #d1d5db',
-                                borderRadius: '8px',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                opacity: !exportProgram ? 0.5 : 1
-                            }}
+                            onClick={() => window.open(sheetLink, '_blank')}
+                            style={{ flex: 2, padding: '10px', borderRadius: '8px', backgroundColor: '#0284c7', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                         >
-                            <Download size={18} /> CSV
+                            Open Spreadsheet
                         </button>
                         <button
-                            onClick={handleExportToSheet}
-                            disabled={loading || !exportProgram}
-                            style={{
-                                padding: '10px 20px',
-                                backgroundColor: '#059669',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '8px',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                opacity: !exportProgram ? 0.5 : 1
+                            onClick={() => {
+                                navigator.clipboard.writeText(sheetLink);
+                                alert("Link copied to clipboard!");
                             }}
+                            style={{ flex: 1, padding: '10px', borderRadius: '8px', backgroundColor: 'white', color: '#0369a1', border: '1px solid #bae6fd', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}
                         >
-                            <FileSpreadsheet size={18} /> Export to GSheet
+                            Copy URL
                         </button>
-                    </div>
-
-                    {/* Script URL Config */}
-                    <div style={{ marginTop: '16px', padding: '12px', background: '#f0fdf4', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
-                        <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#166534', marginBottom: '4px' }}>Apps Script Web App URL (Required for Direct Export)</label>
-                        <input
-                            placeholder="Paste Web App URL here..."
-                            value={scriptUrl}
-                            onChange={e => setScriptUrl(e.target.value)}
-                            style={{ width: '100%', padding: '8px', fontSize: '12px', borderRadius: '6px', border: '1px solid #86efac' }}
-                        />
                     </div>
                 </div>
 
-                {/* --- HELP / GUIDE SECTION --- */}
-                <div className="card" style={{ padding: '20px', borderRadius: '16px', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', color: '#1e40af' }}>
-                        <FileSpreadsheet size={20} />
-                        <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0 }}>Syncing with Google Sheets</h3>
-                    </div>
-                    <div style={{ fontSize: '13px', color: '#1e3a8a', lineHeight: '1.6' }}>
-                        <p style={{ margin: '0 0 10px 0' }}>1. <b>Export to GSheet:</b> Select a program and click "Export to GSheet". This requires setting up an Apps Script (see step 3 below).</p>
-                        <p style={{ margin: '0 0 10px 0' }}>2. <b>Import:</b> Add data to the "Import" tab in your Google Sheet. Click "Sync" below to fetch it, then "Preview" and "Import".</p>
-                        <p style={{ margin: '0 0 10px 0' }}>3. <b>Direct Sync Setup:</b> Go to Extensions &gt; Apps Script in your Sheet, paste the provide code, deploy as "Web App", and paste the URL above.</p>
-                        <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
-                            <button
-                                onClick={() => {
-                                    navigator.clipboard.writeText("RegID,Date,PrimaryName,PrimaryMobile,ParticipantName,Gender,Age,City,Amount,Status,Source,RefNo");
-                                    alert("Export Headers copied to clipboard!");
-                                }}
-                                style={{ flex: 1, padding: '6px', fontSize: '11px', background: 'white', border: '1px solid #bfdbfe', borderRadius: '4px', cursor: 'pointer' }}
-                            >
-                                Copy Export Headers
-                            </button>
-                            <button
-                                onClick={() => {
-                                    navigator.clipboard.writeText("Name,Mobile,City,Gender,Age");
-                                    alert("Import Headers copied to clipboard!");
-                                }}
-                                style={{ flex: 1, padding: '6px', fontSize: '11px', background: 'white', border: '1px solid #bfdbfe', borderRadius: '4px', cursor: 'pointer' }}
-                            >
-                                Copy Import Headers
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* --- IMPORT SECTION --- */}
-                <div className="card" style={{ padding: '20px', borderRadius: '16px', backgroundColor: 'white', border: '1px solid #e5e7eb', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', color: '#2563eb' }}>
-                        <Upload size={24} />
-                        <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>Import Data</h2>
-                    </div>
-
-                    <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '12px' }}>
-                        Copy details from Excel/Sheets and paste below. Data will be added as "Offline Registrations".
-                    </p>
-
-                    <div style={{ marginBottom: '16px' }}>
-                        <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>Target Program</label>
-                        <select
-                            value={importProgram}
-                            onChange={(e) => setImportProgram(e.target.value)}
-                            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db' }}
-                        >
-                            <option value="">-- Select Program --</option>
-                            {programs.map(p => (
-                                <option key={'imp_' + p.id} value={p.id}>{p.programName} ({p.programCity}) - [{p.regCount || 0}]</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div style={{ marginBottom: '16px' }}>
-                        <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>Google Sheet Link (Optional - for Reference)</label>
-                        <div style={{ display: 'flex', gap: '10px', marginBottom: '8px' }}>
-                            <input
-                                placeholder="Paste Google Sheet URL here..."
-                                value={sheetLink}
-                                onChange={e => setSheetLink(e.target.value)}
-                                style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db' }}
-                            />
-                            <button
-                                onClick={handleFetchSheet}
-                                disabled={loading || !sheetLink}
-                                style={{
-                                    padding: '0 16px',
-                                    borderRadius: '8px',
-                                    backgroundColor: '#2563eb',
-                                    color: 'white',
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                    fontWeight: 600,
-                                    opacity: (loading || !sheetLink) ? 0.6 : 1,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '6px'
-                                }}
-                            >
-                                <Upload size={16} /> Sync
-                            </button>
-                        </div>
-                        {sheetLink && (
-                            <button
-                                onClick={() => window.open(sheetLink, '_blank')}
-                                style={{ width: '100%', padding: '8px', borderRadius: '8px', backgroundColor: '#e0f2fe', color: '#0284c7', border: '1px solid #bae6fd', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}
-                            >
-                                Open Spreadsheet in Browser
-                            </button>
-                        )}
-                    </div>
-
-                    <div style={{ marginBottom: '16px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                            <label style={{ fontSize: '13px', fontWeight: 600 }}>Paste Data (Name, Mobile, City, Gender, Age)</label>
-                            <span style={{ fontSize: '11px', color: '#6b7280', background: '#f3f4f6', padding: '2px 6px', borderRadius: '4px' }}>Tab or Comma Separated</span>
-                        </div>
-                        <textarea
-                            rows={8}
-                            placeholder={`Example:\nJohn Doe\t9876543210\tChennai\tM\t30\nJane Smith\t9988776655\tMadurai\tF\t25`}
-                            value={importData}
-                            onChange={(e) => {
-                                setImportData(e.target.value);
-                                setParsedData([]); // Reset parse
-                                setImportErrors([]);
-                            }}
+                {/* --- TAB NAVIGATION --- */}
+                <div style={{
+                    display: 'flex',
+                    backgroundColor: 'white',
+                    borderRadius: '12px',
+                    padding: '4px',
+                    border: '1px solid #e5e7eb',
+                    marginBottom: '8px'
+                }}>
+                    {[
+                        { id: 'PROGRAMS', label: 'Programs', icon: <FileSpreadsheet size={18} /> },
+                        { id: 'STORE', label: 'Store', icon: <ShoppingBag size={18} /> },
+                        { id: 'DONATION', label: 'Donation', icon: <Heart size={18} /> }
+                    ].map(tab => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
                             style={{
-                                width: '100%',
+                                flex: 1,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px',
                                 padding: '10px',
                                 borderRadius: '8px',
-                                border: '1px solid #d1d5db',
-                                fontFamily: 'monospace',
-                                fontSize: '12px'
-                            }}
-                        />
-                    </div>
-
-                    {/* Parse Preview */}
-                    <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
-                        <button
-                            onClick={handleParse}
-                            disabled={!importData}
-                            style={{
-                                padding: '10px 20px',
-                                backgroundColor: '#f3f4f6',
-                                color: '#4b5563',
-                                border: '1px solid #d1d5db',
-                                borderRadius: '8px',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                flex: 1
-                            }}
-                        >
-                            Preview Data
-                        </button>
-                        <button
-                            onClick={handleImportSubmit}
-                            disabled={loading || parsedData.length === 0}
-                            style={{
-                                padding: '10px 20px',
-                                backgroundColor: '#2563eb',
-                                color: 'white',
                                 border: 'none',
-                                borderRadius: '8px',
-                                fontWeight: 600,
                                 cursor: 'pointer',
-                                flex: 1,
-                                opacity: parsedData.length === 0 ? 0.5 : 1
+                                fontWeight: 600,
+                                fontSize: '14px',
+                                transition: 'all 0.2s',
+                                backgroundColor: activeTab === tab.id ? '#2563eb' : 'transparent',
+                                color: activeTab === tab.id ? 'white' : '#64748b'
                             }}
                         >
-                            {loading ? 'Importing...' : `Import ${parsedData.length} Records`}
+                            {tab.icon}
+                            {tab.label}
                         </button>
-                    </div>
-
-                    {/* Stats & Errors */}
-                    {parsedData.length > 0 && (
-                        <div style={{ padding: '12px', background: '#f0fdf4', color: '#166534', borderRadius: '8px', fontSize: '14px', display: 'flex', gap: '8px', alignItems: 'center' }}>
-                            <Check size={16} /> Ready to import {parsedData.length} rows.
-                        </div>
-                    )}
-                    {importErrors.length > 0 && (
-                        <div style={{ marginTop: '8px', padding: '12px', background: '#fef2f2', color: '#991b1b', borderRadius: '8px', fontSize: '13px', maxHeight: '150px', overflowY: 'auto' }}>
-                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '4px', fontWeight: 600 }}>
-                                <AlertTriangle size={16} /> Found {importErrors.length} issues:
-                            </div>
-                            {importErrors.map((err, i) => (
-                                <div key={i}>• {err}</div>
-                            ))}
-                        </div>
-                    )}
-
+                    ))}
                 </div>
+
+                {activeTab === 'PROGRAMS' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                        {/* --- PROGRAM SELECTION (Top) --- */}
+                        <div style={{
+                            position: 'sticky',
+                            top: '0',
+                            zIndex: 10,
+                            backgroundColor: '#f9fafb',
+                            padding: '8px 0',
+                            borderBottom: '1px solid #e5e7eb'
+                        }}>
+                            <div className="card" style={{ padding: '16px', borderRadius: '12px', backgroundColor: 'white', border: '1px solid #2563eb', boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.1)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                                    <FileSpreadsheet size={18} color="#2563eb" />
+                                    <label style={{ fontSize: '13px', fontWeight: 600, color: '#2563eb' }}>Select Active Program</label>
+                                </div>
+                                <select
+                                    value={selectedProgram}
+                                    onChange={(e) => setSelectedProgram(e.target.value)}
+                                    style={{
+                                        width: '100%',
+                                        padding: '12px',
+                                        borderRadius: '8px',
+                                        border: '2px solid #2563eb',
+                                        fontSize: '15px',
+                                        fontWeight: 600,
+                                        color: '#1e3a8a',
+                                        outline: 'none'
+                                    }}
+                                >
+                                    <option value="">-- Choose Program for Import/Export --</option>
+                                    {programs.map(p => (
+                                        <option key={p.id} value={p.id}>{p.programName} ({p.programCity}) - [{p.regCount || 0} Registered]</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        {renderSyncSection("Program Registrations")}
+                    </div>
+                )}
+
+                {activeTab === 'STORE' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                        <div className="card" style={{ padding: '16px', borderRadius: '12px', backgroundColor: 'white', border: '1px solid #0891b2' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                                <ShoppingBag size={18} color="#0891b2" />
+                                <label style={{ fontSize: '13px', fontWeight: 600, color: '#0891b2' }}>Select Scope</label>
+                            </div>
+                            <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                                <button onClick={() => setDateMode('ALL')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid #0891b2', backgroundColor: dateMode === 'ALL' ? '#0891b2' : 'white', color: dateMode === 'ALL' ? 'white' : '#0891b2', fontWeight: 600, fontSize: '13px' }}>All Data</button>
+                                <button onClick={() => setDateMode('RANGE')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid #0891b2', backgroundColor: dateMode === 'RANGE' ? '#0891b2' : 'white', color: dateMode === 'RANGE' ? 'white' : '#0891b2', fontWeight: 600, fontSize: '13px' }}>Date Range</button>
+                            </div>
+                            {dateMode === 'RANGE' && (
+                                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                    <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid #d1d5db' }} />
+                                    <span style={{ fontSize: '12px', color: '#6b7280' }}>to</span>
+                                    <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid #d1d5db' }} />
+                                </div>
+                            )}
+                        </div>
+                        {renderSyncSection("Book Orders")}
+                    </div>
+                )}
+
+                {activeTab === 'DONATION' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                        <div className="card" style={{ padding: '16px', borderRadius: '12px', backgroundColor: 'white', border: '1px solid #e11d48' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                                <Heart size={18} color="#e11d48" />
+                                <label style={{ fontSize: '13px', fontWeight: 600, color: '#e11d48' }}>Select Scope</label>
+                            </div>
+                            <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                                <button onClick={() => setDateMode('ALL')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid #e11d48', backgroundColor: dateMode === 'ALL' ? '#e11d48' : 'white', color: dateMode === 'ALL' ? 'white' : '#e11d48', fontWeight: 600, fontSize: '13px' }}>All Data</button>
+                                <button onClick={() => setDateMode('RANGE')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid #e11d48', backgroundColor: dateMode === 'RANGE' ? '#e11d48' : 'white', color: dateMode === 'RANGE' ? 'white' : '#e11d48', fontWeight: 600, fontSize: '13px' }}>Date Range</button>
+                            </div>
+                            {dateMode === 'RANGE' && (
+                                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                    <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid #d1d5db' }} />
+                                    <span style={{ fontSize: '12px', color: '#6b7280' }}>to</span>
+                                    <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid #d1d5db' }} />
+                                </div>
+                            )}
+                        </div>
+                        {renderSyncSection("Donations")}
+                    </div>
+                )}
             </div>
         </div>
     );

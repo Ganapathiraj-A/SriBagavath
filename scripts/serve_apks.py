@@ -90,10 +90,21 @@ class ApkHandler(http.server.SimpleHTTPRequestHandler):
             self.server.apk_paths = {apk['name']: apk['full_path'] for apk in apks_data}
             
             # Format for JSON response with local IP
+            # Try to get version from package.json
+            version = "unknown"
+            try:
+                pkg_path = os.path.join(project_root, 'package.json')
+                with open(pkg_path, 'r') as f:
+                    pkg = json.load(f)
+                    version = pkg.get('version', 'unknown')
+            except:
+                pass
+
             apks = []
             for apk in apks_data:
                 apks.append({
                     "name": apk["name"],
+                    "version": version if "sribagavath" in apk["name"].lower() else "unknown",
                     "size": apk["size"],
                     "modified": apk["modified"],
                     "url": f"http://{local_ip}:{PORT}/{apk['name']}"

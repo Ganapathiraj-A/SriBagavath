@@ -215,7 +215,7 @@ const MyOrders = () => {
                                             onClick={() => handleViewReceipt(order.id, order.utr)}
                                             style={{ fontSize: '12px', color: '#2563eb', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
                                         >
-                                            <Receipt size={14} /> View Receipt ↗
+                                            <Receipt size={14} /> Verify Receipt ↗
                                         </div>
                                     )}
                                 </div>

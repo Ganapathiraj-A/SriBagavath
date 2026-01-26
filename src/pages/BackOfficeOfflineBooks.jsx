@@ -183,7 +183,7 @@ const BackOfficeOfflineBooks = () => {
                 amount: finalAmount,
 
                 // Offline Spec
-                status: 'PROCESSING', // Changed to PROCESSING to match Book Store workflow
+                status: 'PENDING',
                 isOffline: true,
                 offlineRefNo: refNo || '', // Optional
 

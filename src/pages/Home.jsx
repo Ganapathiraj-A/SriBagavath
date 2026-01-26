@@ -11,7 +11,8 @@ import {
     Settings,
     Heart,
     IndianRupee,
-    LayoutDashboard
+    LayoutDashboard,
+    FileSpreadsheet
 } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
@@ -172,7 +173,6 @@ const Home = () => {
     ];
 
 
-    // Final Menu List
     let menuItems = isAdmin
         ? [
             { title: "Admin Panel", icon: LayoutDashboard, path: "/configuration", delay: 0.1, isAdmin: true },

@@ -284,4 +284,220 @@ public class OCRPlugin extends Plugin {
 
         return null;
     }
+
+    @PluginMethod
+    public void installApk(PluginCall call) {
+        String filePath = call.getString("filePath");
+        if (filePath == null) {
+            call.reject("No file path provided");
+            return;
+        }
+
+        try {
+            android.content.Context context = getContext();
+            java.io.File file;
+            
+            if (filePath.startsWith("file://")) {
+                file = new java.io.File(java.net.URI.create(filePath));
+            } else {
+                file = new java.io.File(filePath);
+            }
+
+            if (!file.exists()) {
+                call.reject("File not found at: " + file.getAbsolutePath());
+                return;
+            }
+
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            Uri apkUri = androidx.core.content.FileProvider.getUriForFile(
+                    context,
+                    context.getPackageName() + ".fileprovider",
+                    file
+            );
+            
+            intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            
+            context.startActivity(intent);
+            call.resolve();
+
+        } catch (Exception e) {
+            Log.e("OCR_PLUGIN", "Install failed", e);
+            call.reject("Install failed: " + e.getMessage(), e);
+        }
+    }
+
+    @PluginMethod
+    public void downloadApk(PluginCall call) {
+        String urlString = call.getString("url");
+        String filename = call.getString("filename", "update.apk");
+
+        if (urlString == null) {
+            call.reject("No URL provided");
+            return;
+        }
+
+        // Run in background thread to avoid blocking UI
+        new Thread(() -> {
+            java.io.InputStream input = null;
+            java.io.OutputStream output = null;
+            java.net.HttpURLConnection connection = null;
+            try {
+                java.net.URL url = new java.net.URL(urlString);
+                connection = (java.net.HttpURLConnection) url.openConnection();
+                connection.connect();
+
+                // Check for HTTP 200
+                if (connection.getResponseCode() != java.net.HttpURLConnection.HTTP_OK) {
+                    call.reject("Server returned HTTP " + connection.getResponseCode() + " " + connection.getResponseMessage());
+                    return;
+                }
+
+                int fileLength = connection.getContentLength();
+
+                // Download location: External Files Dir (Publicly accessible by FileProvider)
+                java.io.File storageDir = getContext().getExternalFilesDir(null); 
+                java.io.File outputFile = new java.io.File(storageDir, filename);
+
+                input = new java.io.BufferedInputStream(url.openStream(), 8192);
+                output = new java.io.FileOutputStream(outputFile);
+
+                byte[] data = new byte[1024]; // 1KB buffer
+                long total = 0;
+                int count;
+                int lastProgress = -1;
+
+                while ((count = input.read(data)) != -1) {
+                    total += count;
+                    output.write(data, 0, count);
+
+                    // Publish progress if known length
+                    if (fileLength > 0) {
+                        int progress = (int) (total * 100 / fileLength);
+                        // Debounce events: only send if changed
+                        if (progress > lastProgress) {
+                            JSObject ret = new JSObject();
+                            ret.put("progress", progress); // 0-100
+                            notifyListeners("downloadProgress", ret);
+                            lastProgress = progress;
+                        }
+                    }
+                }
+
+                output.flush();
+
+                Log.d("OCR_PLUGIN", "Download complete: " + outputFile.getAbsolutePath());
+                JSObject ret = new JSObject();
+                ret.put("filePath", outputFile.getAbsolutePath());
+                call.resolve(ret);
+
+            } catch (Exception e) {
+                Log.e("OCR_PLUGIN", "Download error", e);
+                call.reject("Download error: " + e.getMessage());
+            } finally {
+                try {
+                    if (output != null) output.close();
+                    if (input != null) input.close();
+                } catch (IOException ignored) { }
+                if (connection != null) connection.disconnect();
+            }
+        }).start();
+    }
+
+    @PluginMethod
+    public void launchApp(PluginCall call) {
+        String packageName = call.getString("packageName");
+        if (packageName == null) {
+            call.reject("Package name required");
+            return;
+        }
+        try {
+            android.content.Intent launchIntent = getContext().getPackageManager().getLaunchIntentForPackage(packageName);
+            if (launchIntent != null) {
+                launchIntent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+                getContext().startActivity(launchIntent);
+                call.resolve();
+            } else {
+                call.reject("App not found: " + packageName);
+            }
+        } catch (Exception e) {
+            call.reject("Launch failed: " + e.getMessage());
+        }
+    }
+    @PluginMethod
+    public void saveAndUploadScreenshot(PluginCall call) {
+        getBridge().executeOnMainThread(() -> {
+            try {
+                // 1. Capture Root View
+                android.view.View rootView = getBridge().getActivity().getWindow().getDecorView().getRootView();
+                rootView.setDrawingCacheEnabled(true);
+                android.graphics.Bitmap bitmap = android.graphics.Bitmap.createBitmap(rootView.getDrawingCache());
+                rootView.setDrawingCacheEnabled(false);
+                
+                // 2. Base64
+                java.io.ByteArrayOutputStream stream = new java.io.ByteArrayOutputStream();
+                bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 70, stream);
+                byte[] byteArr = stream.toByteArray();
+                String base64 = android.util.Base64.encodeToString(byteArr, android.util.Base64.NO_WRAP);
+                
+                // 3. Upload (Async)
+                new Thread(() -> {
+                    try {
+                        String uploadUrl = call.getString("url");
+                        if (uploadUrl == null || uploadUrl.isEmpty()) {
+                            uploadUrl = "http://192.168.1.7:5000/upload_base64";
+                        }
+                        
+                        java.net.URL url = new java.net.URL(uploadUrl);
+                        java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+                        conn.setRequestMethod("POST");
+                        conn.setDoOutput(true);
+                        conn.setRequestProperty("Content-Type", "application/json");
+                        conn.setConnectTimeout(5000);
+                        
+                        String json = "{\"image\": \"" + base64 + "\"}";
+                        
+                        java.io.OutputStreamWriter writer = new java.io.OutputStreamWriter(conn.getOutputStream());
+                        writer.write(json);
+                        writer.flush();
+                        writer.close();
+                        
+                        int code = conn.getResponseCode();
+                        if (code == 200) {
+                            call.resolve();
+                        } else {
+                            call.reject("Upload failed with HTTP " + code);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        call.reject("Network error: " + e.getMessage());
+                    }
+                }).start();
+                
+            } catch (Exception e) {
+                e.printStackTrace();
+                call.reject("Capture error: " + e.getMessage());
+            }
+        });
+    }
+
+    @PluginMethod
+    public void getAppVersion(PluginCall call) {
+        String packageName = call.getString("packageName");
+        if (packageName == null) {
+            call.reject("Package name required");
+            return;
+        }
+        try {
+            android.content.pm.PackageInfo pInfo = getContext().getPackageManager().getPackageInfo(packageName, 0);
+            com.getcapacitor.JSObject ret = new com.getcapacitor.JSObject();
+            ret.put("version", pInfo.versionName);
+            call.resolve(ret);
+        } catch (android.content.pm.PackageManager.NameNotFoundException e) {
+            call.resolve(); // Resolving empty is better than rejecting if just checking existence/version
+        } catch (Exception e) {
+            call.reject("Failed to get version: " + e.getMessage());
+        }
+    }
 }

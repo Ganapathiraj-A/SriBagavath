@@ -257,5 +257,42 @@ export const TransactionService = {
             console.error("Archive program failed", e);
             throw e;
         }
+    },
+
+    // Upload/Attach Receipt to existing transaction
+    uploadReceipt: async (id, base64Image) => {
+        const txRef = doc(db, "transactions", id);
+        const imgRef = doc(db, "transaction_images", id);
+
+        const user = auth.currentUser;
+        const userId = user ? user.uid : null;
+
+        // 1. Update Meta
+        await updateDoc(txRef, {
+            hasImage: true,
+            updatedAt: new Date().toISOString()
+        });
+
+        // 2. Write Image
+        await setDoc(imgRef, {
+            id: id,
+            base64: base64Image,
+            userId: userId
+        });
+
+        // 3. Update Image Stats
+        const sizeInBytes = base64Image.length * 0.75;
+        StatsService.recordImage(sizeInBytes).catch(() => { });
+
+        return true;
+    },
+
+    // Update transaction details (UTR, Amount, ParsedAmount etc)
+    updateTransactionDetails: async (id, updates) => {
+        const ref = doc(db, "transactions", id);
+        await updateDoc(ref, {
+            ...updates,
+            updatedAt: new Date().toISOString()
+        });
     }
 };

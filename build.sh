@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Simple Build Script for Clean Dev Project
-export JAVA_HOME=/usr/lib/jvm/java-1.21.0-openjdk-amd64
+export JAVA_HOME="/usr/lib/jvm/java-21-openjdk-amd64"
+export PATH="$JAVA_HOME/bin:$PATH"
 echo "Building Web Assets..."
 npm run build
 
@@ -15,7 +16,7 @@ npx cap sync android
 
 echo "Building Android APK..."
 cd android
-./gradlew assembleDebug
+./gradlew clean assembleDebug
 
 echo "Copying APK to project root..."
 cd ..

@@ -1,9 +1,9 @@
-import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 
 const PageHeader = ({
     title,
+    subtitle = null,
     showBack = true,
     leftAction = null,
     rightAction = null,
@@ -165,25 +165,30 @@ const PageHeader = ({
                 margin: 0,
                 textAlign: 'center',
                 color: '#111827', // Dark gray
-                maxWidth: '70%',
+                maxWidth: '60%', // Reduced slightly to make room for right icons
                 lineHeight: 1.2
             }}>
                 {title}
+                {subtitle && (
+                    <div style={{ fontSize: '0.75rem', fontWeight: 400, color: '#6b7280', marginTop: '2px' }}>
+                        {subtitle}
+                    </div>
+                )}
             </h1>
 
             {/* Right: Action */}
-            {rightAction && (
-                <div style={{
-                    position: 'absolute',
-                    right: '16px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    display: 'flex',
-                    alignItems: 'center'
-                }}>
-                    {rightAction}
-                </div>
-            )}
+            <div style={{
+                position: 'absolute',
+                right: '16px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+            }}>
+                {/* UpdateIcon removed (moved to App.jsx global) */}
+                {rightAction}
+            </div>
         </div>
     );
 };
