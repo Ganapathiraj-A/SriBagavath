@@ -4,6 +4,7 @@ import { Download, CheckCircle, Smartphone, Wifi, Server, RefreshCw, Bot, Camera
 import UpdateService from '../services/UpdateService';
 import { registerPlugin } from '@capacitor/core';
 
+import { useAdminAuth } from '../context/AdminAuthContext';
 import { useGlobalSettings } from '../context/GlobalSettingsContext';
 
 // Bridge to our Native OCR Plugin which exposes 'installApk'
@@ -11,6 +12,8 @@ const OCR = registerPlugin('OCR');
 
 const UpdateIcon = () => {
     const { devMode: visible, updateSource, serverUrl } = useGlobalSettings();
+    const { isAdmin, user } = useAdminAuth();
+
     const navigate = useNavigate();
 
     const [updateInfo, setUpdateInfo] = useState(null); // { available: bool, source: string, releaseNotes: string, version: string }
@@ -43,6 +46,9 @@ const UpdateIcon = () => {
             checkUpdate();
         }
     }, [visible, updateSource, serverUrl]); // Re-check if source/url changes
+
+    // Only show for logged in admins
+    if (!isAdmin || !user || user.isAnonymous) return null;
 
     // If Developer Mode (now Global Config) is OFF, do not render
     if (!visible) return null;
