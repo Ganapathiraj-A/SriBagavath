@@ -14,6 +14,9 @@ const UpdateIcon = () => {
     const { devMode: visible, updateSource, serverUrl } = useGlobalSettings();
     const { isAdmin, user } = useAdminAuth();
 
+    // Feature Flag for Play Store builds
+    const isUpdaterEnabled = import.meta.env.VITE_ENABLE_UPDATER === 'true';
+
     const navigate = useNavigate();
 
     const [updateInfo, setUpdateInfo] = useState(null); // { available: bool, source: string, releaseNotes: string, version: string }
@@ -49,6 +52,9 @@ const UpdateIcon = () => {
 
     // Only show for logged in admins
     if (!isAdmin || !user || user.isAnonymous) return null;
+
+    // Hard disable for Production/Store builds
+    if (!isUpdaterEnabled) return null;
 
     // If Developer Mode (now Global Config) is OFF, do not render
     if (!visible) return null;

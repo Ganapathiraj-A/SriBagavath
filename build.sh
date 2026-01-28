@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 # Simple Build Script for Clean Dev Project
 export JAVA_HOME="/usr/lib/jvm/java-21-openjdk-amd64"
 export PATH="$JAVA_HOME/bin:$PATH"

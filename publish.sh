@@ -38,7 +38,7 @@ VERSION=$(node -p "require('./package.json').version")
 # Create the release
 gh release create "$TAG" \
     --title "Release v$VERSION" \
-    --notes "Fixed the Pull operation by implementing robust CSV parsing and numbered tracing. Pull now handles commas within quotes and verifies column alignment before updating Firestore." \
+    --notes "Staging Build - Latest updates from Dev Clean workspace." \
     "$APK_NAME"
 
 echo "---------------------------------------------------"
