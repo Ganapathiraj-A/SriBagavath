@@ -8,6 +8,8 @@ import time
 from datetime import datetime
 
 PORT = 8080
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
 
 def get_all_ips():
     ips = []
@@ -40,10 +42,8 @@ def get_ip():
 def discover_apks():
     """Finds all APKs in scripts, project root, and CWD."""
     apks = []
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    project_root = os.path.dirname(script_dir)
     
-    search_dirs = [script_dir, project_root, os.getcwd()]
+    search_dirs = [SCRIPT_DIR, PROJECT_ROOT, os.getcwd()]
     seen_apks = set()
     found_info = []
 
@@ -93,7 +93,7 @@ class ApkHandler(http.server.SimpleHTTPRequestHandler):
             # Try to get version from package.json
             version = "unknown"
             try:
-                pkg_path = os.path.join(project_root, 'package.json')
+                pkg_path = os.path.join(PROJECT_ROOT, 'package.json')
                 with open(pkg_path, 'r') as f:
                     pkg = json.load(f)
                     version = pkg.get('version', 'unknown')
@@ -213,6 +213,13 @@ def check_firewall():
         pass
 
 if __name__ == "__main__":
+    # Sync IP to Firestore so the mobile app gets the correct URL automatically
+    try:
+        from ip_sync_utils import sync_ip_to_firestore
+        sync_ip_to_firestore(os.path.join(PROJECT_ROOT, 'sri-bagavath-dev-firebase-adminsdk-fbsvc-b3da295cc2.json'))
+    except Exception as e:
+        print(f"--- IP Sync Warning: {e}")
+
     primary_ip = get_ip()
     all_ips = get_all_ips()
     
@@ -224,7 +231,7 @@ if __name__ == "__main__":
     print(f"\nManifest available at: http://{primary_ip}:{PORT}/manifest.json")
     print("If the phone can't connect, try one of the other IPs listed above.")
     print("Serving APKs in current directory and parent...")
-    check_firewall()
+    # check_firewall()
 
     # Use ThreadingTCPServer to avoid blocking and improve throughput
     class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):

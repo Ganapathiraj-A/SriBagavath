@@ -6,6 +6,8 @@ export default defineConfig({
   plugins: [react()],
   build: {
     target: 'es2020',
+    minify: false,
+    sourcemap: true,
   },
   optimizeDeps: {
     esbuildOptions: {

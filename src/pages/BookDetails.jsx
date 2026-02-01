@@ -3,10 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronLeft, IndianRupee, Plus, Minus } from 'lucide-react';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { auth, db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
-import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import PageHeader from '../components/PageHeader';
 import { useCart } from '../context/CartContext';
 

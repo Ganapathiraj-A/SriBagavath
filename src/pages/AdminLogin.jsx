@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
-import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { doc, setDoc, Timestamp } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { useAdminAuth } from '../context/AdminAuthContext';
@@ -16,6 +15,26 @@ const AdminLogin = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [appInfo, setAppInfo] = useState({ version: '', id: '' });
+
+    useEffect(() => {
+        const fetchInfo = async () => {
+            const { App } = await import('@capacitor/app');
+            const info = await App.getInfo();
+            setAppInfo({ version: info.version, id: info.id });
+        };
+        fetchInfo();
+
+        if (Capacitor.isNativePlatform()) {
+            import('@codetrix-studio/capacitor-google-auth').then(({ GoogleAuth }) => {
+                GoogleAuth.initialize({
+                    clientId: '265576571338-82ulk332k7gao9h5e8ihnrj85nkir22a.apps.googleusercontent.com',
+                    scopes: ['profile', 'email'],
+                    grantOfflineAccess: true,
+                });
+            });
+        }
+    }, []);
 
     // Get the page the user was trying to access
     const from = location.state?.from?.pathname || '/admin-review';
@@ -25,6 +44,16 @@ const AdminLogin = () => {
             navigate(from, { replace: true });
         }
     }, [isAdmin, authLoading, navigate, from]);
+
+    useEffect(() => {
+        if (Capacitor.isNativePlatform()) {
+            GoogleAuth.initialize({
+                clientId: '265576571338-82ulk332k7gao9h5e8ihnrj85nkir22a.apps.googleusercontent.com',
+                scopes: ['profile', 'email'],
+                grantOfflineAccess: true,
+            });
+        }
+    }, []);
 
 
 
@@ -45,16 +74,17 @@ const AdminLogin = () => {
         setError('');
         try {
             const googleUser = await GoogleAuth.signIn();
+
             const idToken = googleUser?.authentication?.idToken;
             if (!idToken) throw new Error("No ID Token received");
 
             const credential = GoogleAuthProvider.credential(idToken);
             await signInWithCredential(auth, credential);
-
-            // Redirect or state update will be handled by onAuthStateChanged in AdminAuthContext
+            navigate('/');
         } catch (err) {
-            console.error("Google login error:", err);
-            setError('Google login failed: ' + (err.message || err));
+            console.error('Google Sign-In Error:', err);
+            setError('Login failed: ' + err.message);
+        } finally {
             setLoading(false);
         }
     };
@@ -155,10 +185,15 @@ const AdminLogin = () => {
                                 {loading ? 'Logging in...' : 'Login'}
                             </button>
 
-                            <div style={{ margin: '1rem 0', display: 'flex', alignItems: 'center' }}>
-                                <hr style={{ flex: 1, border: 'none', borderTop: '1px solid #e5e7eb' }} />
-                                <span style={{ padding: '0 10px', color: '#6b7280', fontSize: '13px' }}>OR</span>
-                                <hr style={{ flex: 1, border: 'none', borderTop: '1px solid #e5e7eb' }} />
+                            <div style={{ margin: '1rem 0', display: 'flex', alignItems: 'center', flexDirection: 'column', gap: '8px' }}>
+                                <div style={{ fontSize: '11px', color: '#9ca3af', fontWeight: 500 }}>
+                                    Build v{appInfo.version} ({appInfo.id})
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                                    <hr style={{ flex: 1, border: 'none', borderTop: '1px solid #e5e7eb' }} />
+                                    <span style={{ padding: '0 10px', color: '#6b7280', fontSize: '13px' }}>OR</span>
+                                    <hr style={{ flex: 1, border: 'none', borderTop: '1px solid #e5e7eb' }} />
+                                </div>
                             </div>
 
                             <button

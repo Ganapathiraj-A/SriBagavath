@@ -1,5 +1,4 @@
 import { signOut } from 'firebase/auth';
-import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { auth } from '../firebase';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { useLocation, Navigate } from 'react-router-dom';

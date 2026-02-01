@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { Calendar, Shield, IndianRupee, LogOut, Users, LayoutDashboard, Video, Layers, Settings, BookOpen, Heart } from 'lucide-react';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
-import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { useUnseenCounts } from '../hooks/useUnseenCounts';
 
@@ -81,6 +80,7 @@ const ConfigButton = ({ title, subtitle, icon: Icon, path, delay, onClick: custo
 const Configuration = () => {
     const navigate = useNavigate();
     const { user, hasAccess } = useAdminAuth();
+    const { appVersion } = useGlobalSettings();
     const counts = useUnseenCounts();
 
     const handleLogout = async () => {
@@ -126,8 +126,19 @@ const Configuration = () => {
                     <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.25rem', textAlign: 'center' }}>
                         Admin
                     </h1>
-                    <div style={{ fontSize: '0.875rem', color: '#6b7280', textAlign: 'center', marginBottom: '2rem' }}>
+                    <div style={{ fontSize: '0.875rem', color: '#6b7280', textAlign: 'center', marginBottom: '0.5rem' }}>
                         {user?.email}
+                    </div>
+                    <div style={{
+                        fontSize: '0.75rem',
+                        fontWeight: '700',
+                        color: 'var(--color-primary)',
+                        textAlign: 'center',
+                        marginBottom: '2rem',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em'
+                    }}>
+                        {import.meta.env.MODE} | v{appVersion}
                     </div>
 
 

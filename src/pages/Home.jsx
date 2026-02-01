@@ -15,11 +15,14 @@ import {
     FileSpreadsheet
 } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
+import { useGlobalSettings } from '../context/GlobalSettingsContext';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { Capacitor } from '@capacitor/core';
 import { db, auth } from '../firebase';
 import { StatsService } from '../services/StatsService';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
 import { signOut, GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
+import { Toast } from '@capacitor/toast';
 
 
 const MenuButton = ({ title, icon: Icon, path, delay, badgeCount }) => {
@@ -85,25 +88,21 @@ const MenuButton = ({ title, icon: Icon, path, delay, badgeCount }) => {
 import { useUnseenCounts } from '../hooks/useUnseenCounts';
 
 const Home = () => {
-    const { user, isAdmin, checkAdminStatus, setIsAdmin } = useAdminAuth();
+    const { user, isAdmin } = useAdminAuth();
+    const { serverUrl, appVersion } = useGlobalSettings();
     const [authLoading, setAuthLoading] = React.useState(false);
     const navigate = useNavigate();
     const counts = useUnseenCounts();
     const totalPending = (counts.registrations || 0) + (counts.transactions || 0);
 
+    // --- DEBUG CONSOLE LOGIC REMOVED ---
+
+    // Track Login on mount if user exists
     useEffect(() => {
-        const unsubscribe = auth.onAuthStateChanged((user) => {
-            if (user) {
-                checkAdminStatus(user.uid);
-                StatsService.trackUserLogin().catch(() => { });
-            } else {
-                setIsAdmin(false);
-                // Reset redirection flag on logout
-                sessionStorage.removeItem('admin_initial_redirect');
-            }
-        });
-        return () => unsubscribe();
-    }, [checkAdminStatus, setIsAdmin]);
+        if (user && !user.isAnonymous) {
+            StatsService.trackUserLogin().catch(() => { });
+        }
+    }, [user]);
 
     // Landing Page Redirection Logic
     useEffect(() => {
@@ -124,24 +123,95 @@ const Home = () => {
         }
     }, [isAdmin, navigate]);
 
+    const [logs, setLogs] = React.useState([]);
+    const startTimeRef = React.useRef(null); // Fix: Use Ref for sync access
+    const [elapsed, setElapsed] = React.useState(0);
+    const [forceAlert, setForceAlert] = React.useState(false); // A/B Test Toggle
+    const logRef = React.useRef(null); // Auto-scroll
+
+    // Live Timer (Visual Only)
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (startTimeRef.current) {
+                setElapsed(Date.now() - startTimeRef.current);
+            }
+        }, 100);
+        return () => clearInterval(interval);
+    }, []);
+
+    // Auto-scroll logs
+    useEffect(() => {
+        if (logRef.current) {
+            logRef.current.scrollTop = logRef.current.scrollHeight;
+        }
+    }, [logs]);
+
+    const addLog = (msg) => {
+        const start = startTimeRef.current;
+        const time = start ? (Date.now() - start) + 'ms' : '0ms';
+        setLogs(prev => [...prev, `[${time}] ${msg}`]);
+    };
 
     const handleGoogleLogin = async () => {
         setAuthLoading(true);
-        try {
-            const googleUser = await GoogleAuth.signIn();
-            const idToken = googleUser?.authentication?.idToken;
-            if (!idToken) throw new Error("No ID Token received");
+        const start = Date.now();
+        startTimeRef.current = start;
+        setElapsed(0);
+        setLogs([`[0ms] STARTING LOGIN FLOW v2.8.337`]);
 
+        try {
+            // WARM-UP: Ensure Auth is ready
+            addLog("Step 0: Initialize (Warm-up)");
+            try {
+                await GoogleAuth.initialize({
+                    clientId: import.meta.env.VITE_GOOGLE_SERVER_CLIENT_ID,
+                });
+            } catch (initErr) {
+                addLog("Init Note: " + (initErr.message || JSON.stringify(initErr)));
+            }
+
+            // OPTIONAL BLOCKING ALERT (The v2.8.320 "Magic Fix")
+            if (forceAlert) {
+                addLog("Step 1: BLOCKING ALERT (Wakeup)");
+                alert("Simulating v2.8.320 Fix. Click OK to start Native Sign-In.");
+            }
+
+            addLog("Step 2: Calling GoogleAuth.signIn()");
+            const result = await GoogleAuth.signIn();
+            addLog("Step 3: SignIn Returned: " + (result ? "YES" : "NULL"));
+
+            if (result) {
+                addLog("Result Keys: " + Object.keys(result).join(","));
+            }
+
+            // TOKEN EXTRACTION
+            const idToken = result.authentication?.idToken;
+            if (!idToken) {
+                addLog("ERROR: No ID Token!");
+                throw new Error("No ID Token received from Google");
+            }
+            addLog("Step 4: Token Found. Length: " + idToken.length);
+
+            // FIREBASE AUTH
+            addLog("Step 5: Firebase SignIn...");
             const credential = GoogleAuthProvider.credential(idToken);
             await signInWithCredential(auth, credential);
+            addLog("Step 6: SUCCESS!");
 
             // Track successful login
             StatsService.trackUserLogin().catch(() => { });
         } catch (err) {
             console.error("Home Sign-in error:", err);
-            alert("Login failed: " + (err.message || err));
+            // Deep Error Extraction
+            const errDetails = JSON.stringify(err, Object.getOwnPropertyNames(err));
+            addLog("ERROR CATCH: " + (JSON.stringify(err) || err.message || "Something went wrong"));
+
+            if (err.message && !err.message.includes("cancelled")) {
+                alert("Login Failed: " + (err.message || "Something went wrong"));
+            }
         } finally {
             setAuthLoading(false);
+            startTimeRef.current = null;
         }
     };
 
@@ -150,11 +220,11 @@ const Home = () => {
             setAuthLoading(true);
             try {
                 await GoogleAuth.signOut();
-                try { await GoogleAuth.disconnect(); } catch (e) { }
                 await signOut(auth);
                 sessionStorage.removeItem('admin_initial_redirect');
             } catch (err) {
                 console.error("Home Logout error:", err);
+                alert("Logout Error: " + err.message);
             } finally {
                 setAuthLoading(false);
             }
@@ -188,8 +258,113 @@ const Home = () => {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '1.5rem'
+            padding: '1.5rem',
+            position: 'relative' // For Overlay
         }}>
+            {logs.length > 0 && !import.meta.env.PROD && (
+                <div style={{
+                    position: 'fixed',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: '160px',
+                    backgroundColor: 'rgba(0,0,0,0.9)',
+                    color: '#00FF00',
+                    fontSize: '11px',
+                    fontFamily: 'monospace',
+                    overflowY: 'auto',
+                    zIndex: 99999,
+                    padding: '12px',
+                    pointerEvents: 'auto',
+                    textAlign: 'left',
+                    borderTop: '3px solid red',
+                    userSelect: 'text'
+                }}>
+                    <div style={{ color: 'white', fontWeight: 'bold', marginBottom: '5px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span>TIME: {elapsed}ms</span>
+                            <button
+                                onClick={() => {
+                                    const text = logs.join('\n');
+                                    navigator.clipboard.writeText(text);
+                                    alert("Logs copied to clipboard!");
+                                }}
+                                style={{
+                                    background: '#444',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '2px 6px',
+                                    borderRadius: '4px',
+                                    fontSize: '10px',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Copy Logs
+                            </button>
+                            {serverUrl && (
+                                <button
+                                    onClick={async () => {
+                                        try {
+                                            const text = logs.join('\n');
+                                            const uploadUrl = serverUrl.replace(/:\d+$/, ':5000') + '/upload_logs';
+
+                                            addLog("WiFi Upload: " + uploadUrl);
+                                            const response = await fetch(uploadUrl, {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({ logs: text }),
+                                                mode: 'cors'
+                                            });
+
+                                            if (response.ok) {
+                                                alert("Logs successfully sent via WiFi!");
+                                            } else {
+                                                const err = await response.text();
+                                                throw new Error(err || "WiFi upload failed");
+                                            }
+                                        } catch (e) {
+                                            addLog("WiFi Failed: " + e.message);
+                                            // Fallback to Firestore (Legacy)
+                                            try {
+                                                const text = logs.join('\n');
+                                                await addDoc(collection(db, 'agent_commands'), {
+                                                    command: "REVIEW LOGS: " + text,
+                                                    status: 'QUEUED',
+                                                    timestamp: Date.now()
+                                                });
+                                                alert("WiFi failed, but logs sent to Firestore!");
+                                            } catch (fe) {
+                                                alert("Total failure! WiFi: " + e.message + " | Firestore: " + fe.message);
+                                            }
+                                        }
+                                    }}
+                                    style={{
+                                        background: '#0066cc',
+                                        color: 'white',
+                                        border: 'none',
+                                        padding: '2px 6px',
+                                        borderRadius: '4px',
+                                        fontSize: '10px',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    Send Logs
+                                </button>
+                            )}
+                        </div>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', background: '#333', padding: '2px 4px', borderRadius: '4px' }}>
+                            <input
+                                type="checkbox"
+                                checked={forceAlert}
+                                onChange={(e) => setForceAlert(e.target.checked)}
+                            />
+                            Use Blocking Alert
+                        </label>
+                    </div>
+                    {logs.map((L, i) => <div key={i} style={{ borderBottom: '1px solid #333' }}>{L}</div>)}
+                </div>
+            )}
+
             <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -286,6 +461,19 @@ const Home = () => {
                             }
                         />
                     ))}
+                </div>
+
+                {/* App Version Footer */}
+                <div style={{
+                    marginTop: '2rem',
+                    textAlign: 'center',
+                    paddingBottom: '1rem',
+                    opacity: 0.5,
+                    fontSize: '0.75rem',
+                    color: '#6b7280',
+                    fontWeight: '500'
+                }}>
+                    v{appVersion}
                 </div>
             </motion.div>
         </div>

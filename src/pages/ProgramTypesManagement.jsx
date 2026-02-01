@@ -5,7 +5,6 @@ import { Plus, Edit2, Trash2, Save, X, GripVertical, ChevronUp, ChevronDown, Che
 import { db, auth } from '../firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy, setDoc } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
-import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { LogOut } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import '../components/RegistrationStyles.css';
@@ -38,14 +37,12 @@ const ProgramTypesManagement = () => {
     const [formData, setFormData] = useState({
         name: '',
         maxParticipants: '',
-        ladiesMaxDorm: '',
-        gentsMaxDorm: '',
-        roomMax: '',
-        roomFees: '',
-        dormFees: '',
+        programFee: '',
         isConsentNeeded: 'N',
         consentText: '',
-        consentQuestion: ''
+
+        consentQuestion: '',
+        additionalOptions: []
     });
 
     useEffect(() => {
@@ -79,14 +76,12 @@ const ProgramTypesManagement = () => {
         setFormData({
             name: '',
             maxParticipants: '',
-            ladiesMaxDorm: '',
-            gentsMaxDorm: '',
-            roomMax: '',
-            roomFees: '',
-            dormFees: '',
+            programFee: '',
             isConsentNeeded: 'N',
             consentText: '',
-            consentQuestion: ''
+
+            consentQuestion: '',
+            additionalOptions: []
         });
         setIsEditing(false);
         setEditingId(null);
@@ -118,14 +113,12 @@ const ProgramTypesManagement = () => {
         setFormData({
             name: type.name || '',
             maxParticipants: type.maxParticipants || '',
-            ladiesMaxDorm: type.ladiesMaxDorm || '',
-            gentsMaxDorm: type.gentsMaxDorm || '',
-            roomMax: type.roomMax || '',
-            roomFees: type.roomFees || '',
-            dormFees: type.dormFees || '',
+            programFee: type.programFee || '',
             isConsentNeeded: type.isConsentNeeded || 'N',
             consentText: type.consentText || '',
-            consentQuestion: type.consentQuestion || ''
+
+            consentQuestion: type.consentQuestion || '',
+            additionalOptions: type.additionalOptions || []
         });
         setEditingId(type.id);
         setIsEditing(true);
@@ -220,57 +213,11 @@ const ProgramTypesManagement = () => {
                                     />
                                 </div>
                                 <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                    <label style={{ fontWeight: 500 }}>Room Max</label>
+                                    <label style={{ fontWeight: 500 }}>Program Fee (₹)</label>
                                     <input
                                         type="number"
-                                        name="roomMax"
-                                        value={formData.roomMax}
-                                        onChange={handleInputChange}
-                                        style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%' }}
-                                    />
-                                </div>
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                    <label style={{ fontWeight: 500 }}>Ladies Max Dorm</label>
-                                    <input
-                                        type="number"
-                                        name="ladiesMaxDorm"
-                                        value={formData.ladiesMaxDorm}
-                                        onChange={handleInputChange}
-                                        style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%' }}
-                                    />
-                                </div>
-                                <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                    <label style={{ fontWeight: 500 }}>Gents Max Dorm</label>
-                                    <input
-                                        type="number"
-                                        name="gentsMaxDorm"
-                                        value={formData.gentsMaxDorm}
-                                        onChange={handleInputChange}
-                                        style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%' }}
-                                    />
-                                </div>
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                    <label style={{ fontWeight: 500 }}>Room Fees</label>
-                                    <input
-                                        type="number"
-                                        name="roomFees"
-                                        value={formData.roomFees}
-                                        onChange={handleInputChange}
-                                        style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%' }}
-                                    />
-                                </div>
-                                <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                    <label style={{ fontWeight: 500 }}>Dorm Fees</label>
-                                    <input
-                                        type="number"
-                                        name="dormFees"
-                                        value={formData.dormFees}
+                                        name="programFee"
+                                        value={formData.programFee}
                                         onChange={handleInputChange}
                                         style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%' }}
                                     />
@@ -319,6 +266,86 @@ const ProgramTypesManagement = () => {
                                     </div>
                                 </>
                             )}
+
+                            <div style={{ display: 'grid', gap: '1rem', marginTop: '1rem', borderTop: '1px solid #e5e7eb', paddingTop: '1rem' }}>
+                                <label style={{ fontWeight: 500 }}>Additional Options (e.g., Special Puja, Food)</label>
+                                {formData.additionalOptions.map((option, index) => (
+                                    <div key={index} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr auto', gap: '0.5rem', alignItems: 'end' }}>
+                                        <div>
+                                            <label style={{ fontSize: '0.75rem', color: '#6b7280' }}>Option Name</label>
+                                            <input
+                                                type="text"
+                                                value={option.name}
+                                                onChange={(e) => {
+                                                    const updated = [...formData.additionalOptions];
+                                                    updated[index].name = e.target.value;
+                                                    setFormData(prev => ({ ...prev, additionalOptions: updated }));
+                                                }}
+                                                placeholder="e.g. Special Puja"
+                                                style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%' }}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label style={{ fontSize: '0.75rem', color: '#6b7280' }}>Fee (₹)</label>
+                                            <input
+                                                type="number"
+                                                value={option.fee}
+                                                onChange={(e) => {
+                                                    const updated = [...formData.additionalOptions];
+                                                    updated[index].fee = e.target.value;
+                                                    setFormData(prev => ({ ...prev, additionalOptions: updated }));
+                                                }}
+                                                placeholder="0"
+                                                style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%' }}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label style={{ fontSize: '0.75rem', color: '#6b7280' }}>Max Count</label>
+                                            <input
+                                                type="number"
+                                                value={option.maxCount}
+                                                onChange={(e) => {
+                                                    const updated = [...formData.additionalOptions];
+                                                    updated[index].maxCount = e.target.value;
+                                                    setFormData(prev => ({ ...prev, additionalOptions: updated }));
+                                                }}
+                                                placeholder="Optional"
+                                                style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%' }}
+                                            />
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const updated = formData.additionalOptions.filter((_, i) => i !== index);
+                                                setFormData(prev => ({ ...prev, additionalOptions: updated }));
+                                            }}
+                                            style={{ padding: '0.5rem', color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer' }}
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </div>
+                                ))}
+                                <button
+                                    type="button"
+                                    onClick={() => setFormData(prev => ({
+                                        ...prev,
+                                        additionalOptions: [...prev.additionalOptions, { id: Date.now(), name: '', fee: '', maxCount: '' }]
+                                    }))}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        color: 'var(--color-primary)',
+                                        background: 'none',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        fontWeight: 500,
+                                        fontSize: '0.875rem'
+                                    }}
+                                >
+                                    <Plus size={16} /> Add Option
+                                </button>
+                            </div>
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
                                 <div style={{ display: 'flex', gap: '1rem' }}>
@@ -401,12 +428,13 @@ const ProgramTypesManagement = () => {
                                     <div style={{ flex: 1, display: 'grid', gap: '0.25rem' }}>
                                         <div style={{ fontWeight: 600, fontSize: '1.125rem' }}>{type.name}</div>
                                         <div style={{ fontSize: '0.875rem', color: '#6b7280', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                                            <span>Part: {type.maxParticipants || '-'}</span>
-                                            <span>R.Max: {type.roomMax || '-'}</span>
-                                            <span>L.Dorm: {type.ladiesMaxDorm || '-'}</span>
-                                            <span>G.Dorm: {type.gentsMaxDorm || '-'}</span>
-                                            <span>R.Fee: {type.roomFees || '-'}</span>
-                                            <span>D.Fee: {type.dormFees || '-'}</span>
+                                            <span>Max Participants: {type.maxParticipants || '-'}</span>
+                                            <span>Fee: ₹{type.programFee || '0'}</span>
+                                            {type.additionalOptions && type.additionalOptions.length > 0 && (
+                                                <span style={{ color: 'var(--color-primary)', fontSize: '0.75rem', backgroundColor: '#eff6ff', padding: '0.1rem 0.5rem', borderRadius: '1rem' }}>
+                                                    {type.additionalOptions.length} Options
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

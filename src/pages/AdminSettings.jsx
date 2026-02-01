@@ -9,7 +9,8 @@ import {
     LayoutDashboard,
     Settings,
     Landmark,
-    ChevronRight
+    ChevronRight,
+    Download
 } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { useAdminAuth } from '../context/AdminAuthContext';
@@ -66,10 +67,9 @@ const AdminSettings = () => {
         bankPassword, setBankPassword,
         devMode, setDevMode,
         updateSource, setUpdateSource,
-        serverUrl, setServerUrl,
-        sheetLink, setSheetLink,
         updateSheetUrl, setUpdateSheetUrl,
-        scriptUrl, setScriptUrl
+        scriptUrl, setScriptUrl,
+        minAppVersion, setMinAppVersion
     } = useGlobalSettings();
 
     // Local Component Settings
@@ -251,6 +251,51 @@ const AdminSettings = () => {
                                 Global Settings
                             </h3>
                         </div>
+
+                        {/* Minimum App Version */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.45 }}
+                            style={{
+                                backgroundColor: 'white',
+                                borderRadius: '0.75rem',
+                                padding: '1.25rem',
+                                border: '1px solid #e5e7eb',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '0.75rem'
+                            }}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <div style={{
+                                    padding: '0.5rem',
+                                    borderRadius: '8px',
+                                    backgroundColor: '#f3f4f6',
+                                    color: '#374151'
+                                }}>
+                                    <Download size={20} />
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ fontSize: '1rem', fontWeight: 600, color: '#111827' }}>Minimum Required Version</div>
+                                    <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>Users below this will be forced to update</div>
+                                </div>
+                            </div>
+                            <input
+                                type="text"
+                                value={minAppVersion}
+                                onChange={(e) => setMinAppVersion(e.target.value)}
+                                placeholder="e.g. 2.8.342"
+                                style={{
+                                    width: '100%',
+                                    padding: '0.75rem',
+                                    fontSize: '0.9375rem',
+                                    borderRadius: '0.5rem',
+                                    border: '1px solid #e5e7eb',
+                                    color: '#1f2937'
+                                }}
+                            />
+                        </motion.div>
 
                         {/* Online Transactions */}
                         <motion.div

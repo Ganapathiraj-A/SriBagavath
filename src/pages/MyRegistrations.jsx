@@ -294,7 +294,7 @@ const MyRegistrations = () => {
                                                 <strong>Participant Details:</strong>
                                                 {tx.participants.map((p, idx) => (
                                                     <div key={idx} style={{ marginLeft: '8px' }}>
-                                                        {idx + 1}. {p.name} ({p.gender}, {p.age}) - {p.accommodation}
+                                                        {idx + 1}. {p.name} ({p.gender}, {p.age})
                                                     </div>
                                                 ))}
                                             </div>

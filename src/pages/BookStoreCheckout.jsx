@@ -56,18 +56,25 @@ const BookStoreCheckout = () => {
         }
 
         const orderSummary = items.map(p => `${p.title} x${p.quantity}`).join(", ");
+        const paymentState = {
+            itemType: isDonation ? 'DONATION' : 'BOOK',
+            itemName: `Order: ${orderSummary.substring(0, 30)}${orderSummary.length > 30 ? '...' : ''}`,
+            amount: totalPrice,
+            orderItems: items,
+            shippingAddress: details,
+            savedState: { items, totalPrice }
+        };
+
+        // Save for recovery if app reloads during payment
+        try {
+            localStorage.setItem('last_registration_details', JSON.stringify(paymentState));
+        } catch (e) {
+            console.error("Failed to save order details", e);
+        }
 
         navigate('/payment-flow', {
             replace: true, // Replace history so Back goes to Store/Donations
-            state: {
-                itemType: isDonation ? 'DONATION' : 'BOOK',
-                itemName: `Order: ${orderSummary.substring(0, 30)}${orderSummary.length > 30 ? '...' : ''}`,
-                amount: totalPrice,
-                orderItems: items,
-                shippingAddress: details,
-                // Pass enough info to go back
-                savedState: { items, totalPrice }
-            }
+            state: paymentState
         });
     };
 

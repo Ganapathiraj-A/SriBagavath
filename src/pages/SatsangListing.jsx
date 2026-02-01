@@ -5,6 +5,7 @@ import { Calendar, Clock, MapPin, ChevronLeft, Users, RefreshCw } from 'lucide-r
 import PageHeader from '../components/PageHeader';
 import { db } from '../firebase';
 import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
+import { useAdminAuth } from '../context/AdminAuthContext';
 import { getLocalDateString } from '../utils/dateUtils';
 
 const formatRecurrenceRule = (master) => {
@@ -65,6 +66,7 @@ const SatsangListing = () => {
     const navigate = useNavigate();
     const [meetings, setMeetings] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { loading: authGlobalLoading } = useAdminAuth();
 
     const ORANGE = '#f97316';
 
@@ -72,6 +74,7 @@ const SatsangListing = () => {
         localStorage.setItem('lastVisited_satsangs', new Date().toISOString());
 
         const fetchMeetings = async () => {
+            if (authGlobalLoading) return;
             try {
                 const todayStr = getLocalDateString();
                 const meetingsRef = collection(db, 'satsangs');
@@ -113,7 +116,7 @@ const SatsangListing = () => {
             }
         };
         fetchMeetings();
-    }, []);
+    }, [authGlobalLoading]);
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', paddingBottom: '3rem' }}>

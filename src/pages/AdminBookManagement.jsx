@@ -5,7 +5,6 @@ import { Plus, Edit2, Trash2, ChevronLeft, LogOut, Package, Image as ImageIcon, 
 import PageHeader from '../components/PageHeader';
 import { db, auth } from '../firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, setDoc, query, orderBy, serverTimestamp, getDoc } from 'firebase/firestore';
-import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { signOut } from 'firebase/auth';
 import { StatsService } from '../services/StatsService';
 

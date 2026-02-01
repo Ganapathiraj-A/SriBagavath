@@ -15,7 +15,6 @@ const TAB_LABELS = {
 };
 
 import { signOut } from 'firebase/auth';
-import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { auth } from '../firebase';
 
 const AdminReview = () => {
@@ -592,7 +591,7 @@ const AdminReview = () => {
                                     }}>
                                         <div style={{ fontWeight: 600, fontSize: '15px', color: '#111' }}>{i + 1}. {p.name}</div>
                                         <div style={{ fontSize: '13px', color: '#4b5563', marginTop: '4px' }}>
-                                            {p.gender}, {p.age} yrs • {p.accommodation}
+                                            {p.gender}, {p.age} yrs
                                         </div>
                                         <div style={{ fontSize: '13px', color: '#4b5563' }}>Mobile: {p.mobile}</div>
                                     </div>
@@ -675,31 +674,16 @@ const AdminReview = () => {
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between' }}>
                             {/* Calculate Stats */}
                             {(() => {
-                                let dormMale = 0, dormFemale = 0;
-                                let roomMale = 0, roomFemale = 0;
                                 let totalMale = 0, totalFemale = 0;
 
-                                // FIX: Use filteredByProduct (All tabs)
                                 filteredByProduct.forEach(r => {
                                     (r.participants || []).forEach(p => {
-                                        const isFemale = p.gender === 'Female';
-
-                                        if (isFemale) totalFemale++;
+                                        if (p.gender === 'Female') totalFemale++;
                                         else totalMale++;
-
-                                        if (p.accommodation === 'Dorm') {
-                                            if (isFemale) dormFemale++;
-                                            else dormMale++;
-                                        } else if (p.accommodation === 'Room') {
-                                            if (isFemale) roomFemale++;
-                                            else roomMale++;
-                                        }
                                     });
                                 });
                                 return (
                                     <>
-                                        <div title="Dorms (Male/Female)">Dorms(M/F): <strong>{dormMale}/{dormFemale}</strong></div>
-                                        <div title="Rooms (Male/Female)">Rooms(M/F): <strong>{roomMale}/{roomFemale}</strong></div>
                                         <div title="Total (Male/Female)">Total(M/F): <strong>{totalMale}/{totalFemale}</strong></div>
                                     </>
                                 );
@@ -832,7 +816,7 @@ const AdminReview = () => {
                                     <strong>Details:</strong>
                                     {tx.participants.map((p, idx) => (
                                         <div key={idx} style={{ marginLeft: '8px' }}>
-                                            {idx + 1}. {p.name} ({p.gender}, {p.age}) - {p.accommodation}
+                                            {idx + 1}. {p.name} ({p.gender}, {p.age})
                                         </div>
                                     ))}
                                     <div style={{ marginTop: '4px' }}><strong>Primary:</strong> {tx.primaryApplicant?.name} ({tx.primaryApplicant?.mobile})</div>

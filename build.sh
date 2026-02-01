@@ -16,13 +16,13 @@ fi
 echo "Syncing Capacitor..."
 npx cap sync android
 
-echo "Building Android APK..."
+echo "Building Android APK (Release)..."
 cd android
-./gradlew clean assembleDebug
+./gradlew clean assembleRelease
 
 echo "Copying APK to project root..."
 cd ..
-cp android/app/build/outputs/apk/debug/app-debug.apk SriBagavathDevClean.apk
+cp android/app/build/outputs/apk/prod/release/app-prod-release.apk SriBagavathDevClean.apk
 
 echo "---------------------------------------------------"
 echo "Build Complete: SriBagavathDevClean.apk"

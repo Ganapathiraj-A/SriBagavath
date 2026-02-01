@@ -6,12 +6,12 @@ import PageHeader from '../components/PageHeader';
 import { Share } from '@capacitor/share';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+
 import { auth, db } from '../firebase';
 import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
 import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
+import { useAdminAuth } from '../context/AdminAuthContext';
 import { getLocalDateString } from '../utils/dateUtils';
-
-import '../components/RegistrationStyles.css';
 
 const Programs = () => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -52,8 +52,11 @@ const Programs = () => {
         }
     };
 
+    const { loading: authGlobalLoading } = useAdminAuth();
+
     useEffect(() => {
         const fetchPrograms = async () => {
+            if (authGlobalLoading) return;
             try {
                 // Track visit for badge reset
                 localStorage.setItem('lastVisited_programs', new Date().toISOString());
@@ -81,7 +84,7 @@ const Programs = () => {
         };
 
         fetchPrograms();
-    }, []);
+    }, [authGlobalLoading]);
 
     // Specific Fetch for "View Details" (independent of main list)
     useEffect(() => {
@@ -120,7 +123,7 @@ const Programs = () => {
             }
         };
         fetchSpecificProgram();
-    }, [viewingProgramId, programs, specificProgram]);
+    }, [viewingProgramId, programs, specificProgram, authGlobalLoading]);
 
     // Fetch Banner on Demand
     useEffect(() => {
@@ -153,7 +156,7 @@ const Programs = () => {
             }
         };
         fetchBanner();
-    }, [viewingProgram]);
+    }, [viewingProgram, authGlobalLoading]);
 
 
 

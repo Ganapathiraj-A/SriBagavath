@@ -2,17 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { IndianRupee, ShoppingCart, ChevronLeft, Plus, Minus, Info } from 'lucide-react';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import PageHeader from '../components/PageHeader';
 import { auth, db } from '../firebase';
 import { collection, getDocs, query, orderBy, doc, getDoc } from 'firebase/firestore';
 import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
-import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { useCart } from '../context/CartContext';
+import { useAdminAuth } from '../context/AdminAuthContext';
 import { useGlobalSettings } from '../context/GlobalSettingsContext';
 
 const BookStore = () => {
     const navigate = useNavigate();
     const { cart, addToCart, removeFromCart } = useCart();
+    const { loading: authGlobalLoading } = useAdminAuth();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [covers, setCovers] = useState({});
@@ -61,10 +63,13 @@ const BookStore = () => {
     };
 
     useEffect(() => {
-        loadBooks();
-    }, []);
+        if (!authGlobalLoading) {
+            loadBooks();
+        }
+    }, [authGlobalLoading]);
 
     const loadBooks = async () => {
+        if (authGlobalLoading) return;
         try {
             setLoading(true);
             const querySnapshot = await getDocs(query(collection(db, 'books'), orderBy('title', 'asc')));

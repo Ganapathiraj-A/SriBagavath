@@ -5,6 +5,7 @@ import { Calendar, Clock, User, ChevronLeft, Video, RefreshCw } from 'lucide-rea
 import PageHeader from '../components/PageHeader';
 import { db } from '../firebase';
 import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
+import { useAdminAuth } from '../context/AdminAuthContext';
 import { getLocalDateString } from '../utils/dateUtils';
 
 const formatRecurrenceRule = (master) => {
@@ -63,11 +64,13 @@ const OnlineMeetings = () => {
     const navigate = useNavigate();
     const [meetings, setMeetings] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { loading: authGlobalLoading } = useAdminAuth();
 
     useEffect(() => {
         localStorage.setItem('lastVisited_online_meetings', new Date().toISOString());
 
         const fetchMeetings = async () => {
+            if (authGlobalLoading) return;
             try {
                 const todayStr = getLocalDateString();
                 const meetingsRef = collection(db, 'online_meetings');
@@ -108,7 +111,7 @@ const OnlineMeetings = () => {
             }
         };
         fetchMeetings();
-    }, []);
+    }, [authGlobalLoading]);
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', paddingBottom: '3rem' }}>

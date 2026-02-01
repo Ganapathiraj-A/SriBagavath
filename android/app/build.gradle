@@ -1,14 +1,27 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace "com.bhavathpathai.app.dev"
+    namespace "com.bhavathpathai.app"
     compileSdk rootProject.ext.compileSdkVersion
+    
+    flavorDimensions "environment"
+
+    productFlavors {
+        dev {
+            dimension "environment"
+            applicationIdSuffix ".dev"
+        }
+        prod {
+            dimension "environment"
+        }
+    }
+
     defaultConfig {
-        applicationId "com.bhavathpathai.app.dev"
+        applicationId "com.bhavathpathai.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 208295
-        versionName "2.8.295"
+        versionCode 208343                                        
+        versionName "2.8.343"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -20,6 +33,16 @@ android {
         }
         resConfigs "en"
     }
+    signingConfigs {
+        release {
+            def props = new Properties()
+            file("signing.properties").withInputStream { props.load(it) }
+            storeFile file(props['STORE_FILE'])
+            storePassword props['STORE_PASSWORD']
+            keyAlias props['KEY_ALIAS']
+            keyPassword props['KEY_PASSWORD']
+        }
+    }
     buildTypes {
         debug {
             minifyEnabled false
@@ -27,10 +50,15 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
         release {
-            minifyEnabled true
-            shrinkResources true
+            signingConfig signingConfigs.release
+            minifyEnabled false
+            shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
     }
 }
 
@@ -54,12 +82,5 @@ dependencies {
 }
 
 apply from: 'capacitor.build.gradle'
+apply plugin: 'com.google.gms.google-services'
 
-try {
-    def servicesJSON = file('google-services.json')
-    if (servicesJSON.text) {
-        apply plugin: 'com.google.gms.google-services'
-    }
-} catch(Exception e) {
-    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
-}

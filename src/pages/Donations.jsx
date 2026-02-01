@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Heart, IndianRupee, ChevronLeft } from 'lucide-react';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { auth } from '../firebase';
 import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
-import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import PageHeader from '../components/PageHeader';
 import { useGlobalSettings } from '../context/GlobalSettingsContext';
 

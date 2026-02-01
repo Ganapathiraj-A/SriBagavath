@@ -4,6 +4,7 @@ import { AnimatePresence } from 'framer-motion';
 import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+
 import Home from './pages/Home';
 import About from './pages/About';
 import Programs from './pages/Programs';
@@ -63,7 +64,9 @@ import BankStatementView from './pages/BankStatementView';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AdminAuthProvider } from './context/AdminAuthContext';
 import { CartProvider } from './context/CartContext';
+import { useGlobalSettings } from './context/GlobalSettingsContext';
 import ErrorBoundary from './components/ErrorBoundary';
+import ForceUpdateModal from './components/ForceUpdateModal';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -293,38 +296,57 @@ import { GlobalSettingsProvider } from './context/GlobalSettingsContext';
 
 import UpdateIcon from './components/UpdateIcon';
 
-function App() {
+const AppContent = () => {
+  const [currentVersion, setCurrentVersion] = React.useState('0.0.0');
+  const { minAppVersion } = useGlobalSettings();
+
   useEffect(() => {
-    // Centralized initialization for GoogleAuth
-    const initGoogle = async () => {
-      try {
-        await GoogleAuth.initialize({
-          clientId: import.meta.env.VITE_GOOGLE_SERVER_CLIENT_ID || '265576571338-82ulk332k7gao9h5e8ihnrj85nkir22a.apps.googleusercontent.com',
+    const fetchVersion = async () => {
+      // 1. Initialize Google Auth
+      if (Capacitor.isNativePlatform()) {
+        GoogleAuth.initialize({
+          clientId: '265576571338-82ulk332k7gao9h5e8ihnrj85nkir22a.apps.googleusercontent.com',
           scopes: ['profile', 'email'],
           grantOfflineAccess: true,
         });
-      } catch (e) {
-        console.warn("Root GoogleAuth init error (safe if already init):", e);
+      }
+
+      // 2. Get App Version
+      if (Capacitor.isNativePlatform()) {
+        const info = await CapacitorApp.getInfo();
+        setCurrentVersion(info.version);
+      } else {
+        // Fallback for web/dev
+        setCurrentVersion('2.8.341');
       }
     };
-    initGoogle();
+    fetchVersion();
   }, []);
 
+  return (
+    <div style={{ position: 'relative', minHeight: '100vh', width: '100%' }}>
+      {/* Global Force Update Modal */}
+      <ForceUpdateModal currentVersion={currentVersion} minVersion={minAppVersion} />
+
+      {/* Global Floating Update Icon (Dev/Beta Feature) */}
+      <div style={{ position: 'fixed', top: '60px', right: '32px', zIndex: 9999 }}>
+        <UpdateIcon />
+      </div>
+
+      <ErrorBoundary>
+        <AnimatedRoutes />
+      </ErrorBoundary>
+    </div>
+  );
+};
+
+function App() {
   return (
     <GlobalSettingsProvider>
       <CartProvider>
         <Router>
           <AdminAuthProvider>
-            <div style={{ position: 'relative', minHeight: '100vh', width: '100%' }}>
-              {/* Global Floating Update Icon (Dev/Beta Feature) */}
-              <div style={{ position: 'fixed', top: '60px', right: '32px', zIndex: 9999 }}>
-                <UpdateIcon />
-              </div>
-
-              <ErrorBoundary>
-                <AnimatedRoutes />
-              </ErrorBoundary>
-            </div>
+            <AppContent />
           </AdminAuthProvider>
         </Router>
       </CartProvider>

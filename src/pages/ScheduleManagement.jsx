@@ -6,7 +6,6 @@ import { db, auth } from '../firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy, where, limit, setDoc, serverTimestamp } from 'firebase/firestore';
 import { LogOut } from 'lucide-react';
 import { signOut } from 'firebase/auth';
-import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import '../components/RegistrationStyles.css';

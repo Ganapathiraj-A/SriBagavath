@@ -46,6 +46,7 @@ export const TransactionService = {
             programId: data.programId || null,
             programDate: data.programDate || null,
             programCity: data.programCity || null,
+            selectedOptions: data.selectedOptions || [], // Store additional options
             deviceId: TransactionService.getDeviceId(),
             userId: userId, // Attach User ID for Security Rules
             userEmail: user ? user.email : null // Explicitly store Gmail ID
@@ -190,6 +191,18 @@ export const TransactionService = {
         } catch (e) {
             console.error("Error checking registrations", e);
             return false;
+        }
+    },
+
+    // Get all registrations for a program (for counting options)
+    getProgramRegistrations: async (programId) => {
+        try {
+            const q = query(collection(db, "transactions"), where("programId", "==", programId));
+            const snap = await getDocs(q);
+            return snap.docs.map(doc => doc.data());
+        } catch (e) {
+            console.error("Error fetching program registrations", e);
+            return [];
         }
     },
 

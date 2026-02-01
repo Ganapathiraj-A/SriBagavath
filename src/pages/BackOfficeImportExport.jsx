@@ -555,8 +555,7 @@ const BackOfficeImportExport = () => {
                     name: row.name,
                     gender: row.gender,
                     age: row.age,
-                    mobile: row.mobile,
-                    accommodation: 'Not Specified'
+                    mobile: row.mobile
                 })),
                 participantCount: selectedRows.length,
                 place: first.city,
@@ -626,7 +625,7 @@ const BackOfficeImportExport = () => {
                             programCity: selectedProg.programCity,
                             offlineRefNo: 'INDIVIDUAL_IMPORT',
                             primaryApplicant: { name: row.name, mobile: row.mobile, city: row.city },
-                            participants: [{ name: row.name, gender: row.gender, age: row.age, mobile: row.mobile, accommodation: 'Not Specified' }],
+                            participants: [{ name: row.name, gender: row.gender, age: row.age, mobile: row.mobile }],
                             participantCount: 1,
                             place: row.city
                         });

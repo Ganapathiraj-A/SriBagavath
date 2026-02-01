@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { App as CapacitorApp } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
 
 const GlobalSettingsContext = createContext();
 
@@ -11,14 +13,17 @@ export const useGlobalSettings = () => {
 export const GlobalSettingsProvider = ({ children }) => {
     // Firestore Settings (Truly Global across devices)
     const [settings, setSettings] = useState({
-        onlineTransactionsEnabled: true
+        onlineTransactionsEnabled: true,
+        minAppVersion: '2.8.341' // Default fallback
     });
+
+    const [appVersion, setAppVersion] = useState('0.0.0');
 
     // Local Settings (Device specific, but Global to App Context)
     const [bankPassword, setBankPasswordState] = useState(localStorage.getItem('bank_statement_password') || '');
     const [devMode, setDevModeState] = useState(localStorage.getItem('settings_devMode') === 'true');
     const [updateSource, setUpdateSourceState] = useState(localStorage.getItem('settings_updateSource') || 'auto');
-    const [serverUrl, setServerUrlState] = useState(localStorage.getItem('settings_serverUrl') || 'http://192.168.1.2:8080');
+    const [serverUrl, setServerUrlState] = useState(localStorage.getItem('settings_serverUrl') || 'http://192.168.1.3:8080');
 
     // Import/Export URLs (Managed by Super Admin)
     const LATEST_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwceASoBU6CCZFOtNg5QSjsIXrA6fzK9kBvMbkCEBuh4FabjRNXU0P-7NRGwRNXCNzBHg/exec';
@@ -39,6 +44,23 @@ export const GlobalSettingsProvider = ({ children }) => {
 
     const [loading, setLoading] = useState(true);
 
+    useEffect(() => {
+        const fetchVersion = async () => {
+            if (Capacitor.isNativePlatform()) {
+                try {
+                    const info = await CapacitorApp.getInfo();
+                    setAppVersion(info.version);
+                } catch (e) {
+                    console.error("Error fetching app info:", e);
+                    setAppVersion('2.8.343'); // Fallback
+                }
+            } else {
+                setAppVersion('2.8.343'); // Web fallback
+            }
+        };
+        fetchVersion();
+    }, []);
+
     // Auto-sync script URL if it's outdated
     useEffect(() => {
         const savedUrl = localStorage.getItem('admin_import_export_script_url');
@@ -54,9 +76,18 @@ export const GlobalSettingsProvider = ({ children }) => {
         const docRef = doc(db, 'settings', 'global');
         const unsubscribe = onSnapshot(docRef, (docSnap) => {
             if (docSnap.exists()) {
-                setSettings(docSnap.data());
+                const data = docSnap.data();
+                // AUTO-FIX: If Firestore still has the old IP, override it for Dev builds
+                if (data.serverUrl === 'http://192.168.1.2:8080') {
+                    data.serverUrl = 'http://192.168.1.3:8080';
+                }
+                setSettings(data);
             } else {
-                setDoc(docRef, { onlineTransactionsEnabled: true });
+                setDoc(docRef, {
+                    onlineTransactionsEnabled: true,
+                    minAppVersion: '2.8.341',
+                    serverUrl: 'http://192.168.1.3:8080'
+                });
             }
             setLoading(false); // Only wait for Firestore to consider "loading" done? Or doesn't matter for local prefs.
         }, (error) => {
@@ -150,6 +181,18 @@ export const GlobalSettingsProvider = ({ children }) => {
         localStorage.setItem('admin_donation_import_url', val);
     };
 
+    const setMinAppVersion = async (newValue) => {
+        try {
+            await setDoc(doc(db, 'settings', 'global'), {
+                ...settings,
+                minAppVersion: newValue
+            }, { merge: true });
+        } catch (error) {
+            console.error("Error updating min app version:", error);
+            throw error;
+        }
+    };
+
     const toggleOnlineTransactions = async (newValue) => {
         try {
             await setDoc(doc(db, 'settings', 'global'), {
@@ -166,13 +209,16 @@ export const GlobalSettingsProvider = ({ children }) => {
         <GlobalSettingsContext.Provider value={{
             // Firestore
             onlineTransactionsEnabled: settings.onlineTransactionsEnabled,
+            minAppVersion: settings.minAppVersion || '2.8.341',
             toggleOnlineTransactions,
+            setMinAppVersion,
 
             // Local
             bankPassword, setBankPassword,
             devMode, setDevMode,
             updateSource, setUpdateSource,
-            serverUrl, setServerUrl,
+            serverUrl: settings.serverUrl || serverUrl,
+            setServerUrl,
 
             sheetLink, setSheetLink,
             programImportUrl, setProgramImportUrl,
@@ -186,6 +232,7 @@ export const GlobalSettingsProvider = ({ children }) => {
             donationUpdateUrl, setDonationUpdateUrl,
             scriptUrl, setScriptUrl,
 
+            appVersion,
             loading
         }}>
             {!loading && children}

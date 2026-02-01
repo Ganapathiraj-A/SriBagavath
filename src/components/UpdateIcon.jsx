@@ -26,6 +26,20 @@ const UpdateIcon = () => {
     const [currentVersion, setCurrentVersion] = useState('');
     const [companionVer, setCompanionVer] = useState('');
 
+    const checkUpdate = async () => {
+        try {
+            const info = await UpdateService.checkForUpdate({ updateSource, serverUrl });
+            // Show icon if we have ANY valid check result
+            if (info && info.source) {
+                setUpdateInfo(info);
+            } else if (info && info.disabled) {
+                console.warn("Updater disabled");
+            }
+        } catch (error) {
+            console.error("Update check error", error);
+        }
+    };
+
     useEffect(() => {
         const fetchVer = async () => {
             const ver = await UpdateService.getCurrentVersion();
@@ -45,33 +59,41 @@ const UpdateIcon = () => {
     }, []);
 
     useEffect(() => {
-        if (visible) {
+        if (visible || currentVersion) {
             checkUpdate();
         }
-    }, [visible, updateSource, serverUrl]); // Re-check if source/url changes
+    }, [visible, updateSource, serverUrl, currentVersion]); // Re-check if source/url changes or ver loaded
 
-    // Only show for logged in admins
-    if (!isAdmin || !user || user.isAnonymous) return null;
+    // Timer for download duration
+    const [elapsed, setElapsed] = useState(0);
 
-    // Hard disable for Production/Store builds
-    if (!isUpdaterEnabled) return null;
-
-    // If Developer Mode (now Global Config) is OFF, do not render
-    if (!visible) return null;
-
-    const checkUpdate = async () => {
-        try {
-            const info = await UpdateService.checkForUpdate({ updateSource, serverUrl });
-            // Show icon if we have ANY valid check result
-            if (info && info.source) {
-                setUpdateInfo(info);
-            } else if (info && info.disabled) {
-                console.warn("Updater disabled");
-            }
-        } catch (error) {
-            console.error("Update check error", error);
+    useEffect(() => {
+        let timer;
+        if (isDownloading) {
+            const startTime = Date.now();
+            timer = setInterval(() => {
+                setElapsed(Math.floor((Date.now() - startTime) / 1000));
+                // Simulate progress if it's stuck at 0 (Native HTTP limitation)
+                // Just for visual feedback that it IS working
+                setProgress(old => {
+                    if (old >= 95) return 95;
+                    // Slow increment: 5% every second roughly?
+                    return old + (Math.random() * 5);
+                });
+            }, 1000);
+        } else {
+            setElapsed(0);
+            setProgress(0);
         }
-    };
+        return () => clearInterval(timer);
+    }, [isDownloading]);
+
+    // Derived State and Guards
+    const isDevBuild = !!currentVersion;
+    const isVisible = !import.meta.env.PROD && (visible || isDevBuild) && isUpdaterEnabled;
+    const isAuthorized = isDevBuild || (isAdmin && user && !user.isAnonymous);
+
+    if (!isAuthorized || !isVisible) return null;
 
     const handleUpdate = async () => {
         if (!updateInfo) return;
@@ -114,31 +136,6 @@ const UpdateIcon = () => {
             alert("Update Failed: " + error.message);
         }
     }
-
-
-    // Timer for download duration
-    const [elapsed, setElapsed] = useState(0);
-
-    useEffect(() => {
-        let timer;
-        if (isDownloading) {
-            const startTime = Date.now();
-            timer = setInterval(() => {
-                setElapsed(Math.floor((Date.now() - startTime) / 1000));
-                // Simulate progress if it's stuck at 0 (Native HTTP limitation)
-                // Just for visual feedback that it IS working
-                setProgress(old => {
-                    if (old >= 95) return 95;
-                    // Slow increment: 5% every second roughly?
-                    return old + (Math.random() * 5);
-                });
-            }, 1000);
-        } else {
-            setElapsed(0);
-            setProgress(0);
-        }
-        return () => clearInterval(timer);
-    }, [isDownloading]);
 
     if (isDownloading) {
         return (

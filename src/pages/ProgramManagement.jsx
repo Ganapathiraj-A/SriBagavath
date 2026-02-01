@@ -6,7 +6,6 @@ import PageHeader from '../components/PageHeader';
 import { db, auth } from '../firebase';
 import '../components/RegistrationStyles.css';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, setDoc, query, where, orderBy, limit, serverTimestamp } from 'firebase/firestore';
-import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { LogOut } from 'lucide-react';
 import { signOut } from 'firebase/auth';
 // Removed storage imports as we are using Base64 in Firestore
@@ -77,14 +76,12 @@ const ProgramManagement = () => {
         lastDateToRegister: '',
         programBanner: '',
         maxParticipants: '',
-        ladiesMaxDorm: '',
-        gentsMaxDorm: '',
-        roomMax: '',
-        roomFees: '',
-        dormFees: '',
+        programFee: '',
         isConsentNeeded: 'N',
         consentText: '',
-        consentQuestion: ''
+
+        consentQuestion: '',
+        additionalOptions: []
     });
 
     // Load programs from Firebase when tab changes
@@ -98,7 +95,6 @@ const ProgramManagement = () => {
             const isOtherCity = !CITIES.slice(0, 2).includes(editingProgram.programCity);
             // Find if it's one of the known types or 'Others'
             const isKnownType = programTypes.some(t => t.name === editingProgram.programName);
-            const isOtherProgram = !isKnownType && editingProgram.programName !== ""; // If empty, it's new, not other.
 
             setFormData({
                 programName: isKnownType ? editingProgram.programName : 'Others',
@@ -113,14 +109,12 @@ const ProgramManagement = () => {
                 lastDateToRegister: editingProgram.lastDateToRegister,
                 programBanner: editingProgram.programBanner || '',
                 maxParticipants: editingProgram.maxParticipants || '',
-                ladiesMaxDorm: editingProgram.ladiesMaxDorm || '',
-                gentsMaxDorm: editingProgram.gentsMaxDorm || '',
-                roomMax: editingProgram.roomMax || '',
-                roomFees: editingProgram.roomFees || '',
-                dormFees: editingProgram.dormFees || '',
+                programFee: editingProgram.programFee || '',
                 isConsentNeeded: editingProgram.isConsentNeeded || 'N',
                 consentText: editingProgram.consentText || '',
-                consentQuestion: editingProgram.consentQuestion || ''
+
+                consentQuestion: editingProgram.consentQuestion || '',
+                additionalOptions: editingProgram.additionalOptions || []
             });
 
             if (isOtherCity) {
@@ -142,13 +136,8 @@ const ProgramManagement = () => {
                 };
                 fetchBanner();
             }
-        } else if (action === 'add') {
-            // Reset form when switching to add mode (optional but good practice)
-            // Actually resetForm is called on submit/cancel, so this might be redundant if coming from clean state, 
-            // but if switching directly from edit to add it helps.
-            // We'll leave it simple for now, relying on resetForm.
         }
-    }, [editingProgram, action]);
+    }, [editingProgram, action, programTypes]);
 
     // Close city suggestions when clicking outside
     useEffect(() => {
@@ -251,14 +240,12 @@ const ProgramManagement = () => {
                     const selectedType = programTypes.find(t => t.name === value);
                     if (selectedType) {
                         updates.maxParticipants = selectedType.maxParticipants || '';
-                        updates.ladiesMaxDorm = selectedType.ladiesMaxDorm || '';
-                        updates.gentsMaxDorm = selectedType.gentsMaxDorm || '';
-                        updates.roomMax = selectedType.roomMax || '';
-                        updates.roomFees = selectedType.roomFees || '';
-                        updates.dormFees = selectedType.dormFees || '';
+                        updates.programFee = selectedType.programFee || '';
                         updates.isConsentNeeded = selectedType.isConsentNeeded || 'N';
                         updates.consentText = selectedType.consentText || '';
+
                         updates.consentQuestion = selectedType.consentQuestion || '';
+                        updates.additionalOptions = selectedType.additionalOptions || [];
                     }
                 }
             }
@@ -340,14 +327,12 @@ const ProgramManagement = () => {
                 // programBanner: bannerUrl, // Moved to separate collection
                 hasBanner: !!bannerUrl,
                 maxParticipants: formData.maxParticipants,
-                ladiesMaxDorm: formData.ladiesMaxDorm,
-                gentsMaxDorm: formData.gentsMaxDorm,
-                roomMax: formData.roomMax,
-                roomFees: formData.roomFees,
-                dormFees: formData.dormFees,
+                programFee: formData.programFee || '0',
                 isConsentNeeded: formData.isConsentNeeded || 'N',
                 consentText: formData.consentText || '',
+
                 consentQuestion: formData.consentQuestion || '',
+                additionalOptions: formData.additionalOptions || [],
                 createdAt: new Date().toISOString()
             };
 
@@ -435,14 +420,12 @@ const ProgramManagement = () => {
             lastDateToRegister: '',
             programBanner: '',
             maxParticipants: '',
-            ladiesMaxDorm: '',
-            gentsMaxDorm: '',
-            roomMax: '',
-            roomFees: '',
-            dormFees: '',
+            programFee: '',
             isConsentNeeded: 'N',
             consentText: '',
-            consentQuestion: ''
+
+            consentQuestion: '',
+            additionalOptions: []
         });
 
         setBannerImage(null);
@@ -1060,66 +1043,12 @@ const ProgramManagement = () => {
                                     </div>
                                     <div>
                                         <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
-                                            Room Max
+                                            Program Fee (₹)
                                         </label>
                                         <input
                                             type="number"
-                                            name="roomMax"
-                                            value={formData.roomMax}
-                                            onChange={handleInputChange}
-                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                    <div>
-                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
-                                            Ladies Max Dorm
-                                        </label>
-                                        <input
-                                            type="number"
-                                            name="ladiesMaxDorm"
-                                            value={formData.ladiesMaxDorm}
-                                            onChange={handleInputChange}
-                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
-                                            Gents Max Dorm
-                                        </label>
-                                        <input
-                                            type="number"
-                                            name="gentsMaxDorm"
-                                            value={formData.gentsMaxDorm}
-                                            onChange={handleInputChange}
-                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                    <div>
-                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
-                                            Room Fees
-                                        </label>
-                                        <input
-                                            type="number"
-                                            name="roomFees"
-                                            value={formData.roomFees}
-                                            onChange={handleInputChange}
-                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
-                                            Dorm Fees
-                                        </label>
-                                        <input
-                                            type="number"
-                                            name="dormFees"
-                                            value={formData.dormFees}
+                                            name="programFee"
+                                            value={formData.programFee}
                                             onChange={handleInputChange}
                                             style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
                                         />
@@ -1168,6 +1097,89 @@ const ProgramManagement = () => {
                                         </div>
                                     </>
                                 )}
+
+                                <div style={{ display: 'grid', gap: '1rem', marginTop: '1rem', borderTop: '1px solid #e5e7eb', paddingTop: '1rem' }}>
+                                    <label style={{ fontWeight: 500, color: '#374151' }}>Additional Options (e.g., Special Puja, Food)</label>
+                                    <p style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '-0.5rem' }}>
+                                        These options will be available for selection during registration.
+                                    </p>
+                                    {formData.additionalOptions.map((option, index) => (
+                                        <div key={index} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr auto', gap: '0.5rem', alignItems: 'end' }}>
+                                            <div>
+                                                <label style={{ fontSize: '0.75rem', color: '#6b7280' }}>Option Name</label>
+                                                <input
+                                                    type="text"
+                                                    value={option.name}
+                                                    onChange={(e) => {
+                                                        const updated = [...formData.additionalOptions];
+                                                        updated[index].name = e.target.value;
+                                                        setFormData(prev => ({ ...prev, additionalOptions: updated }));
+                                                    }}
+                                                    placeholder="e.g. Special Puja"
+                                                    style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%' }}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label style={{ fontSize: '0.75rem', color: '#6b7280' }}>Fee (₹)</label>
+                                                <input
+                                                    type="number"
+                                                    value={option.fee}
+                                                    onChange={(e) => {
+                                                        const updated = [...formData.additionalOptions];
+                                                        updated[index].fee = e.target.value;
+                                                        setFormData(prev => ({ ...prev, additionalOptions: updated }));
+                                                    }}
+                                                    placeholder="0"
+                                                    style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%' }}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label style={{ fontSize: '0.75rem', color: '#6b7280' }}>Max Count</label>
+                                                <input
+                                                    type="number"
+                                                    value={option.maxCount}
+                                                    onChange={(e) => {
+                                                        const updated = [...formData.additionalOptions];
+                                                        updated[index].maxCount = e.target.value;
+                                                        setFormData(prev => ({ ...prev, additionalOptions: updated }));
+                                                    }}
+                                                    placeholder="Optional"
+                                                    style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%' }}
+                                                />
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const updated = formData.additionalOptions.filter((_, i) => i !== index);
+                                                    setFormData(prev => ({ ...prev, additionalOptions: updated }));
+                                                }}
+                                                style={{ padding: '0.5rem', color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer' }}
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData(prev => ({
+                                            ...prev,
+                                            additionalOptions: [...prev.additionalOptions, { id: Date.now(), name: '', fee: '', maxCount: '' }]
+                                        }))}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.5rem',
+                                            color: 'var(--color-primary)',
+                                            background: 'none',
+                                            border: 'none',
+                                            cursor: 'pointer',
+                                            fontWeight: 500,
+                                            fontSize: '0.875rem'
+                                        }}
+                                    >
+                                        <Plus size={16} /> Add Option
+                                    </button>
+                                </div>
 
                                 {/* Form Actions */}
                                 <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>

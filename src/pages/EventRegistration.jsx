@@ -4,6 +4,7 @@ import { ChevronLeft, Plus, Trash2, RotateCcw } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { useGlobalSettings } from '../context/GlobalSettingsContext';
 import '../components/RegistrationStyles.css';
+import { TransactionService } from '../services/TransactionService';
 
 const EventRegistration = () => {
     const location = useLocation();
@@ -28,9 +29,7 @@ const EventRegistration = () => {
 
     // Fees from Program Data
     const fees = {
-        programFee: Number(program?.programFee) || 0,
-        dormFee: Number(program?.roomFees) || Number(program?.roomFee) || 0,
-        roomFee: Number(program?.dormFees) || Number(program?.dormFee) || 0
+        programFee: Number(program?.programFee) || 0
     };
 
     // Initialize State from savedState if available, else defaults
@@ -39,13 +38,44 @@ const EventRegistration = () => {
         name: '',
         gender: 'Male',
         age: '',
-        mobile: '',
-        accommodation: 'Dorm'
+        mobile: ''
     }]);
     const [place, setPlace] = useState(savedState?.place || '');
 
     const [primaryIndex, setPrimaryIndex] = useState(savedState?.primaryIndex || 0);
     const [consentAccepted, setConsentAccepted] = useState(false);
+
+    // Additional Options State
+    const [selectedOptions, setSelectedOptions] = useState(savedState?.selectedOptions || []);
+    const [optionUsage, setOptionUsage] = useState({});
+
+    useEffect(() => {
+        if (program?.additionalOptions?.length > 0) {
+            const fetchUsage = async () => {
+                const txs = await TransactionService.getProgramRegistrations(program.id);
+                const usage = {};
+                txs.forEach(tx => {
+                    if (tx.status !== 'FAILED') {
+                        const opts = tx.selectedOptions || [];
+                        opts.forEach(opt => {
+                            usage[opt.name] = (usage[opt.name] || 0) + 1;
+                        });
+                    }
+                });
+                setOptionUsage(usage);
+            };
+            fetchUsage();
+        }
+    }, [program]);
+
+    const toggleOption = (option) => {
+        const exists = selectedOptions.find(o => o.name === option.name);
+        if (exists) {
+            setSelectedOptions(selectedOptions.filter(o => o.name !== option.name));
+        } else {
+            setSelectedOptions([...selectedOptions, option]);
+        }
+    };
 
     // Persistence Check
     const [hasPreviousInfo, setHasPreviousInfo] = useState(false);
@@ -64,6 +94,7 @@ const EventRegistration = () => {
                     setParticipants(data.participants || []);
                     setPlace(data.place || '');
                     setPrimaryIndex(data.primaryIndex || 0);
+                    // Do not auto-select options as availability might change
                 }
             }
         } catch (e) {
@@ -79,8 +110,7 @@ const EventRegistration = () => {
                 name: '',
                 gender: 'Male',
                 age: '',
-                mobile: '',
-                accommodation: 'Dorm'
+                mobile: ''
             });
             setParticipants([...participants, ...added]);
         } else if (count < participants.length) {
@@ -105,13 +135,9 @@ const EventRegistration = () => {
 
     // Calculate Total
     const calculateTotal = () => {
-        let total = 0;
-        participants.forEach(p => {
-            total += fees.programFee;
-            if (p.accommodation === 'Dorm') total += fees.dormFee;
-            if (p.accommodation === 'Room') total += fees.roomFee;
-        });
-        return total;
+        const programTotal = participants.length * fees.programFee;
+        const optionsTotal = selectedOptions.reduce((acc, opt) => acc + (Number(opt.fee) || 0), 0);
+        return programTotal + optionsTotal;
     };
 
     const handleProceed = () => {
@@ -149,6 +175,34 @@ const EventRegistration = () => {
         }
 
         const totalAmount = calculateTotal();
+        const paymentState = {
+            amount: totalAmount,
+            programName: program.programName,
+            programId: program.id,
+            programDate: program.programDate,
+            programCity: program.programCity,
+            participants: participants,
+            primaryApplicant: { ...primary, isPrimary: true },
+            place: place,
+            selectedOptions: selectedOptions,
+            participantCount: participants.length,
+            itemType: 'PROGRAM',
+            program: program,
+            savedState: {
+                participantCount,
+                participants,
+                place,
+                primaryIndex,
+                selectedOptions
+            }
+        };
+
+        // Save for recovery if app reloads during payment
+        try {
+            localStorage.setItem('last_registration_details', JSON.stringify(paymentState));
+        } catch (e) {
+            console.error("Failed to save registration details", e);
+        }
 
         // Track Proceed to Payment
         import('../utils/Analytics').then(m => {
@@ -156,27 +210,8 @@ const EventRegistration = () => {
         });
 
         navigate('/payment-flow', {
-            replace: true, // Replace history so Back goes to Programs
-            state: {
-                amount: totalAmount,
-                programName: program.programName,
-                programId: program.id, // Pass Program ID for lookup
-                programDate: program.programDate, // Pass Program Date
-                programCity: program.programCity, // Pass Program City
-                participants: participants,
-                primaryApplicant: { ...primary, isPrimary: true },
-                place: place,
-                participantCount: participants.length,
-                // Pass full program object so if we come back we have it
-                program: program,
-                // Pass State to restore if user comes back
-                savedState: {
-                    participantCount,
-                    participants,
-                    place,
-                    primaryIndex
-                }
-            }
+            replace: true,
+            state: paymentState
         });
     };
 
@@ -408,15 +443,60 @@ const EventRegistration = () => {
                         />
                     </div>
 
-                    <div className="form-group">
-                        <label>Accommodation</label>
-                        <select value={p.accommodation} onChange={(e) => handleParticipantChange(index, 'accommodation', e.target.value)}>
-                            <option value="Dorm">Dorm (₹{fees.dormFee})</option>
-                            <option value="Room">Room (₹{fees.roomFee})</option>
-                        </select>
-                    </div>
+
                 </div>
             ))}
+
+            {/* Additional Options Selection */}
+            {program?.additionalOptions?.length > 0 && (
+                <div className="card">
+                    <h3 style={{ marginBottom: '1rem' }}>Additional Options</h3>
+                    <div style={{ display: 'grid', gap: '0.75rem' }}>
+                        {program.additionalOptions.map((option, index) => {
+                            const usedCount = optionUsage[option.name] || 0;
+                            const maxCount = parseInt(option.maxCount) || Infinity;
+                            const isFull = usedCount >= maxCount;
+                            const isSelected = selectedOptions.some(o => o.name === option.name);
+
+                            return (
+                                <div
+                                    key={index}
+                                    className={`option-item ${isSelected ? 'selected' : ''} ${isFull && !isSelected ? 'disabled' : ''}`}
+                                    onClick={() => !isFull && toggleOption(option)}
+                                    style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        padding: '0.75rem',
+                                        border: isSelected ? '1px solid var(--color-primary)' : '1px solid #e5e7eb',
+                                        borderRadius: '0.5rem',
+                                        backgroundColor: isSelected ? '#eff6ff' : (isFull ? '#f3f4f6' : 'white'),
+                                        cursor: isFull ? 'not-allowed' : 'pointer',
+                                        opacity: isFull ? 0.7 : 1
+                                    }}
+                                >
+                                    <div>
+                                        <div style={{ fontWeight: 500, color: '#374151' }}>{option.name}</div>
+                                        <div style={{ fontSize: '0.85rem', color: isFull ? '#dc2626' : (usedCount > 0 ? '#d97706' : '#6b7280') }}>
+                                            {isFull ? 'Sold Out' : (option.maxCount ? `${usedCount}/${option.maxCount} filled` : 'Available')}
+                                        </div>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <div style={{ fontWeight: 600 }}>₹{option.fee}</div>
+                                        <div style={{
+                                            width: '1.25rem',
+                                            height: '1.25rem',
+                                            borderRadius: '50%',
+                                            border: isSelected ? '5px solid var(--color-primary)' : '2px solid #d1d5db',
+                                            backgroundColor: isSelected ? 'white' : 'transparent'
+                                        }} />
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
 
             <div className="card" style={{ position: 'sticky', bottom: '10px', background: '#ffedd5', border: '1px solid #fdba74' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

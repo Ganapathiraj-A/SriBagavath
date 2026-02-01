@@ -20,10 +20,38 @@ const PaymentFlow = () => {
     const navigate = useNavigate();
     const { clearCart } = useCart();
 
-    // Initial State from Registration or Book Order
-    const { amount, programName, itemName, participants, primaryApplicant, place, participantCount } = location.state || {};
+    // Initial State Fallback: Restore from localStorage if location.state is lost
+    // (survives app reloads during activity transitions)
+    const storedData = JSON.parse(localStorage.getItem('last_registration_details') || '{}');
+    const {
+        amount: stateAmount,
+        programName: stateProgramName,
+        itemName: stateItemName,
+        participants: stateParticipants,
+        primaryApplicant: statePrimaryApplicant,
+        place: statePlace,
+        participantCount: stateParticipantCount,
+        selectedOptions: stateOptions,
+        programId: stateProgramId,
+        programDate: stateProgramDate,
+        programCity: stateProgramCity,
+        itemType: stateItemType
+    } = location.state || {};
 
-    const [currentStep, setCurrentStep] = useState('QR_VIEW'); // default to QR View
+    const amount = stateAmount || storedData.amount;
+    const programName = stateProgramName || storedData.programName;
+    const itemName = stateItemName || storedData.itemName;
+    const participants = stateParticipants || storedData.participants;
+    const primaryApplicant = statePrimaryApplicant || storedData.primaryApplicant;
+    const place = statePlace || storedData.place;
+    const participantCount = stateParticipantCount || storedData.participantCount;
+    const selectedOptions = stateOptions || storedData.selectedOptions;
+    const programId = stateProgramId || storedData.programId;
+    const programDate = stateProgramDate || storedData.programDate;
+    const programCity = stateProgramCity || storedData.programCity;
+    const itemType = stateItemType || storedData.itemType;
+
+    const [currentStep, setCurrentStep] = useState('QR_VIEW');
 
     // Submission State
     const [image, setImage] = useState(null);
@@ -37,6 +65,20 @@ const PaymentFlow = () => {
     const [viewingImage, setViewingImage] = useState(null);
     const [showFullOcr, setShowFullOcr] = useState(false);
 
+    // Date Helper to handle Firestore Timestamps or Strings safely
+    const formatProgramDate = (dateVal) => {
+        if (!dateVal) return '';
+        try {
+            // Check if it's a Firestore Timestamp {seconds, nanoseconds}
+            if (dateVal && typeof dateVal === 'object' && 'seconds' in dateVal) {
+                return new Date(dateVal.seconds * 1000).toLocaleDateString();
+            }
+            return new Date(dateVal).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        } catch (e) {
+            return '';
+        }
+    };
+
     useEffect(() => {
         if (!amount && !location.state) {
             // Fallback if accessed directly
@@ -49,6 +91,11 @@ const PaymentFlow = () => {
         }
     }, [amount, navigate, location.state]);
 
+    useEffect(() => {
+        if (!submissionAmount && amount) setSubmissionAmount(amount.toString());
+        if (!submissionName && (programName || itemName)) setSubmissionName(programName || itemName);
+    }, [amount, programName, itemName, submissionAmount, submissionName]);
+
     // Methods
     const processOCR = async (base64) => {
         setOcrStatus("Processing...");
@@ -59,14 +106,6 @@ const PaymentFlow = () => {
             setOcrStatus(result.transactionId ? `Ref: ${result.transactionId}` : "No Ref Found");
 
             if (result.amount) {
-                // If we detected an amount, maybe update? 
-                // In SBB code: setSubmissionAmount(result.amount);
-                // But here we have a fixed registration amount. 
-                // Let's keep the user entered/calculated amount but show what we found?
-                // SBB Logic was for paying odd amounts. Here we have calculated fees.
-                // FIX: Do NOT overwrite user's calculated amount with OCR amount.
-                // Just store it as parsedAmount for Admin verification.
-                // setSubmissionAmount(result.amount);
                 setParsedAmount(result.amount);
             }
         } catch (e) {
@@ -76,34 +115,51 @@ const PaymentFlow = () => {
 
     // Shared Image Check
     useEffect(() => {
+        let pollCount = 0;
+        let pollInterval = null;
+
         const checkForSharedImage = async () => {
             try {
+                // Diagnostic: Check if OCR is even defined
+                if (!OCR) {
+                    return;
+                }
+
+                const appVer = "2.8.341";
                 const res = await OCR.checkSharedImage();
                 if (res && res.base64) {
+                    if (pollInterval) clearInterval(pollInterval);
+
+                    // Priority: Move to submission screen immediately
+                    setCurrentStep('SUBMISSION');
                     setImage(res.base64);
                     processOCR(res.base64);
-
-                    // Auto-advance to submission if we were waiting
-                    setCurrentStep('SUBMISSION');
-                    alert("Screenshot Received!");
                 }
             } catch (e) {
                 console.error("Shared Image Check Failed", e);
             }
         };
 
-        checkForSharedImage();
+        // Initial check with slight delay to allow Android intent to settle
+        setTimeout(checkForSharedImage, 500);
+
+        // Polling fallback (Check every 1s for 5s)
+        pollInterval = setInterval(() => {
+            pollCount++;
+            checkForSharedImage();
+            if (pollCount >= 10) clearInterval(pollInterval);
+        }, 1000);
 
         // Listen for resume
         const listener = App.addListener('appStateChange', ({ isActive }) => {
-            if (isActive) checkForSharedImage();
+            if (isActive) {
+                pollCount = 0;
+                checkForSharedImage();
+            }
         });
 
-        // Also listen for our custom event from Proxy Activity if strictly needed,
-        // but checking on resume + mount covers most cases. 
-        // SBB App: Used checkSharedImage on mount and resume.
-
         return () => {
+            if (pollInterval) clearInterval(pollInterval);
             listener.then(handle => handle.remove());
         };
     }, []);
@@ -127,22 +183,23 @@ const PaymentFlow = () => {
         try {
             await TransactionService.recordTransaction({
                 itemName: submissionName,
-                itemType: location.state?.itemType || 'PROGRAM',
-                amount: parseFloat(submissionAmount),
+                itemType: itemType || 'PROGRAM',
+                amount: parseFloat(submissionAmount) || 0,
                 ocrText: rawText,
                 utr: utr,
                 parsedAmount: parsedAmount,
                 // Bookstore specific
-                orderItems: location.state?.orderItems || [],
-                shippingAddress: location.state?.shippingAddress || null,
+                orderItems: location.state?.orderItems || storedData.orderItems || [],
+                shippingAddress: location.state?.shippingAddress || storedData.shippingAddress || null,
                 // Additional Sri Bagavath Fields
                 participants: participants || [],
                 primaryApplicant: primaryApplicant || {},
                 place: place || "",
                 participantCount: participantCount || (participants ? participants.length : 0),
-                programId: location.state?.programId || "",
-                programDate: location.state?.programDate || "",
-                programCity: location.state?.programCity || ""
+                programId: programId || "",
+                programDate: programDate || "",
+                programCity: programCity || "",
+                selectedOptions: selectedOptions || []
             }, image);
 
             // Track Success
@@ -306,46 +363,46 @@ const PaymentFlow = () => {
             }}>
                 <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', color: '#111' }}>
                     {submissionName}
-                    {location.state?.itemType !== 'BOOK' && (location.state?.programDate || location.state?.programCity) && (
+                    {itemType !== 'BOOK' && (programDate || programCity) && (
                         <div style={{ fontSize: '13px', fontWeight: 'normal', color: '#666', marginTop: '2px' }}>
-                            {location.state.programDate ? new Date(location.state.programDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}
-                            {location.state.programCity ? ` • ${location.state.programCity}` : ''}
+                            {formatProgramDate(programDate)}
+                            {programCity ? ` • ${programCity}` : ''}
                         </div>
                     )}
                 </h3>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px' }}>
-                    {location.state?.itemType === 'BOOK' ? (
+                    {itemType === 'BOOK' ? (
                         <>
-                            {location.state?.orderItems?.map((item, i) => (
+                            {(location.state?.orderItems || storedData.orderItems || [])?.map((item, i) => (
                                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
-                                    <span style={{ color: '#666' }}>{item.title} x {item.quantity}</span>
-                                    <span style={{ fontWeight: 600 }}>₹{item.price * item.quantity}</span>
+                                    <span style={{ color: '#666' }}>{item?.title || 'Book'} x {item?.quantity || 1}</span>
+                                    <span style={{ fontWeight: 600 }}>₹{(item?.price || 0) * (item?.quantity || 1)}</span>
                                 </div>
                             ))}
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', marginTop: '8px', padding: '8px', background: 'white', borderRadius: '4px' }}>
                                 <span style={{ color: '#666' }}>Shipping to</span>
-                                <span style={{ fontWeight: 600, textAlign: 'right' }}>{location.state?.shippingAddress?.name}<br />{location.state?.shippingAddress?.city}</span>
+                                <span style={{ fontWeight: 600, textAlign: 'right' }}>{(location.state?.shippingAddress || storedData.shippingAddress)?.name || 'Guest'}<br />{(location.state?.shippingAddress || storedData.shippingAddress)?.city || ''}</span>
                             </div>
                         </>
                     ) : (
                         <>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
                                 <span style={{ color: '#666' }}>Participants</span>
-                                <span style={{ fontWeight: 600 }}>{participantCount}</span>
+                                <span style={{ fontWeight: 600 }}>{participantCount || (participants?.length) || 1}</span>
                             </div>
                             {participants && participants.length > 0 && (
                                 <div style={{ paddingLeft: '8px', borderLeft: '2px solid #ddd', margin: '4px 0' }}>
                                     {participants.map((p, i) => (
                                         <div key={i} style={{ fontSize: '12px', color: '#4b5563', marginBottom: '2px' }}>
-                                            {i + 1}. {p.name} ({p.gender}, {p.age})
+                                            {i + 1}. {p?.name || 'Unknown'} ({p?.gender || ''}, {p?.age || ''})
                                         </div>
                                     ))}
                                 </div>
                             )}
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
                                 <span style={{ color: '#666' }}>Primary Contact</span>
-                                <span style={{ fontWeight: 600 }}>{primaryApplicant?.name}</span>
+                                <span style={{ fontWeight: 600 }}>{primaryApplicant?.name || 'Applicant'}</span>
                             </div>
                             {place && (
                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
@@ -353,12 +410,23 @@ const PaymentFlow = () => {
                                     <span style={{ fontWeight: 600 }}>{place}</span>
                                 </div>
                             )}
+                            {selectedOptions && selectedOptions.length > 0 && (
+                                <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed #e5e7eb' }}>
+                                    <div style={{ fontSize: '13px', color: '#666', fontWeight: 600, marginBottom: '4px' }}>Additional Options</div>
+                                    {selectedOptions.map((opt, i) => (
+                                        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#4b5563' }}>
+                                            <span>{opt?.name}</span>
+                                            <span>₹{opt?.fee}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </>
                     )}
                     <hr style={{ border: 'none', borderTop: '1px solid #e5e7eb', margin: '8px 0' }} />
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '16px' }}>
                         <span style={{ fontWeight: 600 }}>Total Amount</span>
-                        <span style={{ fontWeight: 800, color: '#111' }}>₹{amount}</span>
+                        <span style={{ fontWeight: 800, color: '#111' }}>₹{amount || 0}</span>
                     </div>
                 </div>
             </div>
@@ -396,28 +464,30 @@ const PaymentFlow = () => {
                 )}
             </div>
 
-            {(rawText || ocrStatus) && (
-                <div style={{ marginTop: '16px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div style={{ fontSize: '14px', color: '#2563eb', fontWeight: 600 }}>
-                            {ocrStatus}
-                            {utr && <div style={{ fontSize: '12px', color: '#1d4ed8' }}>UTR: {utr}</div>}
+            {
+                (rawText || ocrStatus) && (
+                    <div style={{ marginTop: '16px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ fontSize: '14px', color: '#2563eb', fontWeight: 600 }}>
+                                {ocrStatus}
+                                {utr && <div style={{ fontSize: '12px', color: '#1d4ed8' }}>UTR: {utr}</div>}
+                            </div>
+                            <button
+                                onClick={() => setShowFullOcr(!showFullOcr)}
+                                style={{ border: 'none', background: 'none', color: '#666', fontSize: '12px', textDecoration: 'underline' }}
+                            >
+                                {showFullOcr ? "Hide Scanned Data" : "View Scanned Data"}
+                            </button>
                         </div>
-                        <button
-                            onClick={() => setShowFullOcr(!showFullOcr)}
-                            style={{ border: 'none', background: 'none', color: '#666', fontSize: '12px', textDecoration: 'underline' }}
-                        >
-                            {showFullOcr ? "Hide Scanned Data" : "View Scanned Data"}
-                        </button>
+                        {showFullOcr && (
+                            <div className="debug-box" style={{ marginTop: '8px', background: '#f9fafb' }}>
+                                <strong>Scanned Data (Full):</strong>
+                                <pre style={{ whiteSpace: 'pre-wrap', maxHeight: '150px', overflowY: 'auto', fontSize: '11px', marginTop: '4px' }}>{rawText || "No Text Detected"}</pre>
+                            </div>
+                        )}
                     </div>
-                    {showFullOcr && (
-                        <div className="debug-box" style={{ marginTop: '8px', background: '#f9fafb' }}>
-                            <strong>Scanned Data (Full):</strong>
-                            <pre style={{ whiteSpace: 'pre-wrap', maxHeight: '150px', overflowY: 'auto', fontSize: '11px', marginTop: '4px' }}>{rawText || "No Text Detected"}</pre>
-                        </div>
-                    )}
-                </div>
-            )}
+                )
+            }
 
             <button
                 className="btn-primary full-width"
@@ -432,33 +502,35 @@ const PaymentFlow = () => {
             </button>
 
             {/* Screenshot Modal */}
-            {viewingImage && (
-                <div className="modal-overlay" onClick={() => setViewingImage(null)} style={{ zIndex: 2000 }}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: '15px',
-                        background: 'white',
-                        padding: '15px',
-                        borderRadius: '16px',
-                        maxWidth: '90%'
-                    }}>
-                        <img
-                            src={`data:image/jpeg;base64,${viewingImage}`}
-                            alt="Receipt"
-                            style={{ width: '100%', borderRadius: '8px', maxHeight: '75vh', objectFit: 'contain' }}
-                        />
-                        <button
-                            className="btn-primary"
-                            onClick={() => setViewingImage(null)}
-                            style={{ width: '100%', background: '#2563eb', borderRadius: '8px' }}
-                        >
-                            Close
-                        </button>
+            {
+                viewingImage && (
+                    <div className="modal-overlay" onClick={() => setViewingImage(null)} style={{ zIndex: 2000 }}>
+                        <div className="modal-content" onClick={e => e.stopPropagation()} style={{
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: '15px',
+                            background: 'white',
+                            padding: '15px',
+                            borderRadius: '16px',
+                            maxWidth: '90%'
+                        }}>
+                            <img
+                                src={`data:image/jpeg;base64,${viewingImage}`}
+                                alt="Receipt"
+                                style={{ width: '100%', borderRadius: '8px', maxHeight: '75vh', objectFit: 'contain' }}
+                            />
+                            <button
+                                className="btn-primary"
+                                onClick={() => setViewingImage(null)}
+                                style={{ width: '100%', background: '#2563eb', borderRadius: '8px' }}
+                            >
+                                Close
+                            </button>
+                        </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 
     return (
