@@ -7,7 +7,7 @@ FLAVOR=${1:-dev}
 # Configuration
 APP_NAME="SriBagavath"
 GITHUB_OWNER="Ganapathiraj-A"
-GITHUB_REPO="SriBagavath"
+GITHUB_REPO="SriBagavathDevClean"
 
 # Set Java 21
 export JAVA_HOME="/usr/lib/jvm/java-21-openjdk-amd64"

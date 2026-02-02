@@ -5,6 +5,7 @@ import { Calendar, Shield, IndianRupee, LogOut, Users, LayoutDashboard, Video, L
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
 import { useAdminAuth } from '../context/AdminAuthContext';
+import { useGlobalSettings } from '../context/GlobalSettingsContext';
 import { useUnseenCounts } from '../hooks/useUnseenCounts';
 
 const ConfigButton = ({ title, subtitle, icon: Icon, path, delay, onClick: customOnClick, color = 'var(--color-primary)', bgColor = '#fff7ed', badgeCount = 0 }) => {

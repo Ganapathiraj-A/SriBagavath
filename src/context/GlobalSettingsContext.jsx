@@ -14,7 +14,7 @@ export const GlobalSettingsProvider = ({ children }) => {
     // Firestore Settings (Truly Global across devices)
     const [settings, setSettings] = useState({
         onlineTransactionsEnabled: true,
-        minAppVersion: '2.8.341' // Default fallback
+        minAppVersion: '2.8.345' // Default fallback
     });
 
     const [appVersion, setAppVersion] = useState('0.0.0');
@@ -52,10 +52,10 @@ export const GlobalSettingsProvider = ({ children }) => {
                     setAppVersion(info.version);
                 } catch (e) {
                     console.error("Error fetching app info:", e);
-                    setAppVersion('2.8.343'); // Fallback
+                    setAppVersion('2.8.345'); // Fallback
                 }
             } else {
-                setAppVersion('2.8.343'); // Web fallback
+                setAppVersion('2.8.345'); // Web fallback
             }
         };
         fetchVersion();
@@ -85,7 +85,7 @@ export const GlobalSettingsProvider = ({ children }) => {
             } else {
                 setDoc(docRef, {
                     onlineTransactionsEnabled: true,
-                    minAppVersion: '2.8.341',
+                    minAppVersion: '2.8.345',
                     serverUrl: 'http://192.168.1.3:8080'
                 });
             }
@@ -209,7 +209,7 @@ export const GlobalSettingsProvider = ({ children }) => {
         <GlobalSettingsContext.Provider value={{
             // Firestore
             onlineTransactionsEnabled: settings.onlineTransactionsEnabled,
-            minAppVersion: settings.minAppVersion || '2.8.341',
+            minAppVersion: settings.minAppVersion || '2.8.345',
             toggleOnlineTransactions,
             setMinAppVersion,
 

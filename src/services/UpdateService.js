@@ -4,6 +4,7 @@ import { App } from '@capacitor/app';
 // import { Dialog } from '@capacitor/dialog'; // Optional, using standard confirm for now
 
 const GITHUB_API_URL = "https://api.github.com/repos/Ganapathiraj-A/SriBagavath/releases/tags/dev-clean";
+const GITHUB_PROD_URL = "https://api.github.com/repos/Ganapathiraj-A/SriBagavath/releases/tags/prod-clean";
 
 class UpdateService {
     constructor() {
@@ -182,13 +183,53 @@ class UpdateService {
         };
     }
 
+    async checkForProdUpdate() {
+        if (!Capacitor.isNativePlatform()) return null;
+
+        try {
+            const cacheBuster = `?t=${Date.now()}`;
+            const response = await Capacitor.Plugins.CapacitorHttp.get({
+                url: GITHUB_PROD_URL + cacheBuster,
+                headers: {
+                    'User-Agent': 'SriBagavathApp',
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+
+            if (response.status === 200) {
+                const json = response.data;
+                const remoteVersion = json.name || json.tag_name;
+                const cleanVersion = remoteVersion.replace(/[^\d.]/g, '');
+                const asset = json.assets.find(a => a.name.endsWith('.apk'));
+                const dlUrl = asset ? asset.browser_download_url : null;
+
+                if (dlUrl) {
+                    this.downloadUrl = dlUrl;
+                    this.source = 'github_prod';
+                    this.releaseNotes = json.body || "Latest Production Build";
+
+                    return {
+                        available: true, // Always available if checked explicitly for prod
+                        source: 'github_prod',
+                        version: cleanVersion,
+                        downloadUrl: dlUrl,
+                        notes: this.releaseNotes
+                    };
+                }
+            }
+        } catch (e) {
+            console.error("Prod update check failed", e);
+        }
+        return null;
+    }
+
     async triggerUpdate(onProgress) {
         try {
             if (!this.downloadUrl) {
                 throw new Error("No update URL available");
             }
 
-            const OCR = registerPlugin('OCR');
+            const OCR = registerPlugin('SBBOCR');
 
             // Setup Native Listener
             let listener = null;

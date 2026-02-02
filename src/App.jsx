@@ -4,6 +4,7 @@ import { AnimatePresence } from 'framer-motion';
 import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { GET_GOOGLE_CLIENT_ID } from './utils/GoogleAuthUtils';
 
 import Home from './pages/Home';
 import About from './pages/About';
@@ -304,8 +305,9 @@ const AppContent = () => {
     const fetchVersion = async () => {
       // 1. Initialize Google Auth
       if (Capacitor.isNativePlatform()) {
+        const clientId = GET_GOOGLE_CLIENT_ID();
         GoogleAuth.initialize({
-          clientId: '265576571338-82ulk332k7gao9h5e8ihnrj85nkir22a.apps.googleusercontent.com',
+          clientId: clientId,
           scopes: ['profile', 'email'],
           grantOfflineAccess: true,
         });

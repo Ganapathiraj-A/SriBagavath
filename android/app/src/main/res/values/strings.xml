@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
 
-    <string name="app_name">Sri Bagavath</string>
+    <string name="app_name">SB Dev</string>
     <string name="title_activity_main">Sri Bagavath</string>
     <string name="package_name">com.bhavathpathai.app</string>
     <string name="custom_url_scheme">com.bhavathpathai.app</string>

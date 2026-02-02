@@ -67,7 +67,9 @@ const AdminSettings = () => {
         bankPassword, setBankPassword,
         devMode, setDevMode,
         updateSource, setUpdateSource,
-        updateSheetUrl, setUpdateSheetUrl,
+        serverUrl, setServerUrl,
+        sheetLink, setSheetLink,
+        programUpdateUrl, setProgramUpdateUrl,
         scriptUrl, setScriptUrl,
         minAppVersion, setMinAppVersion
     } = useGlobalSettings();
@@ -529,8 +531,8 @@ const AdminSettings = () => {
                                         <div style={{ fontWeight: 500, color: '#1f2937', marginBottom: '0.5rem' }}>Program Update Sheet URL</div>
                                         <input
                                             type="text"
-                                            value={updateSheetUrl}
-                                            onChange={(e) => setUpdateSheetUrl(e.target.value)}
+                                            value={programUpdateUrl}
+                                            onChange={(e) => setProgramUpdateUrl(e.target.value)}
                                             placeholder="Paste Program Update Sheet URL here..."
                                             style={{
                                                 width: '100%',

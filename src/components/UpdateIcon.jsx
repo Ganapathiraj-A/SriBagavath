@@ -8,7 +8,7 @@ import { useAdminAuth } from '../context/AdminAuthContext';
 import { useGlobalSettings } from '../context/GlobalSettingsContext';
 
 // Bridge to our Native OCR Plugin which exposes 'installApk'
-const OCR = registerPlugin('OCR');
+const OCR = registerPlugin('SBBOCR');
 
 const UpdateIcon = () => {
     const { devMode: visible, updateSource, serverUrl } = useGlobalSettings();
@@ -90,7 +90,7 @@ const UpdateIcon = () => {
 
     // Derived State and Guards
     const isDevBuild = !!currentVersion;
-    const isVisible = !import.meta.env.PROD && (visible || isDevBuild) && isUpdaterEnabled;
+    const isVisible = (import.meta.env.DEV || isUpdaterEnabled) && (visible || isDevBuild);
     const isAuthorized = isDevBuild || (isAdmin && user && !user.isAnonymous);
 
     if (!isAuthorized || !isVisible) return null;
@@ -136,6 +136,45 @@ const UpdateIcon = () => {
             alert("Update Failed: " + error.message);
         }
     }
+
+    const handleProdUpdate = async () => {
+        setStatusText("Checking Prod...");
+        setIsDownloading(true);
+        try {
+            const info = await UpdateService.checkForProdUpdate();
+            setIsDownloading(false);
+            setStatusText("");
+
+            if (info && info.downloadUrl) {
+                const proceed = window.confirm(`Production Update Available (${info.version}).\nProceed to download and install?`);
+                if (!proceed) return;
+
+                setIsDownloading(true);
+                setStatusText('Downloading Prod...');
+                setProgress(0);
+
+                const filePathUri = await UpdateService.triggerUpdate((pct) => {
+                    setProgress(pct * 100);
+                    setStatusText(`Downloading: ${(pct * 100).toFixed(0)}%`);
+                });
+
+                setStatusText('Installing...');
+                if (OCR && OCR.installApk) {
+                    await OCR.installApk({ filePath: filePathUri });
+                } else {
+                    alert("Install plugin not found: " + filePathUri);
+                }
+            } else {
+                alert("No production APK found on GitHub 'prod-clean' tag.");
+            }
+        } catch (e) {
+            console.error("Prod update failed", e);
+            alert("Prod Update Failed: " + e.message);
+        } finally {
+            setIsDownloading(false);
+            setStatusText("");
+        }
+    };
 
     if (isDownloading) {
         return (
@@ -264,6 +303,27 @@ const UpdateIcon = () => {
             <div style={{ fontSize: '10px', color: '#6b7280', fontWeight: 600, marginTop: '-12px', background: 'white', padding: '2px 4px', borderRadius: '4px', border: '1px solid #eee' }}>
                 v{currentVersion}
             </div>
+
+            {/* Production Update Button */}
+            <button
+                onClick={handleProdUpdate}
+                style={{
+                    background: '#10b981', // Emerald/Prod Green
+                    border: 'none',
+                    borderRadius: '50%',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'white',
+                    width: '36px',
+                    height: '36px',
+                    boxShadow: '0 4px 6px rgba(0,0,0,0.3)'
+                }}
+                title="Update to Latest Production"
+            >
+                <Server size={20} />
+            </button>
 
             {/* Agent Companion Icon - Only visible in Dev Mode (Implicit since parent is gated) */}
             <button

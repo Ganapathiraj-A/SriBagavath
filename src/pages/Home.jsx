@@ -23,6 +23,7 @@ import { StatsService } from '../services/StatsService';
 import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
 import { signOut, GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
 import { Toast } from '@capacitor/toast';
+import { GET_GOOGLE_CLIENT_ID } from '../utils/GoogleAuthUtils';
 
 
 const MenuButton = ({ title, icon: Icon, path, delay, badgeCount }) => {
@@ -163,8 +164,12 @@ const Home = () => {
             // WARM-UP: Ensure Auth is ready
             addLog("Step 0: Initialize (Warm-up)");
             try {
+                const clientId = GET_GOOGLE_CLIENT_ID();
+                addLog(`Step 0: Initialize with ${clientId.substring(0, 10)}...`);
                 await GoogleAuth.initialize({
-                    clientId: import.meta.env.VITE_GOOGLE_SERVER_CLIENT_ID,
+                    clientId: clientId,
+                    scopes: ['profile', 'email'],
+                    grantOfflineAccess: true,
                 });
             } catch (initErr) {
                 addLog("Init Note: " + (initErr.message || JSON.stringify(initErr)));
@@ -245,7 +250,7 @@ const Home = () => {
 
     let menuItems = isAdmin
         ? [
-            { title: "Admin Panel", icon: LayoutDashboard, path: "/configuration", delay: 0.1, isAdmin: true },
+            { title: "Admin", icon: LayoutDashboard, path: "/configuration", delay: 0.1, isAdmin: true },
             ...baseMenu.slice(1)
         ]
         : [...baseMenu];

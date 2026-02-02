@@ -8,8 +8,7 @@
                 "profile",
                 "email"
             ],
-            "serverClientId": "265576571338-82ulk332k7gao9h5e8ihnrj85nkir22a.apps.googleusercontent.com",
-            "androidClientId": "265576571338-an7ve40skp38mn2htpt2pt5egumtaj8d.apps.googleusercontent.com",
+            "clientId": "265576571338-82ulk332k7gao9h5e8ihnrj85nkir22a.apps.googleusercontent.com",
             "forceCodeForRefreshToken": true
         }
     }
