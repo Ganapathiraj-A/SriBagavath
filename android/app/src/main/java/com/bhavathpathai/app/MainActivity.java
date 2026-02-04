@@ -16,16 +16,12 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         // Register all plugins BEFORE super.onCreate in Capacitor 7
-        Log.d("SBB_DEBUG", "Starting Plugin Registration...");
-        registerPlugin(com.codetrixstudio.capacitor.GoogleAuth.GoogleAuth.class);
+        // In Capacitor 7, standard plugins are auto-registered.
+        // Only register custom or special plugins if needed.
+        Log.d("SBB_DEBUG", "Registering custom plugins...");
+        registerPlugin(GoogleAuth.class);
         registerPlugin(SBBOCRPlugin.class);
-        registerPlugin(com.capacitorjs.plugins.app.AppPlugin.class);
-        registerPlugin(com.capacitorjs.plugins.applauncher.AppLauncherPlugin.class);
-        registerPlugin(com.capacitorjs.plugins.camera.CameraPlugin.class);
-        registerPlugin(com.capacitorjs.plugins.clipboard.ClipboardPlugin.class);
-        registerPlugin(com.capacitorjs.plugins.filesystem.FilesystemPlugin.class);
-        registerPlugin(com.capacitorjs.plugins.share.SharePlugin.class);
-        Log.d("SBB_DEBUG", "Plugin Registration Complete. Calling super.onCreate...");
+        Log.d("SBB_DEBUG", "Custom plugins registered.");
 
         super.onCreate(savedInstanceState);
     }

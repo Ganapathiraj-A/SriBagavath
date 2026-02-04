@@ -7,7 +7,7 @@ FLAVOR=${1:-dev}
 # Configuration
 APP_NAME="SriBagavath"
 GITHUB_OWNER="Ganapathiraj-A"
-GITHUB_REPO="SriBagavathDevClean"
+GITHUB_REPO="SriBagavath"
 
 # Set Java 21
 export JAVA_HOME="/usr/lib/jvm/java-21-openjdk-amd64"
@@ -57,6 +57,33 @@ echo "Syncing Capacitor..."
 npx cap sync android
 
 # 5. Native Build
+echo "Updating strings.xml for $FLAVOR..."
+MAIN_STRINGS="android/app/src/main/res/values/strings.xml"
+FLAVOR_STRINGS="android/app/src/$FLAVOR/res/values/strings.xml"
+
+if [ "$FLAVOR" == "prod" ]; then
+    APP_NAME="Sri Bagavath"
+    SERVER_CLIENT_ID="358075696780-qufnh6jj5vl6bn3hogihp5uficngu4in.apps.googleusercontent.com"
+else
+    APP_NAME="SB Dev"
+    SERVER_CLIENT_ID="265576571338-82ulk332k7gao9h5e8ihnrj85nkir22a.apps.googleusercontent.com"
+fi
+
+update_strings() {
+    local file=$1
+    if [ -f "$file" ]; then
+        sed -i "s|<string name=\"app_name\">.*</string>|<string name=\"app_name\">$APP_NAME</string>|g" "$file"
+        if grep -q "server_client_id" "$file"; then
+            sed -i "s|<string name=\"server_client_id\">.*</string>|<string name=\"server_client_id\">$SERVER_CLIENT_ID</string>|g" "$file"
+        else
+            sed -i "s|</resources>|    <string name=\"server_client_id\">$SERVER_CLIENT_ID</string>\n</resources>|g" "$file"
+        fi
+    fi
+}
+
+update_strings "$MAIN_STRINGS"
+update_strings "$FLAVOR_STRINGS"
+
 echo "Running Gradle: $GRADLE_TASK..."
 cd android
 ./gradlew $GRADLE_TASK
@@ -80,9 +107,15 @@ MAX_RETRIES=3
 RETRY_COUNT=0
 UPLOAD_SUCCESS=false
 
+# Set flags based on flavor
+GH_FLAGS="--latest"
+if [ "$FLAVOR" != "prod" ]; then
+    GH_FLAGS="--prerelease"
+fi
+
 while [ $RETRY_COUNT -lt $MAX_RETRIES ] && [ "$UPLOAD_SUCCESS" = false ]; do
     echo "Upload Attempt $((RETRY_COUNT+1))..."
-    if gh release create "$GH_TAG" "$FINAL_NAME" --title "$GH_TITLE" --notes "Automated $FLAVOR build of v$VERSION" --latest; then
+    if gh release create "$GH_TAG" "$FINAL_NAME" --title "$GH_TITLE" --notes "Automated $FLAVOR build of v$VERSION" $GH_FLAGS; then
         UPLOAD_SUCCESS=true
     else
         RETRY_COUNT=$((RETRY_COUNT+1))

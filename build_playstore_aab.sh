@@ -4,7 +4,7 @@ set -e
 # Configuration
 APP_NAME="SriBagavath"
 GITHUB_OWNER="Ganapathiraj-A"
-GITHUB_REPO="SriBagavathDevClean"
+GITHUB_REPO="SriBagavath"
 HOME_DIR="/home/ganapathiraj"
 
 # Set Java 21
@@ -61,7 +61,7 @@ echo "Tagging repository with $TAG_NAME..."
 git add .
 git commit -m "chore: Play Store release v$VERSION" || echo "No changes to commit"
 git tag -a "$TAG_NAME" -m "Play Store release v$VERSION"
-git push origin dev --tags
+git push origin main --tags
 
 echo "======================================"
 echo "✅ PLAY STORE AAB GENERATED SUCCESSFULLY!"

@@ -2,6 +2,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Shield, IndianRupee, LogOut, Users, LayoutDashboard, Video, Layers, Settings, BookOpen, Heart } from 'lucide-react';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { Capacitor } from '@capacitor/core';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
 import { useAdminAuth } from '../context/AdminAuthContext';
@@ -86,15 +88,17 @@ const Configuration = () => {
 
     const handleLogout = async () => {
         if (confirm("Are you sure you want to logout?")) {
-            try {
-                await GoogleAuth.signOut();
+            if (Capacitor.isNativePlatform()) {
                 try {
-                    await GoogleAuth.disconnect();
-                } catch (dErr) {
-                    console.warn("Disconnect failed:", dErr);
+                    await GoogleAuth.signOut();
+                    try {
+                        await GoogleAuth.disconnect();
+                    } catch (dErr) {
+                        console.warn("Disconnect failed:", dErr);
+                    }
+                } catch (e) {
+                    console.warn("Google SignOut Error", e);
                 }
-            } catch (e) {
-                console.warn("Google SignOut Error", e);
             }
             try {
                 await signOut(auth);

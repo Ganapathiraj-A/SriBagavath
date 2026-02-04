@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
 import { doc, setDoc, Timestamp } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { Lock, Mail, Chrome, RefreshCw } from 'lucide-react';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { Capacitor } from '@capacitor/core';
+import { GET_GOOGLE_CLIENT_ID, ensureGoogleAuthInitialized } from '../utils/GoogleAuthUtils';
 import '../components/RegistrationStyles.css';
 
 const AdminLogin = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { user, isAdmin, isPending, loading: authLoading, setIsPending } = useAdminAuth();
+    const { user, isAdmin, isPending, loading: authLoading, setIsPending, checkAdminStatus } = useAdminAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -19,21 +22,13 @@ const AdminLogin = () => {
 
     useEffect(() => {
         const fetchInfo = async () => {
-            const { App } = await import('@capacitor/app');
-            const info = await App.getInfo();
-            setAppInfo({ version: info.version, id: info.id });
+            if (Capacitor.isNativePlatform()) {
+                const { App } = await import('@capacitor/app');
+                const info = await App.getInfo();
+                setAppInfo({ version: info.version, id: info.id });
+            }
         };
         fetchInfo();
-
-        if (Capacitor.isNativePlatform()) {
-            import('@codetrix-studio/capacitor-google-auth').then(({ GoogleAuth }) => {
-                GoogleAuth.initialize({
-                    clientId: '265576571338-82ulk332k7gao9h5e8ihnrj85nkir22a.apps.googleusercontent.com',
-                    scopes: ['profile', 'email'],
-                    grantOfflineAccess: true,
-                });
-            });
-        }
     }, []);
 
     // Get the page the user was trying to access
@@ -45,15 +40,6 @@ const AdminLogin = () => {
         }
     }, [isAdmin, authLoading, navigate, from]);
 
-    useEffect(() => {
-        if (Capacitor.isNativePlatform()) {
-            GoogleAuth.initialize({
-                clientId: '265576571338-82ulk332k7gao9h5e8ihnrj85nkir22a.apps.googleusercontent.com',
-                scopes: ['profile', 'email'],
-                grantOfflineAccess: true,
-            });
-        }
-    }, []);
 
 
 
@@ -73,14 +59,27 @@ const AdminLogin = () => {
         setLoading(true);
         setError('');
         try {
-            const googleUser = await GoogleAuth.signIn();
+            await ensureGoogleAuthInitialized();
 
-            const idToken = googleUser?.authentication?.idToken;
+            let idToken = null;
+
+            if (Capacitor.isNativePlatform()) {
+                const googleUser = await GoogleAuth.signIn();
+                idToken = googleUser?.authentication?.idToken;
+            } else {
+                const provider = new GoogleAuthProvider();
+                await signInWithPopup(auth, provider);
+                // Already signed in via popup
+                // Redirect will be handled by the useEffect watching isAdmin
+                return;
+            }
+
             if (!idToken) throw new Error("No ID Token received");
 
             const credential = GoogleAuthProvider.credential(idToken);
             await signInWithCredential(auth, credential);
-            navigate('/');
+
+            // Redirect will be handled by the useEffect watching isAdmin
         } catch (err) {
             console.error('Google Sign-In Error:', err);
             setError('Login failed: ' + err.message);
@@ -109,11 +108,13 @@ const AdminLogin = () => {
 
     const handleSignOut = async () => {
         try {
-            await GoogleAuth.signOut();
-            try {
-                await GoogleAuth.disconnect();
-            } catch (dErr) {
-                console.warn("Disconnect failed:", dErr);
+            if (Capacitor.isNativePlatform()) {
+                await GoogleAuth.signOut();
+                try {
+                    await GoogleAuth.disconnect();
+                } catch (dErr) {
+                    console.warn("Disconnect failed:", dErr);
+                }
             }
         } catch (error) {
             console.warn("GoogleAuth signout error:", error);

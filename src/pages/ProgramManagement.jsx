@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Capacitor } from '@capacitor/core';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Plus, Edit2, Trash2, Calendar as CalendarIcon, ChevronDown, ChevronUp, Package, ChevronLeft, MapPin } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { db, auth } from '../firebase';
@@ -32,15 +34,17 @@ const ProgramManagement = () => {
 
     const handleLogout = async () => {
         if (confirm("Logout?")) {
-            try {
-                await GoogleAuth.signOut();
+            if (Capacitor.isNativePlatform()) {
                 try {
-                    await GoogleAuth.disconnect();
-                } catch (dErr) {
-                    console.warn("Disconnect failed:", dErr);
+                    await GoogleAuth.signOut();
+                    try {
+                        await GoogleAuth.disconnect();
+                    } catch (dErr) {
+                        console.warn("Disconnect failed:", dErr);
+                    }
+                } catch (e) {
+                    console.warn("Google SignOut Error", e);
                 }
-            } catch (e) {
-                console.warn("Google SignOut Error", e);
             }
             await signOut(auth);
             navigate('/');
@@ -1099,7 +1103,7 @@ const ProgramManagement = () => {
                                 )}
 
                                 <div style={{ display: 'grid', gap: '1rem', marginTop: '1rem', borderTop: '1px solid #e5e7eb', paddingTop: '1rem' }}>
-                                    <label style={{ fontWeight: 500, color: '#374151' }}>Additional Options (e.g., Special Puja, Food)</label>
+                                    <label style={{ fontWeight: 500, color: '#374151' }}>Additional Options (e.g., Special Accommodation, Food)</label>
                                     <p style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '-0.5rem' }}>
                                         These options will be available for selection during registration.
                                     </p>
@@ -1115,7 +1119,7 @@ const ProgramManagement = () => {
                                                         updated[index].name = e.target.value;
                                                         setFormData(prev => ({ ...prev, additionalOptions: updated }));
                                                     }}
-                                                    placeholder="e.g. Special Puja"
+                                                    placeholder="e.g. Special Accommodation"
                                                     style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%' }}
                                                 />
                                             </div>

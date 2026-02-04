@@ -4,7 +4,7 @@ import { AnimatePresence } from 'framer-motion';
 import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
-import { GET_GOOGLE_CLIENT_ID } from './utils/GoogleAuthUtils';
+import { GET_GOOGLE_CLIENT_ID, ensureGoogleAuthInitialized } from './utils/GoogleAuthUtils';
 
 import Home from './pages/Home';
 import About from './pages/About';
@@ -304,14 +304,7 @@ const AppContent = () => {
   useEffect(() => {
     const fetchVersion = async () => {
       // 1. Initialize Google Auth
-      if (Capacitor.isNativePlatform()) {
-        const clientId = GET_GOOGLE_CLIENT_ID();
-        GoogleAuth.initialize({
-          clientId: clientId,
-          scopes: ['profile', 'email'],
-          grantOfflineAccess: true,
-        });
-      }
+      await ensureGoogleAuthInitialized();
 
       // 2. Get App Version
       if (Capacitor.isNativePlatform()) {
@@ -319,7 +312,7 @@ const AppContent = () => {
         setCurrentVersion(info.version);
       } else {
         // Fallback for web/dev
-        setCurrentVersion('2.8.341');
+        setCurrentVersion('2.8.349');
       }
     };
     fetchVersion();

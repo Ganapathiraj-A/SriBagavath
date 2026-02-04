@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Check, Trash2, Rewind, AlertCircle, X, LogOut, Package, Image, Info } from 'lucide-react';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { Capacitor } from '@capacitor/core';
 import { TransactionService } from '../services/TransactionService';
 import PageHeader from '../components/PageHeader';
 import { compressImage } from '../utils/imageUtils';
@@ -35,15 +37,17 @@ const AdminReview = () => {
 
     const handleLogout = async () => {
         if (confirm("Logout?")) {
-            try {
-                await GoogleAuth.signOut();
+            if (Capacitor.isNativePlatform()) {
                 try {
-                    await GoogleAuth.disconnect();
-                } catch (dErr) {
-                    console.warn("Disconnect failed:", dErr);
+                    await GoogleAuth.signOut();
+                    try {
+                        await GoogleAuth.disconnect();
+                    } catch (dErr) {
+                        console.warn("Disconnect failed:", dErr);
+                    }
+                } catch (e) {
+                    console.warn("Google SignOut Error", e);
                 }
-            } catch (e) {
-                console.warn("Google SignOut Error", e);
             }
             await signOut(auth);
             navigate('/');
@@ -597,6 +601,29 @@ const AdminReview = () => {
                                     </div>
                                 ))}
                             </div>
+
+                            {viewingReg.selectedOptions && viewingReg.selectedOptions.length > 0 && (
+                                <>
+                                    <hr style={{ border: 'none', borderTop: '1px solid #eee', margin: '8px 0' }} />
+                                    <h3 style={{ margin: 0, fontSize: '16px', color: '#111' }}>Additional Options</h3>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                        {viewingReg.selectedOptions.map((opt, i) => (
+                                            <div key={i} style={{
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                background: '#eff6ff',
+                                                padding: '8px 12px',
+                                                borderRadius: '8px',
+                                                border: '1px solid #dbeafe',
+                                                fontSize: '14px'
+                                            }}>
+                                                <span style={{ fontWeight: 500, color: '#1e40af' }}>{opt.name}</span>
+                                                <span style={{ fontWeight: 600, color: '#1e40af' }}>₹{opt.fee}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
 
                             <hr style={{ border: 'none', borderTop: '1px solid #eee', margin: '8px 0' }} />
 

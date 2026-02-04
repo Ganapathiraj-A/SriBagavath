@@ -2,6 +2,8 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { useLocation, Navigate } from 'react-router-dom';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { Capacitor } from '@capacitor/core';
 
 const ProtectedRoute = ({ children, requiredPermission }) => {
     const { isAdmin, role, hasAccess, loading } = useAdminAuth();
@@ -32,15 +34,17 @@ const ProtectedRoute = ({ children, requiredPermission }) => {
 
         const handleLogout = async () => {
             if (confirm("Logout?")) {
-                try {
-                    await GoogleAuth.signOut();
+                if (Capacitor.isNativePlatform()) {
                     try {
-                        await GoogleAuth.disconnect();
-                    } catch (dErr) {
-                        console.warn("Disconnect failed:", dErr);
+                        await GoogleAuth.signOut();
+                        try {
+                            await GoogleAuth.disconnect();
+                        } catch (dErr) {
+                            console.warn("Disconnect failed:", dErr);
+                        }
+                    } catch (e) {
+                        console.warn("Google SignOut Error", e);
                     }
-                } catch (e) {
-                    console.warn("Google SignOut Error", e);
                 }
                 await signOut(auth);
                 window.location.href = '/';

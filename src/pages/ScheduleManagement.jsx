@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { Capacitor } from '@capacitor/core';
 import { cleanupOldSchedules } from '../utils/cleanup';
 import { motion } from 'framer-motion';
 import { Plus, Edit2, Trash2, Calendar as CalendarIcon, MapPin, ChevronLeft } from 'lucide-react';
@@ -17,15 +19,17 @@ const ScheduleManagement = () => {
 
     const handleLogout = async () => {
         if (confirm("Logout?")) {
-            try {
-                await GoogleAuth.signOut();
+            if (Capacitor.isNativePlatform()) {
                 try {
-                    await GoogleAuth.disconnect();
-                } catch (dErr) {
-                    console.warn("Disconnect failed:", dErr);
+                    await GoogleAuth.signOut();
+                    try {
+                        await GoogleAuth.disconnect();
+                    } catch (dErr) {
+                        console.warn("Disconnect failed:", dErr);
+                    }
+                } catch (e) {
+                    console.warn("Google SignOut Error", e);
                 }
-            } catch (e) {
-                console.warn("Google SignOut Error", e);
             }
             await signOut(auth);
             navigate('/');

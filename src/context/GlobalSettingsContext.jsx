@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { db } from '../firebase';
-import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { db, auth } from '../firebase';
+import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 
@@ -10,40 +11,42 @@ export const useGlobalSettings = () => {
     return useContext(GlobalSettingsContext);
 };
 
+const DEFAULT_USER_SETTINGS = {
+    devMode: false,
+    updateSource: 'auto',
+    serverUrl: 'http://192.168.1.3:8080',
+    landingPage: '/'
+};
+
 export const GlobalSettingsProvider = ({ children }) => {
-    // Firestore Settings (Truly Global across devices)
+    // Firestore Global Settings (Functional)
     const [settings, setSettings] = useState({
         onlineTransactionsEnabled: true,
-        minAppVersion: '2.8.345' // Default fallback
+        minAppVersion: '2.8.345',
+        bankPassword: '',
+        sheetLink: 'https://docs.google.com/spreadsheets/d/1TtzVIK28OidQQb2cuuHNqrcuSiUGgM-q28xkJHLyWrs/edit',
+        scriptUrl: 'https://script.google.com/macros/s/AKfycbwceASoBU6CCZFOtNg5QSjsIXrA6fzK9kBvMbkCEBuh4FabjRNXU0P-7NRGwRNXCNzBHg/exec',
+        programImportUrl: 'https://docs.google.com/spreadsheets/d/1TtzVIK28OidQQb2cuuHNqrcuSiUGgM-q28xkJHLyWrs/edit?gid=0',
+        programExportUrl: 'https://docs.google.com/spreadsheets/d/1TtzVIK28OidQQb2cuuHNqrcuSiUGgM-q28xkJHLyWrs/edit?gid=186682100',
+        programUpdateUrl: 'https://docs.google.com/spreadsheets/d/1TtzVIK28OidQQb2cuuHNqrcuSiUGgM-q28xkJHLyWrs/edit?gid=464998222',
+        bookImportUrl: 'https://docs.google.com/spreadsheets/d/1TtzVIK28OidQQb2cuuHNqrcuSiUGgM-q28xkJHLyWrs/edit?gid=106820319',
+        bookExportUrl: 'https://docs.google.com/spreadsheets/d/1TtzVIK28OidQQb2cuuHNqrcuSiUGgM-q28xkJHLyWrs/edit?gid=918205091',
+        bookUpdateUrl: 'https://docs.google.com/spreadsheets/d/1TtzVIK28OidQQb2cuuHNqrcuSiUGgM-q28xkJHLyWrs/edit?gid=1377614208',
+        donationImportUrl: 'https://docs.google.com/spreadsheets/d/1TtzVIK28OidQQb2cuuHNqrcuSiUGgM-q28xkJHLyWrs/edit?gid=314638099',
+        donationExportUrl: 'https://docs.google.com/spreadsheets/d/1TtzVIK28OidQQb2cuuHNqrcuSiUGgM-q28xkJHLyWrs/edit?gid=1623097087',
+        donationUpdateUrl: 'https://docs.google.com/spreadsheets/d/1TtzVIK28OidQQb2cuuHNqrcuSiUGgM-q28xkJHLyWrs/edit?gid=227329141'
     });
 
+    // Firestore Per-User Settings (Developer Options)
+    const [userSettings, setUserSettings] = useState(DEFAULT_USER_SETTINGS);
+
     const [appVersion, setAppVersion] = useState('0.0.0');
+    const [loading, setLoading] = useState(true);
+    const [currentUser, setCurrentUser] = useState(null);
 
-    // Local Settings (Device specific, but Global to App Context)
-    const [bankPassword, setBankPasswordState] = useState(localStorage.getItem('bank_statement_password') || '');
-    const [devMode, setDevModeState] = useState(localStorage.getItem('settings_devMode') === 'true');
-    const [updateSource, setUpdateSourceState] = useState(localStorage.getItem('settings_updateSource') || 'auto');
-    const [serverUrl, setServerUrlState] = useState(localStorage.getItem('settings_serverUrl') || 'http://192.168.1.3:8080');
-
-    // Import/Export URLs (Managed by Super Admin)
     const LATEST_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwceASoBU6CCZFOtNg5QSjsIXrA6fzK9kBvMbkCEBuh4FabjRNXU0P-7NRGwRNXCNzBHg/exec';
 
-    const [sheetLink, setSheetLinkState] = useState(localStorage.getItem('admin_import_export_sheet_url') || 'https://docs.google.com/spreadsheets/d/1TtzVIK28OidQQb2cuuHNqrcuSiUGgM-q28xkJHLyWrs/edit');
-    const [programImportUrl, setProgramImportUrlState] = useState(localStorage.getItem('admin_program_import_url') || 'https://docs.google.com/spreadsheets/d/1TtzVIK28OidQQb2cuuHNqrcuSiUGgM-q28xkJHLyWrs/edit?gid=0');
-    const [programExportUrl, setProgramExportUrlState] = useState(localStorage.getItem('admin_program_export_url') || 'https://docs.google.com/spreadsheets/d/1TtzVIK28OidQQb2cuuHNqrcuSiUGgM-q28xkJHLyWrs/edit?gid=186682100');
-    const [programUpdateUrl, setProgramUpdateUrlState] = useState(localStorage.getItem('admin_program_update_url') || 'https://docs.google.com/spreadsheets/d/1TtzVIK28OidQQb2cuuHNqrcuSiUGgM-q28xkJHLyWrs/edit?gid=464998222');
-
-    const [bookImportUrl, setBookImportUrlState] = useState(localStorage.getItem('admin_book_import_url') || 'https://docs.google.com/spreadsheets/d/1TtzVIK28OidQQb2cuuHNqrcuSiUGgM-q28xkJHLyWrs/edit?gid=106820319');
-    const [bookExportUrl, setBookExportUrlState] = useState(localStorage.getItem('admin_book_export_url') || 'https://docs.google.com/spreadsheets/d/1TtzVIK28OidQQb2cuuHNqrcuSiUGgM-q28xkJHLyWrs/edit?gid=918205091');
-    const [bookUpdateUrl, setBookUpdateUrlState] = useState(localStorage.getItem('admin_book_update_url') || 'https://docs.google.com/spreadsheets/d/1TtzVIK28OidQQb2cuuHNqrcuSiUGgM-q28xkJHLyWrs/edit?gid=1377614208');
-
-    const [donationImportUrl, setDonationImportUrlState] = useState(localStorage.getItem('admin_donation_import_url') || 'https://docs.google.com/spreadsheets/d/1TtzVIK28OidQQb2cuuHNqrcuSiUGgM-q28xkJHLyWrs/edit?gid=314638099');
-    const [donationExportUrl, setDonationExportUrlState] = useState(localStorage.getItem('admin_donation_export_url') || 'https://docs.google.com/spreadsheets/d/1TtzVIK28OidQQb2cuuHNqrcuSiUGgM-q28xkJHLyWrs/edit?gid=1623097087');
-    const [donationUpdateUrl, setDonationUpdateUrlState] = useState(localStorage.getItem('admin_donation_update_url') || 'https://docs.google.com/spreadsheets/d/1TtzVIK28OidQQb2cuuHNqrcuSiUGgM-q28xkJHLyWrs/edit?gid=227329141');
-    const [scriptUrl, setScriptUrlState] = useState(localStorage.getItem('admin_import_export_script_url') || LATEST_SCRIPT_URL);
-
-    const [loading, setLoading] = useState(true);
-
+    // 1. Fetch App Version
     useEffect(() => {
         const fetchVersion = async () => {
             if (Capacitor.isNativePlatform()) {
@@ -52,185 +55,161 @@ export const GlobalSettingsProvider = ({ children }) => {
                     setAppVersion(info.version);
                 } catch (e) {
                     console.error("Error fetching app info:", e);
-                    setAppVersion('2.8.345'); // Fallback
+                    setAppVersion('2.8.345');
                 }
             } else {
-                setAppVersion('2.8.345'); // Web fallback
+                setAppVersion('2.8.345');
             }
         };
         fetchVersion();
     }, []);
 
-    // Auto-sync script URL if it's outdated
+    // 2. Auth state Listener + User Settings Sync
     useEffect(() => {
-        const savedUrl = localStorage.getItem('admin_import_export_script_url');
-        if (savedUrl && savedUrl !== LATEST_SCRIPT_URL) {
-            setScriptUrlState(LATEST_SCRIPT_URL);
-            localStorage.setItem('admin_import_export_script_url', LATEST_SCRIPT_URL);
-            console.log("Auto-updated Apps Script URL to latest version");
-        }
+        const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+            setCurrentUser(user);
+            if (user) {
+                const userDocRef = doc(db, 'users', user.uid, 'settings', 'preferences');
+                const unsubscribeUserSub = onSnapshot(userDocRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        setUserSettings(docSnap.data());
+                    } else {
+                        // Migration from LocalStorage for Developer Options on first login
+                        const localDevMode = localStorage.getItem('settings_devMode') === 'true';
+                        const localUpdateSource = localStorage.getItem('settings_updateSource') || DEFAULT_USER_SETTINGS.updateSource;
+                        const localServerUrl = localStorage.getItem('settings_serverUrl') || DEFAULT_USER_SETTINGS.serverUrl;
+                        const localLandingPage = localStorage.getItem('admin_landing_page') || DEFAULT_USER_SETTINGS.landingPage;
+
+                        const initData = {
+                            devMode: localDevMode,
+                            updateSource: localUpdateSource,
+                            serverUrl: localServerUrl,
+                            landingPage: localLandingPage
+                        };
+                        setDoc(userDocRef, initData);
+                        setUserSettings(initData);
+                    }
+                });
+                return () => unsubscribeUserSub();
+            } else {
+                setUserSettings(DEFAULT_USER_SETTINGS);
+            }
+        });
+        return () => unsubscribeAuth();
     }, []);
 
-    // Sync Firestore
+    // 3. Global Settings Sync + Initial Migration
     useEffect(() => {
         const docRef = doc(db, 'settings', 'global');
-        const unsubscribe = onSnapshot(docRef, (docSnap) => {
+        const unsubscribeGlobal = onSnapshot(docRef, async (docSnap) => {
             if (docSnap.exists()) {
                 const data = docSnap.data();
-                // AUTO-FIX: If Firestore still has the old IP, override it for Dev builds
-                if (data.serverUrl === 'http://192.168.1.2:8080') {
-                    data.serverUrl = 'http://192.168.1.3:8080';
+                // Ensure migration-only fields like scriptUrl are auto-updated if hardcoded logic demands it
+                if (data.scriptUrl && data.scriptUrl !== LATEST_SCRIPT_URL) {
+                    // We don't auto-override Firestore here, but we could if we wanted strict versioning.
+                    // For now, let's just use what's in Firestore.
                 }
-                setSettings(data);
+                setSettings(prev => ({ ...prev, ...data }));
+                setLoading(false);
             } else {
-                setDoc(docRef, {
+                // Perform one-time migration from LocalStorage if Firestore is completely empty
+                console.log("Global settings not found in Firestore. Migrating from LocalStorage...");
+                const initData = {
                     onlineTransactionsEnabled: true,
                     minAppVersion: '2.8.345',
-                    serverUrl: 'http://192.168.1.3:8080'
-                });
+                    bankPassword: localStorage.getItem('bank_statement_password') || '',
+                    sheetLink: localStorage.getItem('admin_import_export_sheet_url') || settings.sheetLink,
+                    scriptUrl: localStorage.getItem('admin_import_export_script_url') || settings.scriptUrl,
+                    programImportUrl: localStorage.getItem('admin_program_import_url') || settings.programImportUrl,
+                    programExportUrl: localStorage.getItem('admin_program_export_url') || settings.programExportUrl,
+                    programUpdateUrl: localStorage.getItem('admin_program_update_url') || settings.programUpdateUrl,
+                    bookImportUrl: localStorage.getItem('admin_book_import_url') || settings.bookImportUrl,
+                    bookExportUrl: localStorage.getItem('admin_book_export_url') || settings.bookExportUrl,
+                    bookUpdateUrl: localStorage.getItem('admin_book_update_url') || settings.bookUpdateUrl,
+                    donationImportUrl: localStorage.getItem('admin_donation_import_url') || settings.donationImportUrl,
+                    donationExportUrl: localStorage.getItem('admin_donation_export_url') || settings.donationExportUrl,
+                    donationUpdateUrl: localStorage.getItem('admin_donation_update_url') || settings.donationUpdateUrl
+                };
+                await setDoc(docRef, initData);
+                setSettings(initData);
+                setLoading(false);
             }
-            setLoading(false); // Only wait for Firestore to consider "loading" done? Or doesn't matter for local prefs.
         }, (error) => {
             console.error("Error fetching global settings:", error);
             setLoading(false);
         });
-        return () => unsubscribe();
+        return () => unsubscribeGlobal();
     }, []);
 
-    // Setters that sync with LocalStorage
-    const setBankPassword = (val) => {
-        setBankPasswordState(val);
-        localStorage.setItem('bank_statement_password', val);
-    };
-
-    const setDevMode = (val) => {
-        setDevModeState(val);
-        localStorage.setItem('settings_devMode', val);
-        // Dispatch event for legacy listeners (if any remain) - UpdateIcon might still use it until refactored
-        // But we are refactoring UpdateIcon too hopefully. 
-        // dispatchEvent is 'dev_mode_changed'.
-        // Keep it for safety during transition or remove if we update UpdateIcon now.
-        // The user didn't ask to refactor UpdateIcon but it's good practice.
-        // I will update UpdateIcon to use Context if permitted, otherwise dispatch event.
-        // Current task is "store... in global context". UpdateIcon consuming context is the logical next step.
-        window.dispatchEvent(new Event('dev_mode_changed'));
-    };
-
-    const setUpdateSource = (val) => {
-        setUpdateSourceState(val);
-        localStorage.setItem('settings_updateSource', val);
-    };
-
-    const setServerUrl = (val) => {
-        setServerUrlState(val);
-        localStorage.setItem('settings_serverUrl', val);
-    };
-
-    const setSheetLink = (val) => {
-        setSheetLinkState(val);
-        localStorage.setItem('admin_import_export_sheet_url', val);
-    };
-
-    const setScriptUrl = (val) => {
-        setScriptUrlState(val);
-        localStorage.setItem('admin_import_export_script_url', val);
-    };
-
-    const setProgramExportUrl = (val) => {
-        setProgramExportUrlState(val);
-        localStorage.setItem('admin_program_export_url', val);
-    };
-
-    const setProgramUpdateUrl = (val) => {
-        setProgramUpdateUrlState(val);
-        localStorage.setItem('admin_program_update_url', val);
-    };
-
-    const setBookExportUrl = (val) => {
-        setBookExportUrlState(val);
-        localStorage.setItem('admin_book_export_url', val);
-    };
-
-    const setBookUpdateUrl = (val) => {
-        setBookUpdateUrlState(val);
-        localStorage.setItem('admin_book_update_url', val);
-    };
-
-    const setDonationExportUrl = (val) => {
-        setDonationExportUrlState(val);
-        localStorage.setItem('admin_donation_export_url', val);
-    };
-
-    const setDonationUpdateUrl = (val) => {
-        setDonationUpdateUrlState(val);
-        localStorage.setItem('admin_donation_update_url', val);
-    };
-
-    const setProgramImportUrl = (val) => {
-        setProgramImportUrlState(val);
-        localStorage.setItem('admin_program_import_url', val);
-    };
-
-    const setBookImportUrl = (val) => {
-        setBookImportUrlState(val);
-        localStorage.setItem('admin_book_import_url', val);
-    };
-
-    const setDonationImportUrl = (val) => {
-        setDonationImportUrlState(val);
-        localStorage.setItem('admin_donation_import_url', val);
-    };
-
-    const setMinAppVersion = async (newValue) => {
+    // helper for Global Updates
+    const updateGlobal = async (updates) => {
         try {
-            await setDoc(doc(db, 'settings', 'global'), {
-                ...settings,
-                minAppVersion: newValue
-            }, { merge: true });
+            const docRef = doc(db, 'settings', 'global');
+            await setDoc(docRef, updates, { merge: true });
         } catch (error) {
-            console.error("Error updating min app version:", error);
+            console.error("Error updating global settings:", error);
             throw error;
         }
     };
 
-    const toggleOnlineTransactions = async (newValue) => {
+    // helper for User Updates
+    const updateUser = async (updates) => {
+        if (!currentUser) return;
         try {
-            await setDoc(doc(db, 'settings', 'global'), {
-                ...settings,
-                onlineTransactionsEnabled: newValue
-            }, { merge: true });
+            const docRef = doc(db, 'users', currentUser.uid, 'settings', 'preferences');
+            await setDoc(docRef, updates, { merge: true });
         } catch (error) {
-            console.error("Error updating online transactions setting:", error);
+            console.error("Error updating user settings:", error);
             throw error;
         }
     };
 
     return (
         <GlobalSettingsContext.Provider value={{
-            // Firestore
+            // Functional Settings (Global)
             onlineTransactionsEnabled: settings.onlineTransactionsEnabled,
-            minAppVersion: settings.minAppVersion || '2.8.345',
-            toggleOnlineTransactions,
-            setMinAppVersion,
+            minAppVersion: settings.minAppVersion,
+            bankPassword: settings.bankPassword,
+            sheetLink: settings.sheetLink,
+            scriptUrl: settings.scriptUrl,
+            programImportUrl: settings.programImportUrl,
+            programExportUrl: settings.programExportUrl,
+            programUpdateUrl: settings.programUpdateUrl,
+            bookImportUrl: settings.bookImportUrl,
+            bookExportUrl: settings.bookExportUrl,
+            bookUpdateUrl: settings.bookUpdateUrl,
+            donationImportUrl: settings.donationImportUrl,
+            donationExportUrl: settings.donationExportUrl,
+            donationUpdateUrl: settings.donationUpdateUrl,
 
-            // Local
-            bankPassword, setBankPassword,
-            devMode, setDevMode,
-            updateSource, setUpdateSource,
-            serverUrl: settings.serverUrl || serverUrl,
-            setServerUrl,
+            toggleOnlineTransactions: (val) => updateGlobal({ onlineTransactionsEnabled: val }),
+            setMinAppVersion: (val) => updateGlobal({ minAppVersion: val }),
+            setBankPassword: (val) => updateGlobal({ bankPassword: val }),
+            setSheetLink: (val) => updateGlobal({ sheetLink: val }),
+            setScriptUrl: (val) => updateGlobal({ scriptUrl: val }),
+            setProgramImportUrl: (val) => updateGlobal({ programImportUrl: val }),
+            setProgramExportUrl: (val) => updateGlobal({ programExportUrl: val }),
+            setProgramUpdateUrl: (val) => updateGlobal({ programUpdateUrl: val }),
+            setBookImportUrl: (val) => updateGlobal({ bookImportUrl: val }),
+            setBookExportUrl: (val) => updateGlobal({ bookExportUrl: val }),
+            setBookUpdateUrl: (val) => updateGlobal({ bookUpdateUrl: val }),
+            setDonationImportUrl: (val) => updateGlobal({ donationImportUrl: val }),
+            setDonationExportUrl: (val) => updateGlobal({ donationExportUrl: val }),
+            setDonationUpdateUrl: (val) => updateGlobal({ donationUpdateUrl: val }),
 
-            sheetLink, setSheetLink,
-            programImportUrl, setProgramImportUrl,
-            programExportUrl, setProgramExportUrl,
-            programUpdateUrl, setProgramUpdateUrl,
-            bookImportUrl, setBookImportUrl,
-            bookExportUrl, setBookExportUrl,
-            bookUpdateUrl, setBookUpdateUrl,
-            donationImportUrl, setDonationImportUrl,
-            donationExportUrl, setDonationExportUrl,
-            donationUpdateUrl, setDonationUpdateUrl,
-            scriptUrl, setScriptUrl,
+            // Developer Settings (Per-User)
+            devMode: userSettings.devMode ?? DEFAULT_USER_SETTINGS.devMode,
+            updateSource: userSettings.updateSource ?? DEFAULT_USER_SETTINGS.updateSource,
+            serverUrl: userSettings.serverUrl ?? DEFAULT_USER_SETTINGS.serverUrl,
+            landingPage: userSettings.landingPage ?? DEFAULT_USER_SETTINGS.landingPage,
+
+            setDevMode: (val) => {
+                updateUser({ devMode: val });
+                window.dispatchEvent(new Event('dev_mode_changed'));
+            },
+            setUpdateSource: (val) => updateUser({ updateSource: val }),
+            setServerUrl: (val) => updateUser({ serverUrl: val }),
+            setLandingPage: (val) => updateUser({ landingPage: val }),
 
             appVersion,
             loading

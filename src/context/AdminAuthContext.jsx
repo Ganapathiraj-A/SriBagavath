@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 
 const AdminAuthContext = createContext();
@@ -27,48 +27,107 @@ export const AdminAuthProvider = ({ children }) => {
         return false;
     };
 
+    const checkAdminStatus = async (uid) => {
+        if (!uid) return;
+        try {
+            // 1. Try UID based lookup
+            let adminDoc = await getDoc(doc(db, 'admins', uid));
+            let data = adminDoc.exists() ? adminDoc.data() : null;
+
+            // 2. Try Email based lookup
+            if (!data && auth.currentUser?.email) {
+                adminDoc = await getDoc(doc(db, 'admins', auth.currentUser.email));
+                data = adminDoc.exists() ? adminDoc.data() : null;
+            }
+
+            if (data) {
+                setIsAdmin(true);
+                if (auth.currentUser?.email === 'ganapathiraj@gmail.com') {
+                    setRole('SUPER_ADMIN');
+                } else {
+                    setRole(data.role || 'ADMIN');
+                }
+                setPermissions(data.permissions || []);
+                setIsPending(false);
+            } else {
+                // Check for pending request
+                const requestDoc = await getDoc(doc(db, 'admin_requests', uid));
+                setIsPending(requestDoc.exists() && requestDoc.data().status === 'PENDING');
+            }
+        } catch (error) {
+            console.error("Manual status check failed:", error);
+        }
+    };
+
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+        let adminUnsubscribe = null;
+        let requestUnsubscribe = null;
+
+        const authUnsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             setLoading(true);
+
+            // Cleanup previous snapshots
+            if (adminUnsubscribe) adminUnsubscribe();
+            if (requestUnsubscribe) requestUnsubscribe();
+
             if (currentUser) {
                 setUser(currentUser);
                 if (!currentUser.isAnonymous) {
                     console.log("Logged in UID:", currentUser.uid);
-                    try {
-                        // 1. Try UID based lookup (legacy/existing)
-                        let adminDoc = await getDoc(doc(db, 'admins', currentUser.uid));
-                        let data = adminDoc.exists() ? adminDoc.data() : null;
 
-                        // 2. Try Email based lookup (for newly added admins)
-                        if (!data && currentUser.email) {
-                            adminDoc = await getDoc(doc(db, 'admins', currentUser.email));
-                            data = adminDoc.exists() ? adminDoc.data() : null;
-                        }
-
-                        if (data) {
+                    // 1. Snapshot Listener for Admin Recognition (UID and Email)
+                    // Note: Firestore doesn't support logical OR across collections easily, 
+                    // but we can listen to the specific document.
+                    const adminDocRef = doc(db, 'admins', currentUser.uid);
+                    adminUnsubscribe = onSnapshot(adminDocRef, (snap) => {
+                        if (snap.exists()) {
+                            const data = snap.data();
                             setIsAdmin(true);
-                            if (currentUser?.email === 'ganapathiraj@gmail.com') {
-                                setRole('SUPER_ADMIN');
-                            } else {
-                                setRole(data.role || 'ADMIN');
-                            }
+                            setRole(currentUser?.email === 'ganapathiraj@gmail.com' ? 'SUPER_ADMIN' : (data.role || 'ADMIN'));
                             setPermissions(data.permissions || []);
                             setIsPending(false);
+                            setLoading(false);
+                        } else if (currentUser.email) {
+                            // Try email-based snapshot if UID fails
+                            const emailDocRef = doc(db, 'admins', currentUser.email);
+                            onSnapshot(emailDocRef, (emailSnap) => {
+                                if (emailSnap.exists()) {
+                                    const eData = emailSnap.data();
+                                    setIsAdmin(true);
+                                    setRole(currentUser?.email === 'ganapathiraj@gmail.com' ? 'SUPER_ADMIN' : (eData.role || 'ADMIN'));
+                                    setPermissions(eData.permissions || []);
+                                    setIsPending(false);
+                                } else {
+                                    // If still not admin, check for pending request with snapshot
+                                    setIsAdmin(false);
+                                    setRole(null);
+                                    setPermissions([]);
+
+                                    const requestDocRef = doc(db, 'admin_requests', currentUser.uid);
+                                    requestUnsubscribe = onSnapshot(requestDocRef, (reqSnap) => {
+                                        setIsPending(reqSnap.exists() && reqSnap.data().status === 'PENDING');
+                                        setLoading(false);
+                                    });
+                                }
+                                setLoading(false);
+                            });
                         } else {
+                            // No email, just check pending
                             setIsAdmin(false);
                             setRole(null);
                             setPermissions([]);
-                            setIsPending(false);
+                            const requestDocRef = doc(db, 'admin_requests', currentUser.uid);
+                            requestUnsubscribe = onSnapshot(requestDocRef, (reqSnap) => {
+                                setIsPending(reqSnap.exists() && reqSnap.data().status === 'PENDING');
+                                setLoading(false);
+                            });
                         }
-                    } catch (error) {
-                        console.error("Error checking status:", error);
-                        setIsAdmin(false);
-                    }
+                    });
                 } else {
                     setIsAdmin(false);
                     setIsPending(false);
+                    setLoading(false);
                 }
-                setLoading(false);
             } else {
                 signInAnonymously(auth).catch((error) => {
                     console.error("Anonymous auth failed", error);
@@ -77,11 +136,15 @@ export const AdminAuthProvider = ({ children }) => {
             }
         });
 
-        return () => unsubscribe();
+        return () => {
+            authUnsubscribe();
+            if (adminUnsubscribe) adminUnsubscribe();
+            if (requestUnsubscribe) requestUnsubscribe();
+        };
     }, []);
 
     return (
-        <AdminAuthContext.Provider value={{ user, isAdmin, role, permissions, hasAccess, isPending, loading, setIsPending }}>
+        <AdminAuthContext.Provider value={{ user, isAdmin, role, permissions, hasAccess, isPending, loading, setIsPending, checkAdminStatus }}>
             {children}
         </AdminAuthContext.Provider>
     );

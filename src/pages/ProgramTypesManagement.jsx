@@ -5,6 +5,8 @@ import { Plus, Edit2, Trash2, Save, X, GripVertical, ChevronUp, ChevronDown, Che
 import { db, auth } from '../firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy, setDoc } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { Capacitor } from '@capacitor/core';
 import { LogOut } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import '../components/RegistrationStyles.css';
@@ -14,16 +16,17 @@ const ProgramTypesManagement = () => {
 
     const handleLogout = async () => {
         if (confirm("Logout?")) {
-            try {
-                await GoogleAuth.signOut();
+            if (Capacitor.isNativePlatform()) {
                 try {
-                    await GoogleAuth.disconnect();
-                } catch (dErr) {
-                    console.warn("Disconnect failed:", dErr);
+                    await GoogleAuth.signOut();
+                    try {
+                        await GoogleAuth.disconnect();
+                    } catch (dErr) {
+                        console.warn("Disconnect failed:", dErr);
+                    }
+                } catch (e) {
+                    console.warn("Google SignOut Error", e);
                 }
-                alert("Signed out. You should see the account picker next time.");
-            } catch (e) {
-                console.warn("Google SignOut Error", e);
             }
             await signOut(auth);
             navigate('/');
@@ -268,7 +271,7 @@ const ProgramTypesManagement = () => {
                             )}
 
                             <div style={{ display: 'grid', gap: '1rem', marginTop: '1rem', borderTop: '1px solid #e5e7eb', paddingTop: '1rem' }}>
-                                <label style={{ fontWeight: 500 }}>Additional Options (e.g., Special Puja, Food)</label>
+                                <label style={{ fontWeight: 500 }}>Additional Options (e.g., Special Accommodation, Food)</label>
                                 {formData.additionalOptions.map((option, index) => (
                                     <div key={index} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr auto', gap: '0.5rem', alignItems: 'end' }}>
                                         <div>
@@ -281,7 +284,7 @@ const ProgramTypesManagement = () => {
                                                     updated[index].name = e.target.value;
                                                     setFormData(prev => ({ ...prev, additionalOptions: updated }));
                                                 }}
-                                                placeholder="e.g. Special Puja"
+                                                placeholder="e.g. Special Accommodation"
                                                 style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%' }}
                                             />
                                         </div>

@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import { LogIn } from 'lucide-react';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { Capacitor } from '@capacitor/core';
+import { ensureGoogleAuthInitialized } from '../utils/GoogleAuthUtils';
 import { auth } from '../firebase';
 import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
 
@@ -30,8 +32,18 @@ const MyRegistrations = () => {
 
         setAuthLoading(true);
         try {
-            const googleUser = await GoogleAuth.signIn();
-            const idToken = googleUser?.authentication?.idToken;
+            await ensureGoogleAuthInitialized();
+
+            let idToken = null;
+            if (Capacitor.isNativePlatform()) {
+                const googleUser = await GoogleAuth.signIn();
+                idToken = googleUser?.authentication?.idToken;
+            } else {
+                const provider = new GoogleAuthProvider();
+                await signInWithPopup(auth, provider);
+                return true;
+            }
+
             if (!idToken) throw new Error("No ID Token received");
 
             const credential = GoogleAuthProvider.credential(idToken);
@@ -295,6 +307,21 @@ const MyRegistrations = () => {
                                                 {tx.participants.map((p, idx) => (
                                                     <div key={idx} style={{ marginLeft: '8px' }}>
                                                         {idx + 1}. {p.name} ({p.gender}, {p.age})
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )
+                                    }
+
+                                    {/* Additional Options */}
+                                    {
+                                        tx.selectedOptions && tx.selectedOptions.length > 0 && (
+                                            <div style={{ marginTop: '8px', fontSize: '13px', background: '#eff6ff', padding: '8px', borderRadius: '4px', border: '1px solid #dbeafe' }}>
+                                                <strong style={{ color: '#1e40af' }}>Additional Options:</strong>
+                                                {tx.selectedOptions.map((opt, idx) => (
+                                                    <div key={idx} style={{ marginLeft: '8px', display: 'flex', justifyContent: 'space-between', color: '#1e40af' }}>
+                                                        <span>{opt.name}</span>
+                                                        <span>₹{opt.fee}</span>
                                                     </div>
                                                 ))}
                                             </div>

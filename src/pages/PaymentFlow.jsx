@@ -160,7 +160,9 @@ const PaymentFlow = () => {
 
         return () => {
             if (pollInterval) clearInterval(pollInterval);
-            listener.then(handle => handle.remove());
+            if (Capacitor.isNativePlatform()) {
+                listener.then(handle => handle.remove());
+            }
         };
     }, []);
 

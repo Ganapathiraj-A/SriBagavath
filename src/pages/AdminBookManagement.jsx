@@ -3,7 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Plus, Edit2, Trash2, ChevronLeft, LogOut, Package, Image as ImageIcon, BookOpen, X, ChevronUp, ChevronDown } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
-import { db, auth } from '../firebase';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { Capacitor } from '@capacitor/core';
+import { db, storage, auth } from '../firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, setDoc, query, orderBy, serverTimestamp, getDoc } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import { StatsService } from '../services/StatsService';
@@ -165,7 +167,7 @@ const AdminBookManagement = () => {
                         return { id: book.id, cover: coverSnap.data().cover };
                     }
                 } catch (e) {
-                    console.error(`Error fetching cover for ${book.title}:`, e);
+                    console.error(`Error fetching cover for ${book.title}: `, e);
                 }
                 return null;
             });
@@ -304,7 +306,18 @@ const AdminBookManagement = () => {
 
     const handleLogout = async () => {
         if (confirm("Logout?")) {
-            await GoogleAuth.signOut();
+            if (Capacitor.isNativePlatform()) {
+                try {
+                    await GoogleAuth.signOut();
+                    try {
+                        await GoogleAuth.disconnect();
+                    } catch (dErr) {
+                        console.warn("Disconnect failed:", dErr);
+                    }
+                } catch (e) {
+                    console.warn("Google SignOut Error", e);
+                }
+            }
             await signOut(auth);
             navigate('/');
         }

@@ -3,8 +3,10 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Heart, IndianRupee, ChevronLeft } from 'lucide-react';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { Capacitor } from '@capacitor/core';
+import { ensureGoogleAuthInitialized } from '../utils/GoogleAuthUtils';
 import { auth } from '../firebase';
-import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
 import PageHeader from '../components/PageHeader';
 import { useGlobalSettings } from '../context/GlobalSettingsContext';
 
@@ -29,8 +31,18 @@ const Donations = () => {
 
         setAuthLoading(true);
         try {
-            const googleUser = await GoogleAuth.signIn();
-            const idToken = googleUser?.authentication?.idToken;
+            await ensureGoogleAuthInitialized();
+
+            let idToken = null;
+            if (Capacitor.isNativePlatform()) {
+                const googleUser = await GoogleAuth.signIn();
+                idToken = googleUser?.authentication?.idToken;
+            } else {
+                const provider = new GoogleAuthProvider();
+                await signInWithPopup(auth, provider);
+                return true;
+            }
+
             if (!idToken) throw new Error("No ID Token received");
 
             const credential = GoogleAuthProvider.credential(idToken);

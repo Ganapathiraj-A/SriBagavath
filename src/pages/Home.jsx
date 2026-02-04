@@ -14,16 +14,17 @@ import {
     LayoutDashboard,
     FileSpreadsheet
 } from 'lucide-react';
+import { signOut, GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { useGlobalSettings } from '../context/GlobalSettingsContext';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
+import { App } from '@capacitor/app';
+import { ensureGoogleAuthInitialized, GET_GOOGLE_CLIENT_ID } from '../utils/GoogleAuthUtils';
 import { db, auth } from '../firebase';
 import { StatsService } from '../services/StatsService';
 import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
-import { signOut, GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
 import { Toast } from '@capacitor/toast';
-import { GET_GOOGLE_CLIENT_ID } from '../utils/GoogleAuthUtils';
 
 
 const MenuButton = ({ title, icon: Icon, path, delay, badgeCount }) => {
@@ -90,13 +91,11 @@ import { useUnseenCounts } from '../hooks/useUnseenCounts';
 
 const Home = () => {
     const { user, isAdmin } = useAdminAuth();
-    const { serverUrl, appVersion } = useGlobalSettings();
+    const { serverUrl, appVersion, landingPage } = useGlobalSettings();
     const [authLoading, setAuthLoading] = React.useState(false);
     const navigate = useNavigate();
     const counts = useUnseenCounts();
     const totalPending = (counts.registrations || 0) + (counts.transactions || 0);
-
-    // --- DEBUG CONSOLE LOGIC REMOVED ---
 
     // Track Login on mount if user exists
     useEffect(() => {
@@ -106,6 +105,7 @@ const Home = () => {
     }, [user]);
 
     // Landing Page Redirection Logic
+
     useEffect(() => {
         // Only redirect if:
         // 1. User is an admin
@@ -113,16 +113,15 @@ const Home = () => {
         // 3. We haven't redirected yet in this session (sessionStorage)
         // 4. The current path is actually the home page
         if (isAdmin && window.location.pathname === '/') {
-            const landingPage = localStorage.getItem('admin_landing_page');
             const hasRedirected = sessionStorage.getItem('admin_initial_redirect');
 
             if (landingPage && landingPage !== '/' && !hasRedirected) {
-                console.log("Redirecting admin to:", landingPage);
+                console.log("Redirecting admin to cloud-synced landing page:", landingPage);
                 sessionStorage.setItem('admin_initial_redirect', 'true');
                 navigate(landingPage, { replace: false });
             }
         }
-    }, [isAdmin, navigate]);
+    }, [isAdmin, landingPage, navigate]);
 
     const [logs, setLogs] = React.useState([]);
     const startTimeRef = React.useRef(null); // Fix: Use Ref for sync access
@@ -147,6 +146,20 @@ const Home = () => {
         }
     }, [logs]);
 
+    // Listener for App Restored (Native result recovery)
+    useEffect(() => {
+        const handler = (data) => {
+            addLog(`[NATIVE_RESTORE] Data: ${JSON.stringify(data)}`);
+            if (data.pluginId === 'GoogleAuth' && data.methodName === 'signIn') {
+                addLog(`[NATIVE_RESTORE] Recovered Google Result!`);
+            }
+        };
+        const listenerPromise = App.addListener('appRestoredResult', handler);
+        return () => { listenerPromise.then(l => l.remove()); };
+    }, []);
+
+    
+
     const addLog = (msg) => {
         const start = startTimeRef.current;
         const time = start ? (Date.now() - start) + 'ms' : '0ms';
@@ -158,50 +171,40 @@ const Home = () => {
         const start = Date.now();
         startTimeRef.current = start;
         setElapsed(0);
-        setLogs([`[0ms] STARTING LOGIN FLOW v2.8.337`]);
+
+        const mode = import.meta.env.MODE;
+        const projId = import.meta.env.VITE_FIREBASE_PROJECT_ID;
+        const clientId = GET_GOOGLE_CLIENT_ID();
+
+        setLogs([
+            `[0ms] STARTING LOGIN FLOW v2.8.357 [FORCED]`, // HARDCODED FOR VERIFICATION
+            `MODE: ${mode}`,
+            `PROJECT: ${projId}`,
+            `CLIENT: ${clientId.substring(0, 15)}...`
+        ]);
 
         try {
-            // WARM-UP: Ensure Auth is ready
-            addLog("Step 0: Initialize (Warm-up)");
-            try {
-                const clientId = GET_GOOGLE_CLIENT_ID();
-                addLog(`Step 0: Initialize with ${clientId.substring(0, 10)}...`);
-                await GoogleAuth.initialize({
-                    clientId: clientId,
-                    scopes: ['profile', 'email'],
-                    grantOfflineAccess: true,
-                });
-            } catch (initErr) {
-                addLog("Init Note: " + (initErr.message || JSON.stringify(initErr)));
+            // SAFETY RE-INIT
+            await ensureGoogleAuthInitialized();
+
+            let idToken = null;
+
+            if (Capacitor.isNativePlatform()) {
+                const googleUser = await GoogleAuth.signIn();
+                idToken = googleUser?.authentication?.idToken;
+            } else {
+                const provider = new GoogleAuthProvider();
+                await signInWithPopup(auth, provider);
+                // On web, signInWithPopup already signs the user in.
+                StatsService.trackUserLogin().catch(() => { });
+                return;
             }
 
-            // OPTIONAL BLOCKING ALERT (The v2.8.320 "Magic Fix")
-            if (forceAlert) {
-                addLog("Step 1: BLOCKING ALERT (Wakeup)");
-                alert("Simulating v2.8.320 Fix. Click OK to start Native Sign-In.");
-            }
+            if (!idToken) throw new Error("No ID Token received from Google");
 
-            addLog("Step 2: Calling GoogleAuth.signIn()");
-            const result = await GoogleAuth.signIn();
-            addLog("Step 3: SignIn Returned: " + (result ? "YES" : "NULL"));
-
-            if (result) {
-                addLog("Result Keys: " + Object.keys(result).join(","));
-            }
-
-            // TOKEN EXTRACTION
-            const idToken = result.authentication?.idToken;
-            if (!idToken) {
-                addLog("ERROR: No ID Token!");
-                throw new Error("No ID Token received from Google");
-            }
-            addLog("Step 4: Token Found. Length: " + idToken.length);
-
-            // FIREBASE AUTH
-            addLog("Step 5: Firebase SignIn...");
+            // FIREBASE AUTH (Native only now, as web is handled above)
             const credential = GoogleAuthProvider.credential(idToken);
             await signInWithCredential(auth, credential);
-            addLog("Step 6: SUCCESS!");
 
             // Track successful login
             StatsService.trackUserLogin().catch(() => { });
@@ -209,10 +212,11 @@ const Home = () => {
             console.error("Home Sign-in error:", err);
             // Deep Error Extraction
             const errDetails = JSON.stringify(err, Object.getOwnPropertyNames(err));
-            addLog("ERROR CATCH: " + (JSON.stringify(err) || err.message || "Something went wrong"));
+            addLog("ERROR CATCH: " + errDetails);
 
-            if (err.message && !err.message.includes("cancelled")) {
-                alert("Login Failed: " + (err.message || "Something went wrong"));
+            if (!err.message?.includes("cancelled")) {
+                const debugInfo = `\n\nEnv: ${import.meta.env.MODE}\nClient: ${GET_GOOGLE_CLIENT_ID().substring(0, 10)}...`;
+                alert("Login Failed!\n\nDetails: " + (err.message || "Unknown error") + "\n\nRaw: " + errDetails.substring(0, 100) + "..." + debugInfo);
             }
         } finally {
             setAuthLoading(false);
@@ -224,7 +228,14 @@ const Home = () => {
         if (confirm("Are you sure you want to logout?")) {
             setAuthLoading(true);
             try {
-                await GoogleAuth.signOut();
+                if (Capacitor.isNativePlatform()) {
+                    await GoogleAuth.signOut();
+                    try {
+                        await GoogleAuth.disconnect();
+                    } catch (dErr) {
+                        console.warn("Google disconnect failed:", dErr);
+                    }
+                }
                 await signOut(auth);
                 sessionStorage.removeItem('admin_initial_redirect');
             } catch (err) {
@@ -472,14 +483,40 @@ const Home = () => {
                 <div style={{
                     marginTop: '2rem',
                     textAlign: 'center',
-                    paddingBottom: '1rem',
+                    paddingBottom: '2.5rem', // Increased to move higher
                     opacity: 0.5,
                     fontSize: '0.75rem',
                     color: '#6b7280',
                     fontWeight: '500'
                 }}>
-                    v{appVersion}
+                    v{appVersion} {import.meta.env.MODE === 'production' ? '(Prod)' : '(Dev)'}
                 </div>
+                {logs.length > 0 && (
+                    <div style={{
+                        marginTop: '12px',
+                        marginBottom: '40px', // Extra buffer from bottom
+                        width: '100%',
+                        display: 'flex',
+                        gap: '8px',
+                        justifyContent: 'center'
+                    }}>
+                        <button
+                            onClick={() => {
+                                navigator.clipboard.writeText(logs.join('\n'));
+                                alert("Logs copied to clipboard!");
+                            }}
+                            style={{ padding: '4px 12px', fontSize: '10px', background: '#3b82f6', color: 'white', borderRadius: '4px', border: 'none' }}
+                        >
+                            Copy Debug Logs
+                        </button>
+                        <button
+                            onClick={() => setLogs([])}
+                            style={{ padding: '4px 12px', fontSize: '10px', background: '#ef4444', color: 'white', borderRadius: '4px', border: 'none' }}
+                        >
+                            Clear
+                        </button>
+                    </div>
+                )}
             </motion.div>
         </div>
     );

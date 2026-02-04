@@ -115,6 +115,10 @@ const EventRegistration = () => {
             setParticipants([...participants, ...added]);
         } else if (count < participants.length) {
             setParticipants(participants.slice(0, count));
+            // Reset primaryIndex if it's now out of bounds
+            if (primaryIndex >= count) {
+                setPrimaryIndex(0);
+            }
         }
     }, [participantCount]);
 
@@ -155,8 +159,8 @@ const EventRegistration = () => {
             }
         }
 
-        const primary = participants[primaryIndex];
-        if (!primary.mobile) {
+        const primary = participants[primaryIndex] || participants[0];
+        if (!primary?.mobile) {
             alert("Primary applicant must have a mobile number.");
             return;
         }
