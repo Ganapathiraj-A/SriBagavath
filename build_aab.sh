@@ -20,13 +20,16 @@ rm -f SriBagavathProd.aab
 
 # 1. Setup Environment
 echo "Setting up Prod Environment..."
+# Restore from secrets if missing
+[ ! -f .env ] && [ -f secrets/.env ] && cp secrets/.env .env
+cp secrets/google-services.prod.json android/app/src/prod/google-services.json
+cp secrets/google-services.prod.json android/app/google-services.json
+cp secrets/release-keystore.jks android/app/release-keystore.jks
+
 sed -i 's/"appId": ".*"/"appId": "com.bhavathpathai.app"/g' capacitor.config.json
 sed -i 's/"appName": ".*"/"appName": "Sri Bagavath"/g' capacitor.config.json
 sed -i 's/"androidClientId": ".*"/"androidClientId": "358075696780-u652678n7j09daa3f9pl30cjtg288ioq.apps.googleusercontent.com"/g' capacitor.config.json
 sed -i 's/"serverClientId": ".*"/"serverClientId": "358075696780-qufnh6jj5vl6bn3hogihp5uficngu4in.apps.googleusercontent.com"/g' capacitor.config.json
-
-# Force Copy Google Services JSON for Prod
-cp android/app/src/prod/google-services.json android/app/google-services.json
 
 # Update Android Version from package.json
 VERSION=$(node -p "require('./package.json').version")

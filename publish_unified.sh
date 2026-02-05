@@ -17,10 +17,14 @@ echo "   PUBLISHING: $FLAVOR FLAVOR         "
 echo "======================================"
 
 # 1. Environment Preparation
+[ ! -f .env ] && [ -f secrets/.env ] && cp secrets/.env .env
+
 if [ "$FLAVOR" == "prod" ]; then
     echo "Prepping for Production..."
+    cp secrets/google-services.prod.json android/app/src/prod/google-services.json
+    cp secrets/google-services.prod.json android/app/google-services.json
+    cp secrets/release-keystore.jks android/app/release-keystore.jks
     cp capacitor.config.prod.json capacitor.config.json
-    cp android/app/src/prod/google-services.json android/app/google-services.json
     VITE_BUILD_MODE="production"
     GRADLE_TASK="assembleProdRelease"
     OUTPUT_APK_PATH="android/app/build/outputs/apk/prod/release/app-prod-release.apk"
@@ -29,8 +33,9 @@ if [ "$FLAVOR" == "prod" ]; then
     GH_TITLE="Latest Production Build"
 else
     echo "Prepping for Development..."
+    cp secrets/google-services.dev.json android/app/src/dev/google-services.json
+    cp secrets/google-services.dev.json android/app/google-services.json
     cp capacitor.config.dev.json capacitor.config.json
-    cp android/app/src/dev/google-services.json android/app/google-services.json
     VITE_BUILD_MODE="development"
     GRADLE_TASK="assembleDevRelease"
     OUTPUT_APK_PATH="android/app/build/outputs/apk/dev/release/app-dev-release.apk"

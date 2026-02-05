@@ -17,8 +17,12 @@ echo "======================================"
 
 # 1. Environment Preparation
 echo "Prepping for Production..."
+# Restore from secrets if missing
+[ ! -f .env ] && [ -f secrets/.env ] && cp secrets/.env .env
+cp secrets/google-services.prod.json android/app/src/prod/google-services.json
+cp secrets/google-services.prod.json android/app/google-services.json
+cp secrets/release-keystore.jks android/app/release-keystore.jks
 cp capacitor.config.prod.json capacitor.config.json
-cp android/app/src/prod/google-services.json android/app/google-services.json
 
 # 2. Sync Versioning from package.json
 VERSION=$(node -p "require('./package.json').version")
