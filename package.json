@@ -21,7 +21,7 @@
     "@capacitor/filesystem": "^7.1.6",
     "@capacitor/share": "^7.0.3",
     "@capacitor/toast": "^8.0.0",
-    "@codetrix-studio/capacitor-google-auth": "^3.4.0-rc.4",
+    "@codetrix-studio/capacitor-google-auth": "git+https://github.com/Ganapathiraj-A/capacitor-google-auth-fork.git#master",
     "firebase": "^12.6.0",
     "framer-motion": "^12.23.25",
     "lucide-react": "^0.555.0",
