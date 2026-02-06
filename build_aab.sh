@@ -25,6 +25,7 @@ echo "Setting up Prod Environment..."
 cp secrets/google-services.prod.json android/app/src/prod/google-services.json
 cp secrets/google-services.prod.json android/app/google-services.json
 cp secrets/release-keystore.jks android/app/release-keystore.jks
+cp secrets/signing.properties android/app/signing.properties
 
 sed -i 's/"appId": ".*"/"appId": "com.bhavathpathai.app"/g' capacitor.config.json
 sed -i 's/"appName": ".*"/"appName": "Sri Bagavath"/g' capacitor.config.json

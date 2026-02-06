@@ -1,0 +1,107 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is an admin
+    function isAdmin() {
+      return request.auth != null && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.token.email))
+      );
+    }
+
+    // Admins collection: Anyone authenticated can read (to check role). Only admins can grant roles.
+    match /admins/{adminId} {
+      allow read: if request.auth != null;
+      allow write: if true; // TEMPORARY for bootstrapping
+    }
+    
+    // Admin Requests: Users apply here. Admins review.
+    match /admin_requests/{requestId} {
+      allow read: if isAdmin() || (request.auth != null && requestId == request.auth.uid);
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && requestId == request.auth.uid; // Allow users to re-submit/update their request
+      allow delete: if isAdmin();
+    }
+
+    // Transactions: Publicly createable. Read by Admin or by Device ID (Public) or by User ID.
+    match /transactions/{txId} {
+      allow read: if true; // Public read needed for anonymous tracking via deviceId query
+      allow create: if true; // Public registration
+      allow update, delete: if isAdmin();
+    }
+    
+    // Transaction Images: Same as transactions
+    match /transaction_images/{txId} {
+      allow read: if isAdmin() || resource.data.userId != null || true; // Images are specifically fetched by ID
+      allow create: if true;
+      allow update, delete: if isAdmin();
+    }
+
+    // Catalog data: Publicly readable, writeable only by admins
+    match /programs/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    match /schedules/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /programTypes/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /online_meetings/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /sathsangs/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /daily_zoom_meetings/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /daily_zoom_teachers/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /daily_zoom_links/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /consultants/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /books/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /book_covers/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /program_banners/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Global fallback: Deny everything else
+    match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

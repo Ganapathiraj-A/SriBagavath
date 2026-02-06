@@ -22,6 +22,7 @@ echo "Prepping for Production..."
 cp secrets/google-services.prod.json android/app/src/prod/google-services.json
 cp secrets/google-services.prod.json android/app/google-services.json
 cp secrets/release-keystore.jks android/app/release-keystore.jks
+cp secrets/signing.properties android/app/signing.properties
 cp capacitor.config.prod.json capacitor.config.json
 
 # 2. Sync Versioning from package.json

@@ -7,9 +7,9 @@
  * Returns the current local date in YYYY-MM-DD format.
  * @returns {string}
  */
-export const getLocalDateString = () => {
+export const getLocalDateString = (date = new Date()) => {
     // en-CA uses YYYY-MM-DD format
-    return new Date().toLocaleDateString('en-CA');
+    return new Date(date).toLocaleDateString('en-CA');
 };
 
 /**

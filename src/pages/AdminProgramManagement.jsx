@@ -107,6 +107,13 @@ const AdminProgramManagement = () => {
             permission: 'PROGRAM_MANAGEMENT'
         },
         {
+            title: 'Manage Daily Zoom',
+            subtitle: 'Schedule daily spiritual gatherings',
+            icon: Video,
+            path: '/admin/daily-zoom',
+            permission: 'DAILY_ZOOM_MANAGEMENT'
+        },
+        {
             title: 'Satsang',
             subtitle: 'Manage city-wide Satsang events',
             icon: Users,

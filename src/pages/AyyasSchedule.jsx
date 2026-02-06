@@ -7,14 +7,17 @@ import { Share } from '@capacitor/share';
 import { db } from '../firebase';
 import { collection, query, orderBy, getDocs, where } from 'firebase/firestore';
 import { getLocalDateString } from '../utils/dateUtils';
+import { useAdminAuth } from '../context/AdminAuthContext';
 
 const AyyasSchedule = () => {
     const navigate = useNavigate();
     const [schedules, setSchedules] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { loading: authGlobalLoading } = useAdminAuth();
 
     useEffect(() => {
         const fetchSchedules = async () => {
+            if (authGlobalLoading) return;
             try {
                 const schedulesRef = collection(db, 'schedules');
                 const q = query(schedulesRef, orderBy('fromDate', 'asc'));
@@ -44,8 +47,8 @@ const AyyasSchedule = () => {
 
         // Track visit for badge reset
         localStorage.setItem('lastVisited_schedule', new Date().toISOString());
-        fetchSchedules(); // Assuming 'loadSchedules' was a typo and meant 'fetchSchedules'
-    }, []);
+        fetchSchedules();
+    }, [authGlobalLoading]);
 
     const handleShare = async (schedule) => {
         if (!schedule) return;

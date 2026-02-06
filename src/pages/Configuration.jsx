@@ -153,16 +153,18 @@ const Configuration = () => {
                         {hasAccess('ADMIN_REVIEW') && <ConfigButton title="Donations" icon={Heart} path="/admin/donations" delay={0.17} color="#ef4444" bgColor="#fef2f2" badgeCount={counts.donations} />}
 
                         <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #f3f4f6', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            <ConfigButton
-                                title="Back Office"
-                                subtitle="Reporting, Attendance & Recon"
-                                icon={LayoutDashboard}
-                                path="/admin/back-office"
-                                delay={0.18}
-                                color="#f59e0b"
-                                bgColor="#fffbeb"
-                            />
-                            {(hasAccess('PROGRAM_MANAGEMENT') || hasAccess('ADMIN_REVIEW') || hasAccess('MANAGE_USERS') || hasAccess('CONFIGURATION')) && (
+                            {hasAccess('ADMIN_REVIEW') && (
+                                <ConfigButton
+                                    title="Back Office"
+                                    subtitle="Reporting, Attendance & Recon"
+                                    icon={LayoutDashboard}
+                                    path="/admin/back-office"
+                                    delay={0.18}
+                                    color="#f59e0b"
+                                    bgColor="#fffbeb"
+                                />
+                            )}
+                            {(hasAccess('PROGRAM_MANAGEMENT') || hasAccess('ADMIN_REVIEW') || hasAccess('MANAGE_USERS') || hasAccess('CONFIGURATION') || hasAccess('DAILY_ZOOM_MANAGEMENT')) && (
                                 <ConfigButton
                                     title="Settings"
                                     subtitle="Management Hub & App Preferences"

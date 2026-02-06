@@ -1,0 +1,446 @@
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import {
+    Plus, Edit2, Trash2, Save, ChevronLeft, User, Video, Calendar, Image as ImageIcon, Link as LinkIcon, FileText, Youtube
+} from 'lucide-react';
+import { db } from '../firebase';
+import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy, limit, where } from 'firebase/firestore';
+import PageHeader from '../components/PageHeader';
+import { getLocalDateString } from '../utils/dateUtils';
+import { compressImage } from '../utils/imageUtils';
+import '../components/RegistrationStyles.css';
+
+const DailyZoomManagement = () => {
+    const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const [meetings, setMeetings] = useState([]);
+    const [historyMeetings, setHistoryMeetings] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editingId, setEditingId] = useState(null);
+    const [teachers, setTeachers] = useState([]);
+    const [links, setLinks] = useState([]);
+    const [activeTab, setActiveTab] = useState('upcoming'); // 'upcoming', 'history', 'add', 'edit'
+
+    const [formData, setFormData] = useState({
+        date: getLocalDateString(),
+        teacherId: '',
+        name: '',
+        description: '',
+        image: '',
+        linkId: '',
+        joinUrl: '',
+        youtubeUrl: ''
+    });
+
+    useEffect(() => {
+        loadData();
+    }, []);
+
+    const loadData = async () => {
+        try {
+            setLoading(true);
+            const today = getLocalDateString();
+
+            // Upcoming Meetings
+            const ref = collection(db, 'daily_zoom_meetings');
+            const qUpcoming = query(ref, where('date', '>=', today), orderBy('date', 'asc'));
+            const snapUpcoming = await getDocs(qUpcoming);
+            const upcomingData = snapUpcoming.docs.map(d => ({ id: d.id, ...d.data() }));
+            setMeetings(upcomingData);
+
+            // History Meetings
+            const qHistory = query(ref, where('date', '<', today), orderBy('date', 'desc'), limit(50));
+            const snapHistory = await getDocs(qHistory);
+            setHistoryMeetings(snapHistory.docs.map(d => ({ id: d.id, ...d.data() })));
+
+            // Load Teachers
+            const teacherRef = collection(db, 'daily_zoom_teachers');
+            const teacherSnap = await getDocs(query(teacherRef, orderBy('name', 'asc')));
+            const teachersList = teacherSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+            setTeachers(teachersList);
+
+            // Load Links
+            const linkRef = collection(db, 'daily_zoom_links');
+            const linkSnap = await getDocs(query(linkRef, orderBy('name', 'asc')));
+            const linksList = linkSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+            setLinks(linksList);
+
+            // Set default link if adding new
+            if (!isEditing && !formData.linkId) {
+                const defaultLink = linksList.find(l => l.isDefault) || linksList[0];
+                if (defaultLink) {
+                    setFormData(prev => ({ ...prev, linkId: defaultLink.id, joinUrl: defaultLink.url }));
+                }
+            }
+
+            // Check for direct editing via URL param
+            const editId = searchParams.get('id');
+            const allMeetings = [...upcomingData, ...snapHistory.docs.map(d => ({ id: d.id, ...d.data() }))];
+            if (editId && allMeetings.find(m => m.id === editId)) {
+                handleEdit(allMeetings.find(m => m.id === editId));
+            }
+        } catch (error) {
+            console.error('Error loading daily zoom data:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleTeacherSelect = (e) => {
+        const teacherId = e.target.value;
+        const teacher = teachers.find(t => t.id === teacherId);
+        if (teacher) {
+            setFormData(prev => ({
+                ...prev,
+                teacherId: teacher.id,
+                name: teacher.name,
+                image: teacher.image
+            }));
+        } else {
+            setFormData(prev => ({ ...prev, teacherId: '', name: '', image: '' }));
+        }
+    };
+
+    const handleLinkSelect = (e) => {
+        const linkId = e.target.value;
+        const link = links.find(l => l.id === linkId);
+        if (link) {
+            setFormData(prev => ({
+                ...prev,
+                linkId: link.id,
+                joinUrl: link.url
+            }));
+        } else {
+            setFormData(prev => ({ ...prev, linkId: '', joinUrl: '' }));
+        }
+    };
+
+    const resetForm = () => {
+        const defaultLink = links.find(l => l.isDefault) || links[0];
+        setFormData({
+            date: getLocalDateString(),
+            teacherId: '',
+            name: '',
+            description: '',
+            image: '',
+            linkId: defaultLink ? defaultLink.id : '',
+            joinUrl: defaultLink ? defaultLink.url : '',
+            youtubeUrl: ''
+        });
+        setIsEditing(false);
+        setEditingId(null);
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            if (editingId) {
+                await updateDoc(doc(db, 'daily_zoom_meetings', editingId), formData);
+                alert('Meeting updated!');
+            } else {
+                await addDoc(collection(db, 'daily_zoom_meetings'), {
+                    ...formData,
+                    createdAt: new Date().toISOString()
+                });
+                alert('Meeting added!');
+            }
+            resetForm();
+            loadData();
+            setActiveTab('upcoming');
+        } catch (error) {
+            alert('Error: ' + error.message);
+        }
+    };
+
+    const handleEdit = (m) => {
+        setFormData({
+            date: m.date || getLocalDateString(),
+            teacherId: m.teacherId || '',
+            name: m.name || '',
+            description: m.description || '',
+            image: m.image || '',
+            linkId: m.linkId || '',
+            joinUrl: m.joinUrl || '',
+            youtubeUrl: m.youtubeUrl || ''
+        });
+        setEditingId(m.id);
+        setIsEditing(true);
+        setActiveTab('edit');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const handleDelete = async (id) => {
+        if (window.confirm('Delete this meeting entry?')) {
+            try {
+                await deleteDoc(doc(db, 'daily_zoom_meetings', id));
+                loadData();
+            } catch (error) {
+                alert('Error deleting: ' + error.message);
+            }
+        }
+    };
+
+    if (loading && meetings.length === 0) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><p>Loading...</p></div>;
+
+    return (
+        <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
+            <PageHeader
+                title="Manage Daily Zoom"
+                leftAction={
+                    <button onClick={() => navigate('/admin/program-management')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
+                        <ChevronLeft size={24} />
+                    </button>
+                }
+                rightAction={
+                    <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                        <button onClick={() => navigate('/programs/online/daily')} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: '#fff7ed', border: '1px solid #fed7aa', color: '#9a3412', padding: '6px 10px', borderRadius: '0.5rem', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                            <Video size={14} /> Listing
+                        </button>
+                    </div>
+                }
+            />
+
+            <div style={{ maxWidth: '42rem', margin: '0 auto', padding: '1rem' }}>
+                <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '1.5rem', backgroundColor: 'white', padding: '0.4rem', borderRadius: '0.75rem', boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)', overflowX: 'auto', scrollbarWidth: 'none' }}>
+                    {['upcoming', 'history', 'add', 'edit'].map((tab) => {
+                        if (tab === 'edit' && !isEditing) return null;
+                        return (
+                            <button
+                                key={tab}
+                                onClick={() => {
+                                    if (tab === 'add') {
+                                        resetForm();
+                                    }
+                                    setActiveTab(tab);
+                                }}
+                                style={{
+                                    flex: tab === 'edit' ? 'none' : 1,
+                                    minWidth: tab === 'edit' ? '5rem' : 'auto',
+                                    padding: '0.6rem 0.4rem',
+                                    borderRadius: '0.5rem',
+                                    border: 'none',
+                                    fontWeight: 600,
+                                    fontSize: '0.85rem',
+                                    textTransform: 'capitalize',
+                                    cursor: 'pointer',
+                                    backgroundColor: activeTab === tab ? '#f97316' : 'transparent',
+                                    color: activeTab === tab ? 'white' : '#6b7280',
+                                    transition: 'all 0.2s',
+                                    whiteSpace: 'nowrap'
+                                }}
+                            >
+                                {tab}
+                            </button>
+                        );
+                    })}
+                </div>
+
+                <motion.div
+                    key={activeTab}
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.2 }}
+                >
+                    {(activeTab === 'add' || activeTab === 'edit') && (
+                        <div style={{ backgroundColor: 'white', borderRadius: '1rem', padding: '1.25rem', boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)' }}>
+                            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.25rem' }}>
+                                    <div style={{ display: 'grid', gap: '0.5rem' }}>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>
+                                            <Calendar size={16} color="#f97316" /> Meeting Date
+                                        </label>
+                                        <input
+                                            type="date"
+                                            name="date"
+                                            value={formData.date}
+                                            onChange={handleInputChange}
+                                            required
+                                            style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%', fontSize: '1rem' }}
+                                        />
+                                    </div>
+
+                                    <div style={{ display: 'grid', gap: '0.5rem' }}>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>
+                                            <User size={16} color="#f97316" /> Select Teacher
+                                        </label>
+                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                            <select
+                                                name="teacherId"
+                                                value={formData.teacherId}
+                                                onChange={handleTeacherSelect}
+                                                required
+                                                style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', backgroundColor: 'white', fontSize: '1rem' }}
+                                            >
+                                                <option value="">Select Teacher...</option>
+                                                {teachers.map(t => (
+                                                    <option key={t.id} value={t.id}>{t.name}</option>
+                                                ))}
+                                            </select>
+                                            <button
+                                                type="button"
+                                                onClick={() => navigate('/admin/daily-zoom/teachers')}
+                                                style={{ padding: '0.75rem', backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '0.5rem', color: '#4b5563', cursor: 'pointer' }}
+                                            >
+                                                <Plus size={20} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {formData.teacherId && (
+                                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', padding: '0.75rem', backgroundColor: '#f9fafb', borderRadius: '0.75rem', border: '1px solid #e5e7eb' }}>
+                                        <div style={{ width: '3rem', height: '3rem', borderRadius: '50%', overflow: 'hidden', flexShrink: 0 }}>
+                                            {formData.image ? <img src={formData.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <User size={20} color="#9ca3af" />}
+                                        </div>
+                                        <div>
+                                            <div style={{ fontWeight: 600, color: '#111827' }}>{formData.name}</div>
+                                            <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>Teacher profile selected</div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div style={{ display: 'grid', gap: '0.5rem' }}>
+                                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>
+                                        <FileText size={16} color="#f97316" /> Description (Optional)
+                                    </label>
+                                    <textarea
+                                        name="description"
+                                        value={formData.description}
+                                        onChange={handleInputChange}
+                                        placeholder="Meeting details/topic..."
+                                        rows={2}
+                                        style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%', resize: 'none', fontSize: '1rem' }}
+                                    />
+                                </div>
+
+                                <div style={{ display: 'grid', gap: '0.5rem' }}>
+                                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>
+                                        <LinkIcon size={16} color="#f97316" /> Meeting Link
+                                    </label>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <select
+                                            name="linkId"
+                                            value={formData.linkId}
+                                            onChange={handleLinkSelect}
+                                            required
+                                            style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', backgroundColor: 'white', fontSize: '1rem' }}
+                                        >
+                                            <option value="">Select Link...</option>
+                                            {links.map(l => (
+                                                <option key={l.id} value={l.id}>{l.name}</option>
+                                            ))}
+                                        </select>
+                                        <button
+                                            type="button"
+                                            onClick={() => navigate('/admin/daily-zoom/links')}
+                                            style={{ padding: '0.75rem', backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '0.5rem', color: '#4b5563', cursor: 'pointer' }}
+                                        >
+                                            <Plus size={20} />
+                                        </button>
+                                    </div>
+                                    {formData.joinUrl && (
+                                        <div style={{ fontSize: '0.75rem', color: '#6b7280', padding: '0 0.25rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                            URL: {formData.joinUrl}
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div style={{ display: 'grid', gap: '0.5rem' }}>
+                                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>
+                                        <Youtube size={16} color="#ef4444" /> YouTube Link (Optional)
+                                    </label>
+                                    <input
+                                        type="url"
+                                        name="youtubeUrl"
+                                        value={formData.youtubeUrl}
+                                        onChange={handleInputChange}
+                                        placeholder="https://youtube.com/live/..."
+                                        style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%', fontSize: '1rem' }}
+                                    />
+                                </div>
+
+                                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                                    <button
+                                        type="submit"
+                                        style={{ flex: 1, padding: '0.875rem', backgroundColor: '#f97316', color: 'white', border: 'none', borderRadius: '0.6rem', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                                    >
+                                        <Save size={18} />
+                                        {isEditing ? 'Update Meeting' : 'Schedule Meeting'}
+                                    </button>
+                                    {isEditing && (
+                                        <button
+                                            type="button"
+                                            onClick={resetForm}
+                                            style={{ padding: '0.875rem', backgroundColor: '#f3f4f6', color: '#374151', border: 'none', borderRadius: '0.6rem', cursor: 'pointer', fontWeight: 600 }}
+                                        >
+                                            Cancel
+                                        </button>
+                                    )}
+                                </div>
+                            </form>
+                        </div>
+                    )}
+
+                    {(activeTab === 'upcoming' || activeTab === 'history') && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            {(activeTab === 'upcoming' ? meetings : historyMeetings).length === 0 ? (
+                                <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '1rem', textAlign: 'center', color: '#9ca3af', border: '1px dashed #d1d5db' }}>
+                                    No meetings found in {activeTab}.
+                                </div>
+                            ) : (
+                                (activeTab === 'upcoming' ? meetings : historyMeetings).map((m) => (
+                                    <div
+                                        key={m.id}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            padding: '1rem',
+                                            backgroundColor: 'white',
+                                            borderRadius: '1rem',
+                                            boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+                                            border: '1px solid #e5e7eb',
+                                            gap: '1rem'
+                                        }}
+                                    >
+                                        <div style={{ width: '3.5rem', height: '3.5rem', borderRadius: '0.75rem', overflow: 'hidden', flexShrink: 0 }}>
+                                            {m.image ? <img src={m.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : <div style={{ width: '100%', height: '100%', backgroundColor: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><User size={20} color="#9ca3af" /></div>}
+                                        </div>
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <div style={{ fontWeight: 600, fontSize: '0.95rem', color: '#111827', marginBottom: '0.1rem' }}>{m.name}</div>
+                                            <div style={{ fontSize: '0.85rem', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                                <Calendar size={13} /> {m.date}
+                                            </div>
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
+                                            <button
+                                                onClick={() => handleEdit(m)}
+                                                style={{ padding: '0.6rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb', backgroundColor: 'white', color: '#4b5563', cursor: 'pointer' }}
+                                            >
+                                                <Edit2 size={16} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(m.id)}
+                                                style={{ padding: '0.6rem', borderRadius: '0.5rem', border: '1px solid #fee2e2', backgroundColor: '#fff1f1', color: '#ef4444', cursor: 'pointer' }}
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    )}
+                </motion.div>
+            </div>
+        </div>
+    );
+};
+
+export default DailyZoomManagement;

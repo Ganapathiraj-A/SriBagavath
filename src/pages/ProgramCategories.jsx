@@ -111,7 +111,13 @@ const ProgramCategories = () => {
                     hasNew={counts.hasNewSchedule}
                 />
                 <CategoryButton
-                    title="Online Meetings"
+                    title="Daily Zoom Meeting"
+                    icon={Video}
+                    path="/programs/online/daily"
+                    delay={0.25}
+                />
+                <CategoryButton
+                    title="Other Online Meetings"
                     icon={Video}
                     path="/programs/online"
                     delay={0.3}

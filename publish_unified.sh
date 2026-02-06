@@ -18,12 +18,13 @@ echo "======================================"
 
 # 1. Environment Preparation
 [ ! -f .env ] && [ -f secrets/.env ] && cp secrets/.env .env
+cp secrets/release-keystore.jks android/app/release-keystore.jks
+cp secrets/signing.properties android/app/signing.properties
 
 if [ "$FLAVOR" == "prod" ]; then
     echo "Prepping for Production..."
     cp secrets/google-services.prod.json android/app/src/prod/google-services.json
     cp secrets/google-services.prod.json android/app/google-services.json
-    cp secrets/release-keystore.jks android/app/release-keystore.jks
     cp capacitor.config.prod.json capacitor.config.json
     VITE_BUILD_MODE="production"
     GRADLE_TASK="assembleProdRelease"

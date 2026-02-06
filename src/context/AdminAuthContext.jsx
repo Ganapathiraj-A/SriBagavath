@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 
 const AdminAuthContext = createContext();
@@ -42,10 +42,12 @@ export const AdminAuthProvider = ({ children }) => {
 
             if (data) {
                 setIsAdmin(true);
-                if (auth.currentUser?.email === 'ganapathiraj@gmail.com') {
+                if (data.role) {
+                    setRole(data.role);
+                } else if (auth.currentUser?.email === 'ganapathiraj@gmail.com') {
                     setRole('SUPER_ADMIN');
                 } else {
-                    setRole(data.role || 'ADMIN');
+                    setRole('ADMIN');
                 }
                 setPermissions(data.permissions || []);
                 setIsPending(false);
@@ -83,7 +85,13 @@ export const AdminAuthProvider = ({ children }) => {
                         if (snap.exists()) {
                             const data = snap.data();
                             setIsAdmin(true);
-                            setRole(currentUser?.email === 'ganapathiraj@gmail.com' ? 'SUPER_ADMIN' : (data.role || 'ADMIN'));
+                            if (data.role) {
+                                setRole(data.role);
+                            } else if (currentUser?.email === 'ganapathiraj@gmail.com') {
+                                setRole('SUPER_ADMIN');
+                            } else {
+                                setRole('ADMIN');
+                            }
                             setPermissions(data.permissions || []);
                             setIsPending(false);
                             setLoading(false);
@@ -94,7 +102,13 @@ export const AdminAuthProvider = ({ children }) => {
                                 if (emailSnap.exists()) {
                                     const eData = emailSnap.data();
                                     setIsAdmin(true);
-                                    setRole(currentUser?.email === 'ganapathiraj@gmail.com' ? 'SUPER_ADMIN' : (eData.role || 'ADMIN'));
+                                    if (eData.role) {
+                                        setRole(eData.role);
+                                    } else if (currentUser?.email === 'ganapathiraj@gmail.com') {
+                                        setRole('SUPER_ADMIN');
+                                    } else {
+                                        setRole('ADMIN');
+                                    }
                                     setPermissions(eData.permissions || []);
                                     setIsPending(false);
                                 } else {

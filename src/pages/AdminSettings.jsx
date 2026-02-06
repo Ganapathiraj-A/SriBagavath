@@ -91,7 +91,7 @@ const AdminSettings = () => {
                     subtitle: 'Retreats, Meetings, Satsang, Types & Consultation',
                     icon: Layers,
                     path: '/admin/program-management',
-                    permission: ['PROGRAM_MANAGEMENT', 'PROGRAM_TYPES', 'CONSULTATION_MANAGEMENT'],
+                    permission: ['PROGRAM_MANAGEMENT', 'PROGRAM_TYPES', 'CONSULTATION_MANAGEMENT', 'DAILY_ZOOM_MANAGEMENT'],
                     color: '#f97316',
                     bgColor: '#fff7ed'
                 },
@@ -176,90 +176,92 @@ const AdminSettings = () => {
                 })}
 
                 {/* Personal Profile Settings (Dev Options) */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0.5rem' }}>
-                        <User size={16} color="#6b7280" />
-                        <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
-                            Personal Profile
-                        </h3>
-                    </div>
-
-                    <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        style={{
-                            backgroundColor: 'white',
-                            borderRadius: '1rem',
-                            padding: '1.5rem',
-                            border: '1px solid #e5e7eb',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '1.25rem'
-                        }}
-                    >
-                        {/* Landing Page */}
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                <div style={{ padding: '0.5rem', borderRadius: '8px', backgroundColor: '#f3f4f6', color: '#374151' }}>
-                                    <Settings size={18} />
-                                </div>
-                                <div style={{ fontSize: '0.9375rem', fontWeight: 600, color: '#111827' }}>Landing Page</div>
-                            </div>
-                            <select
-                                value={landingPage}
-                                onChange={handleLandingPageChange}
-                                style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb', backgroundColor: 'white', fontSize: '0.875rem', outline: 'none' }}
-                            >
-                                <option value="/">Default Home</option>
-                                <option value="/configuration">Admin Home</option>
-                                <option value="/admin/back-office">Back Office</option>
-                            </select>
+                {role !== 'POWER_USER' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0.5rem' }}>
+                            <User size={16} color="#6b7280" />
+                            <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
+                                Personal Profile
+                            </h3>
                         </div>
 
-                        {/* Dev Mode Toggle */}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                <div style={{ padding: '0.5rem', borderRadius: '8px', backgroundColor: '#f3f4f6', color: '#374151' }}>
-                                    <Layers size={18} />
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            style={{
+                                backgroundColor: 'white',
+                                borderRadius: '1rem',
+                                padding: '1.5rem',
+                                border: '1px solid #e5e7eb',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '1.25rem'
+                            }}
+                        >
+                            {/* Landing Page */}
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                    <div style={{ padding: '0.5rem', borderRadius: '8px', backgroundColor: '#f3f4f6', color: '#374151' }}>
+                                        <Settings size={18} />
+                                    </div>
+                                    <div style={{ fontSize: '0.9375rem', fontWeight: 600, color: '#111827' }}>Landing Page</div>
                                 </div>
-                                <div>
-                                    <div style={{ fontSize: '0.9375rem', fontWeight: 600, color: '#111827' }}>Developer Mode</div>
-                                    <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>Show debug tools</div>
-                                </div>
+                                <select
+                                    value={landingPage}
+                                    onChange={handleLandingPageChange}
+                                    style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb', backgroundColor: 'white', fontSize: '0.875rem', outline: 'none' }}
+                                >
+                                    <option value="/">Default Home</option>
+                                    <option value="/configuration">Admin Home</option>
+                                    <option value="/admin/back-office">Back Office</option>
+                                </select>
                             </div>
-                            <label style={{ position: 'relative', display: 'inline-block', width: '40px', height: '22px' }}>
-                                <input
-                                    type="checkbox"
-                                    style={{ opacity: 0, width: 0, height: 0 }}
-                                    checked={devMode}
-                                    onChange={(e) => setDevMode(e.target.checked)}
-                                />
-                                <span style={{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: devMode ? '#2563eb' : '#ccc', borderRadius: '34px', transition: '.4s' }}></span>
-                                <span style={{ position: 'absolute', height: '16px', width: '16px', left: '3px', bottom: '3px', backgroundColor: 'white', borderRadius: '50%', transition: '.4s', transform: devMode ? 'translateX(18px)' : 'translateX(0)' }}></span>
-                            </label>
-                        </div>
 
-                        {/* Dev Sub-options */}
-                        {devMode && (
-                            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', paddingTop: '0.5rem', borderTop: '1px dashed #e5e7eb' }}>
-                                <div>
-                                    <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.5rem' }}>Update Source</div>
-                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                        {['auto', 'laptop', 'github'].map(source => (
-                                            <button key={source} onClick={() => setUpdateSource(source)} style={{ flex: 1, padding: '0.4rem', fontSize: '0.75rem', borderRadius: '0.375rem', border: '1px solid', borderColor: updateSource === source ? '#2563eb' : '#d1d5db', backgroundColor: updateSource === source ? '#eff6ff' : 'white', color: updateSource === source ? '#1d4ed8' : '#374151', textTransform: 'capitalize' }}>
-                                                {source}
-                                            </button>
-                                        ))}
+                            {/* Dev Mode Toggle */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                    <div style={{ padding: '0.5rem', borderRadius: '8px', backgroundColor: '#f3f4f6', color: '#374151' }}>
+                                        <Layers size={18} />
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: '0.9375rem', fontWeight: 600, color: '#111827' }}>Developer Mode</div>
+                                        <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>Show debug tools</div>
                                     </div>
                                 </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                                    <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#4b5563' }}>Local Server IP</div>
-                                    <input type="text" value={serverUrl} onChange={(e) => setServerUrl(e.target.value)} placeholder="http://192.168.1.X:8080" style={{ padding: '0.625rem', fontSize: '0.875rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', color: '#111827' }} />
-                                </div>
-                            </motion.div>
-                        )}
-                    </motion.div>
-                </div>
+                                <label style={{ position: 'relative', display: 'inline-block', width: '40px', height: '22px' }}>
+                                    <input
+                                        type="checkbox"
+                                        style={{ opacity: 0, width: 0, height: 0 }}
+                                        checked={devMode}
+                                        onChange={(e) => setDevMode(e.target.checked)}
+                                    />
+                                    <span style={{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: devMode ? '#2563eb' : '#ccc', borderRadius: '34px', transition: '.4s' }}></span>
+                                    <span style={{ position: 'absolute', height: '16px', width: '16px', left: '3px', bottom: '3px', backgroundColor: 'white', borderRadius: '50%', transition: '.4s', transform: devMode ? 'translateX(18px)' : 'translateX(0)' }}></span>
+                                </label>
+                            </div>
+
+                            {/* Dev Sub-options */}
+                            {devMode && (
+                                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', paddingTop: '0.5rem', borderTop: '1px dashed #e5e7eb' }}>
+                                    <div>
+                                        <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.5rem' }}>Update Source</div>
+                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                            {['auto', 'laptop', 'github'].map(source => (
+                                                <button key={source} onClick={() => setUpdateSource(source)} style={{ flex: 1, padding: '0.4rem', fontSize: '0.75rem', borderRadius: '0.375rem', border: '1px solid', borderColor: updateSource === source ? '#2563eb' : '#d1d5db', backgroundColor: updateSource === source ? '#eff6ff' : 'white', color: updateSource === source ? '#1d4ed8' : '#374151', textTransform: 'capitalize' }}>
+                                                    {source}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                                        <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#4b5563' }}>Local Server IP</div>
+                                        <input type="text" value={serverUrl} onChange={(e) => setServerUrl(e.target.value)} placeholder="http://192.168.1.X:8080" style={{ padding: '0.625rem', fontSize: '0.875rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', color: '#111827' }} />
+                                    </div>
+                                </motion.div>
+                            )}
+                        </motion.div>
+                    </div>
+                )}
 
                 {/* Global Settings - Cloud Sync */}
                 {role === 'SUPER_ADMIN' && (

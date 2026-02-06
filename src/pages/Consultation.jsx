@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronLeft, Phone, Copy, Check } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
+import { useAdminAuth } from '../context/AdminAuthContext';
 
 const ContactCard = ({ name, number, delay }) => {
     const [copied, setCopied] = React.useState(false);
@@ -88,9 +89,11 @@ const Consultation = () => {
     const navigate = useNavigate();
     const [consultants, setConsultants] = React.useState([]);
     const [loading, setLoading] = React.useState(true);
+    const { loading: authGlobalLoading } = useAdminAuth();
 
     React.useEffect(() => {
         const fetchConsultants = async () => {
+            if (authGlobalLoading) return;
             try {
                 const { collection, getDocs, query, orderBy } = await import('firebase/firestore');
                 const { db } = await import('../firebase');
@@ -105,7 +108,7 @@ const Consultation = () => {
             }
         };
         fetchConsultants();
-    }, []);
+    }, [authGlobalLoading]);
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>

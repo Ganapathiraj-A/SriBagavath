@@ -40,6 +40,10 @@ import OnlineMeetingManagement from './pages/OnlineMeetingManagement';
 import SatsangManagement from './pages/SatsangManagement';
 import SatsangListing from './pages/SatsangListing';
 import SatsangDetails from './pages/SatsangDetails';
+import DailyZoomMeetings from './pages/DailyZoomMeetings';
+import DailyZoomManagement from './pages/DailyZoomManagement';
+import DailyZoomTeacherManagement from './pages/DailyZoomTeacherManagement';
+import DailyZoomLinkManagement from './pages/DailyZoomLinkManagement';
 import BookStore from './pages/BookStore';
 import BookStoreCheckout from './pages/BookStoreCheckout';
 import BookStoreManagement from './pages/BookStoreManagement';
@@ -159,6 +163,9 @@ function AnimatedRoutes() {
           '/admin/online-meetings': '/admin/program-management',
           '/admin/satsang': '/admin/program-management',
           '/admin/consultation': '/admin/program-management',
+          '/admin/daily-zoom': '/admin/program-management',
+          '/admin/daily-zoom/teachers': '/admin/daily-zoom',
+          '/admin/daily-zoom/links': '/admin/daily-zoom',
           '/program': '/admin/program-management',
           '/schedule/manage': '/admin/program-management',
           '/configuration/program-types': '/admin/program-management',
@@ -179,6 +186,7 @@ function AnimatedRoutes() {
           '/my-orders': '/bookstore',
           '/my-registrations': '/programs/retreat',
           '/programs/consultation': '/programs',
+          '/programs/online/daily': '/programs',
           '/schedule': '/programs',
           '/bookstore': '/books',
           '/pdf-books': '/books',
@@ -231,6 +239,7 @@ function AnimatedRoutes() {
         <Route path="/programs/satsang" element={<SatsangListing />} />
         <Route path="/programs/satsang/:id" element={<SatsangDetails />} />
         <Route path="/programs/consultation" element={<Consultation />} />
+        <Route path="/programs/online/daily" element={<DailyZoomMeetings />} />
         <Route path="/conversations" element={<Conversations />} />
         <Route path="/books" element={<Books />} />
         <Route path="/bookstore" element={<BookStore />} />
@@ -250,7 +259,7 @@ function AnimatedRoutes() {
         <Route path="/admin-login" element={<AdminLogin />} />
 
         {/* Admin Routes */}
-        <Route path="/configuration" element={<ProtectedRoute requiredPermission="CONFIGURATION"><Configuration /></ProtectedRoute>} />
+        <Route path="/configuration" element={<ProtectedRoute><Configuration /></ProtectedRoute>} />
         <Route path="/program" element={<ProtectedRoute requiredPermission="PROGRAM_MANAGEMENT"><ProgramManagement /></ProtectedRoute>} />
         <Route path="/configuration/program-types" element={<ProtectedRoute requiredPermission="PROGRAM_TYPES"><ProgramTypesManagement /></ProtectedRoute>} />
         <Route path="/manage-users" element={<ProtectedRoute requiredPermission="MANAGE_USERS"><ManageUsers /></ProtectedRoute>} />
@@ -261,13 +270,16 @@ function AnimatedRoutes() {
         <Route path="/admin/online-meetings" element={<ProtectedRoute requiredPermission="PROGRAM_MANAGEMENT"><OnlineMeetingManagement /></ProtectedRoute>} />
         <Route path="/admin/satsang" element={<ProtectedRoute requiredPermission="PROGRAM_MANAGEMENT"><SatsangManagement /></ProtectedRoute>} />
         <Route path="/admin/consultation" element={<ProtectedRoute requiredPermission="CONSULTATION_MANAGEMENT"><ConsultationManagement /></ProtectedRoute>} />
+        <Route path="/admin/daily-zoom" element={<ProtectedRoute requiredPermission="DAILY_ZOOM_MANAGEMENT"><DailyZoomManagement /></ProtectedRoute>} />
+        <Route path="/admin/daily-zoom/teachers" element={<ProtectedRoute requiredPermission="DAILY_ZOOM_MANAGEMENT"><DailyZoomTeacherManagement /></ProtectedRoute>} />
+        <Route path="/admin/daily-zoom/links" element={<ProtectedRoute requiredPermission="DAILY_ZOOM_MANAGEMENT"><DailyZoomLinkManagement /></ProtectedRoute>} />
         <Route path="/admin/purchases" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BookStoreManagement /></ProtectedRoute>} />
         <Route path="/admin/donations" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><DonationManagement /></ProtectedRoute>} />
         <Route path="/admin/books" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><AdminBookManagement /></ProtectedRoute>} />
 
         <Route path="/admin-review" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><AdminReview /></ProtectedRoute>} />
         <Route path="/admin-dashboard" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><AdminDashboard /></ProtectedRoute>} />
-        <Route path="/admin/settings" element={<ProtectedRoute requiredPermission="CONFIGURATION"><AdminSettings /></ProtectedRoute>} />
+        <Route path="/admin/settings" element={<ProtectedRoute><AdminSettings /></ProtectedRoute>} />
 
         {/* Back Office Routes */}
         <Route path="/admin/back-office" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOffice /></ProtectedRoute>} />

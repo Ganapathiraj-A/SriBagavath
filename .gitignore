@@ -28,6 +28,7 @@ temp/
 sri-bagavath-dev-firebase-adminsdk-fbsvc-b3da295cc2.json
 google-services.json
 release-keystore.jks
+android/app/signing.properties
 
 # Secrets Management
 secrets/
