@@ -43,6 +43,7 @@ const StaticMenuButton = ({ title, icon: Icon }) => (
 
 const SkeletonScreen = () => {
     const { user, isAdmin } = useAdminAuth();
+    const { appVersion } = useGlobalSettings();
     const isActualUser = user && !user.isAnonymous;
 
     const baseMenu = [
