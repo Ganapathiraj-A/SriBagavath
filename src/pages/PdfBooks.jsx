@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, FileText, Edit2, Image as ImageIcon, Upload, Link as LinkIcon, Trash2, X, Search } from 'lucide-react';
+import { BookOpen, FileText, Edit2, Image as ImageIcon, Upload, Link as LinkIcon, Trash2, X, Search, Share2 } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { useDriveFiles } from '../hooks/useDriveFiles';
 import { DRIVE_CONFIG } from '../data/driveConfig';
@@ -198,7 +198,7 @@ const PdfBooks = () => {
                 {editMode ? (
                   <Edit2 size={18} color="var(--color-primary)" />
                 ) : (
-                  <BookOpen size={18} color="#9ca3af" />
+                  <Share2 size={18} color="#9ca3af" />
                 )}
               </motion.div>
             </div>
@@ -275,7 +275,22 @@ const PdfBooks = () => {
       {/* Image Configuration Modal */}
       <AnimatePresence>
         {isModalOpen && (
-          <div className="modal-overlay" onClick={() => setIsModalOpen(false)} style={{ zIndex: 2000 }}>
+          <div
+            className="modal-overlay"
+            onClick={() => setIsModalOpen(false)}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 2000
+            }}
+          >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -283,6 +298,7 @@ const PdfBooks = () => {
               className="modal-content"
               onClick={e => e.stopPropagation()}
               style={{
+                backgroundColor: 'white',
                 maxWidth: '90%',
                 width: '400px',
                 maxHeight: '85vh',
