@@ -69,7 +69,7 @@ const BankStatementView = lazy(() => import('./pages/BankStatementView'));
 import ProtectedRoute from './components/ProtectedRoute';
 import { AdminAuthProvider } from './context/AdminAuthContext';
 import { CartProvider } from './context/CartContext';
-import { useGlobalSettings } from './context/GlobalSettingsContext';
+import { GlobalSettingsProvider, useGlobalSettings } from './context/GlobalSettingsContext';
 import { useAdminAuth } from './context/AdminAuthContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import ForceUpdateModal from './components/ForceUpdateModal';
