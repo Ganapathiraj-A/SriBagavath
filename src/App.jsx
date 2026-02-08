@@ -324,8 +324,7 @@ function AppContent() {
   // Hide skeleton after initialization
   useEffect(() => {
     if (isInitialized) {
-      const timer = setTimeout(() => setShowSkeleton(false), 200);
-      return () => clearTimeout(timer);
+      setShowSkeleton(false);
     }
   }, [isInitialized]);
 
