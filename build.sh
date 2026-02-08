@@ -70,14 +70,13 @@ esac
 
 # 3. Version Sync
 VERSION=$(node -p "require('./package.json').version")
-STRIPPED_VERSION=$(echo $VERSION | tr -d '.')
-# Logic for version code: 3.0.0 -> 300
-if [[ $VERSION == 3.0.0 ]]; then
-    VERSION_CODE="300"
-else
-    # Fallback to old logic for other versions
-    VERSION_CODE="20${STRIPPED_VERSION#2}"
-fi
+
+# Logic for version code: X.Y.Z -> (X*100000) + (Y*1000) + Z
+# This ensures 3.0.0 (300000) > 2.8.362 (208362)
+MAJOR=$(echo $VERSION | cut -d. -f1)
+MINOR=$(echo $VERSION | cut -d. -f2)
+PATCH=$(echo $VERSION | cut -d. -f3)
+VERSION_CODE=$((MAJOR * 100000 + MINOR * 1000 + PATCH))
 
 echo "Syncing Android Version to $VERSION (Code: $VERSION_CODE)..."
 sed -i "s/versionName \".*\"/versionName \"$VERSION\"/g" android/app/build.gradle
