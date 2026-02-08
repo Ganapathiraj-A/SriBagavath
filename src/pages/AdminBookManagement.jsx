@@ -152,22 +152,15 @@ const AdminBookManagement = () => {
     }, [activeTab]);
 
     const loadBooks = async (initial = false) => {
-        if (initial) setLoading(true);
-        else setLoadingMore(true);
+        setLoading(true);
 
         try {
-            const { limit, startAfter } = await import('firebase/firestore');
             const ref = collection(db, 'books');
-            let q = query(
+            const q = query(
                 ref,
                 where('category', '==', activeTab),
-                orderBy('order', 'asc'),
-                limit(20)
+                orderBy('order', 'asc')
             );
-
-            if (!initial && lastVisible) {
-                q = query(q, startAfter(lastVisible));
-            }
 
             const querySnapshot = await getDocs(q);
             const loadedBooks = querySnapshot.docs.map(doc => ({
@@ -175,20 +168,12 @@ const AdminBookManagement = () => {
                 ...doc.data()
             }));
 
-            if (initial) {
-                setBooks(loadedBooks);
-            } else {
-                setBooks(prev => [...prev, ...loadedBooks]);
-            }
-
-            setLastVisible(querySnapshot.docs[querySnapshot.docs.length - 1]);
-            setHasMore(querySnapshot.docs.length === 20);
+            setBooks(loadedBooks);
 
         } catch (error) {
             console.error('Error loading books:', error);
         } finally {
             setLoading(false);
-            setLoadingMore(false);
         }
     };
 

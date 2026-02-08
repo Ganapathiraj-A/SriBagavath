@@ -79,84 +79,61 @@ const BookStore = () => {
 
     useEffect(() => {
         if (!authGlobalLoading) {
-            loadBooks(true);
+            loadBooks();
         }
     }, [authGlobalLoading, activeTab]);
 
-    const loadBooks = async (initial = false) => {
+    const loadBooks = async () => {
         if (authGlobalLoading) return;
-        if (initial) setLoading(true);
-        else setLoadingMore(true);
+        setLoading(true);
 
         try {
-            const { collection, query, orderBy, limit, getDocs, where, startAfter, getDocsFromCache, getDocsFromServer } = await import('firebase/firestore');
+            const { collection, query, orderBy, getDocs, where, getDocsFromCache, getDocsFromServer } = await import('firebase/firestore');
             const { needsServerSync, markSyncedLocally } = await import('../utils/SyncManager');
 
             const ref = collection(db, 'books');
-            let q = query(
+            const q = query(
                 ref,
                 where('category', '==', activeTab),
-                orderBy('title', 'asc'),
-                limit(16)
+                orderBy('title', 'asc')
             );
 
-            if (!initial && lastVisible) {
-                q = query(q, startAfter(lastVisible));
+            const collectionId = `bookstore_${activeTab}`;
+            const needsSync = needsServerSync(collectionId);
+
+            // Strategy: Cache-First with Background Refresh
+            let cachedData = null;
+            try {
+                const cacheSnap = await getDocsFromCache(q);
+                if (!cacheSnap.empty) {
+                    cachedData = cacheSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    setProducts(cachedData);
+                    setLoading(false);
+                    console.log(`[BookStore] Loaded ${cachedData.length} items from cache`);
+                }
+            } catch (e) {
+                console.warn("[BookStore] Cache read failed", e);
             }
 
-            // Strategy: Cache-First with Background Refresh for page 1
-            if (initial) {
-                const collectionId = `bookstore_${activeTab}`;
-                const needsSync = needsServerSync(collectionId);
-
-                // Try cache first
-                let cacheSnap = null;
-                try {
-                    cacheSnap = await getDocsFromCache(q);
-                    if (!cacheSnap.empty) {
-                        const books = cacheSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-                        setProducts(books);
-                        setLoading(false);
-                        console.log(`[BookStore] Loaded ${books.length} items from cache`);
-                    }
-                } catch (e) {
-                    console.warn("[BookStore] Cache read failed", e);
-                }
-
-                // If cache empty OR needs sync, fetch from server
-                if (!cacheSnap || cacheSnap.empty || needsSync) {
-                    console.log(`[BookStore] Refreshing from server... (Category: ${activeTab})`);
-                    getDocsFromServer(q).then(serverSnap => {
-                        const books = serverSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-                        console.log(`[BookStore] Server returned ${books.length} items for ${activeTab}`);
-
-                        setProducts(books);
-                        setLastVisible(serverSnap.docs[serverSnap.docs.length - 1]);
-                        setHasMore(serverSnap.docs.length === 16);
-                        markSyncedLocally(collectionId);
-                    }).catch(err => {
-                        console.error("[BookStore] Server refresh failed", err);
-                        alert(`BookStore Fetch Failed: ${err.message}`);
-                    }).finally(() => {
-                        setLoading(false);
-                    });
-                }
-            } else {
-                // Paginated loads always go to server/standard SDK logic
-                const querySnapshot = await getDocs(q);
-                const loadedBooks = querySnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-                setProducts(prev => [...prev, ...loadedBooks]);
-                setLastVisible(querySnapshot.docs[querySnapshot.docs.length - 1]);
-                setHasMore(querySnapshot.docs.length === 16);
-                setLoadingMore(false);
+            // Always background refresh if needsSync or no cache
+            if (!cachedData || needsSync) {
+                console.log(`[BookStore] Refreshing from server... (Category: ${activeTab})`);
+                getDocsFromServer(q).then(serverSnap => {
+                    const books = serverSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    console.log(`[BookStore] Server returned ${books.length} items for ${activeTab}`);
+                    setProducts(books);
+                    markSyncedLocally(collectionId);
+                }).catch(err => {
+                    console.error("[BookStore] Server refresh failed", err);
+                    if (!cachedData) alert(`BookStore Fetch Failed: ${err.message}`);
+                }).finally(() => {
+                    setLoading(false);
+                });
             }
+
         } catch (error) {
-            console.error('Error loading bookstore books:', error);
+            console.error("Error loading products:", error);
             setLoading(false);
-            setLoadingMore(false);
         }
     };
 
