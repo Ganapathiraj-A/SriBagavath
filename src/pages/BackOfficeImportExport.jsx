@@ -1013,7 +1013,7 @@ const BackOfficeImportExport = () => {
         <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', paddingBottom: '40px' }}>
             <PageHeader
                 title="Import / Export Data"
-                subtitle="v2.8.299"
+                subtitle={`v${appVersion}`}
                 leftAction={
                     <button onClick={() => navigate('/admin/back-office')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
                         <ChevronLeft size={24} />

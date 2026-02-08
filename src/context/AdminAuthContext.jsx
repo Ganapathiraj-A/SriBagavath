@@ -11,7 +11,7 @@ export const AdminAuthProvider = ({ children }) => {
     const [role, setRole] = useState(null); // 'SUPER_ADMIN', 'ADMIN', 'POWER_USER'
     const [permissions, setPermissions] = useState([]); // List of allowed screens
     const [isPending, setIsPending] = useState(false);
-    const [loading, setLoading] = useState(true);
+    const [isInitialized, setIsInitialized] = useState(false); // Non-blocking initialization flag
 
     const hasAccess = (requiredPermission) => {
         if (!isAdmin) return false;
@@ -66,8 +66,6 @@ export const AdminAuthProvider = ({ children }) => {
         let requestUnsubscribe = null;
 
         const authUnsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-            setLoading(true);
-
             // Cleanup previous snapshots
             if (adminUnsubscribe) adminUnsubscribe();
             if (requestUnsubscribe) requestUnsubscribe();
@@ -120,10 +118,10 @@ export const AdminAuthProvider = ({ children }) => {
                                     const requestDocRef = doc(db, 'admin_requests', currentUser.uid);
                                     requestUnsubscribe = onSnapshot(requestDocRef, (reqSnap) => {
                                         setIsPending(reqSnap.exists() && reqSnap.data().status === 'PENDING');
-                                        setLoading(false);
+                                        setIsInitialized(true);
                                     });
                                 }
-                                setLoading(false);
+                                setIsInitialized(true);
                             });
                         } else {
                             // No email, just check pending
@@ -133,21 +131,22 @@ export const AdminAuthProvider = ({ children }) => {
                             const requestDocRef = doc(db, 'admin_requests', currentUser.uid);
                             requestUnsubscribe = onSnapshot(requestDocRef, (reqSnap) => {
                                 setIsPending(reqSnap.exists() && reqSnap.data().status === 'PENDING');
-                                setLoading(false);
+                                setIsInitialized(true);
                             });
                         }
                     });
                 } else {
                     setIsAdmin(false);
                     setIsPending(false);
-                    setLoading(false);
+                    setIsInitialized(true);
                 }
             } else {
                 signInAnonymously(auth).catch((error) => {
                     console.error("Anonymous auth failed", error);
-                    setLoading(false);
+                    setIsInitialized(true);
                 });
             }
+            setIsInitialized(true);
         });
 
         return () => {
@@ -158,7 +157,7 @@ export const AdminAuthProvider = ({ children }) => {
     }, []);
 
     return (
-        <AdminAuthContext.Provider value={{ user, isAdmin, role, permissions, hasAccess, isPending, loading, setIsPending, checkAdminStatus }}>
+        <AdminAuthContext.Provider value={{ user, isAdmin, role, permissions, hasAccess, isPending, isInitialized, setIsPending, checkAdminStatus }}>
             {children}
         </AdminAuthContext.Provider>
     );

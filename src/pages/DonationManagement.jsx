@@ -263,7 +263,7 @@ const DonationManagement = () => {
 
             <PageHeader
                 title="Donations"
-                subtitle="v2.8.299"
+                subtitle={`v${appVersion}`}
                 leftAction={
                     <button onClick={() => navigate('/configuration')} style={{ background: 'none', border: 'none', padding: '8px' }}>
                         <ChevronLeft size={24} />

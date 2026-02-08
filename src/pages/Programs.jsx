@@ -73,6 +73,8 @@ const Programs = () => {
                 // Track visit for badge reset
                 localStorage.setItem('lastVisited_programs', new Date().toISOString());
 
+                const { getDocsFromCache, getDocsFromServer } = await import('firebase/firestore');
+                const { needsServerSync, markSyncedLocally } = await import('../utils/SyncManager');
                 const today = getLocalDateString();
                 const programsRef = collection(db, 'programs');
                 const q = query(
@@ -81,7 +83,21 @@ const Programs = () => {
                     orderBy('programDate', 'asc')
                 );
 
-                const querySnapshot = await getDocs(q);
+                // Strategy: Use Version-Based Sync
+                const needsSync = needsServerSync('programs');
+                let querySnapshot;
+                try {
+                    querySnapshot = await getDocsFromCache(q);
+                    // If cache empty OR server version is newer, we fetch from server
+                    if (querySnapshot.empty || needsSync) {
+                        querySnapshot = await getDocsFromServer(q);
+                        markSyncedLocally('programs');
+                    }
+                } catch (e) {
+                    querySnapshot = await getDocsFromServer(q);
+                    markSyncedLocally('programs');
+                }
+
                 const programsList = querySnapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data()
@@ -490,7 +506,9 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
                                         style={{
                                             width: 'auto', // Override 100% width
                                             padding: '10px 24px',
-                                            opacity: authLoading ? 0.7 : 1
+                                            opacity: authLoading ? 0.7 : 1,
+                                            backgroundColor: '#ea580c',
+                                            color: 'white'
                                         }}
                                     >
                                         {authLoading ? 'Signing in...' : 'My Registrations'}
@@ -550,19 +568,18 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
                                                 }}
                                             >
                                                 <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'flex-start' }}>
-                                                    {/* Date Box */}
                                                     <div style={{
                                                         display: 'flex',
                                                         flexDirection: 'column',
                                                         alignItems: 'center',
                                                         justifyContent: 'center',
-                                                        backgroundColor: '#fff7ed',
-                                                        color: 'var(--color-primary)',
+                                                        backgroundColor: '#fed7aa',
+                                                        color: '#ea580c',
                                                         padding: '0.75rem 0.5rem',
                                                         borderRadius: '0.75rem',
                                                         minWidth: '4rem',
                                                         flexShrink: 0,
-                                                        border: '1px solid #ffedd5'
+                                                        border: '2px solid #fdba74'
                                                     }}>
                                                         <span style={{
                                                             fontSize: '0.7rem',
@@ -634,7 +651,9 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
                                                                         padding: '0.45rem 1rem',
                                                                         fontSize: '0.8125rem',
                                                                         borderRadius: '20px',
-                                                                        opacity: authLoading ? 0.7 : 1
+                                                                        opacity: authLoading ? 0.7 : 1,
+                                                                        backgroundColor: '#ea580c',
+                                                                        color: 'white'
                                                                     }}
                                                                 >
                                                                     {authLoading ? '...' : 'Register Now'}

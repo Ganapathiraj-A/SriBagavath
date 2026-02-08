@@ -124,7 +124,7 @@ ${meeting.description || meeting.descriptions ? '\n' + (meeting.description || m
                     style={{ backgroundColor: 'white', borderRadius: '1rem', overflow: 'hidden', boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)' }}
                 >
                     {banner && (
-                        <img src={banner} alt="Satsang Banner" style={{ width: '100%', display: 'block' }} />
+                        <img src={banner} alt="Satsang Banner" loading="lazy" style={{ width: '100%', display: 'block' }} />
                     )}
 
                     <div style={{ padding: '2rem' }}>

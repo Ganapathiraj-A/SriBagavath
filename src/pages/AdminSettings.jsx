@@ -285,7 +285,7 @@ const AdminSettings = () => {
                                         <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>Users below this are forced to update</div>
                                     </div>
                                 </div>
-                                <input type="text" value={minAppVersion} onChange={(e) => setMinAppVersion(e.target.value)} placeholder="e.g. 2.8.345" style={{ padding: '0.625rem', fontSize: '0.875rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb', color: '#111827' }} />
+                                <input type="text" value={minAppVersion} onChange={(e) => setMinAppVersion(e.target.value)} placeholder="e.g. 3.0.0" style={{ padding: '0.625rem', fontSize: '0.875rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb', color: '#111827' }} />
                             </div>
 
                             {/* Online Transactions */}

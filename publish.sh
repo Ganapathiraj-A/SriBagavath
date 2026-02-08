@@ -1,59 +1,83 @@
 #!/bin/bash
+set -e
 
-# Force Java 21 for this build (Required for Capacitor v7+ / Modern Gradle)
-export JAVA_HOME="/usr/lib/jvm/java-21-openjdk-amd64"
-export PATH="$JAVA_HOME/bin:$PATH"
-set -e # Stop on any error
+# Unified Publishing Script for Sri Bagavath
+# Usage: ./publish.sh [dev|prod]
 
-# 0. Clean old results to avoid stale uploads
-echo "Cleaning root APK..."
-rm -f SriBagavathDevClean.apk
-./android/gradlew --stop
+FLAVOR=${1:-dev}
+GITHUB_OWNER="Ganapathiraj-A"
+GITHUB_REPO="SriBagavath"
 
-# Execute Build Script
-echo "Executing Build..."
+echo "======================================"
+echo "   PUBLISHING: $FLAVOR                "
+echo "======================================"
 
-# Build script handles version sync now
+# 1. Run the appropriate build
+echo "Starting Build..."
+./build.sh $FLAVOR
 
-./build_dev.sh
+# 2. Extract Metadata
+VERSION=$(node -p "require('./package.json').version")
 
-# NEW: Copy the freshly built APK to the root directory
-echo "Copying fresh APK to root..."
-cp android/app/build/outputs/apk/dev/release/app-dev-release.apk SriBagavathDevClean.apk
+case $FLAVOR in
+    dev)
+        ARTIFACT_NAME="SriBagavathDevClean.apk"
+        GH_TAG="dev-clean"
+        GH_TITLE="Development Build v$VERSION"
+        GH_FLAGS="--prerelease"
+        ;;
+    prod)
+        ARTIFACT_NAME="SriBagavath.apk"
+        GH_TAG="latest"
+        GH_TITLE="Production Build (APK) v$VERSION"
+        GH_FLAGS="--latest"
+        DO_TAGGING=true
+        ;;
+    prod-aab)
+        ARTIFACT_NAME="SriBagavath_v${VERSION}.aab"
+        GH_TAG="playstore-latest"
+        GH_TITLE="Production Bundle (AAB) v$VERSION"
+        GH_FLAGS="--latest"
+        DO_TAGGING=true
+        ;;
+    *)
+        echo "Invalid flavor for publishing: $FLAVOR. Use 'dev', 'prod', or 'prod-aab'."
+        exit 1
+        ;;
+esac
 
-# Publish script for Clean Dev Project
-TAG="dev-clean"
-APK_NAME="SriBagavathDevClean.apk"
-
-echo "Verifying APK..."
-if [ ! -f "$APK_NAME" ]; then
-    echo "Error: $APK_NAME not found!"
+echo "Verifying Build Artifact..."
+if [ ! -f "$ARTIFACT_NAME" ]; then
+    echo "ERROR: $ARTIFACT_NAME not found. Build might have failed."
     exit 1
 fi
 
-echo "Publishing to tag: $TAG"
-gh release delete $TAG --yes || true
-git tag -d $TAG || true
-git push origin :refs/tags/$TAG || true
+# 3. Git Tagging (for production)
+if [ "$DO_TAGGING" = true ]; then
+    VERSION_TAG="v${VERSION}-${FLAVOR}"
+    echo "Creating versioned tag: $VERSION_TAG"
+    git add .
+    git commit -m "chore: release $VERSION_TAG" || echo "No changes to commit"
+    git tag -a "$VERSION_TAG" -m "Release $VERSION_TAG"
+    git push origin main --tags
+fi
 
-# v2.8.337 - Login & Connectivity Fixes
-# 1. Fixed 12s Login Hang: Native plugin registration order adjusted.
-# 2. WiFi Log Upload: Fixed PC Bridge and CORS headers.
-# 3. Firestore Rules: Deployed permissive rules to both Dev and Prod projects.
+# 4. GitHub Publish
+echo "Publishing to GitHub ($GH_TAG)..."
 
-# Get version from package.json
-VERSION=$(node -p "require('./package.json').version")
+# Delete existing generic release/tag
+gh release delete "$GH_TAG" --yes || echo "No existing release to delete"
+gh api repos/$GITHUB_OWNER/$GITHUB_REPO/git/refs/tags/"$GH_TAG" -X DELETE || echo "No existing tag to delete"
+sleep 5
 
-# Create the release
-gh release create "$TAG" \
-    --title "Release v$VERSION" \
-    --notes "v$VERSION Update: 
-1. **Login Fix**: Resolved the 12s hang during Google Sign-In.
-2. **WiFi Log Upload**: Send logs directly to your PC via WiFi. Faster and more reliable.
-3. **Connectivity**: Improved Firestore rule alignment across environments." \
-    "$APK_NAME"
+# Create new generic release (latest/dev-clean) and upload
+gh release create "$GH_TAG" "$ARTIFACT_NAME" \
+    --title "$GH_TITLE" \
+    --notes "Automated $FLAVOR release of v$VERSION." \
+    $GH_FLAGS
 
-echo "---------------------------------------------------"
-echo "Dev Clean Build Published!"
-echo "URL: https://github.com/Ganapathiraj-A/SriBagavath/releases/download/$TAG/$APK_NAME"
-echo "---------------------------------------------------"
+echo "======================================"
+echo "✅ $FLAVOR PUBLISHED SUCCESSFULLY!"
+echo "Artifact: $ARTIFACT_NAME"
+echo "URL: https://github.com/$GITHUB_OWNER/$GITHUB_REPO/releases/download/$GH_TAG/$ARTIFACT_NAME"
+echo "======================================"

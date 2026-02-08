@@ -13,6 +13,7 @@ import {
 } from 'firebase/firestore';
 import { getLocalDateString } from '../utils/dateUtils';
 import { compressImage } from '../utils/imageUtils';
+import { bumpServerVersion } from '../utils/SyncManager';
 
 // Helper to expand a master rule into its next upcoming instance
 const getNextOccurrence = (master, todayStr) => {
@@ -203,6 +204,7 @@ const OnlineMeetingManagement = () => {
                 isRecurring: false, frequency: 'weekly', recurringDays: [],
                 recurringEndDateType: 'indefinite', recurringEndDate: ''
             });
+            await bumpServerVersion('online_meetings');
             loadMeetings();
         } catch (error) {
             console.error("Error saving meeting:", error);
@@ -262,6 +264,7 @@ const OnlineMeetingManagement = () => {
 
             setShowDeleteModal(false);
             setDeleteTarget(null);
+            await bumpServerVersion('online_meetings');
             loadMeetings();
         } catch (error) {
             console.error("Error deleting:", error);

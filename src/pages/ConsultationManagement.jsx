@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { db } from '../firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy } from 'firebase/firestore';
+import { bumpServerVersion } from '../utils/SyncManager';
 import PageHeader from '../components/PageHeader';
 import '../components/RegistrationStyles.css';
 
@@ -65,6 +66,7 @@ const ConsultationManagement = () => {
                 alert('Consultant added!');
             }
             resetForm();
+            await bumpServerVersion('consultants');
             loadConsultants();
         } catch (error) {
             alert('Error: ' + error.message);
@@ -81,6 +83,7 @@ const ConsultationManagement = () => {
         if (window.confirm('Delete this consultant?')) {
             try {
                 await deleteDoc(doc(db, 'consultants', id));
+                await bumpServerVersion('consultants');
                 loadConsultants();
             } catch (error) {
                 alert('Error deleting: ' + error.message);
@@ -95,6 +98,7 @@ const ConsultationManagement = () => {
                 updateDoc(doc(db, 'consultants', item.id), { order: index })
             );
             await Promise.all(updates);
+            await bumpServerVersion('consultants');
         } catch (error) {
             console.error('Error reordering:', error);
             loadConsultants();

@@ -28,6 +28,7 @@ const About = () => {
                             <img
                                 src="/images/bagavath_ayya.png"
                                 alt="Bagavath Ayya"
+                                loading="lazy"
                                 style={{
                                     width: '100%',
                                     height: '100%',

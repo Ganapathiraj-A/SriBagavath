@@ -76,10 +76,25 @@ const SatsangListing = () => {
         const fetchMeetings = async () => {
             if (authGlobalLoading) return;
             try {
+                const { getDocsFromCache, getDocsFromServer } = await import('firebase/firestore');
+                const { needsServerSync, markSyncedLocally } = await import('../utils/SyncManager');
+
                 const todayStr = getLocalDateString();
                 const meetingsRef = collection(db, 'satsangs');
 
-                const snapshot = await getDocs(meetingsRef);
+                const needsSync = needsServerSync('satsangs');
+                let snapshot;
+                try {
+                    snapshot = await getDocsFromCache(meetingsRef);
+                    if (snapshot.empty || needsSync) {
+                        snapshot = await getDocsFromServer(meetingsRef);
+                        markSyncedLocally('satsangs');
+                    }
+                } catch (e) {
+                    snapshot = await getDocs(meetingsRef);
+                    markSyncedLocally('satsangs');
+                }
+
                 const raw = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
                 const groups = {};

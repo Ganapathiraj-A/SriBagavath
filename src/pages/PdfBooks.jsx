@@ -23,8 +23,8 @@ const PdfBooks = () => {
   const [booksLoading, setBooksLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const englishData = useDriveFiles(ENGLISH_BOOKS_FOLDER_ID);
-  const tamilData = useDriveFiles(TAMIL_BOOKS_FOLDER_ID);
+  const englishData = useDriveFiles(ENGLISH_BOOKS_FOLDER_ID, 'digital_books_english');
+  const tamilData = useDriveFiles(TAMIL_BOOKS_FOLDER_ID, 'digital_books_tamil');
 
   const current = activeTab === 'English Books' ? englishData : tamilData;
 

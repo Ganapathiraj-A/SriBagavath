@@ -4,16 +4,22 @@ import { motion } from 'framer-motion';
 import { ChevronLeft, Search, X, Receipt, Check } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { db } from '../firebase';
-import { collection, query, orderBy, limit, getDocs, onSnapshot } from 'firebase/firestore';
+import { collection, query, orderBy, limit, getDocs, onSnapshot, getCountFromServer, where, startAfter } from 'firebase/firestore';
 import { TransactionService } from '../services/TransactionService';
 import { compressImage } from '../utils/imageUtils';
+import OCR from '../plugins/OCRPlugin';
+import { RefreshCw, Image } from 'lucide-react';
 
 const BankReconciliationRegs = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [transactions, setTransactions] = useState([]);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [lastVisible, setLastVisible] = useState(null);
+    const [hasMore, setHasMore] = useState(true);
     const [allPrograms, setAllPrograms] = useState([]);
     const [activeTab, setActiveTab] = useState('All');
+    const [counts, setCounts] = useState({ All: 0, Matched: 0, Unmatched: 0, 'Amount Mismatch': 0, 'Multi Match': 0 });
     const [searchQuery, setSearchQuery] = useState('');
     const [viewingImage, setViewingImage] = useState(null);
     const [viewingMatch, setViewingMatch] = useState(null);
@@ -22,51 +28,82 @@ const BankReconciliationRegs = () => {
     const [editingParsedAmountValue, setEditingParsedAmountValue] = useState('');
     const [savingUtr, setSavingUtr] = useState(false);
     const [selectedProgramId, setSelectedProgramId] = useState('ALL');
-    const [uploadingReceipt, setUploadingReceipt] = useState(null); // stores id of tx being updated
+    const [uploadingReceipt, setUploadingReceipt] = useState(null);
 
     useEffect(() => {
-        const txRef = collection(db, 'transactions');
-        const q = query(txRef, orderBy('timestamp', 'desc'));
+        fetchData();
+        fetchPrograms();
+    }, [selectedProgramId]);
 
-        const unsubscribe = onSnapshot(q, (snapshot) => {
+    const fetchData = async () => {
+        setLoading(true);
+        try {
+            const txRef = collection(db, 'transactions');
+            let q = query(txRef, orderBy('timestamp', 'desc'), limit(30));
+
+            if (selectedProgramId !== 'ALL') {
+                q = query(txRef, where('programId', '==', selectedProgramId), orderBy('timestamp', 'desc'), limit(30));
+            }
+
+            const snapshot = await getDocs(q);
             const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             setTransactions(docs);
-            setLoading(false);
-        }, (error) => {
+            setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
+            setHasMore(snapshot.docs.length === 30);
+
+            // Fetch Counts using aggregation (Cheap and Fast)
+            const countAll = await getCountFromServer(selectedProgramId === 'ALL' ? txRef : query(txRef, where('programId', '==', selectedProgramId)));
+            const countMatched = await getCountFromServer(query(selectedProgramId === 'ALL' ? txRef : query(txRef, where('programId', '==', selectedProgramId)), where('reconciled', '==', true)));
+
+            setCounts(prev => ({
+                ...prev,
+                All: countAll.data().count,
+                Matched: countMatched.data().count,
+                Unmatched: countAll.data().count - countMatched.data().count // Approximation
+            }));
+
+        } catch (error) {
             console.error("Error fetching transactions:", error);
+        } finally {
             setLoading(false);
-        });
-
-        const fetchPrograms = async () => {
-            try {
-                const snapshot = await getDocs(collection(db, 'programs'));
-                const progs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-                setAllPrograms(progs);
-            } catch (e) {
-                console.error("Failed to fetch programs", e);
-            }
-        };
-        fetchPrograms();
-
-        return () => unsubscribe();
-    }, []);
-
-    const baseProgramTransactions = selectedProgramId === 'ALL'
-        ? transactions
-        : transactions.filter(tx => tx.programId === selectedProgramId);
-
-    const counts = {
-        'All': baseProgramTransactions.length,
-        'Matched': baseProgramTransactions.filter(tx => tx.reconciled === true).length,
-        'Unmatched': baseProgramTransactions.filter(tx => tx.reconciled !== true && tx.amountMismatch !== true).length,
-        'Amount Mismatch': baseProgramTransactions.filter(tx => tx.amountMismatch === true).length,
-        'Multi Match': (() => {
-            const utrs = baseProgramTransactions.map(tx => tx.utr).filter(u => u && u.length > 5);
-            const duplicates = utrs.filter((u, i) => utrs.indexOf(u) !== i);
-            const uniqueDuplicates = [...new Set(duplicates)];
-            return baseProgramTransactions.filter(tx => tx.utr && uniqueDuplicates.includes(tx.utr)).length;
-        })()
+        }
     };
+
+    const loadMore = async () => {
+        if (!lastVisible || loadingMore) return;
+        setLoadingMore(true);
+        try {
+            const txRef = collection(db, 'transactions');
+            let q = query(txRef, orderBy('timestamp', 'desc'), startAfter(lastVisible), limit(30));
+
+            if (selectedProgramId !== 'ALL') {
+                q = query(txRef, where('programId', '==', selectedProgramId), orderBy('timestamp', 'desc'), startAfter(lastVisible), limit(30));
+            }
+
+            const snapshot = await getDocs(q);
+            const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setTransactions(prev => [...prev, ...docs]);
+            setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
+            setHasMore(snapshot.docs.length === 30);
+        } catch (error) {
+            console.error("Error loading more:", error);
+        } finally {
+            setLoadingMore(false);
+        }
+    };
+
+    const fetchPrograms = async () => {
+        try {
+            const snapshot = await getDocs(collection(db, 'programs'));
+            const progs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            setAllPrograms(progs);
+        } catch (e) {
+            console.error("Failed to fetch programs", e);
+        }
+    };
+
+    const baseProgramTransactions = transactions;
+    // Note: 'counts' is now managed via state from fetchData() for better performance
 
     const handleRunMatch = async () => {
         if (loading) return;
@@ -125,6 +162,56 @@ const BankReconciliationRegs = () => {
             alert("Upload failed: " + error.message);
         } finally {
             setUploadingReceipt(null);
+            if (e.target) e.target.value = ''; // Reset input
+        }
+    };
+
+    const handleUpdateReceiptInModal = async (e) => {
+        if (!viewingImage) return;
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+            setSavingUtr(true); // Reuse savingUtr for modal loading
+            const base64 = await compressImage(file);
+
+            // 1. Run OCR on new image
+            let ocrRes = { rawText: '', transactionId: '', amount: null };
+            try {
+                const result = await OCR.detectText({ base64Image: base64 });
+                ocrRes = {
+                    rawText: result.rawText || '',
+                    transactionId: result.transactionId || '',
+                    amount: result.amount || null
+                };
+            } catch (ocrErr) {
+                console.warn("OCR failed during update", ocrErr);
+            }
+
+            // 2. Upload to storage
+            await TransactionService.uploadReceipt(viewingImage.id, base64);
+
+            // 3. Update Meta in Firestore (Update OCR Text)
+            await TransactionService.updateTransactionDetails(viewingImage.id, {
+                ocrText: ocrRes.rawText
+            });
+
+            // 4. Update Modal UI State
+            setViewingImage(prev => ({
+                ...prev,
+                base64: base64,
+                ocrText: ocrRes.rawText
+            }));
+
+            if (ocrRes.transactionId) setEditingUtrValue(ocrRes.transactionId);
+            if (ocrRes.amount) setEditingParsedAmountValue(ocrRes.amount.toString());
+
+            alert("Receipt updated and re-processed successfully!");
+        } catch (error) {
+            console.error("Receipt update failed", error);
+            alert("Update failed: " + error.message);
+        } finally {
+            setSavingUtr(false);
             if (e.target) e.target.value = ''; // Reset input
         }
     };
@@ -297,7 +384,7 @@ const BankReconciliationRegs = () => {
         <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
             <PageHeader
                 title="Registrations & Orders"
-                subtitle="v2.8.299"
+                subtitle={`v${appVersion}`}
                 leftAction={
                     <button onClick={() => navigate('/admin/back-office/reconciliation')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
                         <ChevronLeft size={24} />
@@ -355,9 +442,37 @@ const BankReconciliationRegs = () => {
                                         <h2 style={{ margin: 0, fontSize: '18px' }}>Payment Receipt</h2>
                                         {viewingImage.utr && <div style={{ fontSize: '12px', color: '#1e40af', fontWeight: 600 }}>UTR: {viewingImage.utr}</div>}
                                     </div>
-                                    <button onClick={() => setViewingImage(null)} style={{ border: 'none', background: 'none', padding: '5px', cursor: 'pointer' }}>
-                                        <X size={24} color="#666" />
-                                    </button>
+                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                        <button
+                                            onClick={() => document.getElementById('modal-receipt-update-reg').click()}
+                                            disabled={savingUtr}
+                                            style={{
+                                                border: 'none',
+                                                background: '#eff6ff',
+                                                padding: '6px 10px',
+                                                borderRadius: '8px',
+                                                cursor: 'pointer',
+                                                color: '#2563eb',
+                                                fontSize: '12px',
+                                                fontWeight: 600,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '4px'
+                                            }}
+                                        >
+                                            <Image size={14} /> Replace
+                                        </button>
+                                        <input
+                                            type="file"
+                                            id="modal-receipt-update-reg"
+                                            style={{ display: 'none' }}
+                                            accept="image/*"
+                                            onChange={handleUpdateReceiptInModal}
+                                        />
+                                        <button onClick={() => setViewingImage(null)} style={{ border: 'none', background: 'none', padding: '5px', cursor: 'pointer' }}>
+                                            <X size={24} color="#666" />
+                                        </button>
+                                    </div>
                                 </div>
                                 <div style={{ width: '100%', overflowY: 'auto', maxHeight: '50vh', border: '1px solid #eee', borderRadius: '8px' }}>
                                     <img
@@ -614,37 +729,50 @@ const BankReconciliationRegs = () => {
                         )}
                     </div>
 
-                    <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem', alignItems: 'center' }}>
-                        {['All', 'Matched', 'Unmatched', 'Amount Mismatch', 'Multi Match'].map(tab => (
-                            <button
-                                key={tab}
-                                onClick={() => setActiveTab(tab)}
-                                style={{
-                                    padding: '0.5rem 1rem',
-                                    backgroundColor: activeTab === tab ? 'var(--color-primary)' : 'white',
-                                    color: activeTab === tab ? 'white' : '#4b5563',
-                                    border: '1px solid #e5e7eb',
-                                    borderRadius: '2rem',
-                                    fontSize: '0.8125rem',
-                                    whiteSpace: 'nowrap',
-                                    fontWeight: 500,
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '6px'
-                                }}
-                            >
-                                {tab}
-                                <span style={{
-                                    backgroundColor: activeTab === tab ? 'rgba(255,255,255,0.2)' : '#f3f4f6',
-                                    padding: '2px 6px',
-                                    borderRadius: '10px',
-                                    fontSize: '0.7rem'
-                                }}>
-                                    {counts[tab]}
-                                </span>
-                            </button>
-                        ))}
+                    <div style={{
+                        display: 'flex',
+                        borderBottom: '1px solid #e5e7eb',
+                        gap: '24px',
+                        marginBottom: '0.5rem',
+                        overflowX: 'auto',
+                        scrollbarWidth: 'none'
+                    }}>
+                        {['All', 'Matched', 'Unmatched', 'Amount Mismatch', 'Multi Match'].map(tab => {
+                            const isActive = activeTab === tab;
+                            return (
+                                <button
+                                    key={tab}
+                                    onClick={() => setActiveTab(tab)}
+                                    style={{
+                                        padding: '12px 4px',
+                                        border: 'none',
+                                        borderBottom: isActive ? '2px solid var(--color-primary)' : '2px solid transparent',
+                                        backgroundColor: 'transparent',
+                                        color: isActive ? 'var(--color-primary)' : '#6b7280',
+                                        fontWeight: isActive ? 700 : 500,
+                                        fontSize: '0.9rem',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px',
+                                        whiteSpace: 'nowrap'
+                                    }}
+                                >
+                                    {tab}
+                                    <span style={{
+                                        backgroundColor: isActive ? 'var(--color-secondary)' : '#f3f4f6',
+                                        color: isActive ? 'var(--color-primary)' : '#6b7280',
+                                        padding: '2px 8px',
+                                        borderRadius: '10px',
+                                        fontSize: '0.75rem',
+                                        fontWeight: 600
+                                    }}>
+                                        {counts[tab]}
+                                    </span>
+                                </button>
+                            );
+                        })}
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -802,6 +930,32 @@ const BankReconciliationRegs = () => {
                                 </div>
                             ))
                         )}
+
+                        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1.5rem', marginBottom: '1.5rem' }}>
+                            {hasMore && (
+                                <button
+                                    onClick={loadMore}
+                                    disabled={loadingMore}
+                                    style={{
+                                        padding: '0.75rem 1.5rem',
+                                        backgroundColor: 'white',
+                                        color: 'var(--color-primary)',
+                                        border: '1px solid var(--color-primary)',
+                                        borderRadius: '0.75rem',
+                                        fontWeight: 600,
+                                        cursor: loadingMore ? 'not-allowed' : 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem'
+                                    }}
+                                >
+                                    {loadingMore ? 'Loading...' : 'Load More Transactions'}
+                                </button>
+                            )}
+                            {!hasMore && transactions.length > 0 && (
+                                <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>No more transactions to load</span>
+                            )}
+                        </div>
                     </div>
                 </motion.div>
             </main>

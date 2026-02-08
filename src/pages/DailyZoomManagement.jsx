@@ -208,30 +208,35 @@ const DailyZoomManagement = () => {
             />
 
             <div style={{ maxWidth: '42rem', margin: '0 auto', padding: '1rem' }}>
-                <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '1.5rem', backgroundColor: 'white', padding: '0.4rem', borderRadius: '0.75rem', boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)', overflowX: 'auto', scrollbarWidth: 'none' }}>
+                <div style={{
+                    display: 'flex',
+                    borderBottom: '1px solid #e5e7eb',
+                    gap: '24px',
+                    marginBottom: '1.5rem',
+                    padding: '0 4px',
+                    overflowX: 'auto',
+                    scrollbarWidth: 'none'
+                }}>
                     {['upcoming', 'history', 'add', 'edit'].map((tab) => {
                         if (tab === 'edit' && !isEditing) return null;
+                        const isActive = activeTab === tab;
                         return (
                             <button
                                 key={tab}
                                 onClick={() => {
-                                    if (tab === 'add') {
-                                        resetForm();
-                                    }
+                                    if (tab === 'add') resetForm();
                                     setActiveTab(tab);
                                 }}
                                 style={{
-                                    flex: tab === 'edit' ? 'none' : 1,
-                                    minWidth: tab === 'edit' ? '5rem' : 'auto',
-                                    padding: '0.6rem 0.4rem',
-                                    borderRadius: '0.5rem',
+                                    padding: '12px 4px',
                                     border: 'none',
-                                    fontWeight: 600,
-                                    fontSize: '0.85rem',
+                                    borderBottom: isActive ? '2px solid var(--color-primary)' : '2px solid transparent',
+                                    backgroundColor: 'transparent',
+                                    color: isActive ? 'var(--color-primary)' : '#6b7280',
+                                    fontWeight: isActive ? 700 : 500,
+                                    fontSize: '0.9rem',
                                     textTransform: 'capitalize',
                                     cursor: 'pointer',
-                                    backgroundColor: activeTab === tab ? '#f97316' : 'transparent',
-                                    color: activeTab === tab ? 'white' : '#6b7280',
                                     transition: 'all 0.2s',
                                     whiteSpace: 'nowrap'
                                 }}
@@ -254,7 +259,7 @@ const DailyZoomManagement = () => {
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.25rem' }}>
                                     <div style={{ display: 'grid', gap: '0.5rem' }}>
                                         <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>
-                                            <Calendar size={16} color="#f97316" /> Meeting Date
+                                            <Calendar size={16} color="var(--color-primary)" /> Meeting Date
                                         </label>
                                         <input
                                             type="date"
@@ -268,7 +273,7 @@ const DailyZoomManagement = () => {
 
                                     <div style={{ display: 'grid', gap: '0.5rem' }}>
                                         <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>
-                                            <User size={16} color="#f97316" /> Select Teacher
+                                            <User size={16} color="var(--color-primary)" /> Select Teacher
                                         </label>
                                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                                             <select
@@ -286,6 +291,7 @@ const DailyZoomManagement = () => {
                                             <button
                                                 type="button"
                                                 onClick={() => navigate('/admin/daily-zoom/teachers')}
+                                                aria-label="Manage Teachers"
                                                 style={{ padding: '0.75rem', backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '0.5rem', color: '#4b5563', cursor: 'pointer' }}
                                             >
                                                 <Plus size={20} />
@@ -308,7 +314,7 @@ const DailyZoomManagement = () => {
 
                                 <div style={{ display: 'grid', gap: '0.5rem' }}>
                                     <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>
-                                        <FileText size={16} color="#f97316" /> Description (Optional)
+                                        <FileText size={16} color="var(--color-primary)" /> Description (Optional)
                                     </label>
                                     <textarea
                                         name="description"
@@ -322,7 +328,7 @@ const DailyZoomManagement = () => {
 
                                 <div style={{ display: 'grid', gap: '0.5rem' }}>
                                     <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>
-                                        <LinkIcon size={16} color="#f97316" /> Meeting Link
+                                        <LinkIcon size={16} color="var(--color-primary)" /> Meeting Link
                                     </label>
                                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                                         <select
@@ -340,6 +346,7 @@ const DailyZoomManagement = () => {
                                         <button
                                             type="button"
                                             onClick={() => navigate('/admin/daily-zoom/links')}
+                                            aria-label="Manage Links"
                                             style={{ padding: '0.75rem', backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '0.5rem', color: '#4b5563', cursor: 'pointer' }}
                                         >
                                             <Plus size={20} />
@@ -369,7 +376,7 @@ const DailyZoomManagement = () => {
                                 <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
                                     <button
                                         type="submit"
-                                        style={{ flex: 1, padding: '0.875rem', backgroundColor: '#f97316', color: 'white', border: 'none', borderRadius: '0.6rem', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                                        style={{ flex: 1, padding: '0.875rem', backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: '0.6rem', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', boxShadow: '0 4px 6px -1px var(--color-primary-transparent, rgba(249, 115, 22, 0.2))' }}
                                     >
                                         <Save size={18} />
                                         {isEditing ? 'Update Meeting' : 'Schedule Meeting'}
@@ -421,12 +428,14 @@ const DailyZoomManagement = () => {
                                         <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
                                             <button
                                                 onClick={() => handleEdit(m)}
+                                                aria-label={`Edit ${m.name}`}
                                                 style={{ padding: '0.6rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb', backgroundColor: 'white', color: '#4b5563', cursor: 'pointer' }}
                                             >
                                                 <Edit2 size={16} />
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(m.id)}
+                                                aria-label={`Delete ${m.name}`}
                                                 style={{ padding: '0.6rem', borderRadius: '0.5rem', border: '1px solid #fee2e2', backgroundColor: '#fff1f1', color: '#ef4444', cursor: 'pointer' }}
                                             >
                                                 <Trash2 size={16} />

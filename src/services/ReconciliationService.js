@@ -13,7 +13,14 @@ export const ReconciliationService = {
         try {
             // 1. Fetch Data
             const bankQuery = query(collection(db, 'bank_entries'), where('status', '!=', 'MATCHED'));
-            const txQuery = query(collection(db, 'transactions')); // Fetch all to avoid missing undefined 'reconciled' field
+
+            // Optimization: Fetch most recent 1000 transactions to find matches
+            // This avoids fetching the entire history while catching missing 'reconciled' fields
+            const txQuery = query(
+                collection(db, 'transactions'),
+                orderBy('timestamp', 'desc'),
+                limit(1000)
+            );
 
             const [bankSnap, txSnap] = await Promise.all([
                 getDocs(bankQuery),

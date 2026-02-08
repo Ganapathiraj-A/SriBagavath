@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import '../components/RegistrationStyles.css';
 import { getLocalDateString } from '../utils/dateUtils';
+import { bumpServerVersion } from '../utils/SyncManager';
 
 const ScheduleManagement = () => {
     const navigate = useNavigate();
@@ -145,6 +146,8 @@ const ScheduleManagement = () => {
                 lastUpdated_schedule: serverTimestamp()
             }, { merge: true });
 
+            await bumpServerVersion('schedules');
+
             resetForm();
             loadSchedules();
         } catch (error) {
@@ -173,6 +176,8 @@ const ScheduleManagement = () => {
                 await setDoc(doc(db, 'system', 'metadata'), {
                     lastUpdated_schedule: serverTimestamp()
                 }, { merge: true });
+
+                await bumpServerVersion('schedules');
 
                 loadSchedules();
             } catch (error) {

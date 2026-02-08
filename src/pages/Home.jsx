@@ -158,7 +158,7 @@ const Home = () => {
         return () => { listenerPromise.then(l => l.remove()); };
     }, []);
 
-    
+
 
     const addLog = (msg) => {
         const start = startTimeRef.current;
@@ -177,7 +177,7 @@ const Home = () => {
         const clientId = GET_GOOGLE_CLIENT_ID();
 
         setLogs([
-            `[0ms] STARTING LOGIN FLOW v2.8.357 [FORCED]`, // HARDCODED FOR VERIFICATION
+            `[0ms] STARTING LOGIN FLOW v${appVersion} [DYNAMIC]`,
             `MODE: ${mode}`,
             `PROJECT: ${projId}`,
             `CLIENT: ${clientId.substring(0, 15)}...`
@@ -489,7 +489,7 @@ const Home = () => {
                     color: '#6b7280',
                     fontWeight: '500'
                 }}>
-                    v{appVersion} {import.meta.env.MODE === 'production' ? '(Prod)' : '(Dev)'}
+                    {import.meta.env.MODE} | v{appVersion}
                 </div>
                 {logs.length > 0 && (
                     <div style={{

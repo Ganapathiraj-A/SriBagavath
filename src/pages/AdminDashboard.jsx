@@ -8,6 +8,7 @@ import { doc, getDoc, collection, getDocs, query, where, count, getCountFromServ
 
 import { useUnseenCounts } from '../hooks/useUnseenCounts';
 import { getLocalDateString } from '../utils/dateUtils';
+import { useGlobalSettings } from '../context/GlobalSettingsContext';
 
 const SystemHealthCard = ({ health, onClick }) => (
     <div
@@ -57,6 +58,7 @@ const SystemHealthCard = ({ health, onClick }) => (
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
+    const { appVersion } = useGlobalSettings();
     const [stats, setStats] = useState(null);
     const [geoStats, setGeoStats] = useState(null);
     const [geoView, setGeoView] = useState('overall'); // 'overall' or 'monthly'
@@ -605,21 +607,17 @@ Otherwise, it stays 'Good'.`;
                     >
                         <Database size={18} /> Sync
                     </button>
-                    <button
-                        onClick={handleClearAll}
-                        style={{
-                            padding: '12px',
-                            borderRadius: '12px',
-                            backgroundColor: '#fee2e2',
-                            border: 'none',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: '#b91c1c'
-                        }}
-                    >
-                        <RefreshCcw size={18} style={{ transform: 'rotate(45deg)' }} />
-                    </button>
+                </div>
+
+                <div style={{
+                    textAlign: 'center',
+                    marginTop: '20px',
+                    paddingBottom: '20px',
+                    color: '#9ca3af',
+                    fontSize: '12px',
+                    fontWeight: '500'
+                }}>
+                    {import.meta.env.MODE} | v{appVersion}
                 </div>
             </div>
         </div>

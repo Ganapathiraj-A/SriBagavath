@@ -12,7 +12,8 @@ import {
     Search,
     Filter,
     FileDown,
-    CalendarDays
+    CalendarDays,
+    RefreshCw
 } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { db } from '../firebase';
@@ -28,6 +29,9 @@ const BankStatementView = () => {
     // Fetched bank entries will go here
     const [bankEntries, setBankEntries] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [lastVisible, setLastVisible] = useState(null);
+    const [hasMore, setHasMore] = useState(true);
     const [selectedEntry, setSelectedEntry] = useState(null);
     const [activeTab, setActiveTab] = useState('All Entries');
     const [viewingImage, setViewingImage] = useState(null);
@@ -38,23 +42,67 @@ const BankStatementView = () => {
     const [exporting, setExporting] = useState(false);
 
     useEffect(() => {
-        const q = query(collection(db, 'bank_entries'), orderBy('timestamp', 'desc'));
-        const unsubscribe = onSnapshot(q, (snapshot) => {
+        fetchInitialEntries();
+    }, []);
+
+    const fetchInitialEntries = async () => {
+        setLoading(true);
+        try {
+            const { collection, query, orderBy, limit, getDocs } = await import('firebase/firestore');
+            const ref = collection(db, 'bank_entries');
+            const q = query(ref, orderBy('timestamp', 'desc'), limit(30));
+            const snapshot = await getDocs(q);
+
             const entries = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             }));
-            setBankEntries(entries);
-            setLoading(false);
-        });
 
-        return () => unsubscribe();
-    }, []);
+            setBankEntries(entries);
+            setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
+            setHasMore(snapshot.docs.length === 30);
+        } catch (error) {
+            console.error("Error fetching bank entries:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const loadMore = async () => {
+        if (!lastVisible || loadingMore) return;
+        setLoadingMore(true);
+        try {
+            const { collection, query, orderBy, limit, startAfter, getDocs } = await import('firebase/firestore');
+            const ref = collection(db, 'bank_entries');
+            const q = query(ref, orderBy('timestamp', 'desc'), startAfter(lastVisible), limit(30));
+            const snapshot = await getDocs(q);
+
+            const newEntries = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+
+            setBankEntries(prev => [...prev, ...newEntries]);
+            setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
+            setHasMore(snapshot.docs.length === 30);
+        } catch (error) {
+            console.error("Error loading more entries:", error);
+        } finally {
+            setLoadingMore(false);
+        }
+    };
 
     const counts = {
         'All Entries': bankEntries.length,
         'Matched': bankEntries.filter(e => e.status === 'MATCHED').length,
         'Unmatched': bankEntries.filter(e => e.status === 'UNMATCHED').length,
+    };
+
+    const handleRefresh = () => {
+        setSearchQuery('');
+        setStartDate('');
+        setEndDate('');
+        fetchInitialEntries();
     };
 
     const handleRunMatch = async () => {
@@ -417,38 +465,50 @@ const BankStatementView = () => {
                         </motion.div>
                     )}
 
-                    <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem', alignItems: 'center' }}>
-                        {['All Entries', 'Matched', 'Unmatched'].map(filter => (
-                            <button
-                                key={filter}
-                                onClick={() => setActiveTab(filter)}
-                                style={{
-                                    padding: '0.5rem 1rem',
-                                    backgroundColor: activeTab === filter ? 'var(--color-primary)' : 'white',
-                                    color: activeTab === filter ? 'white' : '#4b5563',
-                                    border: '1px solid #e5e7eb',
-                                    borderRadius: '2rem',
-                                    fontSize: '0.8125rem',
-                                    whiteSpace: 'nowrap',
-                                    fontWeight: 500,
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '6px'
-                                }}
-                            >
-                                {filter}
-                                <span style={{
-                                    backgroundColor: activeTab === filter ? 'rgba(255,255,255,0.2)' : '#f3f4f6',
-                                    padding: '2px 6px',
-                                    borderRadius: '10px',
-                                    fontSize: '0.7rem'
-                                }}>
-                                    {counts[filter]}
-                                </span>
-                            </button>
-                        ))}
+                    <div style={{
+                        display: 'flex',
+                        borderBottom: '1px solid #e5e7eb',
+                        gap: '24px',
+                        marginBottom: '0.5rem',
+                        overflowX: 'auto',
+                        scrollbarWidth: 'none'
+                    }}>
+                        {['All Entries', 'Matched', 'Unmatched'].map(filter => {
+                            const isActive = activeTab === filter;
+                            return (
+                                <button
+                                    key={filter}
+                                    onClick={() => setActiveTab(filter)}
+                                    style={{
+                                        padding: '12px 4px',
+                                        border: 'none',
+                                        borderBottom: isActive ? '2px solid var(--color-primary)' : '2px solid transparent',
+                                        backgroundColor: 'transparent',
+                                        color: isActive ? 'var(--color-primary)' : '#6b7280',
+                                        fontWeight: isActive ? 700 : 500,
+                                        fontSize: '0.9rem',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px',
+                                        whiteSpace: 'nowrap'
+                                    }}
+                                >
+                                    {filter}
+                                    <span style={{
+                                        backgroundColor: isActive ? 'var(--color-secondary)' : '#f3f4f6',
+                                        color: isActive ? 'var(--color-primary)' : '#6b7280',
+                                        padding: '2px 8px',
+                                        borderRadius: '10px',
+                                        fontSize: '0.75rem',
+                                        fontWeight: 600
+                                    }}>
+                                        {counts[filter]}
+                                    </span>
+                                </button>
+                            );
+                        })}
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -524,6 +584,31 @@ const BankStatementView = () => {
                                 </div>
                             ))
                         )}
+                        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1.5rem', marginBottom: '1.5rem' }}>
+                            {hasMore && (
+                                <button
+                                    onClick={loadMore}
+                                    disabled={loadingMore}
+                                    style={{
+                                        padding: '0.75rem 1.5rem',
+                                        backgroundColor: 'white',
+                                        color: 'var(--color-primary)',
+                                        border: '1px solid var(--color-primary)',
+                                        borderRadius: '0.75rem',
+                                        fontWeight: 600,
+                                        cursor: loadingMore ? 'not-allowed' : 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem'
+                                    }}
+                                >
+                                    {loadingMore ? 'Loading...' : 'Load More Entries'}
+                                </button>
+                            )}
+                            {!hasMore && bankEntries.length > 0 && (
+                                <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>No more entries to load</span>
+                            )}
+                        </div>
                     </div>
                 </motion.div>
             </main>

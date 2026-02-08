@@ -1,12 +1,18 @@
 {
   "name": "sri-bagavath",
   "private": true,
-  "version": "2.8.362",
+  "version": "3.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "build:dev": "vite build --mode development",
+    "build:apk:dev": "./build.sh dev",
+    "build:apk:prod": "./build.sh prod",
+    "build:aab:prod": "./build.sh prod-aab",
+    "publish:dev": "./publish.sh dev",
+    "publish:prod": "./publish.sh prod",
+    "publish:aab:prod": "./publish.sh prod-aab",
     "lint": "eslint .",
     "preview": "vite preview"
   },

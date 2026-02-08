@@ -6,6 +6,7 @@ import { Capacitor } from '@capacitor/core';
 import { TransactionService } from '../services/TransactionService';
 import PageHeader from '../components/PageHeader';
 import { compressImage } from '../utils/imageUtils';
+import OCR from '../plugins/OCRPlugin';
 import '../components/RegistrationStyles.css';
 
 const TABS = ['PENDING', 'REGISTERED', 'HOLD', 'COMPLETED'];
@@ -295,6 +296,56 @@ const AdminReview = () => {
         }
     };
 
+    const handleUpdateReceiptInModal = async (e) => {
+        if (!viewingImage) return;
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+            setSavingDetails(true); // Reuse savingDetails for modal loading
+            const base64 = await compressImage(file);
+
+            // 1. Run OCR on new image
+            let ocrRes = { rawText: '', transactionId: '', amount: null };
+            try {
+                const result = await OCR.detectText({ base64Image: base64 });
+                ocrRes = {
+                    rawText: result.rawText || '',
+                    transactionId: result.transactionId || '',
+                    amount: result.amount || null
+                };
+            } catch (ocrErr) {
+                console.warn("OCR failed during update", ocrErr);
+            }
+
+            // 2. Upload to storage
+            await TransactionService.uploadReceipt(viewingImage.id, base64);
+
+            // 3. Update Meta in Firestore (Update OCR Text)
+            await TransactionService.updateTransactionDetails(viewingImage.id, {
+                ocrText: ocrRes.rawText
+            });
+
+            // 4. Update Modal UI State
+            setViewingImage(prev => ({
+                ...prev,
+                base64: base64,
+                ocrText: ocrRes.rawText
+            }));
+
+            if (ocrRes.transactionId) setEditingUtrValue(ocrRes.transactionId);
+            if (ocrRes.amount) setEditingParsedAmountValue(ocrRes.amount.toString());
+
+            alert("Receipt updated and re-processed successfully!");
+        } catch (error) {
+            console.error("Receipt update failed", error);
+            alert("Update failed: " + error.message);
+        } finally {
+            setSavingDetails(false);
+            if (e.target) e.target.value = ''; // Reset input
+        }
+    };
+
     const handleSaveDetails = async () => {
         if (!viewingImage || savingDetails) return;
         setSavingDetails(true);
@@ -395,9 +446,37 @@ const AdminReview = () => {
                                 <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: '#111827' }}>Verify Receipt</h2>
                                 <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '2px' }}>Check UTR and Amount against the image</div>
                             </div>
-                            <button onClick={() => setViewingImage(null)} style={{ border: 'none', background: '#f3f4f6', padding: '8px', borderRadius: '50%', cursor: 'pointer' }}>
-                                <X size={20} color="#6b7280" />
-                            </button>
+                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                <button
+                                    onClick={() => document.getElementById('modal-receipt-update').click()}
+                                    disabled={savingDetails}
+                                    style={{
+                                        border: 'none',
+                                        background: '#eff6ff',
+                                        padding: '8px 12px',
+                                        borderRadius: '8px',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px',
+                                        color: '#2563eb',
+                                        fontSize: '13px',
+                                        fontWeight: 600
+                                    }}
+                                >
+                                    <Image size={16} /> Update Receipt
+                                </button>
+                                <input
+                                    type="file"
+                                    id="modal-receipt-update"
+                                    style={{ display: 'none' }}
+                                    accept="image/*"
+                                    onChange={handleUpdateReceiptInModal}
+                                />
+                                <button onClick={() => setViewingImage(null)} style={{ border: 'none', background: '#f3f4f6', padding: '8px', borderRadius: '50%', cursor: 'pointer' }}>
+                                    <X size={20} color="#6b7280" />
+                                </button>
+                            </div>
                         </div>
 
                         {/* Receipt Image */}

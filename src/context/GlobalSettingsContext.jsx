@@ -22,7 +22,7 @@ export const GlobalSettingsProvider = ({ children }) => {
     // Firestore Global Settings (Functional)
     const [settings, setSettings] = useState({
         onlineTransactionsEnabled: true,
-        minAppVersion: '2.8.345',
+        minAppVersion: '3.0.0',
         bankPassword: '',
         sheetLink: 'https://docs.google.com/spreadsheets/d/1TtzVIK28OidQQb2cuuHNqrcuSiUGgM-q28xkJHLyWrs/edit',
         scriptUrl: 'https://script.google.com/macros/s/AKfycbwceASoBU6CCZFOtNg5QSjsIXrA6fzK9kBvMbkCEBuh4FabjRNXU0P-7NRGwRNXCNzBHg/exec',
@@ -40,8 +40,10 @@ export const GlobalSettingsProvider = ({ children }) => {
     // Firestore Per-User Settings (Developer Options)
     const [userSettings, setUserSettings] = useState(DEFAULT_USER_SETTINGS);
 
-    const [appVersion, setAppVersion] = useState('0.0.0');
-    const [loading, setLoading] = useState(true);
+    // Injected by Vite via package.json
+    const APP_VERSION_TAG = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '3.0.0';
+
+    const [appVersion, setAppVersion] = useState(APP_VERSION_TAG);
     const [currentUser, setCurrentUser] = useState(null);
 
     const LATEST_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwceASoBU6CCZFOtNg5QSjsIXrA6fzK9kBvMbkCEBuh4FabjRNXU0P-7NRGwRNXCNzBHg/exec';
@@ -55,14 +57,14 @@ export const GlobalSettingsProvider = ({ children }) => {
                     setAppVersion(info.version);
                 } catch (e) {
                     console.error("Error fetching app info:", e);
-                    setAppVersion('2.8.345');
+                    setAppVersion(APP_VERSION_TAG);
                 }
             } else {
-                setAppVersion('2.8.345');
+                setAppVersion(APP_VERSION_TAG);
             }
         };
         fetchVersion();
-    }, []);
+    }, [APP_VERSION_TAG]);
 
     // 2. Auth state Listener + User Settings Sync
     useEffect(() => {
@@ -110,13 +112,12 @@ export const GlobalSettingsProvider = ({ children }) => {
                     // For now, let's just use what's in Firestore.
                 }
                 setSettings(prev => ({ ...prev, ...data }));
-                setLoading(false);
             } else {
                 // Perform one-time migration from LocalStorage if Firestore is completely empty
                 console.log("Global settings not found in Firestore. Migrating from LocalStorage...");
                 const initData = {
                     onlineTransactionsEnabled: true,
-                    minAppVersion: '2.8.345',
+                    minAppVersion: '3.0.0',
                     bankPassword: localStorage.getItem('bank_statement_password') || '',
                     sheetLink: localStorage.getItem('admin_import_export_sheet_url') || settings.sheetLink,
                     scriptUrl: localStorage.getItem('admin_import_export_script_url') || settings.scriptUrl,
@@ -132,11 +133,9 @@ export const GlobalSettingsProvider = ({ children }) => {
                 };
                 await setDoc(docRef, initData);
                 setSettings(initData);
-                setLoading(false);
             }
         }, (error) => {
             console.error("Error fetching global settings:", error);
-            setLoading(false);
         });
         return () => unsubscribeGlobal();
     }, []);
@@ -211,10 +210,9 @@ export const GlobalSettingsProvider = ({ children }) => {
             setServerUrl: (val) => updateUser({ serverUrl: val }),
             setLandingPage: (val) => updateUser({ landingPage: val }),
 
-            appVersion,
-            loading
+            appVersion
         }}>
-            {!loading && children}
+            {children}
         </GlobalSettingsContext.Provider>
     );
 };

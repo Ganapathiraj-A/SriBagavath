@@ -19,9 +19,24 @@ const AyyasSchedule = () => {
         const fetchSchedules = async () => {
             if (authGlobalLoading) return;
             try {
+                const { getDocsFromCache, getDocsFromServer } = await import('firebase/firestore');
+                const { needsServerSync, markSyncedLocally } = await import('../utils/SyncManager');
+
                 const schedulesRef = collection(db, 'schedules');
                 const q = query(schedulesRef, orderBy('fromDate', 'asc'));
-                const querySnapshot = await getDocs(q);
+
+                const needsSync = needsServerSync('schedules');
+                let querySnapshot;
+                try {
+                    querySnapshot = await getDocsFromCache(q);
+                    if (querySnapshot.empty || needsSync) {
+                        querySnapshot = await getDocsFromServer(q);
+                        markSyncedLocally('schedules');
+                    }
+                } catch (e) {
+                    querySnapshot = await getDocs(q);
+                    markSyncedLocally('schedules');
+                }
 
                 const schedulesList = querySnapshot.docs.map(doc => ({
                     id: doc.id,
@@ -36,7 +51,6 @@ const AyyasSchedule = () => {
                     return endDate >= today;
                 });
 
-                // Already sorted by 'fromDate' due to query
                 setSchedules(currentAndUpcoming);
             } catch (error) {
                 console.error("Error fetching schedules: ", error);

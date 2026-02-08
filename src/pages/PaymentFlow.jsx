@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useGlobalSettings } from '../context/GlobalSettingsContext';
+import { db } from '../firebase';
 import { Camera, CameraResultType } from '@capacitor/camera';
 import { App } from '@capacitor/app';
 import { Trash2, CheckCircle2, QrCode as QrIcon, Camera as CameraIcon, PlayCircle, Eye, EyeOff, ChevronDown, ChevronUp } from 'lucide-react';
@@ -16,6 +18,7 @@ import { useCart } from '../context/CartContext';
 // Type Steps matching SBB App
 // SELECTION is skipped as we come from Registration
 const PaymentFlow = () => {
+    const { appVersion } = useGlobalSettings();
     const location = useLocation();
     const navigate = useNavigate();
     const { clearCart } = useCart();
@@ -103,7 +106,7 @@ const PaymentFlow = () => {
             const result = await OCR.detectText({ base64Image: base64 });
             setRawText(result.rawText || "");
             if (result.transactionId) setUtr(result.transactionId);
-            setOcrStatus(result.transactionId ? `Ref: ${result.transactionId}` : "No Ref Found");
+            setOcrStatus(result.transactionId ? `Ref: ${result.transactionId} ` : "No Ref Found");
 
             if (result.amount) {
                 setParsedAmount(result.amount);
@@ -125,7 +128,7 @@ const PaymentFlow = () => {
                     return;
                 }
 
-                const appVer = "2.8.341";
+                const appVer = appVersion;
                 const res = await OCR.checkSharedImage();
                 if (res && res.base64) {
                     if (pollInterval) clearInterval(pollInterval);
@@ -368,7 +371,7 @@ const PaymentFlow = () => {
                     {itemType !== 'BOOK' && (programDate || programCity) && (
                         <div style={{ fontSize: '13px', fontWeight: 'normal', color: '#666', marginTop: '2px' }}>
                             {formatProgramDate(programDate)}
-                            {programCity ? ` • ${programCity}` : ''}
+                            {programCity ? ` • ${programCity} ` : ''}
                         </div>
                     )}
                 </h3>
@@ -517,7 +520,7 @@ const PaymentFlow = () => {
                             maxWidth: '90%'
                         }}>
                             <img
-                                src={`data:image/jpeg;base64,${viewingImage}`}
+                                src={`data: image / jpeg; base64, ${viewingImage} `}
                                 alt="Receipt"
                                 style={{ width: '100%', borderRadius: '8px', maxHeight: '75vh', objectFit: 'contain' }}
                             />

@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Plus, Edit2, Trash2, ChevronLeft, LogOut, Package, Image as ImageIcon, BookOpen, X, ChevronUp, ChevronDown } from 'lucide-react';
+import { Plus, Edit2, Trash2, ChevronLeft, LogOut, Package, Image as ImageIcon, BookOpen, X, ChevronUp, ChevronDown, RefreshCw } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
+import LazyImage from '../components/LazyImage';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
 import { db, storage, auth } from '../firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, setDoc, query, orderBy, serverTimestamp, getDoc } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import { StatsService } from '../services/StatsService';
+import { bumpServerVersion } from '../utils/SyncManager';
 
 // Helper to compress image to Base64
 const compressImage = (file) => {
@@ -87,10 +89,12 @@ const AdminBookManagement = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const [books, setBooks] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [lastVisible, setLastVisible] = useState(null);
+    const [hasMore, setHasMore] = useState(true);
     const [uploading, setUploading] = useState(false);
     const [coverImage, setCoverImage] = useState(null);
     const [activeTab, setActiveTab] = useState('Tamil Books');
-    const [covers, setCovers] = useState({});
 
     const action = searchParams.get('action');
     const editingId = searchParams.get('id');
@@ -125,16 +129,11 @@ const AdminBookManagement = () => {
 
             if (editingBook.hasCover) {
                 const fetchCover = async () => {
-                    if (covers[editingBook.id]) {
-                        setFormData(prev => ({ ...prev, coverUrl: covers[editingBook.id] }));
-                        return;
-                    }
                     try {
                         const snap = await getDoc(doc(db, 'book_covers', editingBook.id));
                         if (snap.exists()) {
                             const url = snap.data().cover;
                             setFormData(prev => ({ ...prev, coverUrl: url }));
-                            setCovers(prev => ({ ...prev, [editingBook.id]: url }));
                         }
                     } catch (e) {
                         console.error("Cover fetch failed", e);
@@ -148,41 +147,48 @@ const AdminBookManagement = () => {
         }
     }, [editingBook, action, activeTab]);
 
-    const loadBooks = async () => {
+    useEffect(() => {
+        loadBooks(true);
+    }, [activeTab]);
+
+    const loadBooks = async (initial = false) => {
+        if (initial) setLoading(true);
+        else setLoadingMore(true);
+
         try {
-            setLoading(true);
-            const querySnapshot = await getDocs(query(collection(db, 'books'), orderBy('order', 'asc')));
+            const { limit, startAfter } = await import('firebase/firestore');
+            const ref = collection(db, 'books');
+            let q = query(
+                ref,
+                where('category', '==', activeTab),
+                orderBy('order', 'asc'),
+                limit(20)
+            );
+
+            if (!initial && lastVisible) {
+                q = query(q, startAfter(lastVisible));
+            }
+
+            const querySnapshot = await getDocs(q);
             const loadedBooks = querySnapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             }));
-            setBooks(loadedBooks);
 
-            // Fetch covers
-            const booksWithCovers = loadedBooks.filter(b => b.hasCover);
-            const coverPromises = booksWithCovers.map(async (book) => {
-                try {
-                    const coverSnap = await getDoc(doc(db, 'book_covers', book.id));
-                    if (coverSnap.exists()) {
-                        return { id: book.id, cover: coverSnap.data().cover };
-                    }
-                } catch (e) {
-                    console.error(`Error fetching cover for ${book.title}: `, e);
-                }
-                return null;
-            });
+            if (initial) {
+                setBooks(loadedBooks);
+            } else {
+                setBooks(prev => [...prev, ...loadedBooks]);
+            }
 
-            const resolvedCovers = await Promise.all(coverPromises);
-            const coverMap = {};
-            resolvedCovers.forEach(c => {
-                if (c) coverMap[c.id] = c.cover;
-            });
-            setCovers(coverMap);
+            setLastVisible(querySnapshot.docs[querySnapshot.docs.length - 1]);
+            setHasMore(querySnapshot.docs.length === 20);
 
         } catch (error) {
             console.error('Error loading books:', error);
         } finally {
             setLoading(false);
+            setLoadingMore(false);
         }
     };
 
@@ -242,9 +248,11 @@ const AdminBookManagement = () => {
 
             if (finalCoverUrl && (coverImage || finalCoverUrl !== editingBook?.coverUrl)) {
                 // If editing and had a previous cover, decrement the old size first
-                if (editingBook?.hasCover && covers[bookId]) {
-                    const oldSizeInBytes = covers[bookId].length * 0.75;
-                    await StatsService.recordImage(-oldSizeInBytes, 'BOOK_COVER');
+                // If editing and had a previous cover, we record stats
+                if (editingBook?.hasCover) {
+                    // Note: We don't have accurate old size here without re-fetching, 
+                    // but we can estimate or skip for performance
+                    // await StatsService.recordImage(-oldSizeInBytes, 'BOOK_COVER');
                 }
 
                 await setDoc(doc(db, 'book_covers', bookId), {
@@ -259,6 +267,7 @@ const AdminBookManagement = () => {
                 setCovers(prev => ({ ...prev, [bookId]: finalCoverUrl }));
             }
 
+            await bumpServerVersion(`bookstore_${formData.category}`);
             alert(editingBook ? 'Book updated!' : 'Book added!');
             setSearchParams({}, { replace: true });
             resetForm();
@@ -282,6 +291,12 @@ const AdminBookManagement = () => {
 
                 await deleteDoc(doc(db, 'books', bookId));
                 await deleteDoc(doc(db, 'book_covers', bookId)).catch(() => { });
+
+                const deletedBook = books.find(b => b.id === bookId);
+                if (deletedBook) {
+                    await bumpServerVersion(`bookstore_${deletedBook.category}`);
+                }
+
                 alert('Book deleted!');
                 setSearchParams({}, { replace: true });
                 loadBooks();
@@ -438,13 +453,14 @@ const AdminBookManagement = () => {
                                         onClick={() => setSearchParams({ action: 'edit', id: book.id })}
                                         style={{ padding: '0.75rem 1rem', backgroundColor: 'white', borderRadius: '1.25rem', boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)', display: 'flex', alignItems: 'center', gap: '1rem', border: '1px solid #e5e7eb', cursor: 'pointer' }}
                                     >
-                                        <div style={{ width: '48px', height: '64px', backgroundColor: '#f3f4f6', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: '1px solid #e5e7eb', flexShrink: 0 }}>
-                                            {covers[book.id] ? (
-                                                <img src={covers[book.id]} alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                            ) : (
-                                                <BookOpen size={20} color="#9ca3af" />
-                                            )}
-                                        </div>
+                                        <LazyImage
+                                            firestorePath={`book_covers/${book.id}`}
+                                            alt={book.title}
+                                            width="48px"
+                                            height="64px"
+                                            borderRadius="8px"
+                                            placeholder={() => <BookOpen size={20} color="#9ca3af" />}
+                                        />
 
                                         <div style={{ flex: 1, minWidth: 0 }}>
                                             <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: '#111827', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{book.title}</h3>
@@ -471,6 +487,29 @@ const AdminBookManagement = () => {
                                         </div>
                                     </div>
                                 ))}
+                                {hasMore && (
+                                    <div style={{ display: 'flex', justifyContent: 'center', padding: '1rem' }}>
+                                        <button
+                                            onClick={() => loadBooks(false)}
+                                            disabled={loadingMore}
+                                            style={{
+                                                padding: '0.75rem 1.5rem',
+                                                backgroundColor: 'white',
+                                                color: 'var(--color-primary)',
+                                                border: '1px solid var(--color-primary)',
+                                                borderRadius: '0.75rem',
+                                                fontWeight: 600,
+                                                cursor: loadingMore ? 'wait' : 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.5rem'
+                                            }}
+                                        >
+                                            {loadingMore ? <RefreshCw size={18} className="animate-spin" /> : null}
+                                            Load More Books
+                                        </button>
+                                    </div>
+                                )}
                                 {filteredBooks.length === 0 && (
                                     <div style={{ textAlign: 'center', padding: '3rem 1rem', backgroundColor: 'white', borderRadius: '1rem', border: '1px dashed #d1d5db' }}>
                                         <BookOpen size={40} color="#d1d5db" style={{ marginBottom: '1rem' }} />

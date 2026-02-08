@@ -127,30 +127,29 @@ const DailyZoomTeacherManagement = () => {
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
                     <div style={{ backgroundColor: 'white', borderRadius: '1rem', padding: '1.5rem', boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)', marginBottom: '2rem' }}>
                         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                <div style={{ display: 'grid', gap: '0.4rem' }}>
-                                    <label style={{ fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>Name</label>
-                                    <input
-                                        type="text"
-                                        name="name"
-                                        value={formData.name}
-                                        onChange={handleInputChange}
-                                        required
-                                        placeholder="Full Name"
-                                        style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
-                                    />
-                                </div>
-                                <div style={{ display: 'grid', gap: '0.4rem' }}>
-                                    <label style={{ fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>Phone Number</label>
-                                    <input
-                                        type="tel"
-                                        name="phoneNumber"
-                                        value={formData.phoneNumber}
-                                        onChange={handleInputChange}
-                                        placeholder="+91 ..."
-                                        style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
-                                    />
-                                </div>
+                            <div style={{ display: 'grid', gap: '0.4rem' }}>
+                                <label style={{ fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>Name</label>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleInputChange}
+                                    required
+                                    placeholder="Full Name"
+                                    style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
+                                />
+                            </div>
+
+                            <div style={{ display: 'grid', gap: '0.4rem' }}>
+                                <label style={{ fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>Phone Number</label>
+                                <input
+                                    type="tel"
+                                    name="phoneNumber"
+                                    value={formData.phoneNumber}
+                                    onChange={handleInputChange}
+                                    placeholder="+91 ..."
+                                    style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
+                                />
                             </div>
 
                             <div style={{ display: 'grid', gap: '0.4rem' }}>
@@ -167,11 +166,40 @@ const DailyZoomTeacherManagement = () => {
 
                             <div style={{ display: 'grid', gap: '0.4rem' }}>
                                 <label style={{ fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>Photo</label>
-                                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                                    <div style={{ width: '4rem', height: '4rem', borderRadius: '50%', backgroundColor: '#f3f4f6', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #e5e7eb' }}>
-                                        {formData.image ? <img src={formData.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <User size={24} color="#9ca3af" />}
+                                <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center', backgroundColor: '#f9fafb', padding: '1rem', borderRadius: '0.75rem', border: '1px dashed #d1d5db' }}>
+                                    <div style={{ width: '4.5rem', height: '4.5rem', borderRadius: '1rem', backgroundColor: 'white', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid white', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', flexShrink: 0 }}>
+                                        {formData.image ? <img src={formData.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <User size={28} color="#9ca3af" />}
                                     </div>
-                                    <input type="file" accept="image/*" onChange={handleImageUpload} style={{ fontSize: '0.875rem' }} />
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
+                                        <input
+                                            id="teacher-photo"
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleImageUpload}
+                                            style={{ display: 'none' }}
+                                        />
+                                        <label
+                                            htmlFor="teacher-photo"
+                                            style={{
+                                                padding: '0.5rem 0.75rem',
+                                                backgroundColor: 'white',
+                                                border: '1px solid #d1d5db',
+                                                borderRadius: '0.5rem',
+                                                fontSize: '0.85rem',
+                                                fontWeight: 600,
+                                                color: '#374151',
+                                                cursor: 'pointer',
+                                                textAlign: 'center',
+                                                boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                                            }}
+                                        >
+                                            <ImageIcon size={16} style={{ verticalAlign: 'middle', marginRight: '6px' }} />
+                                            {formData.image ? 'Change Photo' : 'Choose Photo'}
+                                        </label>
+                                        <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                                            JPG or PNG recommended
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
 

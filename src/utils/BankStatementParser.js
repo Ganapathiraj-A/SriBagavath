@@ -1,7 +1,14 @@
-import * as pdfjsLib from 'pdfjs-dist';
+// pdfjsLib will be loaded dynamically
+let pdfjsLib = null;
 
-// Set worker path to local file for better reliability in Capacitor/Android environments
-pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+const ensurePdfJsLoaded = async () => {
+    if (!pdfjsLib) {
+        pdfjsLib = await import('pdfjs-dist');
+        // Set worker path to local file for better reliability in Capacitor/Android environments
+        pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+    }
+    return pdfjsLib;
+};
 
 const generateFingerprint = (date, amount, desc) => {
     const raw = `${date}_${amount}_${desc}`.replace(/\s+/g, ' ');
@@ -28,8 +35,9 @@ export const parseHdfcStatement = async (file, password) => {
 
     for (const pw of passwordsToTry) {
         try {
+            const lib = await ensurePdfJsLoaded();
             const arrayBuffer = await file.arrayBuffer();
-            const loadingTask = pdfjsLib.getDocument({
+            const loadingTask = lib.getDocument({
                 data: arrayBuffer,
                 password: pw
             });

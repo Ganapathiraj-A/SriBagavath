@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { IndianRupee, ShoppingCart, ChevronLeft, Plus, Minus, Info } from 'lucide-react';
+import { IndianRupee, ShoppingCart, ChevronLeft, Plus, Minus, Info, RefreshCw } from 'lucide-react';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
 import { ensureGoogleAuthInitialized } from '../utils/GoogleAuthUtils';
 import PageHeader from '../components/PageHeader';
+import LazyImage from '../components/LazyImage';
 import { auth, db } from '../firebase';
 import { collection, getDocs, query, orderBy, doc, getDoc } from 'firebase/firestore';
 import { GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
@@ -19,7 +20,9 @@ const BookStore = () => {
     const { loading: authGlobalLoading } = useAdminAuth();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [covers, setCovers] = useState({});
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [lastVisible, setLastVisible] = useState(null);
+    const [hasMore, setHasMore] = useState(true);
     const [activeTab, setActiveTab] = useState('Tamil Books');
     const [authLoading, setAuthLoading] = useState(false);
     const { onlineTransactionsEnabled } = useGlobalSettings();
@@ -76,46 +79,70 @@ const BookStore = () => {
 
     useEffect(() => {
         if (!authGlobalLoading) {
-            loadBooks();
+            loadBooks(true);
         }
-    }, [authGlobalLoading]);
+    }, [authGlobalLoading, activeTab]);
 
-    const loadBooks = async () => {
+    const loadBooks = async (initial = false) => {
         if (authGlobalLoading) return;
+        if (initial) setLoading(true);
+        else setLoadingMore(true);
+
         try {
-            setLoading(true);
-            const querySnapshot = await getDocs(query(collection(db, 'books'), orderBy('title', 'asc')));
+            const { collection, query, orderBy, limit, getDocs, where, startAfter, getDocsFromCache, getDocsFromServer } = await import('firebase/firestore');
+            const { needsServerSync, markSyncedLocally } = await import('../utils/SyncManager');
+
+            const ref = collection(db, 'books');
+            let q = query(
+                ref,
+                where('category', '==', activeTab),
+                orderBy('title', 'asc'),
+                limit(16)
+            );
+
+            if (!initial && lastVisible) {
+                q = query(q, startAfter(lastVisible));
+            }
+
+            // Strategy for page 1: Version-Based Sync
+            // For subsequent pages (pagination), we always go to server or trust the SDK cache
+            let querySnapshot;
+            if (initial) {
+                const collectionId = `bookstore_${activeTab}`;
+                const needsSync = needsServerSync(collectionId);
+                try {
+                    querySnapshot = await getDocsFromCache(q);
+                    if (querySnapshot.empty || needsSync) {
+                        querySnapshot = await getDocsFromServer(q);
+                        markSyncedLocally(collectionId);
+                    }
+                } catch (e) {
+                    querySnapshot = await getDocs(q);
+                    markSyncedLocally(collectionId);
+                }
+            } else {
+                querySnapshot = await getDocs(q);
+            }
+
             const loadedBooks = querySnapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             }));
-            setProducts(loadedBooks);
 
-            // Fetch covers for books that have them
-            const booksWithCovers = loadedBooks.filter(b => b.hasCover);
-            const coverPromises = booksWithCovers.map(async (book) => {
-                try {
-                    const coverSnap = await getDoc(doc(db, 'book_covers', book.id));
-                    if (coverSnap.exists()) {
-                        return { id: book.id, cover: coverSnap.data().cover };
-                    }
-                } catch (e) {
-                    console.error(`Error fetching cover for ${book.title}:`, e);
-                }
-                return null;
-            });
+            if (initial) {
+                setProducts(loadedBooks);
+            } else {
+                setProducts(prev => [...prev, ...loadedBooks]);
+            }
 
-            const resolvedCovers = await Promise.all(coverPromises);
-            const coverMap = {};
-            resolvedCovers.forEach(c => {
-                if (c) coverMap[c.id] = c.cover;
-            });
-            setCovers(coverMap);
+            setLastVisible(querySnapshot.docs[querySnapshot.docs.length - 1]);
+            setHasMore(querySnapshot.docs.length === 16);
 
         } catch (error) {
             console.error('Error loading bookstore books:', error);
         } finally {
             setLoading(false);
+            setLoadingMore(false);
         }
     };
 
@@ -171,6 +198,7 @@ const BookStore = () => {
                 <button
                     onClick={handleViewOrders}
                     disabled={authLoading}
+                    aria-label="View My Orders"
                     style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -202,13 +230,14 @@ const BookStore = () => {
                         onClick={() => navigate(`/book/${product.id}`)}
                         style={{ display: 'flex', gap: '12px', alignItems: 'center', padding: '12px', cursor: 'pointer', position: 'relative' }}
                     >
-                        <div style={{ width: '60px', height: '80px', backgroundColor: '#f3f4f6', borderRadius: '6px', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #f1f5f9' }}>
-                            {covers[product.id] ? (
-                                <img src={covers[product.id]} alt={product.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                            ) : (
-                                <div style={{ color: '#9ca3af', fontSize: '10px', textAlign: 'center', padding: '4px' }}>No Cover</div>
-                            )}
-                        </div>
+                        <LazyImage
+                            firestorePath={`book_covers/${product.id}`}
+                            alt={product.title}
+                            width="60px"
+                            height="80px"
+                            borderRadius="6px"
+                            placeholder={() => <div style={{ color: '#9ca3af', fontSize: '10px', textAlign: 'center', padding: '4px' }}>No Cover</div>}
+                        />
                         <div style={{ flex: 1, minWidth: 0 }}>
                             <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: '#111827', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{product.title}</h3>
                             <p style={{ margin: '4px 0 0 0', color: 'var(--color-primary)', fontWeight: 700, fontSize: '0.95rem' }}>₹{product.price}</p>
@@ -227,6 +256,7 @@ const BookStore = () => {
                                             <button
                                                 onClick={() => handleRemoveFromCart(product)}
                                                 disabled={authLoading}
+                                                aria-label={`Remove ${product.title} from cart`}
                                                 style={{ width: '32px', height: '32px', borderRadius: '50%', border: '1px solid #e5e7eb', background: 'white', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: authLoading ? 'wait' : 'pointer' }}
                                             >
                                                 <Minus size={16} />
@@ -237,6 +267,7 @@ const BookStore = () => {
                                     <button
                                         onClick={() => handleAddToCart(product)}
                                         disabled={authLoading}
+                                        aria-label={`Add ${product.title} to cart`}
                                         style={{ width: '32px', height: '32px', borderRadius: '50%', border: 'none', background: 'var(--color-primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: authLoading ? 'wait' : 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
                                     >
                                         <Plus size={16} />
@@ -246,6 +277,29 @@ const BookStore = () => {
                         </div>
                     </motion.div>
                 ))}
+                {hasMore && (
+                    <div style={{ display: 'flex', justifyContent: 'center', padding: '1rem' }}>
+                        <button
+                            onClick={() => loadBooks(false)}
+                            disabled={loadingMore}
+                            style={{
+                                padding: '0.75rem 1.5rem',
+                                backgroundColor: 'white',
+                                color: 'var(--color-primary)',
+                                border: '1px solid var(--color-primary)',
+                                borderRadius: '0.75rem',
+                                fontWeight: 600,
+                                cursor: loadingMore ? 'wait' : 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem'
+                            }}
+                        >
+                            {loadingMore ? <RefreshCw size={18} className="animate-spin" /> : null}
+                            Load More Books
+                        </button>
+                    </div>
+                )}
             </div>
 
             {filteredProducts.length === 0 && !loading && (

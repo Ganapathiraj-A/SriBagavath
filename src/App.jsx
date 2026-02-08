@@ -1,77 +1,79 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
-import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { GET_GOOGLE_CLIENT_ID, ensureGoogleAuthInitialized } from './utils/GoogleAuthUtils';
 
-import Home from './pages/Home';
-import About from './pages/About';
-import Programs from './pages/Programs';
-import Conversations from './pages/Conversations';
-import Books from './pages/Books';
-import MonthlyMagazine from './pages/MonthlyMagazine';
-import AudioBooks from './pages/AudioBooks';
-import Videos from './pages/Videos';
-import PdfBooks from './pages/PdfBooks';
-import Contact from './pages/Contact';
-import Configuration from './pages/Configuration';
-import ProgramManagement from './pages/ProgramManagement';
-import ProgramTypesManagement from './pages/ProgramTypesManagement';
-import ManageUsers from './pages/ManageUsers';
-import ProgramConversations from './pages/ProgramConversations';
-import AyyasSchedule from './pages/AyyasSchedule';
-import ScheduleManagement from './pages/ScheduleManagement';
-import MyRegistrations from './pages/MyRegistrations';
-import AdminReview from './pages/AdminReview';
-import EventRegistration from './pages/EventRegistration';
-import PaymentFlow from './pages/PaymentFlow';
-import AdminLogin from './pages/AdminLogin';
-import AdminDashboard from './pages/AdminDashboard';
-import AdminProgramManagement from './pages/AdminProgramManagement';
-import ConsultationManagement from './pages/ConsultationManagement';
-import ProgramCategories from './pages/ProgramCategories';
-import EmptyPlaceholder from './pages/EmptyPlaceholder';
-import Consultation from './pages/Consultation';
-import OnlineMeetings from './pages/OnlineMeetings';
-import OnlineMeetingDetails from './pages/OnlineMeetingDetails';
-import OnlineMeetingManagement from './pages/OnlineMeetingManagement';
-import SatsangManagement from './pages/SatsangManagement';
-import SatsangListing from './pages/SatsangListing';
-import SatsangDetails from './pages/SatsangDetails';
-import DailyZoomMeetings from './pages/DailyZoomMeetings';
-import DailyZoomManagement from './pages/DailyZoomManagement';
-import DailyZoomTeacherManagement from './pages/DailyZoomTeacherManagement';
-import DailyZoomLinkManagement from './pages/DailyZoomLinkManagement';
-import BookStore from './pages/BookStore';
-import BookStoreCheckout from './pages/BookStoreCheckout';
-import BookStoreManagement from './pages/BookStoreManagement';
-import DonationManagement from './pages/DonationManagement';
-import MyOrders from './pages/MyOrders';
-import Donations from './pages/Donations';
-import MyDonations from './pages/MyDonations';
-import AdminSettings from './pages/AdminSettings';
-import AdminBookManagement from './pages/AdminBookManagement';
-import BookDetails from './pages/BookDetails';
-import BackOffice from './pages/BackOffice';
-import BackOfficeReporting from './pages/BackOfficeReporting';
-import BackOfficePrograms from './pages/BackOfficePrograms';
-import BackOfficeAttendance from './pages/BackOfficeAttendance';
-import BackOfficeOfflineRegistration from './pages/BackOfficeOfflineRegistration';
-import BackOfficeOfflineBooks from './pages/BackOfficeOfflineBooks';
-import BackOfficeOfflineDonation from './pages/BackOfficeOfflineDonation';
-import BackOfficeImportExport from './pages/BackOfficeImportExport';
-import BankReconciliation from './pages/BankReconciliation';
-import BankStatementUpload from './pages/BankStatementUpload';
-import BankReconciliationRegs from './pages/BankReconciliationRegs';
-import BankStatementView from './pages/BankStatementView';
+import Home from './pages/Home'; // Home stays static for immediate visible paint
+
+// Lazy load all other pages
+const About = lazy(() => import('./pages/About'));
+const Programs = lazy(() => import('./pages/Programs'));
+const Conversations = lazy(() => import('./pages/Conversations'));
+const Books = lazy(() => import('./pages/Books'));
+const MonthlyMagazine = lazy(() => import('./pages/MonthlyMagazine'));
+const AudioBooks = lazy(() => import('./pages/AudioBooks'));
+const Videos = lazy(() => import('./pages/Videos'));
+const PdfBooks = lazy(() => import('./pages/PdfBooks'));
+const Contact = lazy(() => import('./pages/Contact'));
+const Configuration = lazy(() => import('./pages/Configuration'));
+const ProgramManagement = lazy(() => import('./pages/ProgramManagement'));
+const ProgramTypesManagement = lazy(() => import('./pages/ProgramTypesManagement'));
+const ManageUsers = lazy(() => import('./pages/ManageUsers'));
+const ProgramConversations = lazy(() => import('./pages/ProgramConversations'));
+const AyyasSchedule = lazy(() => import('./pages/AyyasSchedule'));
+const ScheduleManagement = lazy(() => import('./pages/ScheduleManagement'));
+const MyRegistrations = lazy(() => import('./pages/MyRegistrations'));
+const AdminReview = lazy(() => import('./pages/AdminReview'));
+const EventRegistration = lazy(() => import('./pages/EventRegistration'));
+const PaymentFlow = lazy(() => import('./pages/PaymentFlow'));
+const AdminLogin = lazy(() => import('./pages/AdminLogin'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const AdminProgramManagement = lazy(() => import('./pages/AdminProgramManagement'));
+const ConsultationManagement = lazy(() => import('./pages/ConsultationManagement'));
+const ProgramCategories = lazy(() => import('./pages/ProgramCategories'));
+const Consultation = lazy(() => import('./pages/Consultation'));
+const OnlineMeetings = lazy(() => import('./pages/OnlineMeetings'));
+const OnlineMeetingDetails = lazy(() => import('./pages/OnlineMeetingDetails'));
+const OnlineMeetingManagement = lazy(() => import('./pages/OnlineMeetingManagement'));
+const SatsangManagement = lazy(() => import('./pages/SatsangManagement'));
+const SatsangListing = lazy(() => import('./pages/SatsangListing'));
+const SatsangDetails = lazy(() => import('./pages/SatsangDetails'));
+const DailyZoomMeetings = lazy(() => import('./pages/DailyZoomMeetings'));
+const DailyZoomManagement = lazy(() => import('./pages/DailyZoomManagement'));
+const DailyZoomTeacherManagement = lazy(() => import('./pages/DailyZoomTeacherManagement'));
+const DailyZoomLinkManagement = lazy(() => import('./pages/DailyZoomLinkManagement'));
+const BookStore = lazy(() => import('./pages/BookStore'));
+const BookStoreCheckout = lazy(() => import('./pages/BookStoreCheckout'));
+const BookStoreManagement = lazy(() => import('./pages/BookStoreManagement'));
+const DonationManagement = lazy(() => import('./pages/DonationManagement'));
+const MyOrders = lazy(() => import('./pages/MyOrders'));
+const Donations = lazy(() => import('./pages/Donations'));
+const MyDonations = lazy(() => import('./pages/MyDonations'));
+const AdminSettings = lazy(() => import('./pages/AdminSettings'));
+const AdminBookManagement = lazy(() => import('./pages/AdminBookManagement'));
+const BookDetails = lazy(() => import('./pages/BookDetails'));
+const BackOffice = lazy(() => import('./pages/BackOffice'));
+const BackOfficeReporting = lazy(() => import('./pages/BackOfficeReporting'));
+const BackOfficePrograms = lazy(() => import('./pages/BackOfficePrograms'));
+const BackOfficeAttendance = lazy(() => import('./pages/BackOfficeAttendance'));
+const BackOfficeOfflineRegistration = lazy(() => import('./pages/BackOfficeOfflineRegistration'));
+const BackOfficeOfflineBooks = lazy(() => import('./pages/BackOfficeOfflineBooks'));
+const BackOfficeOfflineDonation = lazy(() => import('./pages/BackOfficeOfflineDonation'));
+const BackOfficeImportExport = lazy(() => import('./pages/BackOfficeImportExport'));
+const BankReconciliation = lazy(() => import('./pages/BankReconciliation'));
+const BankStatementUpload = lazy(() => import('./pages/BankStatementUpload'));
+const BankReconciliationRegs = lazy(() => import('./pages/BankReconciliationRegs'));
+const BankStatementView = lazy(() => import('./pages/BankStatementView'));
 import ProtectedRoute from './components/ProtectedRoute';
 import { AdminAuthProvider } from './context/AdminAuthContext';
 import { CartProvider } from './context/CartContext';
 import { useGlobalSettings } from './context/GlobalSettingsContext';
+import { useAdminAuth } from './context/AdminAuthContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import ForceUpdateModal from './components/ForceUpdateModal';
+import SkeletonScreen from './components/SkeletonScreen';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -229,89 +231,109 @@ function AnimatedRoutes() {
 
   return (
     <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/programs" element={<ProgramCategories />} />
-        <Route path="/programs/retreat" element={<Programs />} />
-        <Route path="/programs/online" element={<OnlineMeetings />} />
-        <Route path="/programs/online/:id" element={<OnlineMeetingDetails />} />
-        <Route path="/programs/satsang" element={<SatsangListing />} />
-        <Route path="/programs/satsang/:id" element={<SatsangDetails />} />
-        <Route path="/programs/consultation" element={<Consultation />} />
-        <Route path="/programs/online/daily" element={<DailyZoomMeetings />} />
-        <Route path="/conversations" element={<Conversations />} />
-        <Route path="/books" element={<Books />} />
-        <Route path="/bookstore" element={<BookStore />} />
-        <Route path="/book/:bookId" element={<BookDetails />} />
-        <Route path="/bookstore-checkout" element={<BookStoreCheckout />} />
-        <Route path="/donations" element={<Donations />} />
-        <Route path="/my-donations" element={<MyDonations />} />
-        <Route path="/my-orders" element={<MyOrders />} />
-        <Route path="/monthly-magazine" element={<MonthlyMagazine />} />
-        <Route path="/audio-books" element={<AudioBooks />} />
-        <Route path="/videos" element={<Videos />} />
-        <Route path="/pdf-books" element={<PdfBooks />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/my-registrations" element={<MyRegistrations />} />
-        <Route path="/event-registration" element={<EventRegistration />} />
-        <Route path="/payment-flow" element={<PaymentFlow />} />
-        <Route path="/admin-login" element={<AdminLogin />} />
+      <Suspense fallback={
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', backgroundColor: '#f9fafb', color: '#6b7280' }}>
+          Loading...
+        </div>
+      }>
+        <Routes location={location} key={location.pathname}>
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/programs" element={<ProgramCategories />} />
+          <Route path="/programs/retreat" element={<Programs />} />
+          <Route path="/programs/online" element={<OnlineMeetings />} />
+          <Route path="/programs/online/:id" element={<OnlineMeetingDetails />} />
+          <Route path="/programs/satsang" element={<SatsangListing />} />
+          <Route path="/programs/satsang/:id" element={<SatsangDetails />} />
+          <Route path="/programs/consultation" element={<Consultation />} />
+          <Route path="/programs/online/daily" element={<DailyZoomMeetings />} />
+          <Route path="/conversations" element={<Conversations />} />
+          <Route path="/books" element={<Books />} />
+          <Route path="/bookstore" element={<BookStore />} />
+          <Route path="/book/:bookId" element={<BookDetails />} />
+          <Route path="/bookstore-checkout" element={<BookStoreCheckout />} />
+          <Route path="/donations" element={<Donations />} />
+          <Route path="/my-donations" element={<MyDonations />} />
+          <Route path="/my-orders" element={<MyOrders />} />
+          <Route path="/monthly-magazine" element={<MonthlyMagazine />} />
+          <Route path="/audio-books" element={<AudioBooks />} />
+          <Route path="/videos" element={<Videos />} />
+          <Route path="/pdf-books" element={<PdfBooks />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/my-registrations" element={<MyRegistrations />} />
+          <Route path="/event-registration" element={<EventRegistration />} />
+          <Route path="/payment-flow" element={<PaymentFlow />} />
+          <Route path="/admin-login" element={<AdminLogin />} />
 
-        {/* Admin Routes */}
-        <Route path="/configuration" element={<ProtectedRoute><Configuration /></ProtectedRoute>} />
-        <Route path="/program" element={<ProtectedRoute requiredPermission="PROGRAM_MANAGEMENT"><ProgramManagement /></ProtectedRoute>} />
-        <Route path="/configuration/program-types" element={<ProtectedRoute requiredPermission="PROGRAM_TYPES"><ProgramTypesManagement /></ProtectedRoute>} />
-        <Route path="/manage-users" element={<ProtectedRoute requiredPermission="MANAGE_USERS"><ManageUsers /></ProtectedRoute>} />
-        <Route path="/conversations/programs" element={<ProtectedRoute requiredPermission="PROGRAM_CONVERSATIONS"><ProgramConversations /></ProtectedRoute>} />
-        <Route path="/schedule/manage" element={<ProtectedRoute requiredPermission="SCHEDULE_MANAGEMENT"><ScheduleManagement /></ProtectedRoute>} />
+          {/* Admin Routes */}
+          <Route path="/configuration" element={<ProtectedRoute><Configuration /></ProtectedRoute>} />
+          <Route path="/program" element={<ProtectedRoute requiredPermission="PROGRAM_MANAGEMENT"><ProgramManagement /></ProtectedRoute>} />
+          <Route path="/configuration/program-types" element={<ProtectedRoute requiredPermission="PROGRAM_TYPES"><ProgramTypesManagement /></ProtectedRoute>} />
+          <Route path="/manage-users" element={<ProtectedRoute requiredPermission="MANAGE_USERS"><ManageUsers /></ProtectedRoute>} />
+          <Route path="/conversations/programs" element={<ProtectedRoute requiredPermission="PROGRAM_CONVERSATIONS"><ProgramConversations /></ProtectedRoute>} />
+          <Route path="/schedule/manage" element={<ProtectedRoute requiredPermission="SCHEDULE_MANAGEMENT"><ScheduleManagement /></ProtectedRoute>} />
 
-        <Route path="/admin/program-management" element={<ProtectedRoute><AdminProgramManagement /></ProtectedRoute>} />
-        <Route path="/admin/online-meetings" element={<ProtectedRoute requiredPermission="PROGRAM_MANAGEMENT"><OnlineMeetingManagement /></ProtectedRoute>} />
-        <Route path="/admin/satsang" element={<ProtectedRoute requiredPermission="PROGRAM_MANAGEMENT"><SatsangManagement /></ProtectedRoute>} />
-        <Route path="/admin/consultation" element={<ProtectedRoute requiredPermission="CONSULTATION_MANAGEMENT"><ConsultationManagement /></ProtectedRoute>} />
-        <Route path="/admin/daily-zoom" element={<ProtectedRoute requiredPermission="DAILY_ZOOM_MANAGEMENT"><DailyZoomManagement /></ProtectedRoute>} />
-        <Route path="/admin/daily-zoom/teachers" element={<ProtectedRoute requiredPermission="DAILY_ZOOM_MANAGEMENT"><DailyZoomTeacherManagement /></ProtectedRoute>} />
-        <Route path="/admin/daily-zoom/links" element={<ProtectedRoute requiredPermission="DAILY_ZOOM_MANAGEMENT"><DailyZoomLinkManagement /></ProtectedRoute>} />
-        <Route path="/admin/purchases" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BookStoreManagement /></ProtectedRoute>} />
-        <Route path="/admin/donations" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><DonationManagement /></ProtectedRoute>} />
-        <Route path="/admin/books" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><AdminBookManagement /></ProtectedRoute>} />
+          <Route path="/admin/program-management" element={<ProtectedRoute><AdminProgramManagement /></ProtectedRoute>} />
+          <Route path="/admin/online-meetings" element={<ProtectedRoute requiredPermission="PROGRAM_MANAGEMENT"><OnlineMeetingManagement /></ProtectedRoute>} />
+          <Route path="/admin/satsang" element={<ProtectedRoute requiredPermission="PROGRAM_MANAGEMENT"><SatsangManagement /></ProtectedRoute>} />
+          <Route path="/admin/consultation" element={<ProtectedRoute requiredPermission="CONSULTATION_MANAGEMENT"><ConsultationManagement /></ProtectedRoute>} />
+          <Route path="/admin/daily-zoom" element={<ProtectedRoute requiredPermission="DAILY_ZOOM_MANAGEMENT"><DailyZoomManagement /></ProtectedRoute>} />
+          <Route path="/admin/daily-zoom/teachers" element={<ProtectedRoute requiredPermission="DAILY_ZOOM_MANAGEMENT"><DailyZoomTeacherManagement /></ProtectedRoute>} />
+          <Route path="/admin/daily-zoom/links" element={<ProtectedRoute requiredPermission="DAILY_ZOOM_MANAGEMENT"><DailyZoomLinkManagement /></ProtectedRoute>} />
+          <Route path="/admin/purchases" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BookStoreManagement /></ProtectedRoute>} />
+          <Route path="/admin/donations" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><DonationManagement /></ProtectedRoute>} />
+          <Route path="/admin/books" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><AdminBookManagement /></ProtectedRoute>} />
 
-        <Route path="/admin-review" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><AdminReview /></ProtectedRoute>} />
-        <Route path="/admin-dashboard" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><AdminDashboard /></ProtectedRoute>} />
-        <Route path="/admin/settings" element={<ProtectedRoute><AdminSettings /></ProtectedRoute>} />
+          <Route path="/admin-review" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><AdminReview /></ProtectedRoute>} />
+          <Route path="/admin-dashboard" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin/settings" element={<ProtectedRoute><AdminSettings /></ProtectedRoute>} />
 
-        {/* Back Office Routes */}
-        <Route path="/admin/back-office" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOffice /></ProtectedRoute>} />
-        <Route path="/admin/back-office/reporting" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficeReporting /></ProtectedRoute>} />
-        <Route path="/admin/back-office/programs" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficePrograms /></ProtectedRoute>} />
-        <Route path="/admin/back-office/attendance/:programId" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficeAttendance /></ProtectedRoute>} />
-        <Route path="/admin/back-office/reconciliation" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BankReconciliation /></ProtectedRoute>} />
-        <Route path="/admin/back-office/reconciliation/upload" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BankStatementUpload /></ProtectedRoute>} />
-        <Route path="/admin/back-office/reconciliation/registrations" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BankReconciliationRegs /></ProtectedRoute>} />
-        <Route path="/admin/back-office/reconciliation/view" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BankStatementView /></ProtectedRoute>} />
-        {/* Bank Verification Hub Reverted */}
+          {/* Back Office Routes */}
+          <Route path="/admin/back-office" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOffice /></ProtectedRoute>} />
+          <Route path="/admin/back-office/reporting" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficeReporting /></ProtectedRoute>} />
+          <Route path="/admin/back-office/programs" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficePrograms /></ProtectedRoute>} />
+          <Route path="/admin/back-office/attendance/:programId" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficeAttendance /></ProtectedRoute>} />
+          <Route path="/admin/back-office/reconciliation" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BankReconciliation /></ProtectedRoute>} />
+          <Route path="/admin/back-office/reconciliation/upload" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BankStatementUpload /></ProtectedRoute>} />
+          <Route path="/admin/back-office/reconciliation/registrations" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BankReconciliationRegs /></ProtectedRoute>} />
+          <Route path="/admin/back-office/reconciliation/view" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BankStatementView /></ProtectedRoute>} />
+          {/* Bank Verification Hub Reverted */}
 
-        {/* Offline Transactions Screens */}
-        <Route path="/admin/back-office/offline-registration" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficeOfflineRegistration /></ProtectedRoute>} />
-        <Route path="/admin/back-office/offline-books" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficeOfflineBooks /></ProtectedRoute>} />
-        <Route path="/admin/back-office/offline-donation" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficeOfflineDonation /></ProtectedRoute>} />
-        <Route path="/admin/back-office/import-export" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficeImportExport /></ProtectedRoute>} />
+          {/* Offline Transactions Screens */}
+          <Route path="/admin/back-office/offline-registration" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficeOfflineRegistration /></ProtectedRoute>} />
+          <Route path="/admin/back-office/offline-books" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficeOfflineBooks /></ProtectedRoute>} />
+          <Route path="/admin/back-office/offline-donation" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficeOfflineDonation /></ProtectedRoute>} />
+          <Route path="/admin/back-office/import-export" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficeImportExport /></ProtectedRoute>} />
 
-        {/* Public view but management is admin */}
-        <Route path="/schedule" element={<AyyasSchedule />} />
-      </Routes>
+          {/* Public view but management is admin */}
+          <Route path="/schedule" element={<AyyasSchedule />} />
+        </Routes>
+      </Suspense>
     </AnimatePresence>
   );
 }
 
-import { GlobalSettingsProvider } from './context/GlobalSettingsContext';
-
 import UpdateIcon from './components/UpdateIcon';
 
-const AppContent = () => {
-  const [currentVersion, setCurrentVersion] = React.useState('0.0.0');
+function AppContent() {
+  const [currentVersion, setCurrentVersion] = React.useState(null);
   const { minAppVersion } = useGlobalSettings();
+  const { isInitialized } = useAdminAuth();
+  const [showSkeleton, setShowSkeleton] = React.useState(true);
+
+  // Hide skeleton after initialization
+  useEffect(() => {
+    if (isInitialized) {
+      const timer = setTimeout(() => setShowSkeleton(false), 200);
+      return () => clearTimeout(timer);
+    }
+  }, [isInitialized]);
+
+  // Fallback: hide skeleton after max 2 seconds
+  useEffect(() => {
+    const maxTimer = setTimeout(() => setShowSkeleton(false), 2000);
+    return () => clearTimeout(maxTimer);
+  }, []);
 
   useEffect(() => {
     const fetchVersion = async () => {
@@ -324,11 +346,17 @@ const AppContent = () => {
         setCurrentVersion(info.version);
       } else {
         // Fallback for web/dev
-        setCurrentVersion('2.8.349');
+        const APP_VERSION_TAG = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '3.0.0';
+        setCurrentVersion(APP_VERSION_TAG);
       }
     };
     fetchVersion();
   }, []);
+
+  // Show skeleton on first render
+  if (showSkeleton) {
+    return <SkeletonScreen />;
+  }
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh', width: '100%' }}>

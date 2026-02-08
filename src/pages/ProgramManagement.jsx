@@ -10,6 +10,7 @@ import '../components/RegistrationStyles.css';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, setDoc, query, where, orderBy, limit, serverTimestamp } from 'firebase/firestore';
 import { LogOut } from 'lucide-react';
 import { signOut } from 'firebase/auth';
+import { bumpServerVersion } from '../utils/SyncManager';
 // Removed storage imports as we are using Base64 in Firestore
 // Removed storage imports as we are using Base664 in Firestore
 import { tamilnaduCities } from '../data/tamilnaduCities';
@@ -372,6 +373,8 @@ const ProgramManagement = () => {
                 lastUpdated_programs: serverTimestamp()
             }, { merge: true });
 
+            await bumpServerVersion('programs');
+
         } catch (error) {
             console.error('Error saving program:', error);
             alert('Error saving program: ' + error.message);
@@ -402,6 +405,8 @@ const ProgramManagement = () => {
                 await setDoc(doc(db, 'system', 'metadata'), {
                     lastUpdated_programs: serverTimestamp()
                 }, { merge: true });
+
+                await bumpServerVersion('programs');
                 loadPrograms();
             }
         } catch (error) {

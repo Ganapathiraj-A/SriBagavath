@@ -1,14 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Video, Calendar, User, Youtube } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Video, Calendar, User, Youtube, Share2, ChevronRight, Loader2, Clock, Edit2 } from 'lucide-react';
+import { Share } from '@capacitor/share';
 import PageHeader from '../components/PageHeader';
+import LazyImage from '../components/LazyImage';
 import { db } from '../firebase';
-import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
+import { collection, query, where, orderBy, getDocs, limit, startAfter } from 'firebase/firestore';
 import { getLocalDateString } from '../utils/dateUtils';
 import { useAdminAuth } from '../context/AdminAuthContext';
 
-const MeetingCard = ({ meeting, delay, isAdmin }) => {
+const MeetingCard = ({ meeting, delay, isAdmin, onShare }) => {
     const navigate = useNavigate();
     const date = new Date(meeting.date);
 
@@ -31,15 +33,14 @@ const MeetingCard = ({ meeting, delay, isAdmin }) => {
             {/* Left Column: Photo & Date */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'center', width: '4.5rem', flexShrink: 0 }}>
                 {/* Photo Above Date */}
-                <div style={{ width: '4.25rem', height: '4.25rem', borderRadius: '1rem', overflow: 'hidden', border: '2px solid #fff7ed', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-                    {meeting.image ? (
-                        <img src={meeting.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    ) : (
-                        <div style={{ width: '100%', height: '100%', backgroundColor: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <User size={24} color="#9ca3af" />
-                        </div>
-                    )}
-                </div>
+                <LazyImage
+                    src={meeting.image}
+                    alt={meeting.name}
+                    width="4.25rem"
+                    height="4.25rem"
+                    borderRadius="1rem"
+                    placeholder={() => <User size={24} color="#9ca3af" />}
+                />
 
                 {/* Date Box */}
                 <div style={{
@@ -69,7 +70,19 @@ const MeetingCard = ({ meeting, delay, isAdmin }) => {
                     <h3 style={{ fontSize: '1.15rem', fontWeight: 750, color: '#111827', margin: 0, lineHeight: 1.2 }}>
                         {meeting.name}
                     </h3>
-
+                    <button
+                        onClick={() => onShare(meeting)}
+                        aria-label={`Share ${meeting.name}`}
+                        style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#6b7280',
+                            padding: '0.25rem',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        <Share2 size={18} />
+                    </button>
                 </div>
 
                 {meeting.description && (
@@ -124,6 +137,7 @@ const MeetingCard = ({ meeting, delay, isAdmin }) => {
                             <Youtube size={16} /> YouTube
                         </button>
                     )}
+
                 </div>
             </div>
         </motion.div>
@@ -133,10 +147,17 @@ const MeetingCard = ({ meeting, delay, isAdmin }) => {
 const DailyZoomMeetings = () => {
     const navigate = useNavigate();
     const { isAdmin, hasAccess, loading: authLoading } = useAdminAuth();
-    const [meetings, setMeetings] = useState([]);
+    const [activeTab, setActiveTab] = useState('upcoming');
+    const [upcomingMeetings, setUpcomingMeetings] = useState([]);
+    const [pastMeetings, setPastMeetings] = useState([]);
     const [teachers, setTeachers] = useState([]);
     const [selectedTeacherId, setSelectedTeacherId] = useState('all');
     const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [lastVisible, setLastVisible] = useState(null);
+    const [hasMorePast, setHasMorePast] = useState(true);
+
+    const ORANGE = 'var(--color-primary)';
 
     useEffect(() => {
         if (authLoading) return;
@@ -155,65 +176,231 @@ const DailyZoomMeetings = () => {
 
     useEffect(() => {
         if (authLoading) return;
-        const fetchMeetings = async () => {
-            try {
-                const today = getLocalDateString();
-                const sevenDaysLater = new Date();
-                sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
-                const endDate = getLocalDateString(sevenDaysLater);
-
-                const ref = collection(db, 'daily_zoom_meetings');
-                const q = query(
-                    ref,
-                    where('date', '>=', today),
-                    orderBy('date', 'asc')
-                );
-                const snap = await getDocs(q);
-                setMeetings(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-            } catch (error) {
-                console.error("Error fetching daily zoom meetings:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchMeetings();
+        fetchUpcomingMeetings();
     }, [authLoading]);
+
+    useEffect(() => {
+        if (authLoading) return;
+        if (activeTab === 'past' && pastMeetings.length === 0) {
+            fetchPastMeetings();
+        }
+    }, [authLoading, activeTab]);
+
+    const fetchUpcomingMeetings = async () => {
+        setLoading(true);
+        try {
+            const { getDocsFromCache, getDocsFromServer } = await import('firebase/firestore');
+            const today = getLocalDateString();
+            const ref = collection(db, 'daily_zoom_meetings');
+            const q = query(
+                ref,
+                where('date', '>=', today),
+                orderBy('date', 'asc')
+            );
+
+            let snap;
+            try {
+                snap = await getDocsFromCache(q);
+                if (snap.empty) {
+                    snap = await getDocsFromServer(q);
+                } else {
+                    // Silently refresh in background
+                    getDocsFromServer(q).then(s => {
+                        setUpcomingMeetings(s.docs.map(d => ({ id: d.id, ...d.data() })));
+                    }).catch(() => { });
+                }
+            } catch (e) {
+                snap = await getDocsFromServer(q);
+            }
+
+            setUpcomingMeetings(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        } catch (error) {
+            console.error("Error fetching upcoming meetings:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchPastMeetings = async () => {
+        setLoading(true);
+        try {
+            const today = getLocalDateString();
+            const ref = collection(db, 'daily_zoom_meetings');
+            const q = query(
+                ref,
+                where('date', '<', today),
+                orderBy('date', 'desc'),
+                limit(10)
+            );
+            const snap = await getDocs(q);
+            const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            setPastMeetings(docs);
+            setLastVisible(snap.docs[snap.docs.length - 1]);
+            setHasMorePast(snap.docs.length === 10);
+        } catch (error) {
+            console.error("Error fetching past meetings:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const loadMorePast = async () => {
+        if (!lastVisible || loadingMore) return;
+        setLoadingMore(true);
+        try {
+            const today = getLocalDateString();
+            const ref = collection(db, 'daily_zoom_meetings');
+            const q = query(
+                ref,
+                where('date', '<', today),
+                orderBy('date', 'desc'),
+                startAfter(lastVisible),
+                limit(10)
+            );
+            const snap = await getDocs(q);
+            const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            setPastMeetings(prev => [...prev, ...docs]);
+            setLastVisible(snap.docs[snap.docs.length - 1]);
+            setHasMorePast(snap.docs.length === 10);
+        } catch (error) {
+            console.error("Error loading more past meetings:", error);
+        } finally {
+            setLoadingMore(false);
+        }
+    };
+
+    const handleShareMeeting = async (meeting) => {
+        const date = new Date(meeting.date).toLocaleDateString(undefined, {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+
+        const text = `
+*Daily Zoom Meeting*
+*${meeting.name}*
+📅 ${date}
+
+🔗 *Zoom Link:* ${meeting.joinUrl}
+${meeting.youtubeUrl ? `🎥 *YouTube:* ${meeting.youtubeUrl}` : ''}
+
+${meeting.description ? `\n_${meeting.description}_\n` : ''}
+Join us for our daily spiritual gathering.
+        `.trim();
+
+        try {
+            await Share.share({
+                title: `${meeting.name} - Daily Zoom Meeting`,
+                text: text,
+                url: meeting.joinUrl
+            });
+        } catch (error) {
+            console.error('Error sharing:', error);
+            // Fallback to clipboard if share fails (e.g. on web)
+            if (navigator.clipboard) {
+                await navigator.clipboard.writeText(text);
+                alert('Meeting details copied to clipboard!');
+            }
+        }
+    };
+
+    const handleShareList = async () => {
+        const currentMeetings = activeTab === 'upcoming' ? upcomingMeetings : pastMeetings;
+        const filtered = currentMeetings.filter(m => selectedTeacherId === 'all' || m.teacherId === selectedTeacherId);
+
+        if (filtered.length === 0) {
+            alert('No meetings to share.');
+            return;
+        }
+
+        const listTitle = activeTab === 'upcoming' ? '*Upcoming Daily Zoom Meetings*' : '*Past Daily Zoom Meetings*';
+        const teacherName = selectedTeacherId === 'all' ? '' : ` (Speaker: ${teachers.find(t => t.id === selectedTeacherId)?.name})`;
+
+        let text = `${listTitle}${teacherName}\n\n`;
+
+        filtered.forEach(m => {
+            const date = new Date(m.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+            text += `• ${date}: *${m.name}*\n  🔗 ${m.joinUrl}\n\n`;
+        });
+
+        text += 'Join our daily spiritual gatherings online.';
+
+        try {
+            await Share.share({
+                title: 'Daily Zoom Meetings List',
+                text: text
+            });
+        } catch (error) {
+            console.error('Error sharing list:', error);
+            if (navigator.clipboard) {
+                await navigator.clipboard.writeText(text);
+                alert('Meetings list copied to clipboard!');
+            }
+        }
+    };
+
+    const displayedMeetings = (activeTab === 'upcoming' ? upcomingMeetings : pastMeetings)
+        .filter(m => selectedTeacherId === 'all' || m.teacherId === selectedTeacherId);
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
             <PageHeader
                 title="Daily Zoom Meeting"
-                rightAction={hasAccess('DAILY_ZOOM_MANAGEMENT') && (
+                rightAction={
+                    (isAdmin || hasAccess('DAILY_ZOOM_MANAGEMENT')) && (
+                        <button
+                            onClick={() => navigate('/admin/daily-zoom')}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.4rem',
+                                padding: '0.5rem 0.8rem',
+                                backgroundColor: '#fff7ed',
+                                color: ORANGE,
+                                border: '1px solid #ffedd5',
+                                borderRadius: '0.75rem',
+                                fontSize: '0.85rem',
+                                fontWeight: 700,
+                                cursor: 'pointer'
+                            }}
+                        >
+                            Manage
+                        </button>
+                    )
+                }
+            />
+
+            <div style={{ padding: '1.5rem', maxWidth: '32rem', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <p style={{ color: '#6b7280', margin: 0, fontSize: '0.95rem' }}>
+                        Join our daily spiritual gatherings online
+                    </p>
                     <button
-                        onClick={() => navigate('/admin/daily-zoom')}
+                        onClick={handleShareList}
+                        aria-label="Share meetings list"
                         style={{
                             display: 'flex',
                             alignItems: 'center',
                             gap: '0.4rem',
-                            padding: '0.5rem 0.8rem',
-                            backgroundColor: '#fff7ed',
-                            color: '#f97316',
-                            border: '1px solid #ffedd5',
-                            borderRadius: '0.75rem',
+                            padding: '0.4rem 0.75rem',
+                            backgroundColor: 'white',
+                            color: '#4b5563',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '0.5rem',
                             fontSize: '0.85rem',
-                            fontWeight: 700,
+                            fontWeight: 600,
                             cursor: 'pointer'
                         }}
                     >
-                        Manage
+                        <Share2 size={16} /> Share List
                     </button>
-                )}
-            />
+                </div>
 
-            <div style={{ padding: '1.5rem', maxWidth: '32rem', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                <p style={{ color: '#6b7280', textAlign: 'center', marginBottom: '0.5rem', fontSize: '0.95rem' }}>
-                    Join our daily spiritual gatherings online
-                </p>
-
-                {/* Teacher Filter - Dropdown */}
-                {!loading && teachers.length > 0 && (
+                {/* Teacher Filter - Dropdown (Moved above tabs) */}
+                {teachers.length > 0 && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                        <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#4b5563', paddingLeft: '0.2rem' }}>Speaker</label>
+                        <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#4b5563', paddingLeft: '0.2rem' }}>Filter by Speaker</label>
                         <select
                             value={selectedTeacherId}
                             onChange={(e) => setSelectedTeacherId(e.target.value)}
@@ -244,27 +431,134 @@ const DailyZoomMeetings = () => {
                     </div>
                 )}
 
+                {/* Tab Switcher - Underlined Style (matching Book Store) */}
+                <div style={{
+                    display: 'flex',
+                    borderBottom: '1px solid #e5e7eb',
+                    gap: '24px',
+                    marginTop: '0.5rem'
+                }}>
+                    <button
+                        onClick={() => setActiveTab('upcoming')}
+                        style={{
+                            padding: '12px 4px',
+                            border: 'none',
+                            borderBottom: activeTab === 'upcoming' ? `2px solid ${ORANGE}` : '2px solid transparent',
+                            backgroundColor: 'transparent',
+                            color: activeTab === 'upcoming' ? ORANGE : '#6b7280',
+                            fontWeight: activeTab === 'upcoming' ? 700 : 500,
+                            fontSize: '0.95rem',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        <Calendar size={18} /> Upcoming
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('past')}
+                        style={{
+                            padding: '12px 4px',
+                            border: 'none',
+                            borderBottom: activeTab === 'past' ? `2px solid ${ORANGE}` : '2px solid transparent',
+                            backgroundColor: 'transparent',
+                            color: activeTab === 'past' ? ORANGE : '#6b7280',
+                            fontWeight: activeTab === 'past' ? 700 : 500,
+                            fontSize: '0.95rem',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        <Clock size={18} /> Past
+                    </button>
+                </div>
+
                 {!loading && (
-                    <h2 style={{ fontSize: '1rem', fontWeight: 750, color: '#111827', margin: '0.5rem 0 0.2rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Calendar size={18} color="#f97316" /> Upcoming Meetings
-                    </h2>
+                    <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+                        <h2 style={{ fontSize: '1rem', fontWeight: 750, color: '#111827', margin: '0.5rem 0 0.2rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            {activeTab === 'upcoming' ? <Calendar size={18} color={ORANGE} /> : <Clock size={18} color={ORANGE} />}
+                            {activeTab === 'upcoming' ? 'Upcoming Meetings' : 'Past Meetings'}
+                        </h2>
+                        {displayedMeetings.length > 0 && (
+                            <span style={{ fontSize: '0.8rem', color: '#6b7280', fontWeight: 500 }}>
+                                {displayedMeetings.length} {displayedMeetings.length === 1 ? 'meeting' : 'meetings'}
+                            </span>
+                        )}
+                    </div>
                 )}
 
                 {loading ? (
-                    <p style={{ textAlign: 'center', color: '#9ca3af', padding: '2rem' }}>Loading meetings...</p>
-                ) : (meetings.filter(m => selectedTeacherId === 'all' || m.teacherId === selectedTeacherId)).length === 0 ? (
+                    <div style={{ textAlign: 'center', color: '#9ca3af', padding: '3rem' }}>
+                        <Loader2 className="animate-spin" size={32} style={{ margin: '0 auto 1rem auto' }} />
+                        <p>Loading meetings...</p>
+                    </div>
+                ) : displayedMeetings.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '3rem', backgroundColor: 'white', borderRadius: '1rem', border: '1px solid #e5e7eb' }}>
                         <Video size={48} color="#9ca3af" style={{ marginBottom: '1rem' }} />
-                        <p style={{ color: '#6b7280' }}>No daily meetings scheduled for the selected criteria.</p>
+                        <p style={{ color: '#6b7280' }}>No {activeTab} meetings found for the selected criteria.</p>
                     </div>
                 ) : (
-                    meetings
-                        .filter(m => selectedTeacherId === 'all' || m.teacherId === selectedTeacherId)
-                        .map((m, idx) => (
-                            <MeetingCard key={m.id} meeting={m} delay={idx * 0.1} isAdmin={isAdmin} />
-                        ))
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        {displayedMeetings.map((m, idx) => (
+                            <MeetingCard
+                                key={m.id}
+                                meeting={m}
+                                delay={idx * 0.05}
+                                isAdmin={isAdmin}
+                                onShare={handleShareMeeting}
+                            />
+                        ))}
+
+                        {activeTab === 'past' && hasMorePast && (
+                            <button
+                                onClick={loadMorePast}
+                                disabled={loadingMore}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '0.5rem',
+                                    padding: '0.75rem',
+                                    backgroundColor: 'white',
+                                    color: ORANGE,
+                                    border: `1px solid #fed7aa`,
+                                    borderRadius: '0.75rem',
+                                    fontWeight: 700,
+                                    fontSize: '0.9rem',
+                                    cursor: loadingMore ? 'default' : 'pointer',
+                                    marginTop: '0.5rem',
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                {loadingMore ? (
+                                    <>
+                                        <Loader2 className="spin" size={18} /> Loading...
+                                    </>
+                                ) : (
+                                    <>
+                                        Load More <ChevronRight size={18} />
+                                    </>
+                                )}
+                            </button>
+                        )}
+                    </div>
                 )}
             </div>
+            {/* Tailwind-like utility for spinning if not present */}
+            <style>{`
+                @keyframes spin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
+                }
+                .animate-spin {
+                    animation: spin 1s linear infinite;
+                }
+            `}</style>
         </div>
     );
 };

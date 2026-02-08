@@ -13,6 +13,7 @@ import {
 } from 'firebase/firestore';
 import { compressImage } from '../utils/imageUtils';
 import { getLocalDateString } from '../utils/dateUtils';
+import { bumpServerVersion } from '../utils/SyncManager';
 
 // Helper to expand a master rule into its next upcoming instance
 const getNextOccurrence = (master, todayStr) => {
@@ -211,6 +212,7 @@ const SatsangManagement = () => {
                 isRecurring: false, frequency: 'weekly', recurringDays: [],
                 recurringEndDateType: 'indefinite', recurringEndDate: ''
             });
+            await bumpServerVersion('satsangs');
             loadMeetings();
         } catch (error) {
             console.error("Error saving satsang:", error);
@@ -272,6 +274,7 @@ const SatsangManagement = () => {
 
             setShowDeleteModal(false);
             setDeleteTarget(null);
+            await bumpServerVersion('satsangs');
             loadMeetings();
         } catch (error) {
             console.error("Error deleting:", error);

@@ -1,6 +1,7 @@
 import { Share } from '@capacitor/share';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { AppLauncher } from '@capacitor/app-launcher';
+import OCR from '../plugins/OCRPlugin';
 
 export const GPayUtils = {
     // 1. Open GPay
@@ -37,7 +38,6 @@ export const GPayUtils = {
 
             // 2. Use OCR Plugin to save to gallery (Native)
             try {
-                const { default: OCR } = await import('../plugins/OCRPlugin');
                 await OCR.saveImageToGallery({ base64 });
                 // Note: SBB App removed Toast per user request, so we just return true.
                 // But let's keep the alert as per Sri Bagavath original flow "Click to Save" feedback requirement?

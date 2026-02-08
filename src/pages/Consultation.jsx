@@ -95,11 +95,26 @@ const Consultation = () => {
         const fetchConsultants = async () => {
             if (authGlobalLoading) return;
             try {
-                const { collection, getDocs, query, orderBy } = await import('firebase/firestore');
+                const { collection, getDocs, query, orderBy, getDocsFromCache, getDocsFromServer } = await import('firebase/firestore');
                 const { db } = await import('../firebase');
+                const { needsServerSync, markSyncedLocally } = await import('../utils/SyncManager');
+
                 const ref = collection(db, 'consultants');
                 const q = query(ref, orderBy('order', 'asc'));
-                const snap = await getDocs(q);
+
+                const needsSync = needsServerSync('consultants');
+                let snap;
+                try {
+                    snap = await getDocsFromCache(q);
+                    if (snap.empty || needsSync) {
+                        snap = await getDocsFromServer(q);
+                        markSyncedLocally('consultants');
+                    }
+                } catch (e) {
+                    snap = await getDocs(q);
+                    markSyncedLocally('consultants');
+                }
+
                 setConsultants(snap.docs.map(d => ({ id: d.id, ...d.data() })));
             } catch (error) {
                 console.error("Error fetching consultants:", error);

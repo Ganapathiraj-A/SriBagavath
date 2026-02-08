@@ -1,9 +1,9 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
 
-    <string name="app_name">SB Dev</string>
+    <string name="app_name">Sri Bagavath</string>
     <string name="title_activity_main">Sri Bagavath</string>
     <string name="package_name">com.bhavathpathai.app</string>
     <string name="custom_url_scheme">com.bhavathpathai.app</string>
-    <string name="server_client_id">265576571338-82ulk332k7gao9h5e8ihnrj85nkir22a.apps.googleusercontent.com</string>
+    <string name="server_client_id">358075696780-qufnh6jj5vl6bn3hogihp5uficngu4in.apps.googleusercontent.com</string>
 </resources>

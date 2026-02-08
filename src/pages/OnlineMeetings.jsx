@@ -72,9 +72,25 @@ const OnlineMeetings = () => {
         const fetchMeetings = async () => {
             if (authGlobalLoading) return;
             try {
+                const { getDocsFromCache, getDocsFromServer } = await import('firebase/firestore');
+                const { needsServerSync, markSyncedLocally } = await import('../utils/SyncManager');
+
                 const todayStr = getLocalDateString();
                 const meetingsRef = collection(db, 'online_meetings');
-                const snapshot = await getDocs(meetingsRef);
+
+                const needsSync = needsServerSync('online_meetings');
+                let snapshot;
+                try {
+                    snapshot = await getDocsFromCache(meetingsRef);
+                    if (snapshot.empty || needsSync) {
+                        snapshot = await getDocsFromServer(meetingsRef);
+                        markSyncedLocally('online_meetings');
+                    }
+                } catch (e) {
+                    snapshot = await getDocs(meetingsRef);
+                    markSyncedLocally('online_meetings');
+                }
+
                 const raw = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
                 const groups = {};
@@ -150,7 +166,7 @@ const OnlineMeetings = () => {
                                         alignItems: 'center',
                                         justifyContent: 'center',
                                         backgroundColor: '#fff7ed',
-                                        color: '#f97316',
+                                        color: 'var(--color-primary)',
                                         padding: '0.875rem',
                                         borderRadius: '0.75rem',
                                         minWidth: '4.5rem',
@@ -181,7 +197,7 @@ const OnlineMeetings = () => {
                                             <h2 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#111827', margin: 0 }}>
                                                 {meeting.conductedBy}
                                             </h2>
-                                            <Video size={20} color="#f97316" style={{ flexShrink: 0, marginLeft: '0.5rem' }} />
+                                            <Video size={20} color="var(--color-primary)" style={{ flexShrink: 0, marginLeft: '0.5rem' }} />
                                         </div>
 
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.5rem' }}>
@@ -230,8 +246,8 @@ const OnlineMeetings = () => {
                                                 style={{
                                                     padding: '0.5rem 1rem',
                                                     backgroundColor: 'white',
-                                                    color: '#f97316',
-                                                    border: '1px solid #f97316',
+                                                    color: 'var(--color-primary)',
+                                                    border: '1px solid var(--color-primary)',
                                                     borderRadius: '0.5rem',
                                                     fontWeight: 600,
                                                     cursor: 'pointer',
