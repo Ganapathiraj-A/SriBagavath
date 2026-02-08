@@ -9,7 +9,7 @@ import { useDriveFiles } from '../hooks/useDriveFiles';
 const AUDIO_BOOKS_FOLDER_ID = '1L65ifCQ_bAQauymMH5JyDgul7LIL3cnL';
 
 const AudioBooks = () => {
-  const { files, loading, error } = useDriveFiles(AUDIO_BOOKS_FOLDER_ID);
+  const { files, loading, error } = useDriveFiles(AUDIO_BOOKS_FOLDER_ID, 'audio_books');
 
   const renderAudioLinks = () => {
     if (loading) {

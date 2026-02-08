@@ -83,27 +83,37 @@ const Programs = () => {
                     orderBy('programDate', 'asc')
                 );
 
-                // Strategy: Use Version-Based Sync
+                // Strategy: Cache-First with Background Refresh
                 const needsSync = needsServerSync('programs');
-                let querySnapshot;
+
+                // Try cache first
+                let cacheSnap = null;
                 try {
-                    querySnapshot = await getDocsFromCache(q);
-                    // If cache empty OR server version is newer, we fetch from server
-                    if (querySnapshot.empty || needsSync) {
-                        querySnapshot = await getDocsFromServer(q);
-                        markSyncedLocally('programs');
+                    cacheSnap = await getDocsFromCache(q);
+                    if (!cacheSnap.empty) {
+                        const list = cacheSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                        setPrograms(list);
+                        setLoading(false);
+                        console.log(`[Programs] Loaded ${list.length} programs from cache`);
                     }
                 } catch (e) {
-                    querySnapshot = await getDocsFromServer(q);
-                    markSyncedLocally('programs');
+                    console.warn("[Programs] Cache read failed", e);
                 }
 
-                const programsList = querySnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
+                // If cache empty OR needs sync, fetch from server
+                if (!cacheSnap || cacheSnap.empty || needsSync) {
+                    console.log(`[Programs] Refreshing from server...`);
+                    getDocsFromServer(q).then(serverSnap => {
+                        const list = serverSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                        setPrograms(list);
+                        markSyncedLocally('programs');
+                    }).catch(err => {
+                        console.error("[Programs] Server refresh failed", err);
+                    }).finally(() => {
+                        setLoading(false);
+                    });
+                }
 
-                setPrograms(programsList);
             } catch (error) {
                 console.error("Error fetching programs: ", error);
             } finally {

@@ -36,7 +36,8 @@ const BackOfficeImportExport = () => {
         programImportUrl, programExportUrl, programUpdateUrl,
         bookImportUrl, bookExportUrl, bookUpdateUrl,
         donationImportUrl, donationExportUrl, donationUpdateUrl,
-        scriptUrl
+        scriptUrl,
+        appVersion
     } = useGlobalSettings();
 
     useEffect(() => {

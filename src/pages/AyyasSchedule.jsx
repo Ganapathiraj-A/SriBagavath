@@ -22,36 +22,46 @@ const AyyasSchedule = () => {
                 const { getDocsFromCache, getDocsFromServer } = await import('firebase/firestore');
                 const { needsServerSync, markSyncedLocally } = await import('../utils/SyncManager');
 
+                const filterSchedules = (list) => {
+                    const today = getLocalDateString();
+                    return list.filter(s => {
+                        const endDate = s.toDate || s.fromDate;
+                        return endDate >= today;
+                    });
+                };
+
                 const schedulesRef = collection(db, 'schedules');
                 const q = query(schedulesRef, orderBy('fromDate', 'asc'));
 
                 const needsSync = needsServerSync('schedules');
-                let querySnapshot;
+
+                // Try cache first
+                let cacheSnap = null;
                 try {
-                    querySnapshot = await getDocsFromCache(q);
-                    if (querySnapshot.empty || needsSync) {
-                        querySnapshot = await getDocsFromServer(q);
-                        markSyncedLocally('schedules');
+                    cacheSnap = await getDocsFromCache(q);
+                    if (!cacheSnap.empty) {
+                        const list = cacheSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                        setSchedules(filterSchedules(list));
+                        setLoading(false);
+                        console.log(`[Schedule] Loaded ${list.length} items from cache`);
                     }
                 } catch (e) {
-                    querySnapshot = await getDocs(q);
-                    markSyncedLocally('schedules');
+                    console.warn("[Schedule] Cache read failed", e);
                 }
 
-                const schedulesList = querySnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-
-                const today = getLocalDateString();
-
-                // Client-side filter: include ongoing or future schedules
-                const currentAndUpcoming = schedulesList.filter(s => {
-                    const endDate = s.toDate || s.fromDate;
-                    return endDate >= today;
-                });
-
-                setSchedules(currentAndUpcoming);
+                // If cache empty OR needs sync, fetch from server
+                if (!cacheSnap || cacheSnap.empty || needsSync) {
+                    console.log(`[Schedule] Refreshing from server...`);
+                    getDocsFromServer(q).then(serverSnap => {
+                        const list = serverSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                        setSchedules(filterSchedules(list));
+                        markSyncedLocally('schedules');
+                    }).catch(err => {
+                        console.error("[Schedule] Server refresh failed", err);
+                    }).finally(() => {
+                        setLoading(false);
+                    });
+                }
             } catch (error) {
                 console.error("Error fetching schedules: ", error);
             } finally {

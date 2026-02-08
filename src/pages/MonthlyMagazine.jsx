@@ -92,7 +92,7 @@ const MonthlyMagazine = () => {
     // Actually, simple navigate(-1) works if we push state for each folder.
 
 
-    const { files: driveFiles, loading, error } = useDriveFiles(currentFolderId);
+    const { files: driveFiles, loading, error } = useDriveFiles(currentFolderId, 'monthly_magazine');
 
     const handleFolderClick = (folderId) => {
         setSearchParams({ folderId });

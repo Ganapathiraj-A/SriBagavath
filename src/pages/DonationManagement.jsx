@@ -4,6 +4,7 @@ import { ChevronLeft, Check, Trash2, Rewind, Package, User, Heart, X } from 'luc
 import { TransactionService } from '../services/TransactionService';
 import PageHeader from '../components/PageHeader';
 import { compressImage } from '../utils/imageUtils';
+import { useGlobalSettings } from '../context/GlobalSettingsContext';
 import '../components/RegistrationStyles.css';
 
 const TABS = ['RECEIVED', 'ACCEPTED'];
@@ -14,6 +15,7 @@ const TAB_LABELS = {
 
 const DonationManagement = () => {
     const navigate = useNavigate();
+    const { appVersion } = useGlobalSettings();
     const [allDonations, setAllDonations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('RECEIVED');

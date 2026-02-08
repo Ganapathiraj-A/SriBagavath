@@ -12,7 +12,9 @@ import {
     ChevronRight,
     Download,
     Cloud,
-    User
+    User,
+    RefreshCw,
+    ShieldAlert
 } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { useAdminAuth } from '../context/AdminAuthContext';
@@ -25,7 +27,7 @@ const SettingItem = ({ title, subtitle, icon: Icon, path, delay, color = '#2563e
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay, duration: 0.3 }}
-            onClick={() => navigate(path)}
+            onClick={onClick}
             style={{
                 width: '100%',
                 display: 'flex',
@@ -129,10 +131,31 @@ const AdminSettings = () => {
                     permission: 'ADMIN_REVIEW',
                     color: '#06b6d4',
                     bgColor: '#ecfeff'
+                },
+                {
+                    id: 'SYSTEM_MAINTENANCE',
+                    title: 'System Maintenance',
+                    subtitle: 'Clear local cache & reset sync registry',
+                    icon: RefreshCw,
+                    action: 'CLEAR_CACHE',
+                    permission: 'ADMIN_REVIEW',
+                    color: '#ef4444',
+                    bgColor: '#fef2f2'
                 }
             ]
         }
     ];
+
+    const handleAction = async (item) => {
+        if (item.action === 'CLEAR_CACHE') {
+            if (window.confirm('This will clear all locally cached data and force a full resync from the server. Use this if you are seeing missing or incorrect content. Continue?')) {
+                localStorage.clear();
+                window.location.reload();
+            }
+            return;
+        }
+        navigate(item.path);
+    };
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
@@ -167,6 +190,7 @@ const AdminSettings = () => {
                                     <SettingItem
                                         key={item.id}
                                         {...item}
+                                        onClick={() => item.action ? handleAction(item) : navigate(item.path)}
                                         delay={(sIdx * 0.2) + (iIdx * 0.1)}
                                     />
                                 ))}

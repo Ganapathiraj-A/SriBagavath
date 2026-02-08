@@ -16,12 +16,11 @@ export function useDriveFiles(folderId, collectionId) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!folderId || !collectionId) return;
+    if (!folderId) return;
 
     const controller = new AbortController();
 
     async function fetchFiles() {
-      setLoading(true);
       setError(null);
 
       try {
@@ -29,68 +28,83 @@ export function useDriveFiles(folderId, collectionId) {
           throw new Error('Missing Google Drive API key. Set VITE_GOOGLE_DRIVE_API_KEY in .env');
         }
 
-        // Step 1: Check if we need to sync from server
-        const needsSync = needsServerSync(collectionId);
-
-        // Step 2: Try cache first
         const cacheKey = `drive_cache_${folderId}`;
         const cached = localStorage.getItem(cacheKey);
 
-        if (cached && !needsSync) {
-          // Use cache - zero API calls
-          console.log(`[Drive] Using cached files for ${collectionId}`);
+        // Step 1: If we have cache, show it immediately
+        if (cached) {
           setFiles(JSON.parse(cached));
           setLoading(false);
+          console.log(`[Drive] Showing cached files for ${collectionId || folderId}`);
+        } else {
+          setLoading(true);
+        }
 
-          // Step 3: Background check if 24 hours passed
-          if (shouldCheckDriveForChanges(collectionId)) {
-            console.log(`[Drive] 24h passed, checking for changes in background...`);
-            checkForDriveChanges(folderId, collectionId).catch(err =>
-              console.error('[Drive] Background check failed:', err)
-            );
+        // Diagnostic alert for the user if it's taking a while
+        const timer = setTimeout(() => {
+          if (loading && !cached) {
+            console.warn(`[Drive] Fetch for ${collectionId || folderId} is taking > 5s...`);
+          }
+        }, 5000);
+
+        // Step 2: Determine if we need a background refresh
+        // We always refresh if:
+        // 1. No cache exists
+        // 2. No collectionId (safety)
+        // 3. collectionId says we need sync
+        // 4. It's been > 24h (background check)
+        const needsSync = !collectionId || needsServerSync(collectionId);
+        const shouldCheckDrive = !collectionId || shouldCheckDriveForChanges(collectionId);
+
+        if (!cached || needsSync || shouldCheckDrive) {
+          console.log(`[Drive] Refreshing files for ${collectionId || folderId}...`);
+          const params = new URLSearchParams({
+            key: API_KEY,
+            q: `'${folderId}' in parents and trashed=false`,
+            fields: 'files(id,name,webViewLink,iconLink,mimeType,modifiedTime,size)',
+            orderBy: 'name_natural',
+          });
+
+          const res = await fetch(`${DRIVE_API_URL}?${params.toString()}`, {
+            signal: controller.signal,
+          });
+
+          console.log(`[Drive] Fetch response for ${collectionId || folderId}: ${res.status}`);
+
+          if (!res.ok) {
+            const text = await res.text();
+            throw new Error(`Drive API error ${res.status}: ${text}`);
           }
 
-          return;
+          const data = await res.json();
+          const fileList = data.files ?? [];
+
+          // Cache & Update UI
+          localStorage.setItem(cacheKey, JSON.stringify(fileList));
+          setFiles(fileList);
+
+          if (collectionId) {
+            const latestModified = getLatestModifiedTime(fileList);
+            // Fire and forget to avoid hanging on permission errors or slow networks
+            updateDriveCheckTimestamp(collectionId, latestModified)
+              .catch(e => console.error("[Drive] Failed to update timestamp:", e));
+            markSyncedLocally(collectionId);
+          }
         }
-
-        // Step 4: Fetch from Google Drive
-        console.log(`[Drive] Fetching fresh files for ${collectionId}`);
-        const params = new URLSearchParams({
-          key: API_KEY,
-          q: `'${folderId}' in parents and trashed=false`,
-          fields: 'files(id,name,webViewLink,iconLink,mimeType,modifiedTime,size)',
-          orderBy: 'name_natural',
-        });
-
-        const res = await fetch(`${DRIVE_API_URL}?${params.toString()}`, {
-          signal: controller.signal,
-        });
-
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(`Drive API error ${res.status}: ${text}`);
-        }
-
-        const data = await res.json();
-        const fileList = data.files ?? [];
-
-        // Step 5: Cache the result
-        localStorage.setItem(cacheKey, JSON.stringify(fileList));
-
-        // Step 6: Update check timestamp
-        const latestModified = getLatestModifiedTime(fileList);
-        await updateDriveCheckTimestamp(collectionId, latestModified);
-
-        // Step 7: Mark as synced
-        markSyncedLocally(collectionId);
-
-        setFiles(fileList);
       } catch (err) {
         if (err.name !== 'AbortError') {
-          setError(err.message || 'Failed to load files from Google Drive');
+          console.error('[Drive] Fetch failed:', err);
+          const errorMsg = `Drive Fetch Error (${collectionId || folderId}): ${err.message}`;
+          setError(errorMsg);
+          // Only alert once for high-level debugging
+          if (!localStorage.getItem(`alert_shown_${collectionId}`)) {
+            alert(errorMsg + "\nCheck your network and API Key.");
+            localStorage.setItem(`alert_shown_${collectionId}`, 'true');
+          }
         }
       } finally {
         setLoading(false);
+        clearTimeout(timer);
       }
     }
 

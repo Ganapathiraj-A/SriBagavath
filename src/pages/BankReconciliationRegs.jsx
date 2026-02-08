@@ -9,9 +9,11 @@ import { TransactionService } from '../services/TransactionService';
 import { compressImage } from '../utils/imageUtils';
 import OCR from '../plugins/OCRPlugin';
 import { RefreshCw, Image } from 'lucide-react';
+import { useGlobalSettings } from '../context/GlobalSettingsContext';
 
 const BankReconciliationRegs = () => {
     const navigate = useNavigate();
+    const { appVersion } = useGlobalSettings();
     const [loading, setLoading] = useState(true);
     const [transactions, setTransactions] = useState([]);
     const [loadingMore, setLoadingMore] = useState(false);

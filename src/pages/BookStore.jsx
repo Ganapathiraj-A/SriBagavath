@@ -104,43 +104,57 @@ const BookStore = () => {
                 q = query(q, startAfter(lastVisible));
             }
 
-            // Strategy for page 1: Version-Based Sync
-            // For subsequent pages (pagination), we always go to server or trust the SDK cache
-            let querySnapshot;
+            // Strategy: Cache-First with Background Refresh for page 1
             if (initial) {
                 const collectionId = `bookstore_${activeTab}`;
                 const needsSync = needsServerSync(collectionId);
+
+                // Try cache first
+                let cacheSnap = null;
                 try {
-                    querySnapshot = await getDocsFromCache(q);
-                    if (querySnapshot.empty || needsSync) {
-                        querySnapshot = await getDocsFromServer(q);
-                        markSyncedLocally(collectionId);
+                    cacheSnap = await getDocsFromCache(q);
+                    if (!cacheSnap.empty) {
+                        const books = cacheSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                        setProducts(books);
+                        setLoading(false);
+                        console.log(`[BookStore] Loaded ${books.length} items from cache`);
                     }
                 } catch (e) {
-                    querySnapshot = await getDocs(q);
-                    markSyncedLocally(collectionId);
+                    console.warn("[BookStore] Cache read failed", e);
+                }
+
+                // If cache empty OR needs sync, fetch from server
+                if (!cacheSnap || cacheSnap.empty || needsSync) {
+                    console.log(`[BookStore] Refreshing from server... (Category: ${activeTab})`);
+                    getDocsFromServer(q).then(serverSnap => {
+                        const books = serverSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                        console.log(`[BookStore] Server returned ${books.length} items for ${activeTab}`);
+
+                        setProducts(books);
+                        setLastVisible(serverSnap.docs[serverSnap.docs.length - 1]);
+                        setHasMore(serverSnap.docs.length === 16);
+                        markSyncedLocally(collectionId);
+                    }).catch(err => {
+                        console.error("[BookStore] Server refresh failed", err);
+                        alert(`BookStore Fetch Failed: ${err.message}`);
+                    }).finally(() => {
+                        setLoading(false);
+                    });
                 }
             } else {
-                querySnapshot = await getDocs(q);
-            }
-
-            const loadedBooks = querySnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-
-            if (initial) {
-                setProducts(loadedBooks);
-            } else {
+                // Paginated loads always go to server/standard SDK logic
+                const querySnapshot = await getDocs(q);
+                const loadedBooks = querySnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
                 setProducts(prev => [...prev, ...loadedBooks]);
+                setLastVisible(querySnapshot.docs[querySnapshot.docs.length - 1]);
+                setHasMore(querySnapshot.docs.length === 16);
+                setLoadingMore(false);
             }
-
-            setLastVisible(querySnapshot.docs[querySnapshot.docs.length - 1]);
-            setHasMore(querySnapshot.docs.length === 16);
-
         } catch (error) {
             console.error('Error loading bookstore books:', error);
-        } finally {
             setLoading(false);
             setLoadingMore(false);
         }
