@@ -19,6 +19,7 @@ export function useDriveFiles(folderId, collectionId) {
     if (!folderId) return;
 
     const controller = new AbortController();
+    let timer;
 
     async function fetchFiles() {
       setError(null);
@@ -41,7 +42,7 @@ export function useDriveFiles(folderId, collectionId) {
         }
 
         // Diagnostic alert for the user if it's taking a while
-        const timer = setTimeout(() => {
+        timer = setTimeout(() => {
           if (loading && !cached) {
             console.warn(`[Drive] Fetch for ${collectionId || folderId} is taking > 5s...`);
           }

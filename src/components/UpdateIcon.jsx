@@ -68,7 +68,7 @@ const UpdateIcon = () => {
     const [elapsed, setElapsed] = useState(0);
 
     useEffect(() => {
-        let timer;
+        let timer = null;
         if (isDownloading) {
             const startTime = Date.now();
             timer = setInterval(() => {
@@ -85,7 +85,9 @@ const UpdateIcon = () => {
             setElapsed(0);
             setProgress(0);
         }
-        return () => clearInterval(timer);
+        return () => {
+            if (timer) clearInterval(timer);
+        };
     }, [isDownloading]);
 
     // Derived State and Guards
