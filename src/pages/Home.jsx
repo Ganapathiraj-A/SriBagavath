@@ -26,15 +26,19 @@ import { StatsService } from '../services/StatsService';
 import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
 import { Toast } from '@capacitor/toast';
 
+// Module-level variable to track if this is the very first load of the app in this session.
+// This allows us to skip animations during the transition from the splash/skeleton screen.
+let isStartupLoad = true;
 
-const MenuButton = ({ title, icon: Icon, path, delay, badgeCount }) => {
+
+const MenuButton = ({ title, icon: Icon, path, delay, badgeCount, skipAnimation }) => {
     const navigate = useNavigate();
 
     return (
         <motion.button
-            initial={{ opacity: 0, y: 20 }}
+            initial={skipAnimation ? false : { opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay, duration: 0.5 }}
+            transition={skipAnimation ? { duration: 0 } : { delay, duration: 0.5 }}
             whileHover={{ scale: 1.02, backgroundColor: 'var(--color-secondary)' }}
             whileTap={{ scale: 0.98 }}
             onClick={() => navigate(path)}
@@ -96,6 +100,16 @@ const Home = () => {
     const navigate = useNavigate();
     const counts = useUnseenCounts();
     const totalPending = (counts.registrations || 0) + (counts.transactions || 0);
+
+    // Capture the current startup state before we clear it
+    const isFirstRender = isStartupLoad;
+
+    useEffect(() => {
+        // After the first render, ensure subsequent navigations back to Home DO have animations
+        if (isStartupLoad) {
+            isStartupLoad = false;
+        }
+    }, []);
 
     // Track Login on mount if user exists
     useEffect(() => {
@@ -382,9 +396,9 @@ const Home = () => {
             )}
 
             <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
+                initial={isFirstRender ? false : { opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.6 }}
+                transition={isFirstRender ? { duration: 0 } : { duration: 0.6 }}
                 style={{ width: '100%', maxWidth: '28rem' }}
             >
                 <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
@@ -468,6 +482,7 @@ const Home = () => {
                             icon={item.icon}
                             path={item.path}
                             delay={item.delay}
+                            skipAnimation={isFirstRender}
                             badgeCount={
                                 item.isAdmin
                                     ? totalPending

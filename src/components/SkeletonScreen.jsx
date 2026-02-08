@@ -6,9 +6,10 @@ import {
     Heart,
     User,
     LogIn,
-    ChevronRight,
-    Search
+    LayoutDashboard
 } from 'lucide-react';
+import { useAdminAuth } from '../context/AdminAuthContext';
+import { useGlobalSettings } from '../context/GlobalSettingsContext';
 
 const StaticMenuButton = ({ title, icon: Icon }) => (
     <div style={{
@@ -28,27 +29,46 @@ const StaticMenuButton = ({ title, icon: Icon }) => (
             padding: '0.75rem',
             borderRadius: '9999px',
             backgroundColor: '#fff7ed',
-            color: '#ea580c',
+            color: 'var(--color-primary, #ea580c)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0
         }}>
-            <Icon size={24} color="#ea580c" />
+            <Icon size={24} color="var(--color-primary, #ea580c)" />
         </div>
         <span style={{ fontSize: '1.125rem', fontWeight: 500, color: '#1f2937' }}>{title}</span>
     </div>
 );
 
 const SkeletonScreen = () => {
+    const { user, isAdmin } = useAdminAuth();
+    const isActualUser = user && !user.isAnonymous;
+
+    const baseMenu = [
+        { title: "About Bagavath Ayya", icon: User },
+        { title: "Programs", icon: Calendar },
+        { title: "Books & Media", icon: BookOpen },
+        { title: "Donations", icon: Heart },
+        { title: "Contact", icon: Mail }
+    ];
+
+    const menuItems = isAdmin
+        ? [
+            { title: "Admin", icon: LayoutDashboard },
+            ...baseMenu.slice(1)
+        ]
+        : [...baseMenu];
+
     return (
         <div style={{
             minHeight: '100vh',
-            backgroundColor: '#f9fafb',
+            backgroundColor: 'var(--color-surface, #f9fafb)',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            padding: '2.5rem 1rem'
+            justifyContent: 'center',
+            padding: '1.5rem'
         }}>
             <div style={{ width: '100%', maxWidth: '28rem', textAlign: 'center' }}>
                 <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
@@ -73,31 +93,53 @@ const SkeletonScreen = () => {
                     <p style={{ color: '#6b7280' }}>Welcome to the official app</p>
 
                     <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            color: '#ea580c',
-                            fontSize: '0.9rem',
-                            fontWeight: 500,
-                            textDecoration: 'underline'
-                        }}>
-                            <LogIn size={14} />
-                            Sign in for full access
-                        </div>
+                        {isActualUser ? (
+                            <div style={{ color: '#dc2626', fontSize: '0.9rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'underline' }}>
+                                <LogOut size={14} /> Logout
+                            </div>
+                        ) : (
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                color: 'var(--color-primary, #ea580c)',
+                                fontSize: '0.9rem',
+                                fontWeight: 500,
+                                textDecoration: 'underline'
+                            }}>
+                                <LogIn size={14} />
+                                Sign in for full access
+                            </div>
+                        )}
                     </div>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <StaticMenuButton title="About Bagavath Ayya" icon={User} />
-                    <StaticMenuButton title="Programs" icon={Calendar} />
-                    <StaticMenuButton title="Books & Media" icon={BookOpen} />
-                    <StaticMenuButton title="Donations" icon={Heart} />
-                    <StaticMenuButton title="Contact" icon={Mail} />
+                    {menuItems.map((item, idx) => (
+                        <StaticMenuButton key={idx} title={item.title} icon={item.icon} />
+                    ))}
+                </div>
+
+                {/* Perfect Match Footer */}
+                <div style={{
+                    marginTop: '2rem',
+                    textAlign: 'center',
+                    paddingBottom: '2.5rem',
+                    opacity: 0.5,
+                    fontSize: '0.75rem',
+                    color: '#6b7280',
+                    fontWeight: '500'
+                }}>
+                    {import.meta.env.MODE} | v{appVersion}
                 </div>
             </div>
         </div>
     );
 };
+
+// Dummy LogOut icon to avoid import errors if not used but referenced
+const LogOut = ({ size }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+);
 
 export default SkeletonScreen;
