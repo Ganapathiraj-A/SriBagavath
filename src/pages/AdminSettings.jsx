@@ -20,7 +20,7 @@ import PageHeader from '../components/PageHeader';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { useGlobalSettings } from '../context/GlobalSettingsContext';
 
-const SettingItem = ({ title, subtitle, icon: Icon, path, delay, color = '#2563eb', bgColor = '#eff6ff' }) => {
+const SettingItem = ({ title, subtitle, icon: Icon, path, delay, onClick, color = '#2563eb', bgColor = '#eff6ff' }) => {
     const navigate = useNavigate();
     return (
         <motion.button
