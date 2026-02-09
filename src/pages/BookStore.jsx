@@ -115,7 +115,7 @@ const BookStore = () => {
             // Always background refresh if needsSync or no cache
             if (!cachedData || needsSync) {
                 console.log(`[BookStore] Refreshing from server... (Category: ${activeTab})`);
-                getDocsFromServer(q).then(serverSnap => {
+                const serverTask = getDocsFromServer(q).then(serverSnap => {
                     const books = serverSnap.docs.map(d => ({ id: d.id, ...d.data() }));
                     console.log(`[BookStore] Server returned ${books.length} items for ${activeTab}`);
                     setProducts(books);
@@ -123,9 +123,11 @@ const BookStore = () => {
                 }).catch(err => {
                     console.error("[BookStore] Server refresh failed", err);
                     if (!cachedData) alert(`BookStore Fetch Failed: ${err.message}`);
-                }).finally(() => {
-                    setLoading(false);
                 });
+
+                if (!cachedData) {
+                    await serverTask;
+                }
             }
 
         } catch (error) {

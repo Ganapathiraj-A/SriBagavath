@@ -103,15 +103,18 @@ const Programs = () => {
                 // If cache empty OR needs sync, fetch from server
                 if (!cacheSnap || cacheSnap.empty || needsSync) {
                     console.log(`[Programs] Refreshing from server...`);
-                    getDocsFromServer(q).then(serverSnap => {
+                    const serverTask = getDocsFromServer(q).then(serverSnap => {
                         const list = serverSnap.docs.map(d => ({ id: d.id, ...d.data() }));
                         setPrograms(list);
                         markSyncedLocally('programs');
                     }).catch(err => {
                         console.error("[Programs] Server refresh failed", err);
-                    }).finally(() => {
-                        setLoading(false);
                     });
+
+                    // If cache was empty, we MUST wait for server to avoid "No programs" flicker
+                    if (!cacheSnap || cacheSnap.empty) {
+                        await serverTask;
+                    }
                 }
 
             } catch (error) {
