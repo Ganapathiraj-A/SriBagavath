@@ -88,13 +88,25 @@ if (typeof window !== 'undefined') {
  * @returns {boolean} True if local version is outdated or missing
  */
 export const needsServerSync = (collectionId) => {
-    if (!syncState.isInitialized) return true; // Safety default
+    if (!syncState.isInitialized) {
+        console.log(`[SyncManager] Sync check for ${collectionId} - Blocked (Not Initialized)`);
+        return true; // Safety default
+    }
 
     const serverVersion = syncState.serverRegistry[collectionId] || 0;
     const localVersion = syncState.localRegistry[collectionId] || 0;
 
-    return serverVersion > localVersion;
+    const result = serverVersion > localVersion;
+    if (result) {
+        console.log(`[SyncManager] Sync REQUIRED for ${collectionId} (Server: ${serverVersion}, Local: ${localVersion})`);
+    }
+    return result;
 };
+
+/**
+ * Debug helper to view internal state
+ */
+export const getSyncState = () => syncState;
 
 /**
  * Mark a collection as up-to-date locally
@@ -104,6 +116,7 @@ export const markSyncedLocally = (collectionId) => {
     const serverVersion = syncState.serverRegistry[collectionId] || 1;
     syncState.localRegistry[collectionId] = serverVersion;
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(syncState.localRegistry));
+    console.log(`[SyncManager] Marked ${collectionId} as synced at version ${serverVersion}`);
 };
 
 /**

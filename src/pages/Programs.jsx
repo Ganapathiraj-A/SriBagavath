@@ -69,12 +69,13 @@ const Programs = () => {
     useEffect(() => {
         const fetchPrograms = async () => {
             if (authGlobalLoading) return;
+            console.log("[Programs] Starting fetchPrograms...");
             try {
                 // Track visit for badge reset
                 localStorage.setItem('lastVisited_programs', new Date().toISOString());
 
                 const { getDocsFromCache, getDocsFromServer } = await import('@/utils/FirestoreProxy');
-                const { needsServerSync, markSyncedLocally } = await import('../utils/SyncManager');
+                const { needsServerSync, markSyncedLocally, getSyncState } = await import('../utils/SyncManager');
                 const today = getLocalDateString();
                 const programsRef = collection(db, 'programs');
                 const q = query(
@@ -83,8 +84,13 @@ const Programs = () => {
                     orderBy('programDate', 'asc')
                 );
 
+                console.log(`[Programs] Local Date: ${today}`);
+                console.log(`[Programs] Query: programDate >= ${today}`);
+
                 // Strategy: Cache-First with Background Refresh
+                const syncState = getSyncState();
                 const needsSync = needsServerSync('programs');
+                console.log(`[Programs] Sync Status - needsSync: ${needsSync}, ServerRegistry:`, syncState.serverRegistry['programs'], "LocalRegistry:", syncState.localRegistry['programs']);
 
                 // Try cache first
                 let cacheSnap = null;
@@ -94,32 +100,37 @@ const Programs = () => {
                         const list = cacheSnap.docs.map(d => ({ id: d.id, ...d.data() }));
                         setPrograms(list);
                         setLoading(false);
-                        console.log(`[Programs] Loaded ${list.length} programs from cache`);
+                        console.log(`[Programs] Cache SUCCESS: Found ${list.length} programs`);
+                    } else {
+                        console.log("[Programs] Cache EMPTY (or query returned nothing from cache)");
                     }
                 } catch (e) {
-                    console.warn("[Programs] Cache read failed", e);
+                    console.warn("[Programs] Cache read failed (expected on first load)", e);
                 }
 
                 // If cache empty OR needs sync, fetch from server
                 if (!cacheSnap || cacheSnap.empty || needsSync) {
-                    console.log(`[Programs] Refreshing from server...`);
+                    console.log(`[Programs] Triggering Server Refresh (Reason: ${!cacheSnap ? 'NoCacheSnap' : cacheSnap.empty ? 'CacheEmpty' : 'Stale'})`);
                     const serverTask = getDocsFromServer(q).then(serverSnap => {
                         const list = serverSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                        console.log(`[Programs] Server SUCCESS: Returned ${list.length} programs`);
                         setPrograms(list);
                         markSyncedLocally('programs');
                     }).catch(err => {
-                        console.error("[Programs] Server refresh failed", err);
+                        console.error("[Programs] Server refresh FAILED", err);
                     });
 
                     // If cache was empty, we MUST wait for server to avoid "No programs" flicker
                     if (!cacheSnap || cacheSnap.empty) {
+                        console.log("[Programs] Waiting for server task to complete...");
                         await serverTask;
                     }
                 }
 
             } catch (error) {
-                console.error("Error fetching programs: ", error);
+                console.error("[Programs] CRITICAL FETCH ERROR: ", error);
             } finally {
+                console.log("[Programs] fetchPrograms completed, setting loading to false");
                 setLoading(false);
             }
         };
