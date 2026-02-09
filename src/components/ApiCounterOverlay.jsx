@@ -23,43 +23,43 @@ const ApiCounterOverlay = () => {
         <div style={{
             position: 'fixed',
             top: '0',
-            left: '50%',
-            transform: 'translateX(-50%)',
+            right: '16px',
             zIndex: 9999,
-            backgroundColor: 'rgba(17, 24, 39, 0.9)',
+            backgroundColor: 'rgba(17, 24, 39, 0.95)',
             color: 'white',
-            padding: '4px 12px',
+            padding: '8px 16px',
             borderRadius: '0 0 12px 12px',
-            fontSize: '11px',
-            fontWeight: 600,
+            fontSize: '16px',
+            fontWeight: 700,
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-            backdropFilter: 'blur(4px)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
+            gap: '12px',
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
             borderTop: 'none'
         }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <Activity size={12} color="#f97316" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Activity size={18} color="#f97316" strokeWidth={3} />
                 <span>API: {count}</span>
             </div>
             <button
                 onClick={() => ApiMonitor.reset()}
                 style={{
-                    background: 'rgba(255, 255, 255, 0.1)',
+                    background: 'rgba(255, 255, 255, 0.15)',
                     border: 'none',
-                    borderRadius: '4px',
-                    padding: '2px 4px',
-                    color: '#9ca3af',
+                    borderRadius: '6px',
+                    padding: '4px 6px',
+                    color: '#e5e7eb',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    transition: 'background 0.2s'
                 }}
                 title="Reset Counter"
             >
-                <RefreshCw size={10} />
+                <RefreshCw size={14} />
             </button>
         </div>
     );
