@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Download, Upload, FileSpreadsheet, Check, AlertTriangle, X, Users, UserPlus, CloudUpload, CloudDownload, ShoppingBag, Heart } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { db } from '../firebase';
-import { collection, getDocs, doc, writeBatch, serverTimestamp, query, where, getCountFromServer } from 'firebase/firestore';
+import { collection, getDocs, doc, writeBatch, serverTimestamp, query, where, getCountFromServer } from '@/utils/FirestoreProxy';
 import { useGlobalSettings } from '../context/GlobalSettingsContext';
 import Spinner from '../components/Spinner';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';

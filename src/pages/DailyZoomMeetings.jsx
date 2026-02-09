@@ -6,7 +6,7 @@ import { Share } from '@capacitor/share';
 import PageHeader from '../components/PageHeader';
 import LazyImage from '../components/LazyImage';
 import { db } from '../firebase';
-import { collection, query, where, orderBy, getDocs, limit, startAfter } from 'firebase/firestore';
+import { collection, query, where, orderBy, getDocs, limit, startAfter } from '@/utils/FirestoreProxy';
 import { getLocalDateString } from '../utils/dateUtils';
 import { useAdminAuth } from '../context/AdminAuthContext';
 
@@ -189,7 +189,7 @@ const DailyZoomMeetings = () => {
     const fetchUpcomingMeetings = async () => {
         setLoading(true);
         try {
-            const { getDocsFromCache, getDocsFromServer } = await import('firebase/firestore');
+            const { getDocsFromCache, getDocsFromServer } = await import('@/utils/FirestoreProxy');
             const today = getLocalDateString();
             const ref = collection(db, 'daily_zoom_meetings');
             const q = query(

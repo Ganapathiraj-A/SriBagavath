@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { db } from '../firebase';
-import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot } from '@/utils/FirestoreProxy';
 import { TransactionService } from '../services/TransactionService';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
@@ -48,7 +48,7 @@ const BankStatementView = () => {
     const fetchInitialEntries = async () => {
         setLoading(true);
         try {
-            const { collection, query, orderBy, limit, getDocs } = await import('firebase/firestore');
+            const { collection, query, orderBy, limit, getDocs } = await import('@/utils/FirestoreProxy');
             const ref = collection(db, 'bank_entries');
             const q = query(ref, orderBy('timestamp', 'desc'), limit(30));
             const snapshot = await getDocs(q);
@@ -72,7 +72,7 @@ const BankStatementView = () => {
         if (!lastVisible || loadingMore) return;
         setLoadingMore(true);
         try {
-            const { collection, query, orderBy, limit, startAfter, getDocs } = await import('firebase/firestore');
+            const { collection, query, orderBy, limit, startAfter, getDocs } = await import('@/utils/FirestoreProxy');
             const ref = collection(db, 'bank_entries');
             const q = query(ref, orderBy('timestamp', 'desc'), startAfter(lastVisible), limit(30));
             const snapshot = await getDocs(q);
@@ -171,7 +171,7 @@ const BankStatementView = () => {
         setExporting(true);
 
         try {
-            const { getDocs, collection, where, query } = await import('firebase/firestore');
+            const { getDocs, collection, where, query } = await import('@/utils/FirestoreProxy');
 
             // 1. Fetch matched transactions source info
             const matchedIds = filteredEntries

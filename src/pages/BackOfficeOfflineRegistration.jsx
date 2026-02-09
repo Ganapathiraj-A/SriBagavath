@@ -4,7 +4,7 @@ import { ChevronLeft, Plus, Trash2, Camera, RotateCcw } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { db } from '../firebase';
 import { getLocalDateString } from '../utils/dateUtils';
-import { collection, query, where, getDocs, Timestamp, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDocs, Timestamp, orderBy } from '@/utils/FirestoreProxy';
 import { TransactionService } from '../services/TransactionService';
 import { Camera as CameraPlugin, CameraResultType } from '@capacitor/camera';
 

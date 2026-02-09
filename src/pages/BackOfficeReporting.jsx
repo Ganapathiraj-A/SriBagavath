@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { db } from '../firebase';
 import { getLocalDateString } from '../utils/dateUtils';
-import { collection, query, where, getDocs, orderBy, Timestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy, Timestamp } from '@/utils/FirestoreProxy';
 import { Share } from '@capacitor/share';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';

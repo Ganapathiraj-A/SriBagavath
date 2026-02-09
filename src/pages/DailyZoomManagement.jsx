@@ -5,7 +5,7 @@ import {
     Plus, Edit2, Trash2, Save, ChevronLeft, User, Video, Calendar, Image as ImageIcon, Link as LinkIcon, FileText, Youtube
 } from 'lucide-react';
 import { db } from '../firebase';
-import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy, limit, where } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy, limit, where } from '@/utils/FirestoreProxy';
 import PageHeader from '../components/PageHeader';
 import { getLocalDateString } from '../utils/dateUtils';
 import { compressImage } from '../utils/imageUtils';

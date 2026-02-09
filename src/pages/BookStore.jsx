@@ -8,7 +8,7 @@ import { ensureGoogleAuthInitialized } from '../utils/GoogleAuthUtils';
 import PageHeader from '../components/PageHeader';
 import LazyImage from '../components/LazyImage';
 import { auth, db } from '../firebase';
-import { collection, getDocs, query, orderBy, doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, doc, getDoc } from '@/utils/FirestoreProxy';
 import { GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
 import { useCart } from '../context/CartContext';
 import { useAdminAuth } from '../context/AdminAuthContext';
@@ -85,7 +85,7 @@ const BookStore = () => {
         setLoading(true);
 
         try {
-            const { collection, query, orderBy, getDocs, where, getDocsFromCache, getDocsFromServer } = await import('firebase/firestore');
+            const { collection, query, orderBy, getDocs, where, getDocsFromCache, getDocsFromServer } = await import('@/utils/FirestoreProxy');
             const { needsServerSync, markSyncedLocally } = await import('../utils/SyncManager');
 
             const ref = collection(db, 'books');

@@ -7,7 +7,7 @@ import LazyImage from '../components/LazyImage';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
 import { db, storage, auth } from '../firebase';
-import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, setDoc, query, orderBy, serverTimestamp, getDoc } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, setDoc, query, orderBy, serverTimestamp, getDoc } from '@/utils/FirestoreProxy';
 import { signOut } from 'firebase/auth';
 import { StatsService } from '../services/StatsService';
 import { bumpServerVersion } from '../utils/SyncManager';

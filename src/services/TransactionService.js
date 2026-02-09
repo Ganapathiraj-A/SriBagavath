@@ -1,5 +1,5 @@
 import { db, auth } from '../firebase';
-import { collection, doc, setDoc, updateDoc, deleteDoc, getDoc, getDocs, onSnapshot, query, orderBy, where, limit, Timestamp, increment } from 'firebase/firestore';
+import { collection, doc, setDoc, updateDoc, deleteDoc, getDoc, getDocs, onSnapshot, query, orderBy, where, limit, Timestamp, increment } from '@/utils/FirestoreProxy';
 import { StatsService } from './StatsService';
 
 export const TransactionService = {
@@ -164,7 +164,7 @@ export const TransactionService = {
         // Actually, let's just fetch all and filter client side to avoid index creation delay
         const snap = await getDocs(collection(db, "transactions"));
 
-        const { writeBatch } = await import("firebase/firestore");
+        const { writeBatch } = await import('@/utils/FirestoreProxy');
         const batch = writeBatch(db);
         let count = 0;
 

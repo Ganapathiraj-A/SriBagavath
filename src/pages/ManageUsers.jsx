@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { collection, query, getDocs, onSnapshot, doc, setDoc, deleteDoc, Timestamp } from 'firebase/firestore';
+import { collection, query, getDocs, onSnapshot, doc, setDoc, deleteDoc, Timestamp } from '@/utils/FirestoreProxy';
 import { db } from '../firebase';
 import PageHeader from '../components/PageHeader';
 import { Check, X, Shield, Mail, Calendar, Trash2, Edit, Plus } from 'lucide-react';

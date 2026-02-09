@@ -23,7 +23,7 @@ import {
     where,
     setDoc,
     deleteDoc
-} from 'firebase/firestore';
+} from '@/utils/FirestoreProxy';
 
 const BackOfficeAttendance = () => {
     const { programId } = useParams();

@@ -11,7 +11,7 @@ import { ensureGoogleAuthInitialized } from '../utils/GoogleAuthUtils';
 
 import { auth, db } from '../firebase';
 import { GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
-import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
+import { collection, query, where, orderBy, getDocs } from '@/utils/FirestoreProxy';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { getLocalDateString } from '../utils/dateUtils';
 
@@ -73,7 +73,7 @@ const Programs = () => {
                 // Track visit for badge reset
                 localStorage.setItem('lastVisited_programs', new Date().toISOString());
 
-                const { getDocsFromCache, getDocsFromServer } = await import('firebase/firestore');
+                const { getDocsFromCache, getDocsFromServer } = await import('@/utils/FirestoreProxy');
                 const { needsServerSync, markSyncedLocally } = await import('../utils/SyncManager');
                 const today = getLocalDateString();
                 const programsRef = collection(db, 'programs');
@@ -148,7 +148,7 @@ const Programs = () => {
             }
 
             try {
-                const { doc, getDoc } = await import('firebase/firestore');
+                const { doc, getDoc } = await import('@/utils/FirestoreProxy');
                 const programRef = doc(db, 'programs', viewingProgramId);
                 const snap = await getDoc(programRef);
                 if (snap.exists()) {
@@ -180,7 +180,7 @@ const Programs = () => {
             // New Logic: Fetch from separate collection
             if (viewingProgram.hasBanner) {
                 try {
-                    const { doc, getDoc } = await import('firebase/firestore');
+                    const { doc, getDoc } = await import('@/utils/FirestoreProxy');
                     const bannerRef = doc(db, 'program_banners', viewingProgram.id);
                     const snap = await getDoc(bannerRef);
                     if (snap.exists()) {

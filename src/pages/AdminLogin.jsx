@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
-import { doc, setDoc, Timestamp } from 'firebase/firestore';
+import { doc, setDoc, Timestamp } from '@/utils/FirestoreProxy';
 import { auth, db } from '../firebase';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { Lock, Mail, Chrome, RefreshCw } from 'lucide-react';

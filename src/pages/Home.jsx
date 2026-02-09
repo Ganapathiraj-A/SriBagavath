@@ -23,7 +23,7 @@ import { App } from '@capacitor/app';
 import { ensureGoogleAuthInitialized, GET_GOOGLE_CLIENT_ID } from '../utils/GoogleAuthUtils';
 import { db, auth } from '../firebase';
 import { StatsService } from '../services/StatsService';
-import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc } from '@/utils/FirestoreProxy';
 import { Toast } from '@capacitor/toast';
 
 // Module-level variable to track if this is the very first load of the app in this session.

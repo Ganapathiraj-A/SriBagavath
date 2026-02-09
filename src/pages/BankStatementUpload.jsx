@@ -5,7 +5,7 @@ import { ChevronLeft, Upload, FileText } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { parseHdfcStatement } from '../utils/BankStatementParser';
 import { db } from '../firebase';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp } from '@/utils/FirestoreProxy';
 
 const BankStatementUpload = () => {
     const navigate = useNavigate();

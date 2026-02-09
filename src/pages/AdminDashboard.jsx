@@ -4,7 +4,7 @@ import { ChevronLeft, Image, Users, Calendar, LayoutDashboard, Map as MapIcon, R
 import PageHeader from '../components/PageHeader';
 import { db } from '../firebase';
 import { StatsService } from '../services/StatsService';
-import { doc, getDoc, collection, getDocs, query, where, count, getCountFromServer } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, query, where, count, getCountFromServer } from '@/utils/FirestoreProxy';
 
 import { useUnseenCounts } from '../hooks/useUnseenCounts';
 import { getLocalDateString } from '../utils/dateUtils';

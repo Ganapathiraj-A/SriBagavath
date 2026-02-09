@@ -6,7 +6,7 @@ import { Share } from '@capacitor/share';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import PageHeader from '../components/PageHeader';
 import { db } from '../firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc } from '@/utils/FirestoreProxy';
 
 const SatsangDetails = () => {
     const { id: rawId } = useParams();

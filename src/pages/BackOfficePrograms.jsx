@@ -8,7 +8,7 @@ import {
     ArrowRight
 } from 'lucide-react';
 import { db } from '../firebase';
-import { collection, query, getDocs, orderBy } from 'firebase/firestore';
+import { collection, query, getDocs, orderBy } from '@/utils/FirestoreProxy';
 
 const BackOfficePrograms = () => {
     const navigate = useNavigate();

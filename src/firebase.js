@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore } from '@/utils/FirestoreProxy';
 
 // Firebase configuration using environment variables
 const firebaseConfig = {
@@ -18,7 +18,7 @@ const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 
 // Enable Persistence (Offline Support & Faster Reloads)
-import { enableMultiTabIndexedDbPersistence } from 'firebase/firestore';
+import { enableMultiTabIndexedDbPersistence } from '@/utils/FirestoreProxy';
 if (typeof window !== 'undefined') {
     enableMultiTabIndexedDbPersistence(db).catch((err) => {
         if (err.code == 'failed-precondition') {

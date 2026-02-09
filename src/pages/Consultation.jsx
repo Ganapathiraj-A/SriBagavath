@@ -95,7 +95,7 @@ const Consultation = () => {
         const fetchConsultants = async () => {
             if (authGlobalLoading) return;
             try {
-                const { collection, getDocs, query, orderBy, getDocsFromCache, getDocsFromServer } = await import('firebase/firestore');
+                const { collection, getDocs, query, orderBy, getDocsFromCache, getDocsFromServer } = await import('@/utils/FirestoreProxy');
                 const { db } = await import('../firebase');
                 const { needsServerSync, markSyncedLocally } = await import('../utils/SyncManager');
 

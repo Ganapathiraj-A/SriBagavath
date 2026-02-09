@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import { Share } from '@capacitor/share';
 import { db } from '../firebase';
-import { collection, query, orderBy, getDocs, where } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs, where } from '@/utils/FirestoreProxy';
 import { getLocalDateString } from '../utils/dateUtils';
 import { useAdminAuth } from '../context/AdminAuthContext';
 
@@ -19,7 +19,7 @@ const AyyasSchedule = () => {
         const fetchSchedules = async () => {
             if (authGlobalLoading) return;
             try {
-                const { getDocsFromCache, getDocsFromServer } = await import('firebase/firestore');
+                const { getDocsFromCache, getDocsFromServer } = await import('@/utils/FirestoreProxy');
                 const { needsServerSync, markSyncedLocally } = await import('../utils/SyncManager');
 
                 const filterSchedules = (list) => {

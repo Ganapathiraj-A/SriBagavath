@@ -10,7 +10,7 @@ import { db } from '../firebase';
 import {
     collection, addDoc, getDocs, deleteDoc, doc,
     updateDoc, serverTimestamp, getDoc, setDoc
-} from 'firebase/firestore';
+} from '@/utils/FirestoreProxy';
 import { getLocalDateString } from '../utils/dateUtils';
 import { compressImage } from '../utils/imageUtils';
 import { bumpServerVersion } from '../utils/SyncManager';

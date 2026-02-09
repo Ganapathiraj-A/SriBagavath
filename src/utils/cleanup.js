@@ -1,5 +1,5 @@
 import { db } from '../firebase';
-import { collection, query, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { collection, query, where, getDocs, deleteDoc, doc } from '@/utils/FirestoreProxy';
 import { getLocalDateString } from './dateUtils';
 
 export const cleanupOldSchedules = async () => {

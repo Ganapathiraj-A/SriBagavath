@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { ChevronLeft, Search, X, Receipt, Check } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { db } from '../firebase';
-import { collection, query, orderBy, limit, getDocs, onSnapshot, getCountFromServer, where, startAfter } from 'firebase/firestore';
+import { collection, query, orderBy, limit, getDocs, onSnapshot, getCountFromServer, where, startAfter } from '@/utils/FirestoreProxy';
 import { TransactionService } from '../services/TransactionService';
 import { compressImage } from '../utils/imageUtils';
 import OCR from '../plugins/OCRPlugin';
@@ -222,7 +222,7 @@ const BankReconciliationRegs = () => {
         if (!viewingImage || savingUtr) return;
         setSavingUtr(true);
         try {
-            const { updateDoc, doc, deleteField, serverTimestamp, writeBatch } = await import('firebase/firestore');
+            const { updateDoc, doc, deleteField, serverTimestamp, writeBatch } = await import('@/utils/FirestoreProxy');
             const newAmount = parseFloat(editingAmountValue);
             const newParsedAmount = parseFloat(editingParsedAmountValue);
 

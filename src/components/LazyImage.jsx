@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { db } from '../firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc } from '@/utils/FirestoreProxy';
 
 // Global Memory Cache for images (URLs or Base64)
 const imageCache = new Map();

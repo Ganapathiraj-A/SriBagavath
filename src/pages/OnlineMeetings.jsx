@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Clock, User, ChevronLeft, Video, RefreshCw } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { db } from '../firebase';
-import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
+import { collection, query, where, orderBy, getDocs } from '@/utils/FirestoreProxy';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { getLocalDateString } from '../utils/dateUtils';
 
@@ -72,7 +72,7 @@ const OnlineMeetings = () => {
         const fetchMeetings = async () => {
             if (authGlobalLoading) return;
             try {
-                const { getDocsFromCache, getDocsFromServer } = await import('firebase/firestore');
+                const { getDocsFromCache, getDocsFromServer } = await import('@/utils/FirestoreProxy');
                 const { needsServerSync, markSyncedLocally } = await import('../utils/SyncManager');
 
                 const todayStr = getLocalDateString();

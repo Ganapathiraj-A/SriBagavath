@@ -3,7 +3,12 @@
  */
 class ApiMonitor {
     constructor() {
-        this.apiCount = parseInt(localStorage.getItem('debug_api_count') || '0', 10);
+        const saved = JSON.parse(localStorage.getItem('debug_api_stats') || '{}');
+        this.stats = {
+            reads: saved.reads || 0,
+            writes: saved.writes || 0,
+            fetches: saved.fetches || 0
+        };
         this.listeners = new Set();
         this.init();
     }
@@ -20,27 +25,43 @@ class ApiMonitor {
                 url.includes('firebasedatabase.app')
             );
 
+            // Exclude Firestore calls from global fetch count if they are handled by FirestoreProxy
+            // But for now, we'll keep them to see all network activity
             if (isApiCall) {
-                this.increment();
+                this.recordFetch();
             }
             return originalFetch.apply(window, args);
         };
     }
 
-    increment() {
-        this.apiCount++;
-        localStorage.setItem('debug_api_count', this.apiCount);
+    recordRead(count = 1) {
+        this.stats.reads += count;
+        this.saveAndNotify();
+    }
+
+    recordWrite(count = 1) {
+        this.stats.writes += count;
+        this.saveAndNotify();
+    }
+
+    recordFetch(count = 1) {
+        this.stats.fetches += count;
+        this.saveAndNotify();
+    }
+
+    saveAndNotify() {
+        localStorage.setItem('debug_api_stats', JSON.stringify(this.stats));
         this.notify();
     }
 
     reset() {
-        this.apiCount = 0;
-        localStorage.setItem('debug_api_count', '0');
+        this.stats = { reads: 0, writes: 0, fetches: 0 };
+        localStorage.setItem('debug_api_stats', JSON.stringify(this.stats));
         this.notify();
     }
 
-    getCount() {
-        return this.apiCount;
+    getStats() {
+        return this.stats;
     }
 
     subscribe(callback) {
@@ -49,7 +70,7 @@ class ApiMonitor {
     }
 
     notify() {
-        this.listeners.forEach(callback => callback(this.apiCount));
+        this.listeners.forEach(callback => callback(this.stats));
     }
 }
 

@@ -5,7 +5,7 @@ import {
     Plus, Edit2, Trash2, Save, X, ChevronLeft, User, Phone, Mail, Image as ImageIcon
 } from 'lucide-react';
 import { db } from '../firebase';
-import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy } from '@/utils/FirestoreProxy';
 import PageHeader from '../components/PageHeader';
 import { compressImage } from '../utils/imageUtils';
 

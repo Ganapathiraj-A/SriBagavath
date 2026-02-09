@@ -7,7 +7,7 @@ import { useDriveFiles } from '../hooks/useDriveFiles';
 import { DRIVE_CONFIG } from '../data/driveConfig';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { db } from '../firebase';
-import { collection, onSnapshot, doc, setDoc, getDocs, query, orderBy, getDoc } from 'firebase/firestore';
+import { collection, onSnapshot, doc, setDoc, getDocs, query, orderBy, getDoc } from '@/utils/FirestoreProxy';
 import { compressImage } from '../utils/imageUtils';
 
 const { ENGLISH_BOOKS_FOLDER_ID, TAMIL_BOOKS_FOLDER_ID } = DRIVE_CONFIG;

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Plus, Minus, Search, Camera, RotateCcw } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { db } from '../firebase';
-import { collection, getDocs, query, orderBy, getDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, getDoc, doc } from '@/utils/FirestoreProxy';
 import { TransactionService } from '../services/TransactionService';
 import { Camera as CameraPlugin, CameraResultType } from '@capacitor/camera';
 import { motion } from 'framer-motion';

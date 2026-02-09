@@ -7,7 +7,7 @@ import { Plus, Edit2, Trash2, Calendar as CalendarIcon, ChevronDown, ChevronUp, 
 import PageHeader from '../components/PageHeader';
 import { db, auth } from '../firebase';
 import '../components/RegistrationStyles.css';
-import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, setDoc, query, where, orderBy, limit, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, setDoc, query, where, orderBy, limit, serverTimestamp } from '@/utils/FirestoreProxy';
 import { LogOut } from 'lucide-react';
 import { signOut } from 'firebase/auth';
 import { bumpServerVersion } from '../utils/SyncManager';
@@ -16,7 +16,7 @@ import { bumpServerVersion } from '../utils/SyncManager';
 import { tamilnaduCities } from '../data/tamilnaduCities';
 import { TransactionService } from '../services/TransactionService';
 import { StatsService } from '../services/StatsService';
-import { increment as firestoreIncrement } from 'firebase/firestore';
+import { increment as firestoreIncrement } from '@/utils/FirestoreProxy';
 import { useUnseenCounts } from '../hooks/useUnseenCounts';
 import { getLocalDateString } from '../utils/dateUtils';
 
@@ -130,7 +130,7 @@ const ProgramManagement = () => {
             if (!editingProgram.programBanner && editingProgram.hasBanner) {
                 const fetchBanner = async () => {
                     try {
-                        const { getDoc, doc } = await import('firebase/firestore');
+                        const { getDoc, doc } = await import('@/utils/FirestoreProxy');
                         const snap = await getDoc(doc(db, 'program_banners', editingProgram.id));
                         if (snap.exists()) {
                             setFormData(prev => ({ ...prev, programBanner: snap.data().banner }));

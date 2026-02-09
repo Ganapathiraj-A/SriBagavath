@@ -69,7 +69,7 @@ const AdminReview = () => {
         // Fetch Master Programs for Date Fallback (for old transactions)
         const fetchPrograms = async () => {
             try {
-                const { collection, getDocs } = await import('firebase/firestore');
+                const { collection, getDocs } = await import('@/utils/FirestoreProxy');
                 const { db } = await import('../firebase');
                 const snapshot = await getDocs(collection(db, 'programs'));
                 const progs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -350,7 +350,7 @@ const AdminReview = () => {
         if (!viewingImage || savingDetails) return;
         setSavingDetails(true);
         try {
-            const { updateDoc, doc, deleteField, serverTimestamp, writeBatch } = await import('firebase/firestore');
+            const { updateDoc, doc, deleteField, serverTimestamp, writeBatch } = await import('@/utils/FirestoreProxy');
             const { db } = await import('../firebase');
             const newAmount = parseFloat(editingAmountValue);
             const newParsedAmount = parseFloat(editingParsedAmountValue);

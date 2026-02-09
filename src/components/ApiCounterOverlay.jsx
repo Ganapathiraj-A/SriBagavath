@@ -5,13 +5,13 @@ import { RefreshCw, Activity } from 'lucide-react';
 
 const ApiCounterOverlay = () => {
     const { showApiCounter } = useGlobalSettings();
-    const [count, setCount] = useState(ApiMonitor.getCount());
+    const [stats, setStats] = useState(ApiMonitor.getStats());
 
     useEffect(() => {
         if (!showApiCounter) return;
 
-        const unsubscribe = ApiMonitor.subscribe((newCount) => {
-            setCount(newCount);
+        const unsubscribe = ApiMonitor.subscribe((newStats) => {
+            setStats({ ...newStats });
         });
 
         return () => unsubscribe();
@@ -27,20 +27,24 @@ const ApiCounterOverlay = () => {
             zIndex: 9999,
             backgroundColor: 'rgba(17, 24, 39, 0.95)',
             color: 'white',
-            padding: '10px 20px',
+            padding: '8px 16px',
             borderRadius: '12px',
-            fontSize: '18px',
-            fontWeight: 800,
+            fontSize: '14px',
+            fontWeight: 700,
             display: 'flex',
             alignItems: 'center',
-            gap: '14px',
+            gap: '12px',
             boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.4)',
             backdropFilter: 'blur(12px)',
             border: '2px solid rgba(255, 255, 255, 0.2)',
         }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Activity size={18} color="#f97316" strokeWidth={3} />
-                <span>API: {count}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Activity size={16} color="#f97316" strokeWidth={3} />
+                <div style={{ display: 'flex', gap: '8px' }}>
+                    <span title="Firestore Reads" style={{ color: '#60a5fa' }}>R:{stats.reads}</span>
+                    <span title="Firestore Writes" style={{ color: '#34d399' }}>W:{stats.writes}</span>
+                    <span title="Network Fetches" style={{ color: '#fbbf24' }}>F:{stats.fetches}</span>
+                </div>
             </div>
             <button
                 onClick={() => ApiMonitor.reset()}
@@ -58,7 +62,7 @@ const ApiCounterOverlay = () => {
                 }}
                 title="Reset Counter"
             >
-                <RefreshCw size={14} />
+                <RefreshCw size={12} />
             </button>
         </div>
     );
