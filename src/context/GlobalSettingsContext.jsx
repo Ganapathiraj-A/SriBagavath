@@ -15,7 +15,8 @@ const DEFAULT_USER_SETTINGS = {
     devMode: false,
     updateSource: 'auto',
     serverUrl: 'http://192.168.1.3:8080',
-    landingPage: '/'
+    landingPage: '/',
+    showApiCounter: false
 };
 
 export const GlobalSettingsProvider = ({ children }) => {
@@ -86,7 +87,8 @@ export const GlobalSettingsProvider = ({ children }) => {
                             devMode: localDevMode,
                             updateSource: localUpdateSource,
                             serverUrl: localServerUrl,
-                            landingPage: localLandingPage
+                            landingPage: localLandingPage,
+                            showApiCounter: false
                         };
                         setDoc(userDocRef, initData);
                         setUserSettings(initData);
@@ -201,6 +203,7 @@ export const GlobalSettingsProvider = ({ children }) => {
             updateSource: userSettings.updateSource ?? DEFAULT_USER_SETTINGS.updateSource,
             serverUrl: userSettings.serverUrl ?? DEFAULT_USER_SETTINGS.serverUrl,
             landingPage: userSettings.landingPage ?? DEFAULT_USER_SETTINGS.landingPage,
+            showApiCounter: userSettings.showApiCounter ?? DEFAULT_USER_SETTINGS.showApiCounter,
 
             setDevMode: (val) => {
                 updateUser({ devMode: val });
@@ -209,6 +212,7 @@ export const GlobalSettingsProvider = ({ children }) => {
             setUpdateSource: (val) => updateUser({ updateSource: val }),
             setServerUrl: (val) => updateUser({ serverUrl: val }),
             setLandingPage: (val) => updateUser({ landingPage: val }),
+            setShowApiCounter: (val) => updateUser({ showApiCounter: val }),
 
             appVersion
         }}>

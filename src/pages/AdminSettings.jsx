@@ -76,7 +76,8 @@ const AdminSettings = () => {
         programUpdateUrl, setProgramUpdateUrl,
         scriptUrl, setScriptUrl,
         minAppVersion, setMinAppVersion,
-        landingPage, setLandingPage
+        landingPage, setLandingPage,
+        showApiCounter, setShowApiCounter
     } = useGlobalSettings();
 
     const handleLandingPageChange = (e) => {
@@ -280,6 +281,21 @@ const AdminSettings = () => {
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                                         <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#4b5563' }}>Local Server IP</div>
                                         <input type="text" value={serverUrl} onChange={(e) => setServerUrl(e.target.value)} placeholder="http://192.168.1.X:8080" style={{ padding: '0.625rem', fontSize: '0.875rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', color: '#111827' }} />
+                                    </div>
+
+                                    {/* API Counter Toggle */}
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f9fafb', padding: '0.5rem', borderRadius: '0.5rem' }}>
+                                        <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#4b5563' }}>Show API Counter</div>
+                                        <label style={{ position: 'relative', display: 'inline-block', width: '36px', height: '20px' }}>
+                                            <input
+                                                type="checkbox"
+                                                style={{ opacity: 0, width: 0, height: 0 }}
+                                                checked={showApiCounter}
+                                                onChange={(e) => setShowApiCounter(e.target.checked)}
+                                            />
+                                            <span style={{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: showApiCounter ? '#f97316' : '#ccc', borderRadius: '34px', transition: '.4s' }}></span>
+                                            <span style={{ position: 'absolute', height: '14px', width: '14px', left: '3px', bottom: '3px', backgroundColor: 'white', borderRadius: '50%', transition: '.4s', transform: showApiCounter ? 'translateX(16px)' : 'translateX(0)' }}></span>
+                                        </label>
                                     </div>
                                 </motion.div>
                             )}

@@ -72,6 +72,7 @@ import { CartProvider } from './context/CartContext';
 import { GlobalSettingsProvider, useGlobalSettings } from './context/GlobalSettingsContext';
 import { useAdminAuth } from './context/AdminAuthContext';
 import ErrorBoundary from './components/ErrorBoundary';
+import ApiCounterOverlay from './components/ApiCounterOverlay';
 import ForceUpdateModal from './components/ForceUpdateModal';
 import SkeletonScreen from './components/SkeletonScreen';
 
@@ -359,6 +360,7 @@ function AppContent() {
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh', width: '100%' }}>
+      <ApiCounterOverlay />
       {/* Global Force Update Modal */}
       <ForceUpdateModal currentVersion={currentVersion} minVersion={minAppVersion} />
 
