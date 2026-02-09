@@ -89,9 +89,6 @@ const AdminBookManagement = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const [books, setBooks] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [loadingMore, setLoadingMore] = useState(false);
-    const [lastVisible, setLastVisible] = useState(null);
-    const [hasMore, setHasMore] = useState(true);
     const [uploading, setUploading] = useState(false);
     const [coverImage, setCoverImage] = useState(null);
     const [activeTab, setActiveTab] = useState('Tamil Books');
@@ -148,10 +145,10 @@ const AdminBookManagement = () => {
     }, [editingBook, action, activeTab]);
 
     useEffect(() => {
-        loadBooks(true);
+        loadBooks();
     }, [activeTab]);
 
-    const loadBooks = async (initial = false) => {
+    const loadBooks = async () => {
         setLoading(true);
 
         try {
@@ -472,29 +469,6 @@ const AdminBookManagement = () => {
                                         </div>
                                     </div>
                                 ))}
-                                {hasMore && (
-                                    <div style={{ display: 'flex', justifyContent: 'center', padding: '1rem' }}>
-                                        <button
-                                            onClick={() => loadBooks(false)}
-                                            disabled={loadingMore}
-                                            style={{
-                                                padding: '0.75rem 1.5rem',
-                                                backgroundColor: 'white',
-                                                color: 'var(--color-primary)',
-                                                border: '1px solid var(--color-primary)',
-                                                borderRadius: '0.75rem',
-                                                fontWeight: 600,
-                                                cursor: loadingMore ? 'wait' : 'pointer',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '0.5rem'
-                                            }}
-                                        >
-                                            {loadingMore ? <RefreshCw size={18} className="animate-spin" /> : null}
-                                            Load More Books
-                                        </button>
-                                    </div>
-                                )}
                                 {filteredBooks.length === 0 && (
                                     <div style={{ textAlign: 'center', padding: '3rem 1rem', backgroundColor: 'white', borderRadius: '1rem', border: '1px dashed #d1d5db' }}>
                                         <BookOpen size={40} color="#d1d5db" style={{ marginBottom: '1rem' }} />
@@ -574,7 +548,7 @@ const AdminBookManagement = () => {
                     </motion.div>
                 )}
             </div>
-        </div>
+        </div >
     );
 };
 

@@ -20,9 +20,6 @@ const BookStore = () => {
     const { loading: authGlobalLoading } = useAdminAuth();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [loadingMore, setLoadingMore] = useState(false);
-    const [lastVisible, setLastVisible] = useState(null);
-    const [hasMore, setHasMore] = useState(true);
     const [activeTab, setActiveTab] = useState('Tamil Books');
     const [authLoading, setAuthLoading] = useState(false);
     const { onlineTransactionsEnabled } = useGlobalSettings();
@@ -268,29 +265,6 @@ const BookStore = () => {
                         </div>
                     </motion.div>
                 ))}
-                {hasMore && (
-                    <div style={{ display: 'flex', justifyContent: 'center', padding: '1rem' }}>
-                        <button
-                            onClick={() => loadBooks(false)}
-                            disabled={loadingMore}
-                            style={{
-                                padding: '0.75rem 1.5rem',
-                                backgroundColor: 'white',
-                                color: 'var(--color-primary)',
-                                border: '1px solid var(--color-primary)',
-                                borderRadius: '0.75rem',
-                                fontWeight: 600,
-                                cursor: loadingMore ? 'wait' : 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.5rem'
-                            }}
-                        >
-                            {loadingMore ? <RefreshCw size={18} className="animate-spin" /> : null}
-                            Load More Books
-                        </button>
-                    </div>
-                )}
             </div>
 
             {filteredProducts.length === 0 && !loading && (
