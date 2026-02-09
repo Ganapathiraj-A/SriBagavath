@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Share } from '@capacitor/share';
 import { BookOpen, FileText, Edit2, Image as ImageIcon, Upload, Link as LinkIcon, Trash2, X, Search, Share2 } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { useDriveFiles } from '../hooks/useDriveFiles';
@@ -103,6 +104,26 @@ const PdfBooks = () => {
     }
   };
 
+  const handleShare = async (e, file) => {
+    e.stopPropagation();
+    const viewUrl = file.webViewLink || `https://drive.google.com/file/d/${file.id}/view`;
+    try {
+      await Share.share({
+        title: file.name,
+        text: `Check out this book: ${file.name}`,
+        url: viewUrl,
+        dialogTitle: 'Share Book'
+      });
+    } catch (err) {
+      console.error("Sharing failed", err);
+      // Fallback for web if needed
+      if (!Capacitor.isNativePlatform()) {
+        navigator.clipboard.writeText(viewUrl);
+        alert("Link copied to clipboard!");
+      }
+    }
+  };
+
   const getBookImage = (fileId) => {
     const config = configs[fileId];
     if (!config) return null;
@@ -198,7 +219,19 @@ const PdfBooks = () => {
                 {editMode ? (
                   <Edit2 size={18} color="var(--color-primary)" />
                 ) : (
-                  <Share2 size={18} color="#9ca3af" />
+                  <button
+                    onClick={(e) => handleShare(e, file)}
+                    style={{
+                      padding: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: '50%',
+                      backgroundColor: '#f3f4f6'
+                    }}
+                  >
+                    <Share2 size={18} color="var(--color-primary)" />
+                  </button>
                 )}
               </motion.div>
             </div>
