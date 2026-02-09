@@ -14,22 +14,38 @@ import { db } from '../firebase';
 const LOCAL_STORAGE_KEY = 'sbb_sync_registry';
 
 const syncState = {
-    serverRegistry: {},
+    serverRegistry: JSON.parse(localStorage.getItem('sbb_server_registry_cache') || '{}'),
     localRegistry: JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '{}'),
     isInitialized: false
 };
 
+const REGISTRY_CACHE_KEY = 'sbb_server_registry_cache';
+const REGISTRY_TIME_KEY = 'sbb_server_registry_time';
+
 /**
  * Fetch the latest version numbers from the server
  */
-export const initializeSyncManager = async () => {
+export const initializeSyncManager = async (force = false) => {
     try {
+        const now = Date.now();
+        const lastRegistryFetch = parseInt(localStorage.getItem(REGISTRY_TIME_KEY) || '0', 10);
+        const cacheAgeMinutes = (now - lastRegistryFetch) / (1000 * 60);
+
+        // Optimization: Use cache if it's less than 60 minutes old, unless forced
+        if (!force && lastRegistryFetch && cacheAgeMinutes < 60 && Object.keys(syncState.serverRegistry).length > 0) {
+            console.log(`[SyncManager] Using cached registry (Age: ${Math.round(cacheAgeMinutes)}m)`);
+            syncState.isInitialized = true;
+            return;
+        }
+
+        console.log("[SyncManager] Fetching fresh registry from server...");
         const registryDoc = await getDoc(doc(db, 'app_settings', 'sync_registry'));
         if (registryDoc.exists()) {
             syncState.serverRegistry = registryDoc.data();
+            localStorage.setItem(REGISTRY_CACHE_KEY, JSON.stringify(syncState.serverRegistry));
+            localStorage.setItem(REGISTRY_TIME_KEY, now.toString());
             console.log("[SyncManager] Loaded server registry:", syncState.serverRegistry);
         } else {
-            // Initialize if it doesn't exist (Admin logic)
             console.warn("[SyncManager] Registry doc not found on server");
         }
         syncState.isInitialized = true;

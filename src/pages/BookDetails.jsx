@@ -7,7 +7,7 @@ import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
 import { ensureGoogleAuthInitialized } from '../utils/GoogleAuthUtils';
 import { auth, db } from '../firebase';
-import { doc, getDoc } from '@/utils/FirestoreProxy';
+import { doc, getDocCacheFirst } from '@/utils/FirestoreProxy';
 import { GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
 import PageHeader from '../components/PageHeader';
 import { useCart } from '../context/CartContext';
@@ -69,12 +69,12 @@ const BookDetails = () => {
         const fetchBookDetails = async () => {
             try {
                 setLoading(true);
-                const bookDoc = await getDoc(doc(db, 'books', bookId));
+                const bookDoc = await getDocCacheFirst(doc(db, 'books', bookId));
                 if (bookDoc.exists()) {
                     setBook({ id: bookDoc.id, ...bookDoc.data() });
 
                     if (bookDoc.data().hasCover) {
-                        const coverDoc = await getDoc(doc(db, 'book_covers', bookId));
+                        const coverDoc = await getDocCacheFirst(doc(db, 'book_covers', bookId));
                         if (coverDoc.exists()) {
                             setCover(coverDoc.data().cover);
                         }

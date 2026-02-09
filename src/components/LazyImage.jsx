@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { db } from '../firebase';
-import { doc, getDoc } from '@/utils/FirestoreProxy';
+import { doc, getDocCacheFirst } from '@/utils/FirestoreProxy';
 
 // Global Memory Cache for images (URLs or Base64)
 const imageCache = new Map();
@@ -59,7 +59,7 @@ const LazyImage = ({
                 setLoading(true);
                 try {
                     const [collection, docId] = firestorePath.split('/');
-                    const snap = await getDoc(doc(db, collection, docId));
+                    const snap = await getDocCacheFirst(doc(db, collection, docId));
                     if (snap.exists()) {
                         const data = snap.data().cover || snap.data().image || snap.data().banner;
                         if (data) {

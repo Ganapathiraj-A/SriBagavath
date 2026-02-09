@@ -11,7 +11,7 @@ import { ensureGoogleAuthInitialized } from '../utils/GoogleAuthUtils';
 
 import { auth, db } from '../firebase';
 import { GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
-import { collection, query, where, orderBy, getDocs } from '@/utils/FirestoreProxy';
+import { doc, getDoc, getDocCacheFirst } from '@/utils/FirestoreProxy';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { getLocalDateString } from '../utils/dateUtils';
 
@@ -148,9 +148,9 @@ const Programs = () => {
             }
 
             try {
-                const { doc, getDoc } = await import('@/utils/FirestoreProxy');
+                const { doc, getDocCacheFirst } = await import('@/utils/FirestoreProxy');
                 const programRef = doc(db, 'programs', viewingProgramId);
-                const snap = await getDoc(programRef);
+                const snap = await getDocCacheFirst(programRef);
                 if (snap.exists()) {
                     setSpecificProgram({ id: snap.id, ...snap.data() });
                 }
@@ -180,9 +180,9 @@ const Programs = () => {
             // New Logic: Fetch from separate collection
             if (viewingProgram.hasBanner) {
                 try {
-                    const { doc, getDoc } = await import('@/utils/FirestoreProxy');
+                    const { doc, getDocCacheFirst } = await import('@/utils/FirestoreProxy');
                     const bannerRef = doc(db, 'program_banners', viewingProgram.id);
-                    const snap = await getDoc(bannerRef);
+                    const snap = await getDocCacheFirst(bannerRef);
                     if (snap.exists()) {
                         setViewingBanner(snap.data().banner);
                     }

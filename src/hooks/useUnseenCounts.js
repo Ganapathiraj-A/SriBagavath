@@ -1,8 +1,11 @@
+// src/hooks/useUnseenCounts.js
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { collection, query, where, onSnapshot } from '@/utils/FirestoreProxy';
+import { useAdminAuth } from '../context/AdminAuthContext';
 
 export const useUnseenCounts = () => {
+    const { isAdmin } = useAdminAuth();
     const [counts, setCounts] = useState({
         registrations: 0,
         purchases: 0,
@@ -14,35 +17,39 @@ export const useUnseenCounts = () => {
     });
 
     useEffect(() => {
+        let unsubAdmin = () => { };
+
         // 1. ADMIN LOGIC: Total Pending (Registrations & Bookstore)
-        const pendingQuery = query(
-            collection(db, 'transactions'),
-            where('status', '==', 'PENDING')
-        );
+        if (isAdmin) {
+            const pendingQuery = query(
+                collection(db, 'transactions'),
+                where('status', '==', 'PENDING')
+            );
 
-        const unsubAdmin = onSnapshot(pendingQuery, (snapshot) => {
-            let regCount = 0;
-            let purchaseCount = 0;
-            let donationCount = 0;
+            unsubAdmin = onSnapshot(pendingQuery, (snapshot) => {
+                let regCount = 0;
+                let purchaseCount = 0;
+                let donationCount = 0;
 
-            snapshot.docs.forEach(doc => {
-                const data = doc.data();
-                if (data.itemType === 'BOOK') {
-                    purchaseCount++;
-                } else if (data.itemType === 'DONATION') {
-                    donationCount++;
-                } else if (data.itemType === 'PROGRAM') {
-                    regCount++;
-                }
-            });
+                snapshot.docs.forEach(doc => {
+                    const data = doc.data();
+                    if (data.itemType === 'BOOK') {
+                        purchaseCount++;
+                    } else if (data.itemType === 'DONATION') {
+                        donationCount++;
+                    } else if (data.itemType === 'PROGRAM') {
+                        regCount++;
+                    }
+                });
 
-            setCounts(prev => ({
-                ...prev,
-                registrations: regCount,
-                purchases: purchaseCount,
-                donations: donationCount
-            }));
-        }, err => console.error("Admin counts error:", err));
+                setCounts(prev => ({
+                    ...prev,
+                    registrations: regCount,
+                    purchases: purchaseCount,
+                    donations: donationCount
+                }));
+            }, err => console.error("Admin counts error:", err));
+        }
 
         // 2. METADATA LOGIC: Check for NEW content across categories
         const metadataQuery = query(collection(db, 'system'), where('__name__', '==', 'metadata'));

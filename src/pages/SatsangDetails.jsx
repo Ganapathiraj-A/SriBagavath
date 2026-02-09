@@ -6,7 +6,7 @@ import { Share } from '@capacitor/share';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import PageHeader from '../components/PageHeader';
 import { db } from '../firebase';
-import { doc, getDoc } from '@/utils/FirestoreProxy';
+import { doc, getDocCacheFirst } from '@/utils/FirestoreProxy';
 
 const SatsangDetails = () => {
     const { id: rawId } = useParams();
@@ -26,7 +26,7 @@ const SatsangDetails = () => {
                 const instanceDate = parts[1]; // might be undefined
 
                 const docRef = doc(db, 'satsangs', masterId);
-                const snap = await getDoc(docRef);
+                const snap = await getDocCacheFirst(docRef);
                 if (snap.exists()) {
                     const data = { id: snap.id, ...snap.data() };
 
@@ -38,7 +38,7 @@ const SatsangDetails = () => {
                     setMeeting(data);
 
                     if (data.hasBanner) {
-                        const bannerSnap = await getDoc(doc(db, 'satsang_banners', masterId));
+                        const bannerSnap = await getDocCacheFirst(doc(db, 'satsang_banners', masterId));
                         if (bannerSnap.exists()) {
                             setBanner(bannerSnap.data().banner);
                         }

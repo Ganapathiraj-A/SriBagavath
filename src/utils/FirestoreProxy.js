@@ -101,9 +101,39 @@ export const writeBatch = (db) => {
 export const runTransaction = async (db, updateFunction) => {
     return firestore.runTransaction(db, async (transaction) => {
         const result = await updateFunction(transaction);
-        // Transaction tracking is complex as it involves reads and writes.
-        // For simplicity, we record at least 1 write if successful.
         ApiMonitor.recordWrite(1);
         return result;
     });
+};
+
+// --- Cache-First Helpers ---
+
+export const getDocCacheFirst = async (ref) => {
+    try {
+        const snap = await firestore.getDocFromCache(ref);
+        if (snap.exists()) {
+            trackRead(snap);
+            return snap;
+        }
+    } catch (e) {
+        // Cache miss or error is fine, proceed to server
+    }
+    const snap = await firestore.getDocFromServer(ref);
+    trackRead(snap);
+    return snap;
+};
+
+export const getDocsCacheFirst = async (q) => {
+    try {
+        const snap = await firestore.getDocsFromCache(q);
+        if (!snap.empty) {
+            trackRead(snap);
+            return snap;
+        }
+    } catch (e) {
+        // Cache miss or error is fine, proceed to server
+    }
+    const snap = await firestore.getDocsFromServer(q);
+    trackRead(snap);
+    return snap;
 };
