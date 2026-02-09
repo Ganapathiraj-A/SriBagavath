@@ -41,7 +41,8 @@ const ApiCounterOverlay = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Activity size={16} color="#f97316" strokeWidth={3} />
                 <div style={{ display: 'flex', gap: '8px' }}>
-                    <span title="Firestore Reads" style={{ color: '#60a5fa' }}>R:{stats.reads}</span>
+                    <span title="Server Reads (Billed)" style={{ color: '#60a5fa' }}>SR:{stats.serverReads}</span>
+                    <span title="Cache Reads (Free)" style={{ color: '#94a3b8' }}>CR:{stats.cacheReads}</span>
                     <span title="Firestore Writes" style={{ color: '#34d399' }}>W:{stats.writes}</span>
                     <span title="Network Fetches" style={{ color: '#fbbf24' }}>F:{stats.fetches}</span>
                 </div>

@@ -7,21 +7,39 @@ export * from 'firebase/firestore';
 // Helper to track reads from snapshots
 const trackRead = (snapshot) => {
     if (!snapshot) return;
-    const count = snapshot.size !== undefined ? snapshot.size : 1;
-    ApiMonitor.recordRead(count);
+    const isCache = snapshot.metadata?.fromCache;
+
+    // docChanges is only on QuerySnapshot
+    if (snapshot.docChanges) {
+        const changes = snapshot.docChanges();
+        if (changes.length > 0) {
+            isCache ? ApiMonitor.recordCacheRead(changes.length) : ApiMonitor.recordServerRead(changes.length);
+        } else if (!snapshot.empty && changes.length === 0) {
+            // Initial call might have 0 changes but existing data
+            isCache ? ApiMonitor.recordCacheRead(snapshot.size) : ApiMonitor.recordServerRead(snapshot.size);
+        } else if (snapshot.empty) {
+            // Empty query still costs 1 read if from server
+            if (!isCache) ApiMonitor.recordServerRead(1);
+        }
+    } else {
+        // It's a DocumentSnapshot
+        if (snapshot.exists()) {
+            isCache ? ApiMonitor.recordCacheRead(1) : ApiMonitor.recordServerRead(1);
+        }
+    }
 };
 
 // Override getDoc
 export const getDoc = async (...args) => {
     const snap = await firestore.getDoc(...args);
-    if (snap.exists()) ApiMonitor.recordRead(1);
+    trackRead(snap);
     return snap;
 };
 
 // Override getDocs
 export const getDocs = async (...args) => {
     const snap = await firestore.getDocs(...args);
-    ApiMonitor.recordRead(snap.size);
+    trackRead(snap);
     return snap;
 };
 
@@ -29,21 +47,7 @@ export const getDocs = async (...args) => {
 export const onSnapshot = (...args) => {
     const callback = typeof args[1] === 'function' ? args[1] : args[2];
     const wrappedCallback = (snapshot) => {
-        // docChanges is only on QuerySnapshot
-        if (snapshot.docChanges) {
-            const changes = snapshot.docChanges();
-            if (changes.length > 0) {
-                ApiMonitor.recordRead(changes.length);
-            } else if (!snapshot.empty && changes.length === 0) {
-                // Initial call might have 0 changes but existing data
-                ApiMonitor.recordRead(snapshot.size);
-            }
-        } else {
-            // It's a DocumentSnapshot
-            if (snapshot.exists()) {
-                ApiMonitor.recordRead(1);
-            }
-        }
+        trackRead(snapshot);
         return callback(snapshot);
     };
 

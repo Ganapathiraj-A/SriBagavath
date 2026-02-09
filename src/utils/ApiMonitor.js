@@ -5,7 +5,8 @@ class ApiMonitor {
     constructor() {
         const saved = JSON.parse(localStorage.getItem('debug_api_stats') || '{}');
         this.stats = {
-            reads: saved.reads || 0,
+            serverReads: saved.serverReads || 0,
+            cacheReads: saved.cacheReads || 0,
             writes: saved.writes || 0,
             fetches: saved.fetches || 0
         };
@@ -25,8 +26,6 @@ class ApiMonitor {
                 url.includes('firebasedatabase.app')
             );
 
-            // Exclude Firestore calls from global fetch count if they are handled by FirestoreProxy
-            // But for now, we'll keep them to see all network activity
             if (isApiCall) {
                 this.recordFetch();
             }
@@ -34,8 +33,13 @@ class ApiMonitor {
         };
     }
 
-    recordRead(count = 1) {
-        this.stats.reads += count;
+    recordServerRead(count = 1) {
+        this.stats.serverReads += count;
+        this.saveAndNotify();
+    }
+
+    recordCacheRead(count = 1) {
+        this.stats.cacheReads += count;
         this.saveAndNotify();
     }
 
@@ -55,7 +59,7 @@ class ApiMonitor {
     }
 
     reset() {
-        this.stats = { reads: 0, writes: 0, fetches: 0 };
+        this.stats = { serverReads: 0, cacheReads: 0, writes: 0, fetches: 0 };
         localStorage.setItem('debug_api_stats', JSON.stringify(this.stats));
         this.notify();
     }
