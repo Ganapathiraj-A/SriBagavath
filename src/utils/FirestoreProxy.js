@@ -29,14 +29,20 @@ export const getDocs = async (...args) => {
 export const onSnapshot = (...args) => {
     const callback = typeof args[1] === 'function' ? args[1] : args[2];
     const wrappedCallback = (snapshot) => {
-        // Track the number of changed documents
-        // For the first call, it's the full size. For updates, it's the changed docs.
-        const changes = snapshot.docChanges();
-        if (changes.length > 0) {
-            ApiMonitor.recordRead(changes.length);
-        } else if (!snapshot.empty && changes.length === 0) {
-            // Initial call might have 0 changes but existing data
-            ApiMonitor.recordRead(snapshot.size);
+        // docChanges is only on QuerySnapshot
+        if (snapshot.docChanges) {
+            const changes = snapshot.docChanges();
+            if (changes.length > 0) {
+                ApiMonitor.recordRead(changes.length);
+            } else if (!snapshot.empty && changes.length === 0) {
+                // Initial call might have 0 changes but existing data
+                ApiMonitor.recordRead(snapshot.size);
+            }
+        } else {
+            // It's a DocumentSnapshot
+            if (snapshot.exists()) {
+                ApiMonitor.recordRead(1);
+            }
         }
         return callback(snapshot);
     };
