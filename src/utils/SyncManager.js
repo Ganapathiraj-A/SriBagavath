@@ -120,11 +120,18 @@ export const shouldCheckDriveForChanges = (collectionId) => {
     if (!syncState.isInitialized) return false;
 
     const lastCheckedKey = `${collectionId}_lastChecked`;
-    const lastChecked = syncState.serverRegistry[lastCheckedKey];
+    const serverLastChecked = syncState.serverRegistry[lastCheckedKey];
 
-    if (!lastChecked) return true; // Never checked before
+    // Also check local localStorage for a recent check (for anonymous users who can't update server)
+    const localLastChecked = localStorage.getItem(`last_drive_check_${collectionId}`);
 
-    const hoursSinceCheck = (Date.now() - new Date(lastChecked).getTime()) / (1000 * 60 * 60);
+    const bestLastChecked = (serverLastChecked && localLastChecked)
+        ? (new Date(serverLastChecked) > new Date(localLastChecked) ? serverLastChecked : localLastChecked)
+        : (serverLastChecked || localLastChecked);
+
+    if (!bestLastChecked) return true; // Never checked before
+
+    const hoursSinceCheck = (Date.now() - new Date(bestLastChecked).getTime()) / (1000 * 60 * 60);
     return hoursSinceCheck >= 24;
 };
 
@@ -159,6 +166,9 @@ export const updateDriveCheckTimestamp = async (collectionId, latestModifiedTime
         const updates = {
             [lastCheckedKey]: new Date().toISOString()
         };
+
+        // ALways update local check time so even anonymous users don't spam Drive
+        localStorage.setItem(`last_drive_check_${collectionId}`, updates[lastCheckedKey]);
 
         // If Drive files were modified since last check, bump version
         if (!currentModified || new Date(latestModifiedTime) > new Date(currentModified)) {
