@@ -77,7 +77,8 @@ const AdminSettings = () => {
         scriptUrl, setScriptUrl,
         minAppVersion, setMinAppVersion,
         landingPage, setLandingPage,
-        showApiCounter, setShowApiCounter
+        showApiCounter, setShowApiCounter,
+        showDiagnosticLogs, setShowDiagnosticLogs
     } = useGlobalSettings();
 
     const handleLandingPageChange = (e) => {
@@ -295,6 +296,21 @@ const AdminSettings = () => {
                                             />
                                             <span style={{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: showApiCounter ? '#f97316' : '#ccc', borderRadius: '34px', transition: '.4s' }}></span>
                                             <span style={{ position: 'absolute', height: '14px', width: '14px', left: '3px', bottom: '3px', backgroundColor: 'white', borderRadius: '50%', transition: '.4s', transform: showApiCounter ? 'translateX(16px)' : 'translateX(0)' }}></span>
+                                        </label>
+                                    </div>
+
+                                    {/* Diagnostic Logs Toggle */}
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f9fafb', padding: '0.5rem', borderRadius: '0.5rem' }}>
+                                        <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#4b5563' }}>Show Diagnostic Logs</div>
+                                        <label style={{ position: 'relative', display: 'inline-block', width: '36px', height: '20px' }}>
+                                            <input
+                                                type="checkbox"
+                                                style={{ opacity: 0, width: 0, height: 0 }}
+                                                checked={showDiagnosticLogs}
+                                                onChange={(e) => setShowDiagnosticLogs(e.target.checked)}
+                                            />
+                                            <span style={{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: showDiagnosticLogs ? '#10b981' : '#ccc', borderRadius: '34px', transition: '.4s' }}></span>
+                                            <span style={{ position: 'absolute', height: '14px', width: '14px', left: '3px', bottom: '3px', backgroundColor: 'white', borderRadius: '50%', transition: '.4s', transform: showDiagnosticLogs ? 'translateX(16px)' : 'translateX(0)' }}></span>
                                         </label>
                                     </div>
                                 </motion.div>

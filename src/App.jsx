@@ -73,6 +73,7 @@ import { GlobalSettingsProvider, useGlobalSettings } from './context/GlobalSetti
 import { useAdminAuth } from './context/AdminAuthContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import ApiCounterOverlay from './components/ApiCounterOverlay';
+import DiagnosticLogOverlay from './components/DiagnosticLogOverlay';
 import ForceUpdateModal from './components/ForceUpdateModal';
 import SkeletonScreen from './components/SkeletonScreen';
 
@@ -361,6 +362,7 @@ function AppContent() {
   return (
     <div style={{ position: 'relative', minHeight: '100vh', width: '100%' }}>
       <ApiCounterOverlay />
+      <DiagnosticLogOverlay />
       {/* Global Force Update Modal */}
       <ForceUpdateModal currentVersion={currentVersion} minVersion={minAppVersion} />
 
