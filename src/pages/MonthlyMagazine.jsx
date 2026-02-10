@@ -131,9 +131,8 @@ const MonthlyMagazine = () => {
         const idxB = getMonthIndex(b.name);
 
         if (idxA !== -1 && idxB !== -1) {
-            // Both have valid months, sort by month index
+            // Both have valid months, sort by month index ascending
             if (idxA !== idxB) return idxA - idxB;
-            // Same month? Sort by name (e.g. handle year if present or dupes)
             return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
         }
 
@@ -141,8 +140,8 @@ const MonthlyMagazine = () => {
         if (idxA !== -1) return -1;
         if (idxB !== -1) return 1;
 
-        // Fallback to natural sort
-        return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
+        // Fallback to descending natural sort (useful for years)
+        return b.name.localeCompare(a.name, undefined, { numeric: true, sensitivity: 'base' });
     };
 
     // Separate files and folders and apply sort
