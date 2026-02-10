@@ -75,7 +75,6 @@ const Programs = () => {
                 localStorage.setItem('lastVisited_programs', new Date().toISOString());
 
                 const { getDocsFromCache, getDocsFromServer } = await import('@/utils/FirestoreProxy');
-                const { needsServerSync, markSyncedLocally, getSyncState } = await import('../utils/SyncManager');
                 const today = getLocalDateString();
                 const programsRef = collection(db, 'programs');
                 const q = query(
@@ -88,6 +87,9 @@ const Programs = () => {
                 console.log(`[Programs] Query: programDate >= ${today}`);
 
                 // Strategy: Cache-First with Background Refresh
+                const { ensureInitialized, needsServerSync, markSyncedLocally, getSyncState } = await import('../utils/SyncManager');
+                await ensureInitialized();
+
                 const syncState = getSyncState();
                 const needsSync = needsServerSync('programs');
                 console.log(`[Programs] Sync Status - needsSync: ${needsSync}, ServerRegistry:`, syncState.serverRegistry['programs'], "LocalRegistry:", syncState.localRegistry['programs']);

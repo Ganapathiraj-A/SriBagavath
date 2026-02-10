@@ -58,7 +58,7 @@ export const initializeSyncManager = async (force = false) => {
 // Lazy initialization - don't block module load
 let initPromise = null;
 
-const ensureInitialized = async () => {
+export const ensureInitialized = async () => {
     if (syncState.isInitialized) return;
     if (initPromise) return initPromise;
 
@@ -68,15 +68,14 @@ const ensureInitialized = async () => {
 
 // Initialize in background after a short delay (non-blocking)
 if (typeof window !== 'undefined') {
-    setTimeout(() => {
-        initializeSyncManager();
-    }, 500);
+    // Start initialization immediately but don't block
+    ensureInitialized();
 
     if (Capacitor.isNativePlatform()) {
         App.addListener('appStateChange', ({ isActive }) => {
             if (isActive) {
                 console.log("[SyncManager] App resumed, re-checking registry");
-                initializeSyncManager();
+                initializeSyncManager(true); // Force check on resume
             }
         });
     }
