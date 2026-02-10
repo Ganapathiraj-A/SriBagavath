@@ -16,8 +16,8 @@ const DEFAULT_USER_SETTINGS = {
     updateSource: 'auto',
     serverUrl: 'http://192.168.1.3:8080',
     landingPage: '/',
-    showApiCounter: false,
-    showDiagnosticLogs: false
+    showApiCounter: true, // Temporarily enabled for testing
+    showDiagnosticLogs: true // Temporarily enabled for testing
 };
 
 export const GlobalSettingsProvider = ({ children }) => {
