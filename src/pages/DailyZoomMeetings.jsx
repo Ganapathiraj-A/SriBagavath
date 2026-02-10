@@ -144,13 +144,16 @@ const MeetingCard = ({ meeting, delay, isAdmin, onShare }) => {
     );
 };
 
+// Module-level cache for teachers to prevent redundant fetches within the same session
+let teachersCache = null;
+
 const DailyZoomMeetings = () => {
     const navigate = useNavigate();
     const { isAdmin, hasAccess, loading: authLoading } = useAdminAuth();
     const [activeTab, setActiveTab] = useState('upcoming');
     const [upcomingMeetings, setUpcomingMeetings] = useState([]);
     const [pastMeetings, setPastMeetings] = useState([]);
-    const [teachers, setTeachers] = useState([]);
+    const [teachers, setTeachers] = useState(teachersCache || []);
     const [selectedTeacherId, setSelectedTeacherId] = useState('all');
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
@@ -162,11 +165,18 @@ const DailyZoomMeetings = () => {
     useEffect(() => {
         if (authLoading) return;
         const loadTeachers = async () => {
+            if (teachersCache) {
+                setTeachers(teachersCache);
+                return;
+            }
+
             try {
                 const ref = collection(db, 'daily_zoom_teachers');
                 const q = query(ref, orderBy('name', 'asc'));
                 const snap = await getDocs(q);
-                setTeachers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+                const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                teachersCache = data;
+                setTeachers(data);
             } catch (err) {
                 console.error("Error loading teachers:", err);
             }

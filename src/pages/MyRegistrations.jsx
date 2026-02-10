@@ -66,9 +66,9 @@ const MyRegistrations = () => {
 
         const fetchPrograms = async () => {
             try {
-                const { collection, getDocs } = await import('@/utils/FirestoreProxy');
+                const { collection, getDocsCacheFirst } = await import('@/utils/FirestoreProxy');
                 const { db } = await import('../firebase');
-                const snapshot = await getDocs(collection(db, 'programs'));
+                const snapshot = await getDocsCacheFirst(collection(db, 'programs'));
                 const progs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
                 setAllPrograms(progs);
             } catch (e) {

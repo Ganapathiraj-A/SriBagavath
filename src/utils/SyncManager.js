@@ -22,48 +22,59 @@ const syncState = {
 const REGISTRY_CACHE_KEY = 'sbb_server_registry_cache';
 const REGISTRY_TIME_KEY = 'sbb_server_registry_time';
 
+// Global promise to debounce multiple simultaneous initialization calls
+let activeInitPromise = null;
+
 /**
  * Fetch the latest version numbers from the server
  */
 export const initializeSyncManager = async (force = false) => {
-    try {
-        const now = Date.now();
-        const lastRegistryFetch = parseInt(localStorage.getItem(REGISTRY_TIME_KEY) || '0', 10);
-        const cacheAgeMinutes = (now - lastRegistryFetch) / (1000 * 60);
-
-        // Optimization: Use cache if it's less than 60 minutes old, unless forced
-        if (!force && lastRegistryFetch && cacheAgeMinutes < 60 && Object.keys(syncState.serverRegistry).length > 0) {
-            console.log(`[SyncManager] Using cached registry (Age: ${Math.round(cacheAgeMinutes)}m)`);
-            syncState.isInitialized = true;
-            return;
-        }
-
-        console.log("[SyncManager] Fetching fresh registry from server...");
-        const registryDoc = await getDoc(doc(db, 'app_settings', 'sync_registry'));
-        if (registryDoc.exists()) {
-            syncState.serverRegistry = registryDoc.data();
-            localStorage.setItem(REGISTRY_CACHE_KEY, JSON.stringify(syncState.serverRegistry));
-            localStorage.setItem(REGISTRY_TIME_KEY, now.toString());
-            console.log("[SyncManager] Loaded server registry:", syncState.serverRegistry);
-        } else {
-            console.warn("[SyncManager] Registry doc not found on server");
-        }
-        syncState.isInitialized = true;
-    } catch (e) {
-        console.error("[SyncManager] Initialization failed:", e);
+    // If an init is already in progress, wait for it instead of starting a new one
+    if (activeInitPromise) {
+        console.log("[SyncManager] Initialization already in progress, waiting...");
+        return activeInitPromise;
     }
+
+    activeInitPromise = (async () => {
+        try {
+            const now = Date.now();
+            const lastRegistryFetch = parseInt(localStorage.getItem(REGISTRY_TIME_KEY) || '0', 10);
+            const cacheAgeMinutes = (now - lastRegistryFetch) / (1000 * 60);
+
+            // Optimization: Use cache if it's less than 15 minutes old, unless forced
+            const TTL_MINUTES = 15;
+            if (!force && lastRegistryFetch && cacheAgeMinutes < TTL_MINUTES && Object.keys(syncState.serverRegistry).length > 0) {
+                console.log(`[SyncManager] Using cached registry (Age: ${Math.round(cacheAgeMinutes)}m)`);
+                syncState.isInitialized = true;
+                return;
+            }
+
+            console.log("[SyncManager] Fetching fresh registry from server...");
+            const registryDoc = await getDoc(doc(db, 'app_settings', 'sync_registry'));
+            if (registryDoc.exists()) {
+                syncState.serverRegistry = registryDoc.data();
+                localStorage.setItem(REGISTRY_CACHE_KEY, JSON.stringify(syncState.serverRegistry));
+                localStorage.setItem(REGISTRY_TIME_KEY, now.toString());
+                console.log("[SyncManager] Loaded server registry:", syncState.serverRegistry);
+            } else {
+                console.warn("[SyncManager] Registry doc not found on server");
+            }
+            syncState.isInitialized = true;
+        } catch (e) {
+            console.error("[SyncManager] Initialization failed:", e);
+        } finally {
+            activeInitPromise = null; // Reset for future calls
+        }
+    })();
+
+    return activeInitPromise;
 };
 
 
 // Lazy initialization - don't block module load
-let initPromise = null;
-
 export const ensureInitialized = async () => {
     if (syncState.isInitialized) return;
-    if (initPromise) return initPromise;
-
-    initPromise = initializeSyncManager();
-    await initPromise;
+    await initializeSyncManager();
 };
 
 // Initialize in background after a short delay (non-blocking)
