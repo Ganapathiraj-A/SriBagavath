@@ -5,49 +5,49 @@ import ApiMonitor from './ApiMonitor';
 export * from 'firebase/firestore';
 
 // Helper to track reads from snapshots
-const trackRead = (snapshot) => {
+const trackRead = (snapshot, context = 'Query') => {
     if (!snapshot) return;
     const isCache = snapshot.metadata?.fromCache;
+    const source = isCache ? 'CACHE' : 'SERVER';
+    let count = 0;
 
-    // docChanges is only on QuerySnapshot
     if (snapshot.docChanges) {
         const changes = snapshot.docChanges();
-        if (changes.length > 0) {
-            isCache ? ApiMonitor.recordCacheRead(changes.length) : ApiMonitor.recordServerRead(changes.length);
-        } else if (!snapshot.empty && changes.length === 0) {
-            // Initial call might have 0 changes but existing data
-            isCache ? ApiMonitor.recordCacheRead(snapshot.size) : ApiMonitor.recordServerRead(snapshot.size);
-        } else if (snapshot.empty) {
-            // Empty query still costs 1 read if from server
-            if (!isCache) ApiMonitor.recordServerRead(1);
-        }
+        count = changes.length > 0 ? changes.length : snapshot.size;
+        if (count === 0 && !snapshot.empty) count = snapshot.size;
+        if (snapshot.empty && !isCache) count = 1; // Server empty query costs 1
     } else {
-        // It's a DocumentSnapshot
-        if (snapshot.exists()) {
-            isCache ? ApiMonitor.recordCacheRead(1) : ApiMonitor.recordServerRead(1);
-        }
+        count = snapshot.exists() ? 1 : 0;
     }
+
+    const type = isCache ? 'recordCacheRead' : 'recordServerRead';
+    ApiMonitor[type](count);
+
+    console.log(`[Firestore] READ | ${source} | ${context} | Docs: ${count}`);
 };
 
 // Override getDoc
 export const getDoc = async (...args) => {
     const snap = await firestore.getDoc(...args);
-    trackRead(snap);
+    const path = args[0]?.path || 'unknown';
+    trackRead(snap, `Doc: ${path}`);
     return snap;
 };
 
 // Override getDocs
 export const getDocs = async (...args) => {
     const snap = await firestore.getDocs(...args);
-    trackRead(snap);
+    const path = args[0]?._query?.path?.segments?.join('/') || 'unknown';
+    trackRead(snap, `Collection: ${path}`);
     return snap;
 };
 
 // Override onSnapshot
 export const onSnapshot = (...args) => {
+    const path = args[0]?.path || args[0]?._query?.path?.segments?.join('/') || 'unknown';
     const callback = typeof args[1] === 'function' ? args[1] : args[2];
     const wrappedCallback = (snapshot) => {
-        trackRead(snapshot);
+        trackRead(snapshot, `Listen: ${path}`);
         return callback(snapshot);
     };
 
@@ -62,24 +62,32 @@ export const onSnapshot = (...args) => {
 
 // Tracking Writes
 export const setDoc = async (...args) => {
+    const path = args[0]?.path || 'unknown';
+    console.log(`[Firestore] WRITE | Set | ${path}`);
     const res = await firestore.setDoc(...args);
     ApiMonitor.recordWrite(1);
     return res;
 };
 
 export const addDoc = async (...args) => {
+    const path = args[0]?._path?.segments?.join('/') || 'unknown';
+    console.log(`[Firestore] WRITE | Add | ${path}`);
     const res = await firestore.addDoc(...args);
     ApiMonitor.recordWrite(1);
     return res;
 };
 
 export const updateDoc = async (...args) => {
+    const path = args[0]?.path || 'unknown';
+    console.log(`[Firestore] WRITE | Update | ${path}`);
     const res = await firestore.updateDoc(...args);
     ApiMonitor.recordWrite(1);
     return res;
 };
 
 export const deleteDoc = async (...args) => {
+    const path = args[0]?.path || 'unknown';
+    console.log(`[Firestore] WRITE | Delete | ${path}`);
     const res = await firestore.deleteDoc(...args);
     ApiMonitor.recordWrite(1);
     return res;
@@ -90,8 +98,8 @@ export const writeBatch = (db) => {
     const batch = firestore.writeBatch(db);
     const originalCommit = batch.commit.bind(batch);
     batch.commit = async () => {
+        console.log(`[Firestore] WRITE | Batch Commit`);
         const res = await originalCommit();
-        // Note: Batch size isn't easily accessible, but we can assume at least 1 write
         ApiMonitor.recordWrite(1);
         return res;
     };
@@ -100,6 +108,7 @@ export const writeBatch = (db) => {
 
 export const runTransaction = async (db, updateFunction) => {
     return firestore.runTransaction(db, async (transaction) => {
+        console.log(`[Firestore] WRITE | Transaction Start`);
         const result = await updateFunction(transaction);
         ApiMonitor.recordWrite(1);
         return result;
@@ -109,31 +118,33 @@ export const runTransaction = async (db, updateFunction) => {
 // --- Cache-First Helpers ---
 
 export const getDocCacheFirst = async (ref) => {
+    const path = ref?.path || 'unknown';
     try {
         const snap = await firestore.getDocFromCache(ref);
         if (snap.exists()) {
-            trackRead(snap);
+            trackRead(snap, `Doc (CacheFirst): ${path}`);
             return snap;
         }
     } catch (e) {
-        // Cache miss or error is fine, proceed to server
+        // Cache miss
     }
     const snap = await firestore.getDocFromServer(ref);
-    trackRead(snap);
+    trackRead(snap, `Doc (CacheFirst): ${path}`);
     return snap;
 };
 
 export const getDocsCacheFirst = async (q) => {
+    const path = q?._query?.path?.segments?.join('/') || 'unknown';
     try {
         const snap = await firestore.getDocsFromCache(q);
         if (!snap.empty) {
-            trackRead(snap);
+            trackRead(snap, `Collection (CacheFirst): ${path}`);
             return snap;
         }
     } catch (e) {
-        // Cache miss or error is fine, proceed to server
+        // Cache miss
     }
     const snap = await firestore.getDocsFromServer(q);
-    trackRead(snap);
+    trackRead(snap, `Collection (CacheFirst): ${path}`);
     return snap;
 };

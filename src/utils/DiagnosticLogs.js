@@ -1,10 +1,12 @@
 import { Clipboard } from '@capacitor/clipboard';
+import { Capacitor } from '@capacitor/core';
 
 class DiagnosticLogs {
     constructor() {
         this.logs = [];
         this.listeners = new Set();
-        this.maxLogs = 200;
+        this.maxLogs = 2000;
+        this.sessionStart = new Date().toISOString();
 
         // Capture original console methods
         this.originalLog = console.log;
@@ -60,18 +62,31 @@ class DiagnosticLogs {
         this.notify();
     }
 
+    logNavigation(path) {
+        this.addLog('nav', [`Navigate to: ${path}`]);
+    }
+
     clear() {
         this.logs = [];
         this.notify();
     }
 
     async copyToClipboard() {
+        const metadata = [
+            `Session Start: ${this.sessionStart}`,
+            `Platform: ${Capacitor.getPlatform()}`,
+            `Generated at: ${new Date().toISOString()}`,
+            `----------------------------------------`
+        ].join('\n');
+
         const text = this.logs
+            .slice() // Copy to avoid mutation during map
+            .reverse() // Oldest first for chronological reading
             .map(l => `[${l.timestamp}] [${l.type.toUpperCase()}] ${l.message}`)
             .join('\n');
 
         try {
-            await Clipboard.write({ string: text });
+            await Clipboard.write({ string: metadata + '\n' + text });
             return true;
         } catch (e) {
             console.error("Clipboard copy failed", e);

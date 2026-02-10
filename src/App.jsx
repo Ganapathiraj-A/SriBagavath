@@ -83,6 +83,10 @@ function AnimatedRoutes() {
 
   // Centralized Screen Tracking
   useEffect(() => {
+    import('./utils/DiagnosticLogs').then(m => {
+      m.default.logNavigation(location.pathname === '/' ? 'Home' : location.pathname);
+    });
+
     const Analytics = import('./utils/Analytics').then(m => {
       m.default.trackScreenView(location.pathname === '/' ? 'Home' : location.pathname);
     });
