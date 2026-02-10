@@ -68,6 +68,7 @@ const BankReconciliationRegs = lazy(() => import('./pages/BankReconciliationRegs
 const BankStatementView = lazy(() => import('./pages/BankStatementView'));
 import ProtectedRoute from './components/ProtectedRoute';
 import { AdminAuthProvider } from './context/AdminAuthContext';
+import { NotificationProvider } from './context/NotificationContext';
 import { CartProvider } from './context/CartContext';
 import { GlobalSettingsProvider, useGlobalSettings } from './context/GlobalSettingsContext';
 import { useAdminAuth } from './context/AdminAuthContext';
@@ -388,7 +389,9 @@ function App() {
       <CartProvider>
         <Router>
           <AdminAuthProvider>
-            <AppContent />
+            <NotificationProvider>
+              <AppContent />
+            </NotificationProvider>
           </AdminAuthProvider>
         </Router>
       </CartProvider>
