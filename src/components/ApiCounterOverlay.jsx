@@ -23,20 +23,21 @@ const ApiCounterOverlay = () => {
         <div style={{
             position: 'fixed',
             top: '48px',
-            right: '10%',
+            left: 0,
+            right: 0,
             zIndex: 9999,
             backgroundColor: 'rgba(17, 24, 39, 0.95)',
             color: 'white',
             padding: '8px 16px',
-            borderRadius: '12px',
             fontSize: '14px',
             fontWeight: 700,
             display: 'flex',
             alignItems: 'center',
+            justifyContent: 'center',
             gap: '12px',
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.4)',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
             backdropFilter: 'blur(12px)',
-            border: '2px solid rgba(255, 255, 255, 0.2)',
+            borderBottom: '2px solid rgba(255, 255, 255, 0.1)',
         }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Activity size={16} color="#f97316" strokeWidth={3} />

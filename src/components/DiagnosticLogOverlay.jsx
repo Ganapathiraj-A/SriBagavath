@@ -44,7 +44,7 @@ const DiagnosticLogOverlay = () => {
     return (
         <div style={{
             position: 'fixed',
-            bottom: 0,
+            bottom: 'env(safe-area-inset-bottom, 20px)',
             left: 0,
             right: 0,
             zIndex: 10000,
@@ -54,29 +54,33 @@ const DiagnosticLogOverlay = () => {
             <div style={{
                 display: 'flex',
                 justifyContent: 'center',
-                padding: '0 1rem 0.5rem 1rem'
+                padding: '0'
             }}>
                 <button
                     onClick={() => setIsExpanded(!isExpanded)}
                     style={{
                         pointerEvents: 'auto',
+                        width: '100%',
                         backgroundColor: '#111827',
                         color: 'white',
-                        border: '1px solid #374151',
-                        borderBottom: 'none',
-                        borderRadius: '12px 12px 0 0',
-                        padding: '6px 16px',
+                        borderTop: '1px solid #374151',
+                        borderBottom: isExpanded ? '1px solid #374151' : 'none',
+                        padding: '10px 16px',
                         display: 'flex',
                         alignItems: 'center',
+                        justifyContent: 'center',
                         gap: '8px',
                         fontSize: '12px',
-                        fontWeight: 600,
-                        boxShadow: '0 -4px 6px -1px rgba(0, 0, 0, 0.1)',
+                        fontWeight: 700,
+                        boxShadow: '0 -4px 6px -1px rgba(0, 0, 0, 0.2)',
                         cursor: 'pointer'
                     }}
                 >
                     <Terminal size={14} color="#34d399" />
-                    Diagnostics ({logs.length})
+                    APP DIAGNOSTICS ({logs.length})
+                    <span style={{ fontSize: '10px', color: '#94a3b8', marginLeft: 'auto', fontWeight: 400 }}>
+                        {isExpanded ? 'Hide' : 'Tap to View Logs'}
+                    </span>
                     {isExpanded ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                 </button>
             </div>
@@ -98,37 +102,41 @@ const DiagnosticLogOverlay = () => {
                     >
                         {/* Toolbar */}
                         <div style={{
-                            padding: '8px 12px',
+                            padding: '10px 12px',
                             borderBottom: '1px solid #1e293b',
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'center',
                             backgroundColor: '#1e293b'
                         }}>
-                            <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 600 }}>SYSTEM LOGS</div>
+                            <div style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>
+                                TAP 'COPY ALL' & SEND TO ME
+                            </div>
                             <div style={{ display: 'flex', gap: '8px' }}>
                                 <button
                                     onClick={handleCopy}
                                     style={{
-                                        padding: '4px 10px',
+                                        padding: '6px 12px',
                                         borderRadius: '6px',
-                                        backgroundColor: copying ? '#059669' : '#334155',
+                                        backgroundColor: copying ? '#059669' : '#2563eb',
                                         color: 'white',
                                         border: 'none',
                                         fontSize: '11px',
+                                        fontWeight: 700,
                                         display: 'flex',
                                         alignItems: 'center',
-                                        gap: '4px',
-                                        cursor: 'pointer'
+                                        gap: '6px',
+                                        cursor: 'pointer',
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
                                     }}
                                 >
                                     <Copy size={12} />
-                                    {copying ? 'Copied!' : 'Copy All'}
+                                    {copying ? 'LOGS COPIED!' : 'COPY ALL'}
                                 </button>
                                 <button
                                     onClick={() => DiagnosticLogs.clear()}
                                     style={{
-                                        padding: '4px 10px',
+                                        padding: '6px 12px',
                                         borderRadius: '6px',
                                         backgroundColor: '#334155',
                                         color: 'white',
