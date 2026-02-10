@@ -11,7 +11,7 @@ import { ensureGoogleAuthInitialized } from '../utils/GoogleAuthUtils';
 
 import { auth, db } from '../firebase';
 import { GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
-import { doc, getDoc, getDocCacheFirst } from '@/utils/FirestoreProxy';
+import { doc, getDoc, getDocCacheFirst, collection, query, where, orderBy } from '@/utils/FirestoreProxy';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { getLocalDateString } from '../utils/dateUtils';
 

@@ -31,12 +31,19 @@ class DiagnosticLogs {
     }
 
     addLog(type, args) {
+        const timestamp = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' });
         const message = args.map(arg => {
-            if (typeof arg === 'object') {
+            if (arg instanceof Error) {
+                return `${arg.name}: ${arg.message}\n${arg.stack}`;
+            }
+            if (typeof arg === 'object' && arg !== null) {
                 try {
-                    return JSON.stringify(arg, null, 2);
+                    // Try to stringify, handle circular refs or big objects
+                    return JSON.stringify(arg, (key, value) =>
+                        typeof value === 'bigint' ? value.toString() : value
+                    );
                 } catch (e) {
-                    return '[Circular or Complex Object]';
+                    return '[Object]';
                 }
             }
             return String(arg);
@@ -44,7 +51,7 @@ class DiagnosticLogs {
 
         const logEntry = {
             id: Date.now() + Math.random(),
-            timestamp: new Date().toLocaleTimeString(),
+            timestamp,
             type,
             message
         };
