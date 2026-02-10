@@ -74,6 +74,14 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Explicitly allow public read for metadata and global settings
+    match /system/metadata {
+      allow read: if true;
+    }
+    match /settings/global {
+      allow read: if true;
+    }
+
     match /daily_zoom_meetings/{id} {
       allow read: if true;
       allow write: if isAdmin();

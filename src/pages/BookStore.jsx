@@ -127,6 +127,7 @@ const BookStore = () => {
 
                 if (!cachedData) {
                     await serverTask;
+                    setLoading(false);
                 }
             }
 

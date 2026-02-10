@@ -171,9 +171,10 @@ const DailyZoomMeetings = () => {
             }
 
             try {
+                const { collection, query, orderBy, getDocsCacheFirst } = await import('@/utils/FirestoreProxy');
                 const ref = collection(db, 'daily_zoom_teachers');
                 const q = query(ref, orderBy('name', 'asc'));
-                const snap = await getDocs(q);
+                const snap = await getDocsCacheFirst(q);
                 const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 teachersCache = data;
                 setTeachers(data);
