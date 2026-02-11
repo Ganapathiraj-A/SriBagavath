@@ -12,7 +12,7 @@ const DiagnosticLogOverlay = () => {
     const [copying, setCopying] = useState(false);
     const [syncing, setSyncing] = useState(false);
     const [clearing, setClearing] = useState(false);
-    const { user, appVersion } = useGlobalSettings(); // Assuming appVersion is in context, else we use package.json logic
+    const { user, appVersion, deviceId } = useGlobalSettings(); // Assuming appVersion is in context, else we use package.json logic
     const scrollRef = useRef(null);
 
     useEffect(() => {
@@ -39,7 +39,7 @@ const DiagnosticLogOverlay = () => {
 
     const handleSync = async () => {
         setSyncing(true);
-        const res = await DiagnosticLogs.pushLogs(db, auth.currentUser, appVersion);
+        const res = await DiagnosticLogs.pushLogs(db, auth.currentUser, appVersion, deviceId);
         if (res.success) {
             alert(`Logs uploaded successfully! Report ID: ${res.reportId}`);
         } else {

@@ -131,7 +131,8 @@ service cloud.firestore {
 
     match /diagnostic_reports/{reportId} {
       allow read: if isAdmin();
-      allow create: if request.auth != null;
+      allow create: if request.auth != null || 
+        get(/databases/$(database)/documents/debug_devices/$(request.resource.data.deviceId)).data.isAuthorized == true;
       allow update, delete: if isAdmin();
     }
 

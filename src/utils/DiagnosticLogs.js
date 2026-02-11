@@ -107,7 +107,7 @@ class DiagnosticLogs {
         this.listeners.forEach(callback => callback(this.logs));
     }
 
-    async pushLogs(db, user, version) {
+    async pushLogs(db, user, version, deviceId) {
         if (!db) return { success: false, error: 'Database not initialized' };
 
         const { setDoc, doc, collection, serverTimestamp } = await import('firebase/firestore');
@@ -115,6 +115,7 @@ class DiagnosticLogs {
         const metadata = {
             userId: user?.uid || 'anonymous',
             email: user?.email || 'N/A',
+            deviceId: deviceId || 'unknown',
             appVersion: version || 'unknown',
             platform: Capacitor.getPlatform(),
             sessionStart: this.sessionStart,
