@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { db, auth } from '../firebase';
-import { doc, onSnapshot, setDoc, getDoc } from '@/utils/FirestoreProxy';
+import { doc, onSnapshot, setDoc, getDoc, getDocCacheFirst } from '@/utils/FirestoreProxy';
 import { onAuthStateChanged } from 'firebase/auth';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
@@ -107,40 +107,48 @@ export const GlobalSettingsProvider = ({ children }) => {
     // 3. Global Settings Sync + Initial Migration
     useEffect(() => {
         const docRef = doc(db, 'settings', 'global');
-        const unsubscribeGlobal = onSnapshot(docRef, async (docSnap) => {
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                // Ensure migration-only fields like scriptUrl are auto-updated if hardcoded logic demands it
-                if (data.scriptUrl && data.scriptUrl !== LATEST_SCRIPT_URL) {
-                    // We don't auto-override Firestore here, but we could if we wanted strict versioning.
-                    // For now, let's just use what's in Firestore.
+
+        const initFetch = async () => {
+            try {
+                const docSnap = await getDocCacheFirst(docRef);
+                if (docSnap.exists()) {
+                    setSettings(prev => ({ ...prev, ...docSnap.data() }));
+                } else {
+                    // One-time migration
+                    console.log("Global settings not found. Migrating...");
+                    const initData = {
+                        onlineTransactionsEnabled: true,
+                        minAppVersion: '3.0.0',
+                        bankPassword: localStorage.getItem('bank_statement_password') || '',
+                        sheetLink: localStorage.getItem('admin_import_export_sheet_url') || settings.sheetLink,
+                        scriptUrl: localStorage.getItem('admin_import_export_script_url') || settings.scriptUrl,
+                        programImportUrl: localStorage.getItem('admin_program_import_url') || settings.programImportUrl,
+                        programExportUrl: localStorage.getItem('admin_program_export_url') || settings.programExportUrl,
+                        programUpdateUrl: localStorage.getItem('admin_program_update_url') || settings.programUpdateUrl,
+                        bookImportUrl: localStorage.getItem('admin_book_import_url') || settings.bookImportUrl,
+                        bookExportUrl: localStorage.getItem('admin_book_export_url') || settings.bookExportUrl,
+                        bookUpdateUrl: localStorage.getItem('admin_book_update_url') || settings.bookUpdateUrl,
+                        donationImportUrl: localStorage.getItem('admin_donation_import_url') || settings.donationImportUrl,
+                        donationExportUrl: localStorage.getItem('admin_donation_export_url') || settings.donationExportUrl,
+                        donationUpdateUrl: localStorage.getItem('admin_donation_update_url') || settings.donationUpdateUrl
+                    };
+                    await setDoc(docRef, initData);
+                    setSettings(initData);
                 }
-                setSettings(prev => ({ ...prev, ...data }));
-            } else {
-                // Perform one-time migration from LocalStorage if Firestore is completely empty
-                console.log("Global settings not found in Firestore. Migrating from LocalStorage...");
-                const initData = {
-                    onlineTransactionsEnabled: true,
-                    minAppVersion: '3.0.0',
-                    bankPassword: localStorage.getItem('bank_statement_password') || '',
-                    sheetLink: localStorage.getItem('admin_import_export_sheet_url') || settings.sheetLink,
-                    scriptUrl: localStorage.getItem('admin_import_export_script_url') || settings.scriptUrl,
-                    programImportUrl: localStorage.getItem('admin_program_import_url') || settings.programImportUrl,
-                    programExportUrl: localStorage.getItem('admin_program_export_url') || settings.programExportUrl,
-                    programUpdateUrl: localStorage.getItem('admin_program_update_url') || settings.programUpdateUrl,
-                    bookImportUrl: localStorage.getItem('admin_book_import_url') || settings.bookImportUrl,
-                    bookExportUrl: localStorage.getItem('admin_book_export_url') || settings.bookExportUrl,
-                    bookUpdateUrl: localStorage.getItem('admin_book_update_url') || settings.bookUpdateUrl,
-                    donationImportUrl: localStorage.getItem('admin_donation_import_url') || settings.donationImportUrl,
-                    donationExportUrl: localStorage.getItem('admin_donation_export_url') || settings.donationExportUrl,
-                    donationUpdateUrl: localStorage.getItem('admin_donation_update_url') || settings.donationUpdateUrl
-                };
-                await setDoc(docRef, initData);
-                setSettings(initData);
+            } catch (error) {
+                console.error("Initial global settings fetch failed:", error);
+            }
+        };
+
+        const unsubscribeGlobal = onSnapshot(docRef, (docSnap) => {
+            if (docSnap.exists()) {
+                setSettings(prev => ({ ...prev, ...docSnap.data() }));
             }
         }, (error) => {
-            console.error("Error fetching global settings:", error);
+            console.error("Error watching global settings:", error);
         });
+
+        initFetch();
         return () => unsubscribeGlobal();
     }, []);
 

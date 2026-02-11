@@ -1,6 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
-import { doc, getDoc, updateDoc, increment, setDoc } from '@/utils/FirestoreProxy';
+import { doc, getDoc, updateDoc, increment, setDoc, getDocCacheFirst } from '@/utils/FirestoreProxy';
 import { db } from '../firebase';
 
 /**
@@ -49,8 +49,8 @@ export const initializeSyncManager = async (force = false) => {
                 return;
             }
 
-            console.log("[SyncManager] Fetching fresh registry from server...");
-            const registryDoc = await getDoc(doc(db, 'app_settings', 'sync_registry'));
+            console.log("[SyncManager] Fetching registry (Cache-First)...");
+            const registryDoc = await getDocCacheFirst(doc(db, 'app_settings', 'sync_registry'));
             if (registryDoc.exists()) {
                 syncState.serverRegistry = registryDoc.data();
                 localStorage.setItem(REGISTRY_CACHE_KEY, JSON.stringify(syncState.serverRegistry));
@@ -186,7 +186,7 @@ export const updateDriveCheckTimestamp = async (collectionId, latestModifiedTime
         const lastCheckedKey = `${collectionId}_lastChecked`;
 
         // Double-check: another app might have just updated (race condition prevention)
-        const docSnap = await getDoc(ref);
+        const docSnap = await getDocCacheFirst(ref);
         if (docSnap.exists()) {
             const currentLastChecked = docSnap.data()[lastCheckedKey];
             if (currentLastChecked) {

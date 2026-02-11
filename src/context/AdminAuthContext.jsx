@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
-import { doc, getDoc, onSnapshot } from '@/utils/FirestoreProxy';
+import { doc, getDoc, onSnapshot, getDocCacheFirst } from '@/utils/FirestoreProxy';
 import { auth, db } from '../firebase';
 
 const AdminAuthContext = createContext();
@@ -30,13 +30,13 @@ export const AdminAuthProvider = ({ children }) => {
     const checkAdminStatus = async (uid) => {
         if (!uid) return;
         try {
-            // 1. Try UID based lookup
-            let adminDoc = await getDoc(doc(db, 'admins', uid));
+            // 1. Try UID based lookup (Cache-First)
+            let adminDoc = await getDocCacheFirst(doc(db, 'admins', uid));
             let data = adminDoc.exists() ? adminDoc.data() : null;
 
-            // 2. Try Email based lookup
+            // 2. Try Email based lookup (Cache-First)
             if (!data && auth.currentUser?.email) {
-                adminDoc = await getDoc(doc(db, 'admins', auth.currentUser.email));
+                adminDoc = await getDocCacheFirst(doc(db, 'admins', auth.currentUser.email));
                 data = adminDoc.exists() ? adminDoc.data() : null;
             }
 
@@ -52,8 +52,8 @@ export const AdminAuthProvider = ({ children }) => {
                 setPermissions(data.permissions || []);
                 setIsPending(false);
             } else {
-                // Check for pending request
-                const requestDoc = await getDoc(doc(db, 'admin_requests', uid));
+                // Check for pending request (Cache-First)
+                const requestDoc = await getDocCacheFirst(doc(db, 'admin_requests', uid));
                 setIsPending(requestDoc.exists() && requestDoc.data().status === 'PENDING');
             }
         } catch (error) {
@@ -66,87 +66,76 @@ export const AdminAuthProvider = ({ children }) => {
         let requestUnsubscribe = null;
 
         const authUnsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+            setUser(currentUser);
             // Cleanup previous snapshots
             if (adminUnsubscribe) adminUnsubscribe();
             if (requestUnsubscribe) requestUnsubscribe();
 
             if (currentUser) {
-                setUser(currentUser);
                 if (!currentUser.isAnonymous) {
-                    console.log("Logged in UID:", currentUser.uid);
+                    console.log("[AdminAuth] Initializing Recognition for UID:", currentUser.uid);
 
-                    // 1. Snapshot Listener for Admin Recognition (UID and Email)
-                    // Note: Firestore doesn't support logical OR across collections easily, 
-                    // but we can listen to the specific document.
-                    const adminDocRef = doc(db, 'admins', currentUser.uid);
-                    adminUnsubscribe = onSnapshot(adminDocRef, (snap) => {
+                    const uidDocRef = doc(db, 'admins', currentUser.uid);
+                    const emailDocRef = currentUser.email ? doc(db, 'admins', currentUser.email) : null;
+                    const requestDocRef = doc(db, 'admin_requests', currentUser.uid);
+
+                    const handleAdminData = (data) => {
+                        setIsAdmin(true);
+                        setRole(data.role || (currentUser.email === 'ganapathiraj@gmail.com' ? 'SUPER_ADMIN' : 'ADMIN'));
+                        setPermissions(data.permissions || []);
+                        setIsPending(false);
+                        setIsInitialized(true);
+                    };
+
+                    // 1. Listen to UID Doc
+                    adminUnsubscribe = onSnapshot(uidDocRef, (snap) => {
                         if (snap.exists()) {
-                            const data = snap.data();
-                            setIsAdmin(true);
-                            if (data.role) {
-                                setRole(data.role);
-                            } else if (currentUser?.email === 'ganapathiraj@gmail.com') {
-                                setRole('SUPER_ADMIN');
-                            } else {
-                                setRole('ADMIN');
-                            }
-                            setPermissions(data.permissions || []);
-                            setIsPending(false);
-                            setLoading(false);
-                        } else if (currentUser.email) {
-                            // Try email-based snapshot if UID fails
-                            const emailDocRef = doc(db, 'admins', currentUser.email);
-                            onSnapshot(emailDocRef, (emailSnap) => {
-                                if (emailSnap.exists()) {
-                                    const eData = emailSnap.data();
-                                    setIsAdmin(true);
-                                    if (eData.role) {
-                                        setRole(eData.role);
-                                    } else if (currentUser?.email === 'ganapathiraj@gmail.com') {
-                                        setRole('SUPER_ADMIN');
-                                    } else {
-                                        setRole('ADMIN');
-                                    }
-                                    setPermissions(eData.permissions || []);
-                                    setIsPending(false);
-                                } else {
-                                    // If still not admin, check for pending request with snapshot
-                                    setIsAdmin(false);
-                                    setRole(null);
-                                    setPermissions([]);
-
-                                    const requestDocRef = doc(db, 'admin_requests', currentUser.uid);
-                                    requestUnsubscribe = onSnapshot(requestDocRef, (reqSnap) => {
-                                        setIsPending(reqSnap.exists() && reqSnap.data().status === 'PENDING');
-                                        setIsInitialized(true);
-                                    });
-                                }
-                                setIsInitialized(true);
-                            });
-                        } else {
-                            // No email, just check pending
+                            handleAdminData(snap.data());
+                        } else if (!emailDocRef) {
+                            // No email, check pending
                             setIsAdmin(false);
-                            setRole(null);
-                            setPermissions([]);
-                            const requestDocRef = doc(db, 'admin_requests', currentUser.uid);
                             requestUnsubscribe = onSnapshot(requestDocRef, (reqSnap) => {
                                 setIsPending(reqSnap.exists() && reqSnap.data().status === 'PENDING');
                                 setIsInitialized(true);
                             });
                         }
                     });
+
+                    // 2. Listen to Email Doc (if exists)
+                    if (emailDocRef) {
+                        const emailUnsub = onSnapshot(emailDocRef, (snap) => {
+                            if (snap.exists()) {
+                                handleAdminData(snap.data());
+                            } else {
+                                if (!isAdmin) {
+                                    if (requestUnsubscribe) requestUnsubscribe();
+                                    requestUnsubscribe = onSnapshot(requestDocRef, (reqSnap) => {
+                                        setIsPending(reqSnap.exists() && reqSnap.data().status === 'PENDING');
+                                        setIsInitialized(true);
+                                    });
+                                }
+                            }
+                        });
+                        // Nest cleanup
+                        const originalUnsub = adminUnsubscribe;
+                        adminUnsubscribe = () => {
+                            if (originalUnsub) originalUnsub();
+                            emailUnsub();
+                        };
+                    }
                 } else {
+                    // Anonymous User
                     setIsAdmin(false);
                     setIsPending(false);
                     setIsInitialized(true);
                 }
             } else {
+                // No current user, sign in anonymously
                 signInAnonymously(auth).catch((error) => {
                     console.error("Anonymous auth failed", error);
                     setIsInitialized(true);
                 });
             }
-            setIsInitialized(true);
         });
 
         return () => {

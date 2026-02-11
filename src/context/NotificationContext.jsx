@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, query, where, onSnapshot } from '@/utils/FirestoreProxy';
+import { collection, query, where, onSnapshot, doc, getDocCacheFirst } from '@/utils/FirestoreProxy';
 import { useAdminAuth } from './AdminAuthContext';
 
 const NotificationContext = createContext();
@@ -59,12 +59,10 @@ export const NotificationProvider = ({ children }) => {
 
         // 2. METADATA LOGIC: Check for NEW content across categories - Always active
         console.log("[NotificationContext] Initializing Metadata Listener");
-        const metadataQuery = query(collection(db, 'system'), where('__name__', '==', 'metadata'));
+        const metadataDocRef = doc(db, 'system', 'metadata');
 
-        const unsubMetadata = onSnapshot(metadataQuery, (snapshot) => {
-            if (snapshot.empty) return;
-
-            const data = snapshot.docs[0].data();
+        const handleMetadata = (data) => {
+            if (!data) return;
 
             // Get last visit times from localStorage
             const getLocalTime = (key) => {
@@ -95,6 +93,17 @@ export const NotificationProvider = ({ children }) => {
                 hasNewSatsangs: sSatsangs > vSatsangs,
                 hasNewSchedule: sSchedule > vSchedule
             }));
+        };
+
+        // Cache-first initial check
+        getDocCacheFirst(metadataDocRef).then(snap => {
+            if (snap.exists()) handleMetadata(snap.data());
+        });
+
+        const unsubMetadata = onSnapshot(metadataDocRef, (snapshot) => {
+            if (snapshot.exists()) {
+                handleMetadata(snapshot.data());
+            }
         }, err => console.error("Metadata counts error:", err));
 
         return () => {
