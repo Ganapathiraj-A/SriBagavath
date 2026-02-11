@@ -103,9 +103,16 @@ export const AdminAuthProvider = ({ children }) => {
                                 requestUnsubscribe = onSnapshot(requestDocRef, (reqSnap) => {
                                     setIsPending(reqSnap.exists() && reqSnap.data().status === 'PENDING');
                                     setIsInitialized(true);
+                                }, (err) => {
+                                    console.log("[AdminAuth] Request listener restricted:", err);
+                                    setIsInitialized(true); // Don't block app even if listener fails
                                 });
                             }
                         }
+                    }, (err) => {
+                        console.log("[AdminAuth] Admin listener restricted:", err);
+                        setIsAdmin(false);
+                        setIsInitialized(true);
                     });
                 } else {
                     // Anonymous User

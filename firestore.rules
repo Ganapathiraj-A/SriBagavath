@@ -6,7 +6,7 @@ service cloud.firestore {
     function isAdmin() {
       return request.auth != null && (
         exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
-        exists(/databases/$(database)/documents/admins/$(request.auth.token.email))
+        (request.auth.token.email != null && exists(/databases/$(database)/documents/admins/$(request.auth.token.email)))
       );
     }
 
@@ -112,9 +112,24 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    match /digital_book_configs/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     match /program_banners/{id} {
       allow read: if true;
       allow write: if isAdmin();
+    }
+
+    match /diagnostic_reports/{reportId} {
+      allow read: if isAdmin();
+      allow create: if request.auth != null;
+      allow update, delete: if isAdmin();
+    }
+
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
     // Global fallback: Deny everything else

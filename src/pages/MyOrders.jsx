@@ -55,13 +55,21 @@ const MyOrders = () => {
     };
 
     useEffect(() => {
+        if (!currentUser || currentUser.isAnonymous) {
+            setOrders([]);
+            setLoading(false);
+            return;
+        }
+
+        setLoading(true);
+        console.log("[MyOrders] Starting transaction stream for:", currentUser.uid);
         const unsubscribe = TransactionService.streamUserTransactions((data) => {
             const bookOrders = (data || []).filter(tx => tx.itemType === 'BOOK' || (tx.orderItems && tx.orderItems.length > 0));
             setOrders(bookOrders);
             setLoading(false);
         });
         return () => unsubscribe();
-    }, []);
+    }, [currentUser]);
 
     const handleViewReceipt = async (id, utr) => {
         try {
