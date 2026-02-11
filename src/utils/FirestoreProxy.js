@@ -5,6 +5,8 @@ import ApiMonitor from './ApiMonitor';
 export * from 'firebase/firestore';
 
 // Helper to track reads from snapshots
+const lastLoggedDocs = new Map(); // Track last doc count/data for listeners to avoid spam
+
 const trackRead = (snapshot, context = 'Query') => {
     if (!snapshot) return;
     const isCache = snapshot.metadata?.fromCache;
@@ -19,6 +21,19 @@ const trackRead = (snapshot, context = 'Query') => {
     } else {
         count = snapshot.exists() ? 1 : 0;
     }
+
+    // Optimization: Skip logging if this is a server "latch" with 0 changes and we already showed cache docs
+    const key = `${context}_${snapshot._query?.path?.segments?.join('/') || ''}`;
+    if (!isCache && snapshot.docChanges && snapshot.docChanges().length === 0 && lastLoggedDocs.get(key) === count) {
+        // This is likely just the metadata change event (Cache -> Server) with no actual data change
+        // We still technically hit the server, but for the user's visual count, it's just "confirming" cache.
+        // We will log it as a sync but maybe keep it subtle?
+        // Actually, let's keep logging but add "Synced"
+        console.log(`[Firestore] SYNC | ${source} | ${context} | Docs: ${count} (No changes)`);
+        return;
+    }
+
+    lastLoggedDocs.set(key, count);
 
     const type = isCache ? 'recordCacheRead' : 'recordServerRead';
     ApiMonitor[type](count);

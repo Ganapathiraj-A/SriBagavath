@@ -70,15 +70,29 @@ export const GlobalSettingsProvider = ({ children }) => {
 
     // 2. Auth state Listener + User Settings Sync
     useEffect(() => {
-        const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+        const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
             setCurrentUser(user);
             if (user) {
                 const userDocRef = doc(db, 'users', user.uid, 'settings', 'preferences');
+
+                // Cache-first initial fetch
+                try {
+                    const docSnap = await getDocCacheFirst(userDocRef);
+                    if (docSnap.exists()) {
+                        setUserSettings(docSnap.data());
+                    } else if (user.isAnonymous) {
+                        // Anonymous users just use defaults, no migration
+                        setUserSettings(DEFAULT_USER_SETTINGS);
+                    }
+                } catch (e) {
+                    console.error("Initial preferences fetch failed:", e);
+                }
+
                 const unsubscribeUserSub = onSnapshot(userDocRef, (docSnap) => {
                     if (docSnap.exists()) {
                         setUserSettings(docSnap.data());
-                    } else {
-                        // Migration from LocalStorage for Developer Options on first login
+                    } else if (!user.isAnonymous) {
+                        // Migration from LocalStorage for Developer Options on first login (only for real users)
                         const localDevMode = localStorage.getItem('settings_devMode') === 'true';
                         const localUpdateSource = localStorage.getItem('settings_updateSource') || DEFAULT_USER_SETTINGS.updateSource;
                         const localServerUrl = localStorage.getItem('settings_serverUrl') || DEFAULT_USER_SETTINGS.serverUrl;
@@ -95,7 +109,8 @@ export const GlobalSettingsProvider = ({ children }) => {
                         setDoc(userDocRef, initData);
                         setUserSettings(initData);
                     }
-                });
+                }, (err) => console.log("Preference listener restricted (Expected for anonymous)"));
+
                 return () => unsubscribeUserSub();
             } else {
                 setUserSettings(DEFAULT_USER_SETTINGS);

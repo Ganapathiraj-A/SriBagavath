@@ -62,10 +62,10 @@ const DiagnosticLogOverlay = () => {
                     style={{
                         pointerEvents: 'auto',
                         width: '100%',
-                        backgroundColor: '#111827',
+                        backgroundColor: 'rgba(17, 24, 39, 0.7)',
                         color: 'white',
-                        borderTop: '1px solid #374151',
-                        borderBottom: isExpanded ? '1px solid #374151' : 'none',
+                        borderTop: '1px solid rgba(55, 65, 81, 0.3)',
+                        borderBottom: isExpanded ? '1px solid rgba(55, 65, 81, 0.3)' : 'none',
                         padding: '10px 16px',
                         display: 'flex',
                         alignItems: 'center',
@@ -94,11 +94,12 @@ const DiagnosticLogOverlay = () => {
                         exit={{ height: 0 }}
                         style={{
                             pointerEvents: 'auto',
-                            backgroundColor: '#0f172a',
-                            borderTop: '1px solid #334155',
+                            backgroundColor: 'rgba(15, 23, 42, 0.85)',
+                            backdropFilter: 'blur(8px)',
+                            borderTop: '1px solid rgba(51, 65, 85, 0.4)',
                             display: 'flex',
                             flexDirection: 'column',
-                            boxShadow: '0 -10px 15px -3px rgba(0, 0, 0, 0.5)'
+                            boxShadow: '0 -10px 15px -3px rgba(0, 0, 0, 0.3)'
                         }}
                     >
                         {/* Toolbar */}

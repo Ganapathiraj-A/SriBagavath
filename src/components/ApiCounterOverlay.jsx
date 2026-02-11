@@ -26,7 +26,7 @@ const ApiCounterOverlay = () => {
             left: 0,
             right: 0,
             zIndex: 9999,
-            backgroundColor: 'rgba(17, 24, 39, 0.95)',
+            backgroundColor: 'rgba(17, 24, 39, 0.7)',
             color: 'white',
             padding: '8px 16px',
             fontSize: '14px',
@@ -36,10 +36,10 @@ const ApiCounterOverlay = () => {
             justifyContent: 'center',
             gap: '12px',
             boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-            backdropFilter: 'blur(12px)',
-            borderBottom: '2px solid rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(4px)',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
         }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: 0.9 }}>
                 <Activity size={16} color="#f97316" strokeWidth={3} />
                 <div style={{ display: 'flex', gap: '8px' }}>
                     <span title="Server Reads (Billed)" style={{ color: '#60a5fa' }}>SR:{stats.serverReads}</span>

@@ -75,8 +75,13 @@ export const AdminAuthProvider = ({ children }) => {
                 if (!currentUser.isAnonymous) {
                     console.log("[AdminAuth] Initializing Recognition for UID:", currentUser.uid);
 
-                    const uidDocRef = doc(db, 'admins', currentUser.uid);
-                    const emailDocRef = currentUser.email ? doc(db, 'admins', currentUser.email) : null;
+                    const adminColl = collection(db, 'admins');
+                    const idsToCheck = [currentUser.uid];
+                    if (currentUser.email) idsToCheck.push(currentUser.email);
+
+                    // Consolidate UID and Email check into a single listener
+                    const adminQuery = query(adminColl, where('__name__', 'in', idsToCheck));
+
                     const requestDocRef = doc(db, 'admin_requests', currentUser.uid);
 
                     const handleAdminData = (data) => {
@@ -87,42 +92,21 @@ export const AdminAuthProvider = ({ children }) => {
                         setIsInitialized(true);
                     };
 
-                    // 1. Listen to UID Doc
-                    adminUnsubscribe = onSnapshot(uidDocRef, (snap) => {
-                        if (snap.exists()) {
-                            handleAdminData(snap.data());
-                        } else if (!emailDocRef) {
-                            // No email, check pending
+                    adminUnsubscribe = onSnapshot(adminQuery, (snap) => {
+                        if (!snap.empty) {
+                            // If we have multiple (shouldn't happen but safe), pick first
+                            handleAdminData(snap.docs[0].data());
+                        } else {
+                            // Not found in admins, check pending
                             setIsAdmin(false);
-                            requestUnsubscribe = onSnapshot(requestDocRef, (reqSnap) => {
-                                setIsPending(reqSnap.exists() && reqSnap.data().status === 'PENDING');
-                                setIsInitialized(true);
-                            });
+                            if (!requestUnsubscribe) {
+                                requestUnsubscribe = onSnapshot(requestDocRef, (reqSnap) => {
+                                    setIsPending(reqSnap.exists() && reqSnap.data().status === 'PENDING');
+                                    setIsInitialized(true);
+                                });
+                            }
                         }
                     });
-
-                    // 2. Listen to Email Doc (if exists)
-                    if (emailDocRef) {
-                        const emailUnsub = onSnapshot(emailDocRef, (snap) => {
-                            if (snap.exists()) {
-                                handleAdminData(snap.data());
-                            } else {
-                                if (!isAdmin) {
-                                    if (requestUnsubscribe) requestUnsubscribe();
-                                    requestUnsubscribe = onSnapshot(requestDocRef, (reqSnap) => {
-                                        setIsPending(reqSnap.exists() && reqSnap.data().status === 'PENDING');
-                                        setIsInitialized(true);
-                                    });
-                                }
-                            }
-                        });
-                        // Nest cleanup
-                        const originalUnsub = adminUnsubscribe;
-                        adminUnsubscribe = () => {
-                            if (originalUnsub) originalUnsub();
-                            emailUnsub();
-                        };
-                    }
                 } else {
                     // Anonymous User
                     setIsAdmin(false);

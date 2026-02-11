@@ -21,10 +21,10 @@ export const NotificationProvider = ({ children }) => {
         hasNewSchedule: false
     });
 
+    // 1. ADMIN LOGIC: Total Pending (Registrations & Bookstore)
     useEffect(() => {
         let unsubAdmin = () => { };
 
-        // 1. ADMIN LOGIC: Total Pending (Registrations & Bookstore) - Only if Admin
         if (isAdmin) {
             console.log("[NotificationContext] Initializing Admin Transactions Listener");
             const pendingQuery = query(
@@ -55,9 +55,24 @@ export const NotificationProvider = ({ children }) => {
                     donations: donationCount
                 }));
             }, err => console.error("Admin counts error:", err));
+        } else {
+            // Reset admin counts when not admin
+            setCounts(prev => ({
+                ...prev,
+                registrations: 0,
+                purchases: 0,
+                donations: 0
+            }));
         }
 
-        // 2. METADATA LOGIC: Check for NEW content across categories - Always active
+        return () => {
+            console.log("[NotificationContext] Cleaning up Admin listener");
+            unsubAdmin();
+        };
+    }, [isAdmin]);
+
+    // 2. METADATA LOGIC: Check for NEW content across categories - Always active once
+    useEffect(() => {
         console.log("[NotificationContext] Initializing Metadata Listener");
         const metadataDocRef = doc(db, 'system', 'metadata');
 
@@ -107,11 +122,10 @@ export const NotificationProvider = ({ children }) => {
         }, err => console.error("Metadata counts error:", err));
 
         return () => {
-            console.log("[NotificationContext] Cleaning up listeners");
-            unsubAdmin();
+            console.log("[NotificationContext] Cleaning up Metadata listener");
             unsubMetadata();
         };
-    }, [isAdmin]);
+    }, []); // Empty dependency array means it only runs once per app lifecycle
 
     return (
         <NotificationContext.Provider value={counts}>
