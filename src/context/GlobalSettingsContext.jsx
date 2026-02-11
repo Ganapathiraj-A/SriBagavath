@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { db, auth } from '../firebase';
 import { doc, onSnapshot, setDoc, getDoc, getDocCacheFirst } from '@/utils/FirestoreProxy';
+import { TransactionService } from '../services/TransactionService';
 import { onAuthStateChanged } from 'firebase/auth';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
@@ -16,8 +17,8 @@ const DEFAULT_USER_SETTINGS = {
     updateSource: 'auto',
     serverUrl: 'http://192.168.1.3:8080',
     landingPage: '/',
-    showApiCounter: true, // Temporarily enabled for testing
-    showDiagnosticLogs: true // Temporarily enabled for testing
+    showApiCounter: false,
+    showDiagnosticLogs: false
 };
 
 export const GlobalSettingsProvider = ({ children }) => {
@@ -47,6 +48,8 @@ export const GlobalSettingsProvider = ({ children }) => {
 
     const [appVersion, setAppVersion] = useState(APP_VERSION_TAG);
     const [currentUser, setCurrentUser] = useState(null);
+    const [deviceId] = useState(TransactionService.getDeviceId());
+    const [isDeviceAuthorized, setIsDeviceAuthorized] = useState(false);
 
     const LATEST_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwceASoBU6CCZFOtNg5QSjsIXrA6fzK9kBvMbkCEBuh4FabjRNXU0P-7NRGwRNXCNzBHg/exec';
 
@@ -67,6 +70,21 @@ export const GlobalSettingsProvider = ({ children }) => {
         };
         fetchVersion();
     }, [APP_VERSION_TAG]);
+    // 1.5 Device Authorization Listener
+    useEffect(() => {
+        const deviceDocRef = doc(db, 'debug_devices', deviceId);
+        const unsubscribe = onSnapshot(deviceDocRef, (docSnap) => {
+            if (docSnap.exists()) {
+                setIsDeviceAuthorized(docSnap.data().isAuthorized || false);
+            } else {
+                setIsDeviceAuthorized(false);
+            }
+        }, (err) => {
+            console.log("Device auth listener restricted (Expected for untrusted devices)");
+            setIsDeviceAuthorized(false);
+        });
+        return () => unsubscribe();
+    }, [deviceId]);
 
     // 2. Auth state Listener + User Settings Sync
     useEffect(() => {
@@ -190,6 +208,22 @@ export const GlobalSettingsProvider = ({ children }) => {
         }
     };
 
+    // helper for Device Authorization
+    const toggleDeviceAuthorization = async (val) => {
+        if (!currentUser) return; // Only logged in admins can set this (Rules will enforce)
+        try {
+            const docRef = doc(db, 'debug_devices', deviceId);
+            await setDoc(docRef, {
+                isAuthorized: val,
+                authorizedBy: currentUser.email,
+                updatedAt: new Date().toISOString()
+            }, { merge: true });
+        } catch (error) {
+            console.error("Error toggling device authorization:", error);
+            throw error;
+        }
+    };
+
     return (
         <GlobalSettingsContext.Provider value={{
             // Functional Settings (Global)
@@ -228,8 +262,10 @@ export const GlobalSettingsProvider = ({ children }) => {
             updateSource: userSettings.updateSource ?? DEFAULT_USER_SETTINGS.updateSource,
             serverUrl: userSettings.serverUrl ?? DEFAULT_USER_SETTINGS.serverUrl,
             landingPage: userSettings.landingPage ?? DEFAULT_USER_SETTINGS.landingPage,
-            showApiCounter: userSettings.showApiCounter ?? DEFAULT_USER_SETTINGS.showApiCounter,
-            showDiagnosticLogs: userSettings.showDiagnosticLogs ?? DEFAULT_USER_SETTINGS.showDiagnosticLogs,
+            showApiCounter: isDeviceAuthorized || (userSettings.showApiCounter ?? DEFAULT_USER_SETTINGS.showApiCounter),
+            showDiagnosticLogs: isDeviceAuthorized || (userSettings.showDiagnosticLogs ?? DEFAULT_USER_SETTINGS.showDiagnosticLogs),
+            isDeviceAuthorized,
+            deviceId,
 
             setDevMode: (val) => {
                 updateUser({ devMode: val });
@@ -240,6 +276,7 @@ export const GlobalSettingsProvider = ({ children }) => {
             setLandingPage: (val) => updateUser({ landingPage: val }),
             setShowApiCounter: (val) => updateUser({ showApiCounter: val }),
             setShowDiagnosticLogs: (val) => updateUser({ showDiagnosticLogs: val }),
+            toggleDeviceAuthorization,
 
             appVersion
         }}>

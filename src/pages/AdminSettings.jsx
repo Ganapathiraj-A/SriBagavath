@@ -14,7 +14,8 @@ import {
     Cloud,
     User,
     RefreshCw,
-    ShieldAlert
+    ShieldAlert,
+    Cpu
 } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { useAdminAuth } from '../context/AdminAuthContext';
@@ -78,7 +79,8 @@ const AdminSettings = () => {
         minAppVersion, setMinAppVersion,
         landingPage, setLandingPage,
         showApiCounter, setShowApiCounter,
-        showDiagnosticLogs, setShowDiagnosticLogs
+        showDiagnosticLogs, setShowDiagnosticLogs,
+        deviceId, isDeviceAuthorized, toggleDeviceAuthorization
     } = useGlobalSettings();
 
     const handleLandingPageChange = (e) => {
@@ -315,6 +317,50 @@ const AdminSettings = () => {
                                     </div>
                                 </motion.div>
                             )}
+                        </motion.div>
+
+                        {/* Device Specific Debug Authorization (Admins Only) */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            style={{
+                                backgroundColor: 'white',
+                                borderRadius: '1rem',
+                                padding: '1.25rem',
+                                border: '1px solid #e5e7eb',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '1rem',
+                                marginTop: '1rem'
+                            }}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <Cpu size={16} color="#6b7280" />
+                                <h4 style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
+                                    This Device Authorization
+                                </h4>
+                            </div>
+
+                            <div style={{ fontSize: '0.75rem', color: '#6b7280', backgroundColor: '#f9fafb', padding: '0.75rem', borderRadius: '0.5rem', wordBreak: 'break-all', fontFamily: 'monospace' }}>
+                                ID: {deviceId}
+                            </div>
+
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div>
+                                    <div style={{ fontSize: '0.9375rem', fontWeight: 600, color: '#111827' }}>Anonymous Debugging</div>
+                                    <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>Keep debug tools visible after logout</div>
+                                </div>
+                                <label style={{ position: 'relative', display: 'inline-block', width: '40px', height: '22px' }}>
+                                    <input
+                                        type="checkbox"
+                                        style={{ opacity: 0, width: 0, height: 0 }}
+                                        checked={isDeviceAuthorized}
+                                        onChange={(e) => toggleDeviceAuthorization(e.target.checked)}
+                                    />
+                                    <span style={{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: isDeviceAuthorized ? '#2563eb' : '#ccc', borderRadius: '34px', transition: '.4s' }}></span>
+                                    <span style={{ position: 'absolute', height: '16px', width: '16px', left: '3px', bottom: '3px', backgroundColor: 'white', borderRadius: '50%', transition: '.4s', transform: isDeviceAuthorized ? 'translateX(18px)' : 'translateX(0)' }}></span>
+                                </label>
+                            </div>
                         </motion.div>
                     </div>
                 )}

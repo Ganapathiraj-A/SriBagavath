@@ -117,6 +117,13 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    match /debug_devices/{deviceId} {
+      // Public read to allow diagnostic tools to check authorization
+      allow read: if true;
+      // Only Admins can authorize a device (enforces self-device authorization by logic in the app)
+      allow write: if isAdmin();
+    }
+
     match /program_banners/{id} {
       allow read: if true;
       allow write: if isAdmin();
