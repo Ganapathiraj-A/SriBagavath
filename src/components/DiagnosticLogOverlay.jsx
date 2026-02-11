@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useGlobalSettings } from '../context/GlobalSettingsContext';
 import DiagnosticLogs from '../utils/DiagnosticLogs';
-import { Terminal, Copy, Trash2, X, ChevronUp, ChevronDown } from 'lucide-react';
+import { Terminal, Copy, Trash2, X, ChevronUp, ChevronDown, Cloud, CloudOff, RefreshCw } from 'lucide-react';
+import { db, auth } from '../firebase';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const DiagnosticLogOverlay = () => {
@@ -9,6 +10,9 @@ const DiagnosticLogOverlay = () => {
     const [logs, setLogs] = useState(DiagnosticLogs.getLogs());
     const [isExpanded, setIsExpanded] = useState(false);
     const [copying, setCopying] = useState(false);
+    const [syncing, setSyncing] = useState(false);
+    const [clearing, setClearing] = useState(false);
+    const { user, appVersion } = useGlobalSettings(); // Assuming appVersion is in context, else we use package.json logic
     const scrollRef = useRef(null);
 
     useEffect(() => {
@@ -31,6 +35,29 @@ const DiagnosticLogOverlay = () => {
         } else {
             setCopying(false);
         }
+    };
+
+    const handleSync = async () => {
+        setSyncing(true);
+        const res = await DiagnosticLogs.pushLogs(db, auth.currentUser, appVersion);
+        if (res.success) {
+            alert(`Logs uploaded successfully! Report ID: ${res.reportId}`);
+        } else {
+            alert(`Upload failed: ${res.error}`);
+        }
+        setSyncing(false);
+    };
+
+    const handleClearServer = async () => {
+        if (!window.confirm("Delete recent log reports from Firestore?")) return;
+        setClearing(true);
+        const res = await DiagnosticLogs.clearServerLogs(db);
+        if (res.success) {
+            alert("Server reports cleared.");
+        } else {
+            alert(`Clear failed: ${res.error}`);
+        }
+        setClearing(false);
     };
 
     const getTypeColor = (type) => {
@@ -136,9 +163,51 @@ const DiagnosticLogOverlay = () => {
                                     {copying ? 'LOGS COPIED!' : 'COPY ALL'}
                                 </button>
                                 <button
-                                    onClick={() => DiagnosticLogs.clear()}
+                                    onClick={handleSync}
+                                    disabled={syncing}
                                     style={{
                                         padding: '6px 12px',
+                                        borderRadius: '6px',
+                                        backgroundColor: '#10b981',
+                                        color: 'white',
+                                        border: 'none',
+                                        fontSize: '11px',
+                                        fontWeight: 700,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px',
+                                        cursor: syncing ? 'default' : 'pointer',
+                                        opacity: syncing ? 0.7 : 1,
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                    }}
+                                >
+                                    {syncing ? <RefreshCw size={12} className="animate-spin" /> : <Cloud size={12} />}
+                                    {syncing ? 'SENDING...' : 'TO SERVER'}
+                                </button>
+                                <button
+                                    onClick={handleClearServer}
+                                    disabled={clearing}
+                                    style={{
+                                        padding: '6px 10px',
+                                        borderRadius: '6px',
+                                        backgroundColor: '#475569',
+                                        color: 'white',
+                                        border: 'none',
+                                        fontSize: '11px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '4px',
+                                        cursor: clearing ? 'default' : 'pointer',
+                                        opacity: clearing ? 0.7 : 1
+                                    }}
+                                >
+                                    <CloudOff size={12} />
+                                    Clear Srv
+                                </button>
+                                <button
+                                    onClick={() => DiagnosticLogs.clear()}
+                                    style={{
+                                        padding: '6px 10px',
                                         borderRadius: '6px',
                                         backgroundColor: '#334155',
                                         color: 'white',
@@ -151,7 +220,7 @@ const DiagnosticLogOverlay = () => {
                                     }}
                                 >
                                     <Trash2 size={12} />
-                                    Clear
+                                    Clear Loc
                                 </button>
                             </div>
                         </div>
