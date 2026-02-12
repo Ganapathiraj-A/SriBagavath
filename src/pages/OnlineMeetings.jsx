@@ -66,7 +66,7 @@ const OnlineMeetings = () => {
     const navigate = useNavigate();
     const [meetings, setMeetings] = useState([]);
     const [loading, setLoading] = useState(true);
-    const { loading: authLoading } = useAdminAuth();
+    const { loading: authLoading, isAdmin, hasAccess } = useAdminAuth();
 
     useEffect(() => {
         localStorage.setItem('lastVisited_online_meetings', new Date().toISOString());
@@ -136,7 +136,7 @@ const OnlineMeetings = () => {
             <PageHeader
                 title="Online Meetings"
                 rightAction={
-                    (useAdminAuth().isAdmin || useAdminAuth().hasAccess('PROGRAM_MANAGEMENT')) && (
+                    (isAdmin || hasAccess('PROGRAM_MANAGEMENT')) && (
                         <button
                             onClick={() => navigate('/admin/online-meetings')}
                             style={{

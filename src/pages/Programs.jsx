@@ -64,7 +64,7 @@ const Programs = () => {
         }
     };
 
-    const { loading: authGlobalLoading } = useAdminAuth();
+    const { loading: authGlobalLoading, isAdmin, hasAccess } = useAdminAuth();
 
     useEffect(() => {
         const fetchPrograms = async () => {
@@ -348,7 +348,7 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
             <PageHeader
                 title={viewingProgram ? viewingProgram.programName : "Programs"}
                 rightAction={
-                    (useAdminAuth().isAdmin || useAdminAuth().hasAccess('PROGRAM_MANAGEMENT')) && (
+                    (isAdmin || hasAccess('PROGRAM_MANAGEMENT')) && (
                         <button
                             onClick={() => navigate('/program')}
                             style={{

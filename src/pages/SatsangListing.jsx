@@ -66,7 +66,7 @@ const SatsangListing = () => {
     const navigate = useNavigate();
     const [meetings, setMeetings] = useState([]);
     const [loading, setLoading] = useState(true);
-    const { loading: authGlobalLoading } = useAdminAuth();
+    const { loading: authGlobalLoading, isAdmin, hasAccess } = useAdminAuth();
 
     const ORANGE = '#f97316';
 
@@ -138,7 +138,7 @@ const SatsangListing = () => {
             <PageHeader
                 title="Satsang"
                 rightAction={
-                    (useAdminAuth().isAdmin || useAdminAuth().hasAccess('PROGRAM_MANAGEMENT')) && (
+                    (isAdmin || hasAccess('PROGRAM_MANAGEMENT')) && (
                         <button
                             onClick={() => navigate('/admin/satsang')}
                             style={{
