@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
 import { doc, setDoc, Timestamp } from '@/utils/FirestoreProxy';
-import { auth, db } from '../firebase';
-import { useAdminAuth } from '../context/AdminAuthContext';
+import { auth, db } from '@/firebase';
+import { useAdminAuth } from '@/context/AdminAuthContext';
 import { Lock, Mail, Chrome, RefreshCw } from 'lucide-react';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
-import { GET_GOOGLE_CLIENT_ID, ensureGoogleAuthInitialized } from '../utils/GoogleAuthUtils';
+import { GET_GOOGLE_CLIENT_ID, ensureGoogleAuthInitialized } from '@/utils/GoogleAuthUtils';
 import '../components/RegistrationStyles.css';
 
 const AdminLogin = () => {
@@ -49,7 +49,7 @@ const AdminLogin = () => {
         setError('');
         try {
             await signInWithEmailAndPassword(auth, email, password);
-        } catch (err) {
+        } catch {
             setError('Invalid email or password.');
             setLoading(false);
         }
@@ -80,9 +80,9 @@ const AdminLogin = () => {
             await signInWithCredential(auth, credential);
 
             // Redirect will be handled by the useEffect watching isAdmin
-        } catch (err) {
-            console.error('Google Sign-In Error:', err);
-            setError('Login failed: ' + err.message);
+        } catch (_err) {
+            console.error("Login verification failed:", _err);
+            setError('Login failed: ' + _err.message);
         } finally {
             setLoading(false);
         }
@@ -93,7 +93,7 @@ const AdminLogin = () => {
         try {
             await setDoc(doc(db, 'admin_requests', user.uid), {
                 email: user.email,
-                displayName: user.displayName || '',
+                name: user.displayName || '',
                 timestamp: Timestamp.now(),
                 status: 'PENDING'
             });
@@ -116,7 +116,7 @@ const AdminLogin = () => {
                     console.warn("Disconnect failed:", dErr);
                 }
             }
-        } catch (error) {
+        } catch (_err) {
             console.warn("GoogleAuth signout error:", error);
         }
         await auth.signOut();

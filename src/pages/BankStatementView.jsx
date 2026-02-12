@@ -15,10 +15,10 @@ import {
     CalendarDays,
     RefreshCw
 } from 'lucide-react';
-import PageHeader from '../components/PageHeader';
-import { db } from '../firebase';
+import PageHeader from '@/components/PageHeader';
+import { db } from '@/firebase';
 import { collection, query, orderBy, onSnapshot } from '@/utils/FirestoreProxy';
-import { TransactionService } from '../services/TransactionService';
+import { TransactionService } from '@/services/TransactionService';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { Capacitor } from '@capacitor/core';

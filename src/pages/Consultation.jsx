@@ -2,8 +2,8 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronLeft, Phone, Copy, Check } from 'lucide-react';
-import PageHeader from '../components/PageHeader';
-import { useAdminAuth } from '../context/AdminAuthContext';
+import PageHeader from '@/components/PageHeader';
+import { useAdminAuth } from '@/context/AdminAuthContext';
 
 const ContactCard = ({ name, number, delay }) => {
     const [copied, setCopied] = React.useState(false);
@@ -89,11 +89,11 @@ const Consultation = () => {
     const navigate = useNavigate();
     const [consultants, setConsultants] = React.useState([]);
     const [loading, setLoading] = React.useState(true);
-    const { loading: authGlobalLoading } = useAdminAuth();
+    const { isInitialized } = useAdminAuth();
 
     React.useEffect(() => {
         const fetchConsultants = async () => {
-            if (authGlobalLoading) return;
+            if (!isInitialized) return;
             try {
                 const { collection, getDocs, query, orderBy, getDocsFromCache, getDocsFromServer } = await import('@/utils/FirestoreProxy');
                 const { db } = await import('../firebase');
@@ -110,20 +110,20 @@ const Consultation = () => {
                         snap = await getDocsFromServer(q);
                         markSyncedLocally('consultants');
                     }
-                } catch (e) {
+                } catch (_err) {
                     snap = await getDocs(q);
                     markSyncedLocally('consultants');
                 }
 
                 setConsultants(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-            } catch (error) {
-                console.error("Error fetching consultants:", error);
+            } catch (_err) {
+                console.error("Error fetching consultants:", _err);
             } finally {
                 setLoading(false);
             }
         };
         fetchConsultants();
-    }, [authGlobalLoading]);
+    }, [isInitialized]);
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>

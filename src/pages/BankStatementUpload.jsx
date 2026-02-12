@@ -2,12 +2,15 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronLeft, Upload, FileText } from 'lucide-react';
-import PageHeader from '../components/PageHeader';
-import { parseHdfcStatement } from '../utils/BankStatementParser';
-import { db } from '../firebase';
+import PageHeader from '@/components/PageHeader';
+import { parseHdfcStatement } from '@/utils/BankStatementParser';
+import { db } from '@/firebase';
 import { doc, setDoc, getDoc, serverTimestamp } from '@/utils/FirestoreProxy';
 
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
+
 const BankStatementUpload = () => {
+    const { bankPassword } = useGlobalSettings();
     const navigate = useNavigate();
     const [isParsing, setIsParsing] = useState(false);
     const [parsedEntries, setParsedEntries] = useState([]);
@@ -24,7 +27,7 @@ const BankStatementUpload = () => {
         setSaveResult(null);
         setError(null);
         setCopied(false);
-        const password = localStorage.getItem('bank_statement_password');
+        const password = bankPassword;
         if (!password) {
             setError("Please set the Bank Statement PDF password in Admin Settings first.");
             return;

@@ -12,8 +12,8 @@ import {
 import { Share } from '@capacitor/share';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
-import { db } from '../firebase';
-import { getLocalDateString } from '../utils/dateUtils';
+import { db } from '@/firebase';
+import { getLocalDateString } from '@/utils/dateUtils';
 import {
     doc,
     getDoc,
@@ -60,8 +60,8 @@ const BackOfficeAttendance = () => {
                 try {
                     const s = await getDocs(qr);
                     return s.docs;
-                } catch (e) {
-                    console.error("Query failed:", e);
+                } catch (_err) {
+                    console.error("Query failed:", _err);
                     return [];
                 }
             };

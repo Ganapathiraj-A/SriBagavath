@@ -1,14 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { ChevronLeft, Image, Users, Calendar, LayoutDashboard, Map as MapIcon, RefreshCcw, Database } from 'lucide-react';
-import PageHeader from '../components/PageHeader';
-import { db } from '../firebase';
-import { StatsService } from '../services/StatsService';
-import { doc, getDoc, collection, getDocs, query, where, count, getCountFromServer } from '@/utils/FirestoreProxy';
+import PageHeader from '@/components/PageHeader';
+import { db } from '@/firebase';
+import { StatsService } from '@/services/StatsService';
+import { doc, getDoc, collection, getDocs, query, where, getCountFromServer } from '@/utils/FirestoreProxy';
 
-import { useUnseenCounts } from '../hooks/useUnseenCounts';
-import { getLocalDateString } from '../utils/dateUtils';
-import { useGlobalSettings } from '../context/GlobalSettingsContext';
+import { useUnseenCounts } from '@/hooks/useUnseenCounts';
+import { getLocalDateString } from '@/utils/dateUtils';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 
 const SystemHealthCard = ({ health, onClick }) => (
     <div
@@ -58,13 +59,13 @@ const SystemHealthCard = ({ health, onClick }) => (
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
+    const { counts } = useUnseenCounts();
     const { appVersion } = useGlobalSettings();
     const [stats, setStats] = useState(null);
     const [geoStats, setGeoStats] = useState(null);
     const [geoView, setGeoView] = useState('overall'); // 'overall' or 'monthly'
     const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().substring(0, 7));
     const [loading, setLoading] = useState(true);
-    const [history, setHistory] = useState([]); // Last 30 days daily counts
     const [health, setHealth] = useState({ status: 'good', reason: 'System performance within limits', detailedMetrics: null });
 
     const showHealthDetails = () => {
@@ -89,26 +90,43 @@ Otherwise, it stays 'Good'.`;
         alert(message);
     };
 
-    const fetchStats = async () => {
+    const fetchStats = useCallback(async () => {
         setLoading(true);
         try {
             const totalsRef = doc(db, "system_stats", "totals");
-            const totalsSnap = await getDoc(totalsRef);
-
             const geoRef = doc(db, "geo_stats", "login_counts");
-            const geoSnap = await getDoc(geoRef);
-
-            // Fetch Today's Count
             const today = getLocalDateString();
             const todayRef = doc(db, "system_stats", `daily_${today}`);
-            const todaySnap = await getDoc(todayRef);
 
-            // Fetch Current Stats (Today & Future)
+            // Prepare Queries
             const currentProgsQuery = query(collection(db, 'programs'), where('programDate', '>=', today));
-            const currentProgsSnap = await getCountFromServer(currentProgsQuery);
-
             const currentRegsQuery = query(collection(db, 'transactions'), where('programDate', '>=', today));
-            const currentRegsSnap = await getDocs(currentRegsQuery);
+
+            // Fetch Last 30 Days History keys
+            const last30Days = [];
+            for (let i = 0; i < 30; i++) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                last30Days.push(date.toISOString().split('T')[0]);
+            }
+
+            // Execute all fetches in parallel
+            const [
+                totalsSnap,
+                geoSnap,
+                todaySnap,
+                currentProgsSnap,
+                currentRegsSnap,
+                ...historySnaps
+            ] = await Promise.all([
+                getDoc(totalsRef),
+                getDoc(geoRef),
+                getDoc(todayRef),
+                getCountFromServer(currentProgsQuery),
+                getDocs(currentRegsQuery),
+                ...last30Days.map(date => getDoc(doc(db, "system_stats", `daily_${date}`)))
+            ]);
+
             const activeParticipants = currentRegsSnap.docs.reduce((acc, d) => acc + (d.data().participantCount || d.data().participants?.length || 1), 0);
 
             setStats({
@@ -118,23 +136,11 @@ Otherwise, it stays 'Good'.`;
                 activeParticipants: activeParticipants
             });
 
-            // Fetch Last 30 Days History
-            const last30Days = [];
-            for (let i = 0; i < 30; i++) {
-                const date = new Date();
-                date.setDate(date.getDate() - i);
-                last30Days.push(date.toISOString().split('T')[0]);
-            }
-
-            const historySnaps = await Promise.all(
-                last30Days.map(date => getDoc(doc(db, "system_stats", `daily_${date}`)))
-            );
-
             const historyData = historySnaps
                 .filter(s => s.exists())
                 .map(s => ({ date: s.id.replace('daily_', ''), count: s.data().count || 0 }));
 
-            setHistory(historyData);
+            /* History tracking removed - using local historyData for health check */
 
             // Calculate Health
             const totalSizeMB = totalsSnap.exists() ? (totalsSnap.data().totalImageSizeMB || 0) : 0;
@@ -169,12 +175,12 @@ Otherwise, it stays 'Good'.`;
                 setGeoStats(geoSnap.data());
             }
 
-        } catch (e) {
-            console.error("Dashboard fetch failed", e);
+        } catch (_err) {
+            console.error("Dashboard fetch failed", _err);
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     const handleRecalculate = async () => {
         if (!window.confirm("This will scan the database to fix any count discrepancies. Continue?")) return;
@@ -183,12 +189,14 @@ Otherwise, it stays 'Good'.`;
             await StatsService.recalculateTotals();
             alert("Stats recalculated successfully!");
             await fetchStats();
-        } catch (e) {
-            alert("Recalculate failed: " + e.message);
+        } catch (_err) {
+            alert("Recalculate failed: " + _err.message);
         } finally {
             setLoading(false);
         }
     };
+
+    /*
     const handleClearAll = async () => {
         const password = window.prompt("Enter admin password to proceed with FULL system reset:");
         if (password !== "413800") {
@@ -203,16 +211,18 @@ Otherwise, it stays 'Good'.`;
         if (confirm2 !== 'DELETE ALL') return;
 
         setLoading(true);
+        // setLoading(true);
         try {
             await StatsService.clearAllData();
             alert("System has been reset successfully!");
             await fetchStats();
-        } catch (e) {
-            alert("Reset failed: " + e.message);
+        } catch (_err) {
+            alert("Force visit failed: " + _err.message);
         } finally {
             setLoading(false);
         }
     };
+    */
 
     const handleForceVisit = async () => {
         setLoading(true);
@@ -220,8 +230,8 @@ Otherwise, it stays 'Good'.`;
             await StatsService.trackUserLogin(true);
             alert("This device has been force-recorded as a visitor for today!");
             await fetchStats();
-        } catch (e) {
-            alert("Force visit failed: " + e.message);
+        } catch (_err) {
+            alert("Force visit failed: " + _err.message);
         } finally {
             setLoading(false);
         }
@@ -229,9 +239,10 @@ Otherwise, it stays 'Good'.`;
 
     useEffect(() => {
         fetchStats();
-    }, []);
+    }, [fetchStats]);
 
-    const StatCard = ({ title, value, unit = "", icon: Icon, color }) => (
+    // eslint-disable-next-line no-unused-vars
+    const StatCard = ({ title, value, unit = "", icon: IconComponent, color }) => (
         <div style={{
             background: 'white',
             padding: '20px',
@@ -247,7 +258,7 @@ Otherwise, it stays 'Good'.`;
                 borderRadius: '12px',
                 color: color
             }}>
-                <Icon size={24} />
+                <IconComponent size={24} />
             </div>
             <div>
                 <div style={{ fontSize: '14px', color: '#6b7280', fontWeight: '500' }}>{title}</div>
@@ -302,6 +313,22 @@ Otherwise, it stays 'Good'.`;
 
     return (
         <div className="min-h-screen bg-gray-50 pb-20">
+            {loading && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(255,255,255,0.7)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1000
+                }}>
+                    <RefreshCcw className="animate-spin" size={40} color="#3b82f6" />
+                </div>
+            )}
             <PageHeader
                 title="Admin Dashboard"
                 leftAction={

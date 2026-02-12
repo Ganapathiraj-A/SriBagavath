@@ -1,16 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect, useCallback } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { Plus, Edit2, Trash2, ChevronLeft, LogOut, Package, Image as ImageIcon, BookOpen, X, ChevronUp, ChevronDown, RefreshCw } from 'lucide-react';
-import PageHeader from '../components/PageHeader';
-import LazyImage from '../components/LazyImage';
+import PageHeader from '@/components/PageHeader';
+import LazyImage from '@/components/LazyImage';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { Camera, CameraResultType } from '@capacitor/camera';
+import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
-import { db, storage, auth } from '../firebase';
-import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, setDoc, query, orderBy, serverTimestamp, getDoc } from '@/utils/FirestoreProxy';
-import { signOut } from 'firebase/auth';
-import { StatsService } from '../services/StatsService';
-import { bumpServerVersion } from '../utils/SyncManager';
+import { db } from '@/firebase';
+import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, setDoc, query, orderBy, serverTimestamp, getDoc, where } from '@/utils/FirestoreProxy';
+import { StatsService } from '@/services/StatsService';
+import { bumpServerVersion } from '@/utils/SyncManager';
 
 // Helper to compress image to Base64
 const compressImage = (file) => {
@@ -51,12 +53,12 @@ const compressImage = (file) => {
                     }
 
                     resolve(dataUrl);
-                } catch (e) {
-                    reject(new Error("Image processing error: " + e.message));
+                } catch (_err) {
+                    reject(new Error("Image processing error: " + _err.message));
                 }
             };
 
-            img.onerror = (e) => {
+            img.onerror = () => {
                 if (isBlob) {
                     URL.revokeObjectURL(src);
                     const reader = new FileReader();
@@ -74,7 +76,7 @@ const compressImage = (file) => {
         try {
             const objectUrl = URL.createObjectURL(file);
             attemptLoad(objectUrl, true);
-        } catch (e) {
+        } catch {
             const reader = new FileReader();
             reader.onload = (re) => attemptLoad(re.target.result, false);
             reader.readAsDataURL(file);
@@ -88,6 +90,7 @@ const AdminBookManagement = () => {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const [books, setBooks] = useState([]);
+    const [covers, setCovers] = useState({});
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
     const [coverImage, setCoverImage] = useState(null);
@@ -110,7 +113,7 @@ const AdminBookManagement = () => {
 
     useEffect(() => {
         loadBooks();
-    }, []);
+    }, [loadBooks]);
 
     useEffect(() => {
         if (editingBook) {
@@ -132,8 +135,8 @@ const AdminBookManagement = () => {
                             const url = snap.data().cover;
                             setFormData(prev => ({ ...prev, coverUrl: url }));
                         }
-                    } catch (e) {
-                        console.error("Cover fetch failed", e);
+                    } catch (_err) {
+                        console.error("Cover fetch failed", _err);
                     }
                 };
                 fetchCover();
@@ -142,13 +145,9 @@ const AdminBookManagement = () => {
             resetForm();
             setFormData(prev => ({ ...prev, category: activeTab }));
         }
-    }, [editingBook, action, activeTab]);
+    }, [editingBook, action, activeTab, resetForm]);
 
-    useEffect(() => {
-        loadBooks();
-    }, [activeTab]);
-
-    const loadBooks = async () => {
+    const loadBooks = useCallback(async () => {
         setLoading(true);
 
         try {
@@ -167,12 +166,12 @@ const AdminBookManagement = () => {
 
             setBooks(loadedBooks);
 
-        } catch (error) {
-            console.error('Error loading books:', error);
+        } catch (_err) {
+            console.error('Error loading books:', _err);
         } finally {
             setLoading(false);
         }
-    };
+    }, [activeTab]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -254,9 +253,9 @@ const AdminBookManagement = () => {
             setSearchParams({}, { replace: true });
             resetForm();
             loadBooks();
-        } catch (error) {
-            console.error('Error saving book:', error);
-            alert('Error saving book: ' + error.message);
+        } catch (_err) {
+            console.error('Error saving book:', _err);
+            alert('Error saving book: ' + _err.message);
         } finally {
             setUploading(false);
         }
@@ -282,13 +281,13 @@ const AdminBookManagement = () => {
                 alert('Book deleted!');
                 setSearchParams({}, { replace: true });
                 loadBooks();
-            } catch (error) {
-                alert('Delete failed: ' + error.message);
+            } catch (_err) {
+                alert('Delete failed: ' + _err.message);
             }
         }
     };
 
-    const resetForm = () => {
+    const resetForm = useCallback(() => {
         setFormData({
             title: '',
             description: '',
@@ -299,8 +298,10 @@ const AdminBookManagement = () => {
             coverUrl: ''
         });
         setCoverImage(null);
-    };
+    }, [activeTab]);
 
+    /*
+    /*
     const handleLogout = async () => {
         if (confirm("Logout?")) {
             if (Capacitor.isNativePlatform()) {
@@ -311,14 +312,15 @@ const AdminBookManagement = () => {
                     } catch (dErr) {
                         console.warn("Disconnect failed:", dErr);
                     }
-                } catch (e) {
-                    console.warn("Google SignOut Error", e);
+                } catch (_err) {
+                    console.warn("Google SignOut Error", _err);
                 }
             }
             await signOut(auth);
             navigate('/');
         }
     };
+    */
 
     const handleReorder = async (bookId, direction) => {
         const categoryBooks = books.filter(b => b.category === activeTab);
@@ -339,8 +341,8 @@ const AdminBookManagement = () => {
                     updateDoc(doc(db, 'books', targetBook.id), { order: currentOrder })
                 ]);
                 loadBooks();
-            } catch (error) {
-                console.error("Reorder failed", error);
+            } catch (_err) {
+                console.error("Reorder failed", _err);
             }
         }
     };

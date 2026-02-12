@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { collection, query, getDocs, onSnapshot, doc, setDoc, deleteDoc, Timestamp } from '@/utils/FirestoreProxy';
-import { db } from '../firebase';
-import PageHeader from '../components/PageHeader';
+import { db } from '@/firebase';
+import PageHeader from '@/components/PageHeader';
 import { Check, X, Shield, Mail, Calendar, Trash2, Edit, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -87,8 +87,8 @@ const ManageUsers = () => {
 
             alert(isEditing ? "User updated successfully!" : "User added successfully!");
             setSelectedUser(null);
-        } catch (e) {
-            alert("Error saving user: " + e.message);
+        } catch (_err) {
+            alert("Error saving user: " + _err.message);
         }
     };
 

@@ -28,8 +28,7 @@ const generateFingerprint = (date, amount, desc) => {
  * @returns {Promise<Array>} - Array of transaction objects.
  */
 export const parseHdfcStatement = async (file, password) => {
-    const fallbackPassword = "43283924";
-    const passwordsToTry = [password, fallbackPassword].filter(p => p && p.trim() !== "");
+    const passwordsToTry = [password].filter(p => p && p.trim() !== "");
 
     let lastError = null;
 
@@ -53,12 +52,12 @@ export const parseHdfcStatement = async (file, password) => {
             }
 
             return parseHdfcText(allText);
-        } catch (error) {
-            lastError = error;
-            console.error(`PDF Parsing Attempt with password failed:`, error.name, error.message);
+        } catch (_err) {
+            lastError = _err;
+            console.error(`PDF Parsing Attempt with password failed:`, _err.name, _err.message);
             // If it's a password error, we continue to fallback. 
             // Otherwise (e.g. worker error), we might want to stop, but let's try fallback anyway.
-            if (error.name === 'PasswordException') continue;
+            if (_err.name === 'PasswordException') continue;
             break;
         }
     }
@@ -84,9 +83,9 @@ const parseHdfcText = (text) => {
     // HDFC Date Pattern at start of line: DD/MM/YY or DD/MM/YYYY
     const dateRegex = /^(\d{2}\/\d{2}\/\d{2,4})/;
     // Amount Pattern: 1,234.56 or 1234.56
-    const amountRegex = /(\d{1,3}(?:\,\d{3})*(?:\.\d{2}))/g;
+    const amountRegex = /(\d{1,3}(?:,\d{3})*(?:\.\d{2}))/g;
     // UPI ID Pattern: something@something
-    const upiRegex = /([a-zA-Z0-9\.\-_]{2,256}@[a-zA-Z]{2,64})/;
+    const upiRegex = /([a-zA-Z0-9._-]{2,256}@[a-zA-Z]{2,64})/;
 
     let currentTx = null;
 

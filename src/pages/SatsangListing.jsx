@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Clock, MapPin, ChevronLeft, Users, RefreshCw } from 'lucide-react';
-import PageHeader from '../components/PageHeader';
-import { db } from '../firebase';
+import PageHeader from '@/components/PageHeader';
+import { db } from '@/firebase';
 import { collection, query, where, orderBy, getDocs } from '@/utils/FirestoreProxy';
-import { useAdminAuth } from '../context/AdminAuthContext';
-import { getLocalDateString } from '../utils/dateUtils';
+import { useAdminAuth } from '@/context/AdminAuthContext';
+import { getLocalDateString } from '@/utils/dateUtils';
 
 const formatRecurrenceRule = (master) => {
     if (!master.isRecurring) return null;
@@ -90,7 +90,7 @@ const SatsangListing = () => {
                         snapshot = await getDocsFromServer(meetingsRef);
                         markSyncedLocally('satsangs');
                     }
-                } catch (e) {
+                } catch (_err) {
                     snapshot = await getDocs(meetingsRef);
                     markSyncedLocally('satsangs');
                 }
@@ -124,8 +124,8 @@ const SatsangListing = () => {
 
                 processed.sort((a, b) => a.date.localeCompare(b.date));
                 setMeetings(processed);
-            } catch (error) {
-                console.error("Error fetching satsangs:", error);
+            } catch (_err) {
+                console.error("Error fetching satsangs:", _err);
             } finally {
                 setLoading(false);
             }
@@ -135,7 +135,31 @@ const SatsangListing = () => {
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', paddingBottom: '3rem' }}>
-            <PageHeader title="Satsang" />
+            <PageHeader
+                title="Satsang"
+                rightAction={
+                    (useAdminAuth().isAdmin || useAdminAuth().hasAccess('PROGRAM_MANAGEMENT')) && (
+                        <button
+                            onClick={() => navigate('/admin/satsang')}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.4rem',
+                                padding: '0.5rem 0.8rem',
+                                backgroundColor: '#fff7ed',
+                                color: '#f97316',
+                                border: '1px solid #ffedd5',
+                                borderRadius: '0.75rem',
+                                fontSize: '0.85rem',
+                                fontWeight: 700,
+                                cursor: 'pointer'
+                            }}
+                        >
+                            Manage
+                        </button>
+                    )
+                }
+            />
 
             <div style={{ padding: '1.5rem', maxWidth: '42rem', margin: '0 auto', width: '100%' }}>
 

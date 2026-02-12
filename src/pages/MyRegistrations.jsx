@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { TransactionService } from '../services/TransactionService';
+import { TransactionService } from '@/services/TransactionService';
 import { useNavigate } from 'react-router-dom';
-import PageHeader from '../components/PageHeader';
+import PageHeader from '@/components/PageHeader';
 import { LogIn } from 'lucide-react';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
-import { ensureGoogleAuthInitialized } from '../utils/GoogleAuthUtils';
-import { auth } from '../firebase';
-import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
+import { ensureGoogleAuthInitialized } from '@/utils/GoogleAuthUtils';
+import { auth } from '@/firebase';
+import { GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
 
 const MyRegistrations = () => {
     const navigate = useNavigate();
@@ -71,8 +71,8 @@ const MyRegistrations = () => {
                 const snapshot = await getDocsCacheFirst(collection(db, 'programs'));
                 const progs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
                 setAllPrograms(progs);
-            } catch (e) {
-                console.error("Failed to fetch programs", e);
+            } catch (_err) {
+                console.error("Failed to fetch programs", _err);
             }
         };
         fetchPrograms();
@@ -153,8 +153,8 @@ const MyRegistrations = () => {
             } else {
                 alert("No receipt image found for this registration.");
             }
-        } catch (e) {
-            console.error("Error fetching receipt:", e);
+        } catch (_err) {
+            console.error("Error fetching receipt:", _err);
             alert("Error loading receipt.");
         }
     };

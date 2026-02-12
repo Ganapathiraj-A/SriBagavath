@@ -44,7 +44,7 @@ class DiagnosticLogs {
                     return JSON.stringify(arg, (key, value) =>
                         typeof value === 'bigint' ? value.toString() : value
                     );
-                } catch (e) {
+                } catch (_err) {
                     return '[Object]';
                 }
             }
@@ -88,8 +88,8 @@ class DiagnosticLogs {
         try {
             await Clipboard.write({ string: metadata + '\n' + text });
             return true;
-        } catch (e) {
-            console.error("Clipboard copy failed", e);
+        } catch (_err) {
+            console.error("Clipboard copy failed", _err);
             return false;
         }
     }
@@ -140,9 +140,9 @@ class DiagnosticLogs {
                 logs: logContent
             });
             return { success: true, reportId: metadata.reportId };
-        } catch (e) {
-            console.error("Failed to push logs to server", e);
-            return { success: false, error: e.message };
+        } catch (_err) {
+            console.error("Failed to push logs to server", _err);
+            return { success: false, error: _err.message };
         }
     }
 
@@ -162,9 +162,9 @@ class DiagnosticLogs {
             querySnap.docs.forEach(d => batch.delete(d.ref));
             await batch.commit();
             return { success: true };
-        } catch (e) {
-            console.error("Failed to clear server logs", e);
-            return { success: false, error: e.message };
+        } catch (_err) {
+            console.error("Failed to clear server logs", _err);
+            return { success: false, error: _err.message };
         }
     }
 }

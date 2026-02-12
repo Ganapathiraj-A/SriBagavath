@@ -1,4 +1,4 @@
-import { db } from '../firebase';
+import { db } from '@/firebase';
 import { collection, query, where, getDocs, deleteDoc, doc } from '@/utils/FirestoreProxy';
 import { getLocalDateString } from './dateUtils';
 
@@ -30,7 +30,7 @@ export const cleanupOldSchedules = async () => {
 
         await Promise.all(deletePromises);
         console.log('Cleanup completed successfully.');
-    } catch (error) {
-        console.error('Error during schedule cleanup:', error);
+    } catch (_err) {
+        console.error('Error during schedule cleanup:', _err);
     }
 };

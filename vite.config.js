@@ -17,8 +17,18 @@ export default defineConfig({
   },
   build: {
     target: 'es2020',
-    minify: false,
-    sourcemap: true,
+    minify: 'esbuild',
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'firebase-vendor': ['firebase/app', 'firebase/auth', 'firebase/firestore'],
+          'framer-motion-vendor': ['framer-motion'],
+          'pdfjs-vendor': ['pdfjs-dist'],
+          'lucide-vendor': ['lucide-react']
+        }
+      }
+    }
   },
   optimizeDeps: {
     esbuildOptions: {

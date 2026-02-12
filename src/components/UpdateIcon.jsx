@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Download, CheckCircle, Smartphone, Wifi, Server, RefreshCw, Bot, Camera, FileSpreadsheet, ClipboardList, Layers } from 'lucide-react';
-import UpdateService from '../services/UpdateService';
+import UpdateService from '@/services/UpdateService';
 import { registerPlugin } from '@capacitor/core';
 
-import { useAdminAuth } from '../context/AdminAuthContext';
-import { useGlobalSettings } from '../context/GlobalSettingsContext';
+import { useAdminAuth } from '@/context/AdminAuthContext';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 
 // Bridge to our Native OCR Plugin which exposes 'installApk'
 const OCR = registerPlugin('SBBOCR');
@@ -35,8 +35,8 @@ const UpdateIcon = () => {
             } else if (info && info.disabled) {
                 console.warn("Updater disabled");
             }
-        } catch (error) {
-            console.error("Update check error", error);
+        } catch (_err) {
+            console.error("Update check error", _err);
         }
     };
 
@@ -53,7 +53,9 @@ const UpdateIcon = () => {
                         setCompanionVer(res.version);
                     }
                 }
-            } catch (e) { }
+            } catch (_err) {
+                // Companion app may not be installed.
+            }
         };
         fetchVer();
     }, []);
@@ -131,11 +133,11 @@ const UpdateIcon = () => {
             setIsDownloading(false);
             setStatusText('');
 
-        } catch (error) {
-            console.error("Update failed", error);
+        } catch (_err) {
+            console.error("Update failed", _err);
             setStatusText('Failed');
             setIsDownloading(false);
-            alert("Update Failed: " + error.message);
+            alert("Update Failed: " + _err.message);
         }
     }
 
@@ -169,9 +171,9 @@ const UpdateIcon = () => {
             } else {
                 alert("No production APK found on GitHub 'prod-clean' tag.");
             }
-        } catch (e) {
-            console.error("Prod update failed", e);
-            alert("Prod Update Failed: " + e.message);
+        } catch (_err) {
+            console.error("Prod update failed", _err);
+            alert("Prod Update Failed: " + _err.message);
         } finally {
             setIsDownloading(false);
             setStatusText("");
@@ -239,10 +241,10 @@ const UpdateIcon = () => {
             } else {
                 alert("Check Failed:\n" + (info?.error || "No update source found."));
             }
-        } catch (e) {
+        } catch (_err) {
             setIsDownloading(false);
             setStatusText("");
-            alert("Check failed: " + e.message);
+            alert("Check failed: " + _err.message);
         }
     };
 
@@ -254,8 +256,8 @@ const UpdateIcon = () => {
     const launchAgent = async () => {
         try {
             await OCR.launchApp({ packageName: 'com.antigravity.companion' });
-        } catch (e) {
-            alert("Could not launch Agent Companion.\n" + e.message);
+        } catch (_err) {
+            alert("Could not launch Agent Companion.\n" + _err.message);
         }
     };
 
@@ -372,8 +374,8 @@ const UpdateIcon = () => {
                         } else {
                             alert("Native Plugin not ready.");
                         }
-                    } catch (e) {
-                        alert("Upload Failed: " + e.message);
+                    } catch (_err) {
+                        alert("Upload Failed: " + _err.message);
                     }
                 }}
                 style={{

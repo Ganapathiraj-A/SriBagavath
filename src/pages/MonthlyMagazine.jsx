@@ -2,11 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { FileText, Folder, ChevronLeft } from 'lucide-react';
-import PageHeader from '../components/PageHeader';
-import { useDriveFiles } from '../hooks/useDriveFiles';
-import { DRIVE_CONFIG } from '../data/driveConfig';
-
-const { MONTHLY_MAGAZINE_FOLDER_ID } = DRIVE_CONFIG;
+import PageHeader from '@/components/PageHeader';
+import { useDriveFiles } from '@/hooks/useDriveFiles';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 
 const FolderButton = ({ title, onClick, delay }) => {
     return (
@@ -84,8 +82,9 @@ const MonthlyMagazine = () => {
     const [searchParams, setSearchParams] = useSearchParams();
 
     // Get folderId from URL or fallback to default
+    const { driveMagazineId } = useGlobalSettings();
     const folderIdParam = searchParams.get('folderId');
-    const currentFolderId = folderIdParam || MONTHLY_MAGAZINE_FOLDER_ID;
+    const currentFolderId = folderIdParam || driveMagazineId;
 
     // Use history specific to this component flow is no longer needed as browser history handles it
     // But we might want to check if we can go back specifically within the folder structure?

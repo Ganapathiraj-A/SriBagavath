@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { Calendar, Clock, MapPin, Share2, ChevronLeft, User, Users } from 'lucide-react';
 import { Share } from '@capacitor/share';
 import { Filesystem, Directory } from '@capacitor/filesystem';
-import PageHeader from '../components/PageHeader';
-import { db } from '../firebase';
+import PageHeader from '@/components/PageHeader';
+import { db } from '@/firebase';
 import { doc, getDocCacheFirst } from '@/utils/FirestoreProxy';
 
 const SatsangDetails = () => {
@@ -44,8 +44,8 @@ const SatsangDetails = () => {
                         }
                     }
                 }
-            } catch (error) {
-                console.error("Error fetching satsang details:", error);
+            } catch (_err) {
+                console.error("Error fetching satsang details:", _err);
             } finally {
                 setLoading(false);
             }
@@ -69,8 +69,8 @@ ${meeting.description || meeting.descriptions ? '\n' + (meeting.description || m
                 title: `Satsang - ${meeting.conductedBy}`,
                 text: text,
             });
-        } catch (error) {
-            console.error('Error sharing:', error);
+        } catch (_err) {
+            console.error('Error sharing:', _err);
             navigator.clipboard.writeText(text);
             alert('Satsang details copied to clipboard!');
         }
@@ -97,9 +97,9 @@ ${meeting.description || meeting.descriptions ? '\n' + (meeting.description || m
                 title: meeting.conductedBy,
                 files: [result.uri]
             });
-        } catch (error) {
-            console.error('Error sharing banner:', error);
-            alert('Sharing failed. ' + error.message);
+        } catch (_err) {
+            console.error('Error sharing banner:', _err);
+            alert('Sharing failed. ' + _err.message);
         }
     };
 

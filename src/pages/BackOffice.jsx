@@ -13,7 +13,7 @@ import {
     BookOpen,
     Heart
 } from 'lucide-react';
-import PageHeader from '../components/PageHeader';
+import PageHeader from '@/components/PageHeader';
 
 const BackOfficeItem = ({ title, subtitle, icon: Icon, path, delay, color = '#2563eb', bgColor = '#eff6ff' }) => {
     const navigate = useNavigate();

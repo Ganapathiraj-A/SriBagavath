@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Clock, User, ChevronLeft, Video, RefreshCw } from 'lucide-react';
-import PageHeader from '../components/PageHeader';
-import { db } from '../firebase';
-import { collection, query, where, orderBy, getDocs } from '@/utils/FirestoreProxy';
-import { useAdminAuth } from '../context/AdminAuthContext';
-import { getLocalDateString } from '../utils/dateUtils';
+import PageHeader from '@/components/PageHeader';
+import { db } from '@/firebase';
+import {
+    collection, getDocs, doc, getDoc
+} from '@/utils/FirestoreProxy';
+import { useAdminAuth } from '@/context/AdminAuthContext';
+import { getLocalDateString } from '@/utils/dateUtils';
 
 const formatRecurrenceRule = (master) => {
     if (!master.isRecurring) return null;
@@ -14,7 +16,7 @@ const formatRecurrenceRule = (master) => {
     if (master.frequency === 'daily') return 'Daily';
     if (master.frequency === 'weekly') {
         const days = master.recurringDays?.map(d => daysMap[d]).join(', ');
-        return `Weekly on ${days}`;
+        return `Weekly on ${days} `;
     }
     if (master.frequency === 'monthly') return 'Monthly';
     return 'Recurring';
@@ -48,7 +50,7 @@ const getNextOccurrence = (master, todayStr) => {
         if (isMatch && !exceptions.includes(dateStr) && dateStr >= todayStr) {
             return {
                 ...master,
-                id: `${master.id}_${dateStr}`,
+                id: `${master.id}_${dateStr} `,
                 masterId: master.id,
                 date: dateStr,
                 isVirtual: true,
@@ -64,13 +66,13 @@ const OnlineMeetings = () => {
     const navigate = useNavigate();
     const [meetings, setMeetings] = useState([]);
     const [loading, setLoading] = useState(true);
-    const { loading: authGlobalLoading } = useAdminAuth();
+    const { loading: authLoading } = useAdminAuth();
 
     useEffect(() => {
         localStorage.setItem('lastVisited_online_meetings', new Date().toISOString());
 
         const fetchMeetings = async () => {
-            if (authGlobalLoading) return;
+            if (authLoading) return;
             try {
                 const { getDocsFromCache, getDocsFromServer } = await import('@/utils/FirestoreProxy');
                 const { needsServerSync, markSyncedLocally } = await import('../utils/SyncManager');
@@ -86,7 +88,7 @@ const OnlineMeetings = () => {
                         snapshot = await getDocsFromServer(meetingsRef);
                         markSyncedLocally('online_meetings');
                     }
-                } catch (e) {
+                } catch (_err) {
                     snapshot = await getDocs(meetingsRef);
                     markSyncedLocally('online_meetings');
                 }
@@ -99,7 +101,7 @@ const OnlineMeetings = () => {
                     if (m.isRecurringInstance || m.masterId) return;
 
                     if (m.isRecurring) {
-                        const key = `${m.conductedBy}_${m.startTime}_${m.frequency}_${(m.recurringDays || []).sort().join(',')}`;
+                        const key = `${m.conductedBy}_${m.startTime}_${m.frequency}_${(m.recurringDays || []).sort().join(',')} `;
                         if (!groups[key] || new Date(m.date) < new Date(groups[key].date)) {
                             groups[key] = m;
                         }
@@ -120,18 +122,42 @@ const OnlineMeetings = () => {
 
                 processed.sort((a, b) => a.date.localeCompare(b.date));
                 setMeetings(processed);
-            } catch (error) {
-                console.error("Error fetching meetings:", error);
+            } catch (_err) {
+                console.error("Error fetching meetings:", _err);
             } finally {
                 setLoading(false);
             }
         };
         fetchMeetings();
-    }, [authGlobalLoading]);
+    }, [authLoading]);
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', paddingBottom: '3rem' }}>
-            <PageHeader title="Online Meetings" />
+            <PageHeader
+                title="Online Meetings"
+                rightAction={
+                    (useAdminAuth().isAdmin || useAdminAuth().hasAccess('PROGRAM_MANAGEMENT')) && (
+                        <button
+                            onClick={() => navigate('/admin/online-meetings')}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.4rem',
+                                padding: '0.5rem 0.8rem',
+                                backgroundColor: '#fff7ed',
+                                color: 'var(--color-primary)',
+                                border: '1px solid #ffedd5',
+                                borderRadius: '0.75rem',
+                                fontSize: '0.85rem',
+                                fontWeight: 700,
+                                cursor: 'pointer'
+                            }}
+                        >
+                            Manage
+                        </button>
+                    )
+                }
+            />
 
             <div style={{ padding: '1.5rem', maxWidth: '42rem', margin: '0 auto', width: '100%' }}>
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Send, Youtube, ChevronLeft } from 'lucide-react';
-import PageHeader from '../components/PageHeader';
+import PageHeader from '@/components/PageHeader';
 
 const LinkButton = ({ title, icon: Icon, url, delay }) => {
   return (

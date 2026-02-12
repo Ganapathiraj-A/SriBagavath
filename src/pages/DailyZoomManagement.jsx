@@ -4,11 +4,11 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
     Plus, Edit2, Trash2, Save, ChevronLeft, User, Video, Calendar, Image as ImageIcon, Link as LinkIcon, FileText, Youtube
 } from 'lucide-react';
-import { db } from '../firebase';
+import { db } from '@/firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy, limit, where } from '@/utils/FirestoreProxy';
-import PageHeader from '../components/PageHeader';
-import { getLocalDateString } from '../utils/dateUtils';
-import { compressImage } from '../utils/imageUtils';
+import PageHeader from '@/components/PageHeader';
+import { getLocalDateString } from '@/utils/dateUtils';
+import { compressImage } from '@/utils/imageUtils';
 import '../components/RegistrationStyles.css';
 
 const DailyZoomManagement = () => {
@@ -81,8 +81,8 @@ const DailyZoomManagement = () => {
             if (editId && allMeetings.find(m => m.id === editId)) {
                 handleEdit(allMeetings.find(m => m.id === editId));
             }
-        } catch (error) {
-            console.error('Error loading daily zoom data:', error);
+        } catch (_err) {
+            console.error('Error loading daily zoom data:', _err);
         } finally {
             setLoading(false);
         }
@@ -154,8 +154,8 @@ const DailyZoomManagement = () => {
             resetForm();
             loadData();
             setActiveTab('upcoming');
-        } catch (error) {
-            alert('Error: ' + error.message);
+        } catch (_err) {
+            alert('Error: ' + _err.message);
         }
     };
 
@@ -181,8 +181,8 @@ const DailyZoomManagement = () => {
             try {
                 await deleteDoc(doc(db, 'daily_zoom_meetings', id));
                 loadData();
-            } catch (error) {
-                alert('Error deleting: ' + error.message);
+            } catch (_err) {
+                alert('Error deleting: ' + _err.message);
             }
         }
     };

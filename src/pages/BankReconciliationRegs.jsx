@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronLeft, Search, X, Receipt, Check } from 'lucide-react';
-import PageHeader from '../components/PageHeader';
-import { db } from '../firebase';
+import PageHeader from '@/components/PageHeader';
+import { db } from '@/firebase';
 import { collection, query, orderBy, limit, getDocs, onSnapshot, getCountFromServer, where, startAfter } from '@/utils/FirestoreProxy';
-import { TransactionService } from '../services/TransactionService';
-import { compressImage } from '../utils/imageUtils';
-import OCR from '../plugins/OCRPlugin';
+import { TransactionService } from '@/services/TransactionService';
+import { compressImage } from '@/utils/imageUtils';
+import OCR from '@/plugins/OCRPlugin';
 import { RefreshCw, Image } from 'lucide-react';
-import { useGlobalSettings } from '../context/GlobalSettingsContext';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 
 const BankReconciliationRegs = () => {
     const navigate = useNavigate();
@@ -64,8 +64,8 @@ const BankReconciliationRegs = () => {
                 Unmatched: countAll.data().count - countMatched.data().count // Approximation
             }));
 
-        } catch (error) {
-            console.error("Error fetching transactions:", error);
+        } catch (_err) {
+            console.error("Error fetching transactions:", _err);
         } finally {
             setLoading(false);
         }
@@ -87,8 +87,8 @@ const BankReconciliationRegs = () => {
             setTransactions(prev => [...prev, ...docs]);
             setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
             setHasMore(snapshot.docs.length === 30);
-        } catch (error) {
-            console.error("Error loading more:", error);
+        } catch (_err) {
+            console.error("Error loading more:", _err);
         } finally {
             setLoadingMore(false);
         }
@@ -99,8 +99,8 @@ const BankReconciliationRegs = () => {
             const snapshot = await getDocs(collection(db, 'programs'));
             const progs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
             setAllPrograms(progs);
-        } catch (e) {
-            console.error("Failed to fetch programs", e);
+        } catch (_err) {
+            console.error("Failed to fetch programs", _err);
         }
     };
 
@@ -114,8 +114,8 @@ const BankReconciliationRegs = () => {
             const { ReconciliationService } = await import('../services/ReconciliationService');
             const result = await ReconciliationService.runMatching();
             alert(`Matching complete! Found ${result.matchCount} new matches.`);
-        } catch (e) {
-            alert("Matching failed: " + e.message);
+        } catch (_err) {
+            alert("Matching failed: " + _err.message);
         } finally {
             setLoading(false);
         }
@@ -144,8 +144,8 @@ const BankReconciliationRegs = () => {
             } else {
                 alert("No receipt image found for this transaction.");
             }
-        } catch (e) {
-            console.error("Error fetching receipt:", e);
+        } catch (_err) {
+            console.error("Error fetching receipt:", _err);
             alert("Error loading receipt.");
         }
     };
@@ -159,9 +159,9 @@ const BankReconciliationRegs = () => {
             const base64 = await compressImage(file);
             await TransactionService.uploadReceipt(id, base64);
             alert("Receipt uploaded successfully!");
-        } catch (error) {
-            console.error("Upload failed", error);
-            alert("Upload failed: " + error.message);
+        } catch (_err) {
+            console.error("Upload failed", _err);
+            alert("Upload failed: " + _err.message);
         } finally {
             setUploadingReceipt(null);
             if (e.target) e.target.value = ''; // Reset input
@@ -209,9 +209,9 @@ const BankReconciliationRegs = () => {
             if (ocrRes.amount) setEditingParsedAmountValue(ocrRes.amount.toString());
 
             alert("Receipt updated and re-processed successfully!");
-        } catch (error) {
-            console.error("Receipt update failed", error);
-            alert("Update failed: " + error.message);
+        } catch (_err) {
+            console.error("Receipt update failed", _err);
+            alert("Update failed: " + _err.message);
         } finally {
             setSavingUtr(false);
             if (e.target) e.target.value = ''; // Reset input
@@ -292,8 +292,8 @@ const BankReconciliationRegs = () => {
             }
             setViewingImage(null); // Close modal on success for smoother flow
             alert(isNowMatchingBank ? "Match verified and corrected!" : "Details updated successfully!");
-        } catch (e) {
-            alert("Failed to update details: " + e.message);
+        } catch (_err) {
+            alert("Failed to update details: " + _err.message);
         } finally {
             setSavingUtr(false);
         }
@@ -341,7 +341,7 @@ const BankReconciliationRegs = () => {
         try {
             const d = new Date(dateStr);
             return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        } catch (e) {
+        } catch (_err) {
             return dateStr;
         }
     };

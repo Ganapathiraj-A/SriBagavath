@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { RotateCcw } from 'lucide-react';
-import PageHeader from '../components/PageHeader';
+import PageHeader from '@/components/PageHeader';
 import '../components/RegistrationStyles.css';
 
 const BookStoreCheckout = () => {
@@ -17,12 +17,7 @@ const BookStoreCheckout = () => {
         pincode: ''
     });
 
-    const [hasPreviousInfo, setHasPreviousInfo] = useState(false);
-
-    useEffect(() => {
-        const saved = localStorage.getItem('last_book_shipping_details');
-        if (saved) setHasPreviousInfo(true);
-    }, []);
+    const hasPreviousInfo = !!localStorage.getItem('last_book_shipping_details');
 
     const handleUsePrevious = () => {
         try {

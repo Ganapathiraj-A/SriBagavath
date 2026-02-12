@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { TransactionService } from '../services/TransactionService';
-import PageHeader from '../components/PageHeader';
+import { TransactionService } from '@/services/TransactionService';
+import PageHeader from '@/components/PageHeader';
 import { X, Receipt, LogIn } from 'lucide-react';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
-import { ensureGoogleAuthInitialized } from '../utils/GoogleAuthUtils';
-import { auth } from '../firebase';
+import { ensureGoogleAuthInitialized } from '@/utils/GoogleAuthUtils';
+import { auth } from '@/firebase';
 import { GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
 
 const MyOrders = () => {
@@ -46,8 +46,8 @@ const MyOrders = () => {
             const credential = GoogleAuthProvider.credential(idToken);
             await signInWithCredential(auth, credential);
             return true;
-        } catch (err) {
-            console.error("Auth failed:", err);
+        } catch (_err) {
+            console.error("Auth failed:", _err);
             return false;
         } finally {
             setAuthLoading(false);
@@ -79,8 +79,8 @@ const MyOrders = () => {
             } else {
                 alert("No receipt image found for this order.");
             }
-        } catch (e) {
-            console.error("Error fetching receipt:", e);
+        } catch (_err) {
+            console.error("Error fetching receipt:", _err);
             alert("Error loading receipt.");
         }
     };

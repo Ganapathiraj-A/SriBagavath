@@ -1,9 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronLeft, Calendar, Video, Users, MessageCircle } from 'lucide-react';
-import PageHeader from '../components/PageHeader';
-import { useUnseenCounts } from '../hooks/useUnseenCounts';
+import PageHeader from '@/components/PageHeader';
+import { useUnseenCounts } from '@/hooks/useUnseenCounts';
 
 const CategoryButton = ({ title, icon: Icon, path, delay, hasNew }) => {
     const navigate = useNavigate();
@@ -63,6 +63,7 @@ const CategoryButton = ({ title, icon: Icon, path, delay, hasNew }) => {
 
 const ProgramCategories = () => {
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(true);
     const [searchParams] = useSearchParams();
     const counts = useUnseenCounts();
 

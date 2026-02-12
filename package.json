@@ -1,11 +1,12 @@
 {
   "name": "sri-bagavath",
   "private": true,
-  "version": "3.0.35",
+  "version": "3.0.53",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "check": "eslint src",
     "build:dev": "vite build --mode development",
     "build:apk:dev": "./build.sh dev",
     "build:apk:prod": "./build.sh prod",
@@ -14,6 +15,7 @@
     "publish:prod": "./publish.sh prod",
     "publish:aab:prod": "./publish.sh prod-aab",
     "lint": "eslint .",
+    "test:smoke": "playwright test",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -39,10 +41,12 @@
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",
     "@eslint/js": "^9.39.1",
+    "@playwright/test": "^1.58.2",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^4.3.4",
     "eslint": "^9.39.1",
+    "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "firebase-admin": "^13.6.0",

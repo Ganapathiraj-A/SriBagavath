@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Phone, MapPin, Globe, Home, ChevronLeft } from 'lucide-react';
-import PageHeader from '../components/PageHeader';
+import PageHeader from '@/components/PageHeader';
 
 const ContactItem = ({ icon: Icon, content, href }) => (
     <div style={{

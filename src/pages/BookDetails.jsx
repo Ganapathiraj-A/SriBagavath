@@ -5,12 +5,12 @@ import { motion } from 'framer-motion';
 import { ChevronLeft, IndianRupee, Plus, Minus } from 'lucide-react';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
-import { ensureGoogleAuthInitialized } from '../utils/GoogleAuthUtils';
-import { auth, db } from '../firebase';
+import { ensureGoogleAuthInitialized } from '@/utils/GoogleAuthUtils';
+import { auth, db } from '@/firebase';
 import { doc, getDocCacheFirst } from '@/utils/FirestoreProxy';
 import { GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
-import PageHeader from '../components/PageHeader';
-import { useCart } from '../context/CartContext';
+import PageHeader from '@/components/PageHeader';
+import { useCart } from '@/context/CartContext';
 
 const BookDetails = () => {
     const { bookId } = useParams();
@@ -45,8 +45,8 @@ const BookDetails = () => {
             const credential = GoogleAuthProvider.credential(idToken);
             await signInWithCredential(auth, credential);
             return true;
-        } catch (err) {
-            console.error("Auth failed:", err);
+        } catch (_err) {
+            console.error("Auth failed:", _err);
             return false;
         } finally {
             setAuthLoading(false);
@@ -80,8 +80,8 @@ const BookDetails = () => {
                         }
                     }
                 }
-            } catch (error) {
-                console.error("Error fetching book details:", error);
+            } catch (_err) {
+                console.error("Error fetching book details:", _err);
             } finally {
                 setLoading(false);
             }

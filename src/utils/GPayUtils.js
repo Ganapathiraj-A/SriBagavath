@@ -1,7 +1,7 @@
 import { Share } from '@capacitor/share';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { AppLauncher } from '@capacitor/app-launcher';
-import OCR from '../plugins/OCRPlugin';
+import OCR from '@/plugins/OCRPlugin';
 
 export const GPayUtils = {
     // 1. Open GPay
@@ -12,8 +12,8 @@ export const GPayUtils = {
                 // Fallback to Play Store if not installed
                 await AppLauncher.openUrl({ url: `https://play.google.com/store/apps/details?id=${packageName}` });
             });
-        } catch (e) {
-            console.error("GPay Launch Error", e);
+        } catch (_err) {
+            console.error("GPay Launch Error", _err);
             // Fallback for web or generic failure
             window.location.href = "https://pay.google.com/about";
         }
@@ -49,12 +49,12 @@ export const GPayUtils = {
                 // But adhering to "exact logic": SBB Utils has NO toast on success.
                 // So we will be silent on success.
 
-            } catch (e) {
-                console.error("Write Failed", e);
+            } catch (_err) {
+                console.error("Write Failed", _err);
                 alert('Failed to Save to Gallery');
             }
-        } catch (e) {
-            console.error("Save Error", e);
+        } catch (_err) {
+            console.error("Save Error", _err);
             alert('Failed to Save Image');
         }
     }

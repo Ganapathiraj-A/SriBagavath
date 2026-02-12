@@ -1,7 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import { doc, getDoc, updateDoc, increment, setDoc, getDocCacheFirst } from '@/utils/FirestoreProxy';
-import { db } from '../firebase';
+import { db } from '@/firebase';
 
 /**
  * SyncManager
@@ -60,8 +60,8 @@ export const initializeSyncManager = async (force = false) => {
                 console.warn("[SyncManager] Registry doc not found on server");
             }
             syncState.isInitialized = true;
-        } catch (e) {
-            console.error("[SyncManager] Initialization failed:", e);
+        } catch (_err) {
+            console.error("[SyncManager] Initialization failed:", _err);
         } finally {
             activeInitPromise = null; // Reset for future calls
         }
@@ -140,12 +140,12 @@ export const bumpServerVersion = async (collectionId) => {
             [collectionId]: increment(1)
         });
         console.log(`[SyncManager] Bumped server version for ${collectionId}`);
-    } catch (e) {
+    } catch (_err) {
         // If doc doesn't exist, create it
         try {
             await setDoc(doc(db, 'app_settings', 'sync_registry'), { [collectionId]: 1 }, { merge: true });
-        } catch (err) {
-            console.error("[SyncManager] Failed to bump version:", err);
+        } catch (_err) {
+            console.error("[SyncManager] Failed to bump version:", _err);
         }
     }
 };
@@ -222,7 +222,7 @@ export const updateDriveCheckTimestamp = async (collectionId, latestModifiedTime
 
         // Re-initialize to get latest registry
         await initializeSyncManager();
-    } catch (e) {
+    } catch (_err) {
         // If doc doesn't exist, create it
         try {
             await setDoc(doc(db, 'app_settings', 'sync_registry'), {
@@ -231,8 +231,8 @@ export const updateDriveCheckTimestamp = async (collectionId, latestModifiedTime
                 [`${collectionId}_lastModified`]: latestModifiedTime
             }, { merge: true });
             await initializeSyncManager();
-        } catch (err) {
-            console.error("[SyncManager] Failed to update Drive check:", err);
+        } catch (_err) {
+            console.error("[SyncManager] Failed to update Drive check:", _err);
         }
     }
 };

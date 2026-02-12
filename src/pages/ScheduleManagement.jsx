@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
-import { cleanupOldSchedules } from '../utils/cleanup';
+import { cleanupOldSchedules } from '@/utils/cleanup';
 import { motion } from 'framer-motion';
 import { Plus, Edit2, Trash2, Calendar as CalendarIcon, MapPin, ChevronLeft } from 'lucide-react';
-import { db, auth } from '../firebase';
+import { db, auth } from '@/firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy, where, limit, setDoc, serverTimestamp } from '@/utils/FirestoreProxy';
 import { LogOut } from 'lucide-react';
 import { signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
-import PageHeader from '../components/PageHeader';
+import PageHeader from '@/components/PageHeader';
 import '../components/RegistrationStyles.css';
-import { getLocalDateString } from '../utils/dateUtils';
-import { bumpServerVersion } from '../utils/SyncManager';
+import { getLocalDateString } from '@/utils/dateUtils';
+import { bumpServerVersion } from '@/utils/SyncManager';
 
 const ScheduleManagement = () => {
     const navigate = useNavigate();
@@ -28,8 +28,8 @@ const ScheduleManagement = () => {
                     } catch (dErr) {
                         console.warn("Disconnect failed:", dErr);
                     }
-                } catch (e) {
-                    console.warn("Google SignOut Error", e);
+                } catch (_err) {
+                    console.warn("Google SignOut Error", _err);
                 }
             }
             await signOut(auth);
@@ -81,8 +81,8 @@ const ScheduleManagement = () => {
             const filteredSchedules = schedulesList.filter(s => s.toDate >= today);
 
             setSchedules(filteredSchedules);
-        } catch (error) {
-            console.error('Error loading schedules:', error);
+        } catch (_err) {
+            console.error('Error loading schedules:', _err);
             alert('Error loading schedules. Please check Firebase configuration.');
         } finally {
             setLoading(false);
@@ -150,9 +150,9 @@ const ScheduleManagement = () => {
 
             resetForm();
             loadSchedules();
-        } catch (error) {
-            console.error('Error saving schedule:', error);
-            alert('Error saving schedule: ' + error.message);
+        } catch (_err) {
+            console.error('Error saving schedule:', _err);
+            alert('Error saving schedule: ' + _err.message);
         }
     };
 
@@ -180,9 +180,9 @@ const ScheduleManagement = () => {
                 await bumpServerVersion('schedules');
 
                 loadSchedules();
-            } catch (error) {
-                console.error('Error deleting schedule:', error);
-                alert('Error deleting schedule: ' + error.message);
+            } catch (_err) {
+                console.error('Error deleting schedule:', _err);
+                alert('Error deleting schedule: ' + _err.message);
             }
         }
     };
@@ -519,7 +519,7 @@ const ScheduleManagement = () => {
                                             style={{ margin: '0 auto 1rem', opacity: 0.5 }}
                                         />
                                         <p style={{ fontSize: '1.125rem' }}>No schedules added yet</p>
-                                        <p>Click "Add Schedule" to create the first entry</p>
+                                        <p>Click &quot;Add Schedule&quot; to create the first entry</p>
                                     </div>
                                 ) : (
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

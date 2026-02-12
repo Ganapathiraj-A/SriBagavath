@@ -4,10 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import {
     Plus, Edit2, Trash2, Save, X, ChevronLeft, User, Phone, Mail, Image as ImageIcon
 } from 'lucide-react';
-import { db } from '../firebase';
+import { db } from '@/firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy } from '@/utils/FirestoreProxy';
-import PageHeader from '../components/PageHeader';
-import { compressImage } from '../utils/imageUtils';
+import PageHeader from '@/components/PageHeader';
+import { compressImage } from '@/utils/imageUtils';
 
 const DailyZoomTeacherManagement = () => {
     const navigate = useNavigate();
@@ -34,8 +34,8 @@ const DailyZoomTeacherManagement = () => {
             const q = query(ref, orderBy('name', 'asc'));
             const snap = await getDocs(q);
             setTeachers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-        } catch (error) {
-            console.error('Error loading teachers:', error);
+        } catch (_err) {
+            console.error('Error loading teachers:', _err);
         } finally {
             setLoading(false);
         }
@@ -54,8 +54,8 @@ const DailyZoomTeacherManagement = () => {
                 try {
                     const compressedBase64 = await compressImage(reader.result, 400, 400, 0.7);
                     setFormData(prev => ({ ...prev, image: compressedBase64 }));
-                } catch (error) {
-                    console.error("Compression failed:", error);
+                } catch (_err) {
+                    console.error("Compression failed:", _err);
                     setFormData(prev => ({ ...prev, image: reader.result }));
                 }
             };
@@ -78,8 +78,8 @@ const DailyZoomTeacherManagement = () => {
             }
             resetForm();
             loadTeachers();
-        } catch (error) {
-            alert('Error: ' + error.message);
+        } catch (_err) {
+            alert('Error: ' + _err.message);
         }
     };
 
@@ -100,8 +100,8 @@ const DailyZoomTeacherManagement = () => {
             try {
                 await deleteDoc(doc(db, 'daily_zoom_teachers', id));
                 loadTeachers();
-            } catch (error) {
-                alert('Error deleting: ' + error.message);
+            } catch (_err) {
+                alert('Error deleting: ' + _err.message);
             }
         }
     };

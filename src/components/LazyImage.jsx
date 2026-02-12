@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { db } from '../firebase';
+import { db } from '@/firebase';
 import { doc, getDocCacheFirst } from '@/utils/FirestoreProxy';
 
 // Global Memory Cache for images (URLs or Base64)
@@ -67,8 +67,8 @@ const LazyImage = ({
                             imageCache.set(cacheKey, data);
                         }
                     }
-                } catch (e) {
-                    console.error("LazyImage fetch failed:", firestorePath, e);
+                } catch (_err) {
+                    console.error("LazyImage fetch failed:", firestorePath, _err);
                 } finally {
                     setLoading(false);
                 }

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Plus, Trash2, RotateCcw } from 'lucide-react';
-import PageHeader from '../components/PageHeader';
-import { useGlobalSettings } from '../context/GlobalSettingsContext';
+import PageHeader from '@/components/PageHeader';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 import '../components/RegistrationStyles.css';
-import { TransactionService } from '../services/TransactionService';
+import { TransactionService } from '@/services/TransactionService';
 
 const EventRegistration = () => {
     const location = useLocation();
@@ -97,8 +97,8 @@ const EventRegistration = () => {
                     // Do not auto-select options as availability might change
                 }
             }
-        } catch (e) {
-            console.error("Failed to load previous info", e);
+        } catch (_err) {
+            console.error("Failed to load previous info", _err);
         }
     };
 
@@ -174,8 +174,8 @@ const EventRegistration = () => {
                 primaryIndex
             };
             localStorage.setItem('last_registration_details', JSON.stringify(dataToSave));
-        } catch (e) {
-            console.error("Failed to save registration details", e);
+        } catch (_err) {
+            console.error("Failed to save registration details", _err);
         }
 
         const totalAmount = calculateTotal();
@@ -204,8 +204,8 @@ const EventRegistration = () => {
         // Save for recovery if app reloads during payment
         try {
             localStorage.setItem('last_registration_details', JSON.stringify(paymentState));
-        } catch (e) {
-            console.error("Failed to save registration details", e);
+        } catch (_err) {
+            console.error("Failed to save registration details", _err);
         }
 
         // Track Proceed to Payment

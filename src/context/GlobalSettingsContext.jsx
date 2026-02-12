@@ -1,13 +1,14 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { db, auth } from '../firebase';
+import { db, auth } from '@/firebase';
 import { doc, onSnapshot, setDoc, getDoc, getDocCacheFirst } from '@/utils/FirestoreProxy';
-import { TransactionService } from '../services/TransactionService';
+import { TransactionService } from '@/services/TransactionService';
 import { onAuthStateChanged } from 'firebase/auth';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 
 const GlobalSettingsContext = createContext();
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useGlobalSettings = () => {
     return useContext(GlobalSettingsContext);
 };
@@ -15,7 +16,7 @@ export const useGlobalSettings = () => {
 const DEFAULT_USER_SETTINGS = {
     devMode: false,
     updateSource: 'auto',
-    serverUrl: 'http://192.168.1.3:8080',
+    serverUrl: '',
     landingPage: '/',
     showApiCounter: false,
     showDiagnosticLogs: false
@@ -23,9 +24,16 @@ const DEFAULT_USER_SETTINGS = {
 
 export const GlobalSettingsProvider = ({ children }) => {
     // Firestore Global Settings (Functional)
-    const [settings, setSettings] = useState({
+    const [publicSettings, setPublicSettings] = useState({
         onlineTransactionsEnabled: true,
         minAppVersion: '3.0.0',
+        driveTamilBooksId: '1y0X_HByCzQbD-niqKODg-Nan9r70_dMs',
+        driveEnglishBooksId: '1_PpyDSaAyeBaZ6154-7BHM7oIqs4O0Gv',
+        driveMagazineId: '152NrOoCD56T9hUK-KLGF7ULwlnDvoVY0',
+        driveAudioBooksId: '1L65ifCQ_bAQauymMH5JyDgul7LIL3cnL'
+    });
+
+    const [adminSettings, setAdminSettings] = useState({
         bankPassword: '',
         sheetLink: 'https://docs.google.com/spreadsheets/d/1TtzVIK28OidQQb2cuuHNqrcuSiUGgM-q28xkJHLyWrs/edit',
         scriptUrl: 'https://script.google.com/macros/s/AKfycbwceASoBU6CCZFOtNg5QSjsIXrA6fzK9kBvMbkCEBuh4FabjRNXU0P-7NRGwRNXCNzBHg/exec',
@@ -60,8 +68,8 @@ export const GlobalSettingsProvider = ({ children }) => {
                 try {
                     const info = await CapacitorApp.getInfo();
                     setAppVersion(info.version);
-                } catch (e) {
-                    console.error("Error fetching app info:", e);
+                } catch (_err) {
+                    console.error("Error fetching app info:", _err);
                     setAppVersion(APP_VERSION_TAG);
                 }
             } else {
@@ -79,7 +87,7 @@ export const GlobalSettingsProvider = ({ children }) => {
             } else {
                 setIsDeviceAuthorized(false);
             }
-        }, (err) => {
+        }, () => {
             console.log("Device auth listener restricted (Expected for untrusted devices)");
             setIsDeviceAuthorized(false);
         });
@@ -102,8 +110,8 @@ export const GlobalSettingsProvider = ({ children }) => {
                         // Anonymous users just use defaults, no migration
                         setUserSettings(DEFAULT_USER_SETTINGS);
                     }
-                } catch (e) {
-                    console.error("Initial preferences fetch failed:", e);
+                } catch (_err) {
+                    console.error("Initial preferences fetch failed:", _err);
                 }
 
                 const unsubscribeUserSub = onSnapshot(userDocRef, (docSnap) => {
@@ -127,7 +135,7 @@ export const GlobalSettingsProvider = ({ children }) => {
                         setDoc(userDocRef, initData);
                         setUserSettings(initData);
                     }
-                }, (err) => console.log("Preference listener restricted (Expected for anonymous)"));
+                }, () => console.log("Preference listener restricted (Expected for anonymous)"));
 
                 return () => unsubscribeUserSub();
             } else {
@@ -137,62 +145,141 @@ export const GlobalSettingsProvider = ({ children }) => {
         return () => unsubscribeAuth();
     }, []);
 
-    // 3. Global Settings Sync + Initial Migration
+    // 3. Global Settings Sync (Public)
     useEffect(() => {
-        const docRef = doc(db, 'settings', 'global');
+        const publicDocRef = doc(db, 'settings', 'public');
+        const legacyDocRef = doc(db, 'settings', 'global');
 
-        const initFetch = async () => {
+        const initPublicFetch = async () => {
+            if (!currentUser) return; // Only attempt migration if someone is logged in
             try {
-                const docSnap = await getDocCacheFirst(docRef);
+                const docSnap = await getDocCacheFirst(publicDocRef);
                 if (docSnap.exists()) {
-                    setSettings(prev => ({ ...prev, ...docSnap.data() }));
+                    setPublicSettings(prev => ({ ...prev, ...docSnap.data() }));
                 } else {
-                    // One-time migration
-                    console.log("Global settings not found. Migrating...");
-                    const initData = {
-                        onlineTransactionsEnabled: true,
-                        minAppVersion: '3.0.0',
-                        bankPassword: localStorage.getItem('bank_statement_password') || '',
-                        sheetLink: localStorage.getItem('admin_import_export_sheet_url') || settings.sheetLink,
-                        scriptUrl: localStorage.getItem('admin_import_export_script_url') || settings.scriptUrl,
-                        programImportUrl: localStorage.getItem('admin_program_import_url') || settings.programImportUrl,
-                        programExportUrl: localStorage.getItem('admin_program_export_url') || settings.programExportUrl,
-                        programUpdateUrl: localStorage.getItem('admin_program_update_url') || settings.programUpdateUrl,
-                        bookImportUrl: localStorage.getItem('admin_book_import_url') || settings.bookImportUrl,
-                        bookExportUrl: localStorage.getItem('admin_book_export_url') || settings.bookExportUrl,
-                        bookUpdateUrl: localStorage.getItem('admin_book_update_url') || settings.bookUpdateUrl,
-                        donationImportUrl: localStorage.getItem('admin_donation_import_url') || settings.donationImportUrl,
-                        donationExportUrl: localStorage.getItem('admin_donation_export_url') || settings.donationExportUrl,
-                        donationUpdateUrl: localStorage.getItem('admin_donation_update_url') || settings.donationUpdateUrl
-                    };
-                    await setDoc(docRef, initData);
-                    setSettings(initData);
+                    // One-time migration for PUBLIC parts from legacy global
+                    console.log("Public settings not found. Attempting migration...");
+                    const legacySnap = await getDoc(legacyDocRef);
+                    if (legacySnap.exists()) {
+                        const legacyData = legacySnap.data();
+                        const publicData = {
+                            onlineTransactionsEnabled: legacyData.onlineTransactionsEnabled ?? true,
+                            minAppVersion: legacyData.minAppVersion ?? '3.0.0',
+                            driveTamilBooksId: legacyData.driveTamilBooksId || '',
+                            driveEnglishBooksId: legacyData.driveEnglishBooksId || '',
+                            driveMagazineId: legacyData.driveMagazineId || '',
+                            driveAudioBooksId: legacyData.driveAudioBooksId || ''
+                        };
+                        await setDoc(publicDocRef, publicData);
+                        setPublicSettings(publicData);
+                    }
                 }
-            } catch (error) {
-                console.error("Initial global settings fetch failed:", error);
+            } catch {
+                // Silently fail if not authorized to read/migrate legacy global
             }
         };
 
-        const unsubscribeGlobal = onSnapshot(docRef, (docSnap) => {
+        const unsubscribePublic = onSnapshot(publicDocRef, (docSnap) => {
             if (docSnap.exists()) {
-                setSettings(prev => ({ ...prev, ...docSnap.data() }));
+                setPublicSettings(prev => ({ ...prev, ...docSnap.data() }));
             }
-        }, (error) => {
-            console.error("Error watching global settings:", error);
         });
 
-        initFetch();
-        return () => unsubscribeGlobal();
-    }, []);
+        initPublicFetch();
+        return () => unsubscribePublic();
+    }, [currentUser]);
 
-    // helper for Global Updates
-    const updateGlobal = async (updates) => {
+    // 4. Admin Settings Sync (Private)
+    useEffect(() => {
+        if (!currentUser) {
+            setAdminSettings(prev => {
+                if (prev.bankPassword === '' && prev.sheetLink === '') return prev;
+                return {
+                    bankPassword: '',
+                    sheetLink: '',
+                    scriptUrl: '',
+                    programImportUrl: '',
+                    programExportUrl: '',
+                    programUpdateUrl: '',
+                    bookImportUrl: '',
+                    bookExportUrl: '',
+                    bookUpdateUrl: '',
+                    donationImportUrl: '',
+                    donationExportUrl: '',
+                    donationUpdateUrl: '',
+                };
+            });
+            return;
+        }
+
+        const adminDocRef = doc(db, 'settings', 'admin');
+        const legacyDocRef = doc(db, 'settings', 'global');
+
+        const initAdminFetch = async () => {
+            try {
+                const docSnap = await getDocCacheFirst(adminDocRef);
+                if (docSnap.exists()) {
+                    setAdminSettings(prev => ({ ...prev, ...docSnap.data() }));
+                } else {
+                    // One-time migration for PRIVATE parts from legacy global
+                    console.log("Admin settings not found. Attempting migration...");
+                    const legacySnap = await getDoc(legacyDocRef);
+                    if (legacySnap.exists()) {
+                        const legacyData = legacySnap.data();
+                        const adminData = {
+                            bankPassword: legacyData.bankPassword || '',
+                            sheetLink: legacyData.sheetLink || adminSettings.sheetLink,
+                            scriptUrl: legacyData.scriptUrl || adminSettings.scriptUrl,
+                            programImportUrl: legacyData.programImportUrl || adminSettings.programImportUrl,
+                            programExportUrl: legacyData.programExportUrl || adminSettings.programExportUrl,
+                            programUpdateUrl: legacyData.programUpdateUrl || adminSettings.programUpdateUrl,
+                            bookImportUrl: legacyData.bookImportUrl || adminSettings.bookImportUrl,
+                            bookExportUrl: legacyData.bookExportUrl || adminSettings.bookExportUrl,
+                            bookUpdateUrl: legacyData.bookUpdateUrl || adminSettings.bookUpdateUrl,
+                            donationImportUrl: legacyData.donationImportUrl || adminSettings.donationImportUrl,
+                            donationExportUrl: legacyData.donationExportUrl || adminSettings.donationExportUrl,
+                            donationUpdateUrl: legacyData.donationUpdateUrl || adminSettings.donationUpdateUrl
+                        };
+                        await setDoc(adminDocRef, adminData);
+                        setAdminSettings(adminData);
+                    }
+                }
+            } catch {
+                // Expected to fail if not an admin
+                console.log("Admin settings fetch restricted (Access Denied)");
+            }
+        };
+
+        const unsubscribeAdmin = onSnapshot(adminDocRef, (docSnap) => {
+            if (docSnap.exists()) {
+                setAdminSettings(prev => ({ ...prev, ...docSnap.data() }));
+            }
+        }, () => console.log("Admin settings listener restricted"));
+
+        initAdminFetch();
+        return () => unsubscribeAdmin();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentUser]);
+
+    // helper for Global Updates (Public)
+    const updatePublic = async (updates) => {
         try {
-            const docRef = doc(db, 'settings', 'global');
+            const docRef = doc(db, 'settings', 'public');
             await setDoc(docRef, updates, { merge: true });
-        } catch (error) {
-            console.error("Error updating global settings:", error);
-            throw error;
+        } catch (_err) {
+            console.error("Error updating public settings:", _err);
+            throw _err;
+        }
+    };
+
+    // helper for Admin Updates (Private)
+    const updateAdmin = async (updates) => {
+        try {
+            const docRef = doc(db, 'settings', 'admin');
+            await setDoc(docRef, updates, { merge: true });
+        } catch (_err) {
+            console.error("Error updating admin settings:", _err);
+            throw _err;
         }
     };
 
@@ -202,9 +289,9 @@ export const GlobalSettingsProvider = ({ children }) => {
         try {
             const docRef = doc(db, 'users', currentUser.uid, 'settings', 'preferences');
             await setDoc(docRef, updates, { merge: true });
-        } catch (error) {
-            console.error("Error updating user settings:", error);
-            throw error;
+        } catch (_err) {
+            console.error("Error updating user settings:", _err);
+            throw _err;
         }
     };
 
@@ -218,44 +305,52 @@ export const GlobalSettingsProvider = ({ children }) => {
                 authorizedBy: currentUser.email,
                 updatedAt: new Date().toISOString()
             }, { merge: true });
-        } catch (error) {
-            console.error("Error toggling device authorization:", error);
-            throw error;
+        } catch (_err) {
+            console.error("Error toggling device authorization:", _err);
+            throw _err;
         }
     };
 
     return (
         <GlobalSettingsContext.Provider value={{
             // Functional Settings (Global)
-            onlineTransactionsEnabled: settings.onlineTransactionsEnabled,
-            minAppVersion: settings.minAppVersion,
-            bankPassword: settings.bankPassword,
-            sheetLink: settings.sheetLink,
-            scriptUrl: settings.scriptUrl,
-            programImportUrl: settings.programImportUrl,
-            programExportUrl: settings.programExportUrl,
-            programUpdateUrl: settings.programUpdateUrl,
-            bookImportUrl: settings.bookImportUrl,
-            bookExportUrl: settings.bookExportUrl,
-            bookUpdateUrl: settings.bookUpdateUrl,
-            donationImportUrl: settings.donationImportUrl,
-            donationExportUrl: settings.donationExportUrl,
-            donationUpdateUrl: settings.donationUpdateUrl,
+            onlineTransactionsEnabled: publicSettings.onlineTransactionsEnabled,
+            minAppVersion: publicSettings.minAppVersion,
+            bankPassword: adminSettings.bankPassword,
+            sheetLink: adminSettings.sheetLink,
+            scriptUrl: adminSettings.scriptUrl,
+            programImportUrl: adminSettings.programImportUrl,
+            programExportUrl: adminSettings.programExportUrl,
+            programUpdateUrl: adminSettings.programUpdateUrl,
+            bookImportUrl: adminSettings.bookImportUrl,
+            bookExportUrl: adminSettings.bookExportUrl,
+            bookUpdateUrl: adminSettings.bookUpdateUrl,
+            donationImportUrl: adminSettings.donationImportUrl,
+            donationExportUrl: adminSettings.donationExportUrl,
+            donationUpdateUrl: adminSettings.donationUpdateUrl,
+            driveTamilBooksId: publicSettings.driveTamilBooksId,
+            driveEnglishBooksId: publicSettings.driveEnglishBooksId,
+            driveMagazineId: publicSettings.driveMagazineId,
+            driveAudioBooksId: publicSettings.driveAudioBooksId,
 
-            toggleOnlineTransactions: (val) => updateGlobal({ onlineTransactionsEnabled: val }),
-            setMinAppVersion: (val) => updateGlobal({ minAppVersion: val }),
-            setBankPassword: (val) => updateGlobal({ bankPassword: val }),
-            setSheetLink: (val) => updateGlobal({ sheetLink: val }),
-            setScriptUrl: (val) => updateGlobal({ scriptUrl: val }),
-            setProgramImportUrl: (val) => updateGlobal({ programImportUrl: val }),
-            setProgramExportUrl: (val) => updateGlobal({ programExportUrl: val }),
-            setProgramUpdateUrl: (val) => updateGlobal({ programUpdateUrl: val }),
-            setBookImportUrl: (val) => updateGlobal({ bookImportUrl: val }),
-            setBookExportUrl: (val) => updateGlobal({ bookExportUrl: val }),
-            setBookUpdateUrl: (val) => updateGlobal({ bookUpdateUrl: val }),
-            setDonationImportUrl: (val) => updateGlobal({ donationImportUrl: val }),
-            setDonationExportUrl: (val) => updateGlobal({ donationExportUrl: val }),
-            setDonationUpdateUrl: (val) => updateGlobal({ donationUpdateUrl: val }),
+            toggleOnlineTransactions: (val) => updatePublic({ onlineTransactionsEnabled: val }),
+            setMinAppVersion: (val) => updatePublic({ minAppVersion: val }),
+            setBankPassword: (val) => updateAdmin({ bankPassword: val }),
+            setSheetLink: (val) => updateAdmin({ sheetLink: val }),
+            setScriptUrl: (val) => updateAdmin({ scriptUrl: val }),
+            setProgramImportUrl: (val) => updateAdmin({ programImportUrl: val }),
+            setProgramExportUrl: (val) => updateAdmin({ programExportUrl: val }),
+            setProgramUpdateUrl: (val) => updateAdmin({ programUpdateUrl: val }),
+            setBookImportUrl: (val) => updateAdmin({ bookImportUrl: val }),
+            setBookExportUrl: (val) => updateAdmin({ bookExportUrl: val }),
+            setBookUpdateUrl: (val) => updateAdmin({ bookUpdateUrl: val }),
+            setDonationImportUrl: (val) => updateAdmin({ donationImportUrl: val }),
+            setDonationExportUrl: (val) => updateAdmin({ donationExportUrl: val }),
+            setDonationUpdateUrl: (val) => updateAdmin({ donationUpdateUrl: val }),
+            setDriveTamilBooksId: (val) => updatePublic({ driveTamilBooksId: val }),
+            setDriveEnglishBooksId: (val) => updatePublic({ driveEnglishBooksId: val }),
+            setDriveMagazineId: (val) => updatePublic({ driveMagazineId: val }),
+            setDriveAudioBooksId: (val) => updatePublic({ driveAudioBooksId: val }),
 
             // Developer Settings (Per-User)
             devMode: userSettings.devMode ?? DEFAULT_USER_SETTINGS.devMode,
@@ -277,6 +372,7 @@ export const GlobalSettingsProvider = ({ children }) => {
             setShowApiCounter: (val) => updateUser({ showApiCounter: val }),
             setShowDiagnosticLogs: (val) => updateUser({ showDiagnosticLogs: val }),
             toggleDeviceAuthorization,
+            setPublicSettings,
 
             appVersion
         }}>

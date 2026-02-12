@@ -4,11 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { Calendar, Shield, IndianRupee, LogOut, Users, LayoutDashboard, Video, Layers, Settings, BookOpen, Heart } from 'lucide-react';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
-import { auth } from '../firebase';
+import { auth } from '@/firebase';
 import { signOut } from 'firebase/auth';
-import { useAdminAuth } from '../context/AdminAuthContext';
-import { useGlobalSettings } from '../context/GlobalSettingsContext';
-import { useUnseenCounts } from '../hooks/useUnseenCounts';
+import { useAdminAuth } from '@/context/AdminAuthContext';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
+import { useUnseenCounts } from '@/hooks/useUnseenCounts';
 
 const ConfigButton = ({ title, subtitle, icon: Icon, path, delay, onClick: customOnClick, color = 'var(--color-primary)', bgColor = '#fff7ed', badgeCount = 0 }) => {
     const navigate = useNavigate();

@@ -1,15 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Headphones, ChevronLeft } from 'lucide-react';
-import PageHeader from '../components/PageHeader';
-import { useDriveFiles } from '../hooks/useDriveFiles';
-
-// Audio Book folder:
-// https://drive.google.com/drive/folders/1L65ifCQ_bAQauymMH5JyDgul7LIL3cnL
-const AUDIO_BOOKS_FOLDER_ID = '1L65ifCQ_bAQauymMH5JyDgul7LIL3cnL';
+import PageHeader from '@/components/PageHeader';
+import { useDriveFiles } from '@/hooks/useDriveFiles';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 
 const AudioBooks = () => {
-  const { files, loading, error } = useDriveFiles(AUDIO_BOOKS_FOLDER_ID, 'audio_books');
+  const { driveAudioBooksId } = useGlobalSettings();
+  const { files, loading, error } = useDriveFiles(driveAudioBooksId, 'audio_books');
 
   const renderAudioLinks = () => {
     if (loading) {

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
 import { collection, query, where, doc, getDoc, onSnapshot, getDocCacheFirst } from '@/utils/FirestoreProxy';
-import { auth, db } from '../firebase';
+import { auth, db } from '@/firebase';
 
 const AdminAuthContext = createContext();
 
@@ -137,7 +137,18 @@ export const AdminAuthProvider = ({ children }) => {
     }, []);
 
     return (
-        <AdminAuthContext.Provider value={{ user, isAdmin, role, permissions, hasAccess, isPending, isInitialized, setIsPending, checkAdminStatus }}>
+        <AdminAuthContext.Provider value={{
+            user,
+            isAdmin,
+            role,
+            permissions,
+            hasAccess,
+            isPending,
+            isInitialized,
+            loading: !isInitialized,
+            setIsPending,
+            checkAdminStatus
+        }}>
             {children}
         </AdminAuthContext.Provider>
     );

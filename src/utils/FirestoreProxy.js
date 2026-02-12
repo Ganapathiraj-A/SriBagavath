@@ -140,7 +140,7 @@ export const getDocCacheFirst = async (ref) => {
             trackRead(snap, `Doc (CacheFirst): ${path}`);
             return snap;
         }
-    } catch (e) {
+    } catch (_err) {
         // Cache miss
     }
     const snap = await firestore.getDocFromServer(ref);
@@ -156,7 +156,7 @@ export const getDocsCacheFirst = async (q) => {
             trackRead(snap, `Collection (CacheFirst): ${path}`);
             return snap;
         }
-    } catch (e) {
+    } catch (_err) {
         // Cache miss
     }
     const snap = await firestore.getDocsFromServer(q);

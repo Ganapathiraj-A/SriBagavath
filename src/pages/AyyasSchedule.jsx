@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, MapPin, Share2, ChevronLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import PageHeader from '../components/PageHeader';
+import PageHeader from '@/components/PageHeader';
 import { Share } from '@capacitor/share';
-import { db } from '../firebase';
+import { db } from '@/firebase';
 import { collection, query, orderBy, getDocs, where } from '@/utils/FirestoreProxy';
-import { getLocalDateString } from '../utils/dateUtils';
-import { useAdminAuth } from '../context/AdminAuthContext';
+import { getLocalDateString } from '@/utils/dateUtils';
+import { useAdminAuth } from '@/context/AdminAuthContext';
 
 const AyyasSchedule = () => {
     const navigate = useNavigate();
@@ -45,8 +45,8 @@ const AyyasSchedule = () => {
                         setLoading(false);
                         console.log(`[Schedule] Loaded ${list.length} items from cache`);
                     }
-                } catch (e) {
-                    console.warn("[Schedule] Cache read failed", e);
+                } catch (_err) {
+                    console.warn("[Schedule] Cache read failed", _err);
                 }
 
                 // If cache empty OR needs sync, fetch from server
@@ -62,8 +62,8 @@ const AyyasSchedule = () => {
                         setLoading(false);
                     });
                 }
-            } catch (error) {
-                console.error("Error fetching schedules: ", error);
+            } catch (_err) {
+                console.error("Error fetching schedules: ", _err);
             } finally {
                 setLoading(false);
             }
@@ -98,8 +98,8 @@ const AyyasSchedule = () => {
                 text: shareText,
                 dialogTitle: "Share Schedule",
             });
-        } catch (error) {
-            console.error('Error sharing:', error);
+        } catch (_err) {
+            console.error('Error sharing:', _err);
             // Fallback for web or if share fails
             try {
                 await navigator.clipboard.writeText(shareText);

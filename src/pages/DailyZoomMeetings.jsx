@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Video, Calendar, User, Youtube, Share2, ChevronRight, Loader2, Clock, Edit2 } from 'lucide-react';
 import { Share } from '@capacitor/share';
-import PageHeader from '../components/PageHeader';
-import LazyImage from '../components/LazyImage';
-import { db } from '../firebase';
+import PageHeader from '@/components/PageHeader';
+import LazyImage from '@/components/LazyImage';
+import { db } from '@/firebase';
 import { collection, query, where, orderBy, getDocs, limit, startAfter } from '@/utils/FirestoreProxy';
-import { getLocalDateString } from '../utils/dateUtils';
-import { useAdminAuth } from '../context/AdminAuthContext';
+import { getLocalDateString } from '@/utils/dateUtils';
+import { useAdminAuth } from '@/context/AdminAuthContext';
 
 const MeetingCard = ({ meeting, delay, isAdmin, onShare }) => {
     const navigate = useNavigate();
@@ -220,13 +220,13 @@ const DailyZoomMeetings = () => {
                         setUpcomingMeetings(s.docs.map(d => ({ id: d.id, ...d.data() })));
                     }).catch(() => { });
                 }
-            } catch (e) {
+            } catch (_err) {
                 snap = await getDocsFromServer(q);
             }
 
             setUpcomingMeetings(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-        } catch (error) {
-            console.error("Error fetching upcoming meetings:", error);
+        } catch (_err) {
+            console.error("Error fetching upcoming meetings:", _err);
         } finally {
             setLoading(false);
         }
@@ -248,8 +248,8 @@ const DailyZoomMeetings = () => {
             setPastMeetings(docs);
             setLastVisible(snap.docs[snap.docs.length - 1]);
             setHasMorePast(snap.docs.length === 10);
-        } catch (error) {
-            console.error("Error fetching past meetings:", error);
+        } catch (_err) {
+            console.error("Error fetching past meetings:", _err);
         } finally {
             setLoading(false);
         }
@@ -273,8 +273,8 @@ const DailyZoomMeetings = () => {
             setPastMeetings(prev => [...prev, ...docs]);
             setLastVisible(snap.docs[snap.docs.length - 1]);
             setHasMorePast(snap.docs.length === 10);
-        } catch (error) {
-            console.error("Error loading more past meetings:", error);
+        } catch (_err) {
+            console.error("Error loading more past meetings:", _err);
         } finally {
             setLoadingMore(false);
         }
@@ -306,8 +306,8 @@ Join us for our daily spiritual gathering.
                 text: text,
                 url: meeting.joinUrl
             });
-        } catch (error) {
-            console.error('Error sharing:', error);
+        } catch (_err) {
+            console.error('Error sharing:', _err);
             // Fallback to clipboard if share fails (e.g. on web)
             if (navigator.clipboard) {
                 await navigator.clipboard.writeText(text);
@@ -342,8 +342,8 @@ Join us for our daily spiritual gathering.
                 title: 'Daily Zoom Meetings List',
                 text: text
             });
-        } catch (error) {
-            console.error('Error sharing list:', error);
+        } catch (_err) {
+            console.error('Error sharing list:', _err);
             if (navigator.clipboard) {
                 await navigator.clipboard.writeText(text);
                 alert('Meetings list copied to clipboard!');

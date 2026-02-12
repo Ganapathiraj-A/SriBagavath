@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Plus, Minus, Search, Camera, RotateCcw } from 'lucide-react';
-import PageHeader from '../components/PageHeader';
-import { db } from '../firebase';
+import PageHeader from '@/components/PageHeader';
+import { db } from '@/firebase';
 import { collection, getDocs, query, orderBy, getDoc, doc } from '@/utils/FirestoreProxy';
-import { TransactionService } from '../services/TransactionService';
+import { TransactionService } from '@/services/TransactionService';
 import { Camera as CameraPlugin, CameraResultType } from '@capacitor/camera';
 import { motion } from 'framer-motion';
 
@@ -50,8 +50,8 @@ const BackOfficeOfflineBooks = () => {
                         if (coverSnap.exists()) {
                             return { id: book.id, cover: coverSnap.data().cover };
                         }
-                    } catch (e) {
-                        console.error(`Error fetching cover for ${book.title}:`, e);
+                    } catch (_err) {
+                        console.error(`Error fetching cover for ${book.title}:`, _err);
                     }
                     return null;
                 });
@@ -62,8 +62,8 @@ const BackOfficeOfflineBooks = () => {
                     if (c) coverMap[c.id] = c.cover;
                 });
                 setCovers(coverMap);
-            } catch (error) {
-                console.error("Error loading books:", error);
+            } catch (_err) {
+                console.error("Error loading books:", _err);
             } finally {
                 setPageLoading(false);
             }
@@ -91,8 +91,8 @@ const BackOfficeOfflineBooks = () => {
                     if (data.pincode) setPincode(data.pincode);
                 }
             }
-        } catch (e) {
-            console.error("Failed to load previous info", e);
+        } catch (_err) {
+            console.error("Failed to load previous info", _err);
         }
     };
 
@@ -140,8 +140,8 @@ const BackOfficeOfflineBooks = () => {
                 resultType: CameraResultType.Base64
             });
             setImage(photo.base64String);
-        } catch (e) {
-            console.error(e);
+        } catch (_err) {
+            console.error(_err);
         }
     };
 
@@ -170,8 +170,8 @@ const BackOfficeOfflineBooks = () => {
                 const existing = localStorage.getItem('last_offline_transaction_details');
                 const merged = existing ? { ...JSON.parse(existing), ...dataToSave } : dataToSave;
                 localStorage.setItem('last_offline_transaction_details', JSON.stringify(merged));
-            } catch (e) {
-                console.error("Failed to save offline details", e);
+            } catch (_err) {
+                console.error("Failed to save offline details", _err);
             }
 
             const orderItems = getOrderItems();
@@ -204,9 +204,9 @@ const BackOfficeOfflineBooks = () => {
 
             alert("Offline Order Recorded Successfully!");
             navigate('/admin/back-office');
-        } catch (error) {
-            console.error(error);
-            alert("Error recording order: " + error.message);
+        } catch (_err) {
+            console.error(_err);
+            alert("Error recording order: " + _err.message);
         } finally {
             setLoading(false);
         }

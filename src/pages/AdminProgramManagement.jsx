@@ -4,11 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import {
     Calendar, Users, Video, Code, Phone, ChevronLeft
 } from 'lucide-react';
-import PageHeader from '../components/PageHeader';
-import { useAdminAuth } from '../context/AdminAuthContext';
+import PageHeader from '@/components/PageHeader';
+import { useAdminAuth } from '@/context/AdminAuthContext';
 import '../components/RegistrationStyles.css';
 
-import { useUnseenCounts } from '../hooks/useUnseenCounts';
+import { useUnseenCounts } from '@/hooks/useUnseenCounts';
 
 const ManagementButton = ({ title, subtitle, icon: Icon, path, delay, color = '#f97316', bgColor = '#fff7ed', badgeCount = 0 }) => {
     const navigate = useNavigate();
@@ -150,7 +150,7 @@ const AdminProgramManagement = () => {
             <div style={{ padding: '1.5rem', maxWidth: '32rem', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {sections.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>
-                        <p>You don't have permission to access any management screens.</p>
+                        <p>You don&apos;t have permission to access any management screens.</p>
                     </div>
                 ) : (
                     sections.map((section, index) => (

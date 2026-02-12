@@ -49,3 +49,14 @@ The build scripts are configured to automatically pull files from the `secrets/`
 
 ## Internal Note
 Individual sensitive files are listed in `.gitignore` and should never be committed outside the `secrets.zip`. If you update a key or keystore, remember to update the `secrets/` folder and re-zip with the password!
+
+## Manual Admin Bootstrapping
+Since `/admins` write access is restricted to existing admins, the first admin must be created manually:
+1. Open the [Firebase Console](https://console.firebase.google.com/).
+2. Navigate to **Firestore Database**.
+3. Create a collection named `admins`.
+4. Add a document:
+   - **Document ID**: Your User UID (from Firebase Auth) or your Email address.
+   - **Fields**:
+     - `role`: `SUPER_ADMIN` (string)
+     - `permissions`: `["ALL"]` (array)

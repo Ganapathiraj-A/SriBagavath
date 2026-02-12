@@ -7,7 +7,7 @@ import {
     Calendar,
     ArrowRight
 } from 'lucide-react';
-import { db } from '../firebase';
+import { db } from '@/firebase';
 import { collection, query, getDocs, orderBy } from '@/utils/FirestoreProxy';
 
 const BackOfficePrograms = () => {

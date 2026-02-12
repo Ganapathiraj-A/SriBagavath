@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Check, Trash2, Rewind, Package, User, Heart, X } from 'lucide-react';
-import { TransactionService } from '../services/TransactionService';
-import PageHeader from '../components/PageHeader';
-import { compressImage } from '../utils/imageUtils';
-import { useGlobalSettings } from '../context/GlobalSettingsContext';
+import { TransactionService } from '@/services/TransactionService';
+import PageHeader from '@/components/PageHeader';
+import { compressImage } from '@/utils/imageUtils';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 import '../components/RegistrationStyles.css';
 
 const TABS = ['RECEIVED', 'ACCEPTED'];
@@ -54,7 +54,7 @@ const DonationManagement = () => {
     const handleUpdateStatus = async (id, newStatus) => {
         try {
             await TransactionService.updateStatus(id, newStatus);
-        } catch (e) {
+        } catch (_err) {
             alert("Update Failed");
         }
     };
@@ -83,7 +83,7 @@ const DonationManagement = () => {
             } else {
                 alert("No Payment Receipt Found");
             }
-        } catch (e) { alert("Error loading image"); }
+        } catch (_err) { alert("Error loading image"); }
     };
 
     const handleSaveDetails = async () => {
@@ -108,8 +108,8 @@ const DonationManagement = () => {
             await TransactionService.updateTransactionDetails(viewingImage.id, updates);
             setViewingImage(null);
             alert("Details updated successfully!");
-        } catch (e) {
-            alert("Failed to update: " + e.message);
+        } catch (_err) {
+            alert("Failed to update: " + _err.message);
         } finally {
             setSavingDetails(false);
         }
@@ -130,9 +130,9 @@ const DonationManagement = () => {
             const base64 = await compressImage(file);
             await TransactionService.uploadReceipt(id, base64);
             alert("Receipt uploaded successfully!");
-        } catch (error) {
-            console.error("Upload failed", error);
-            alert("Upload failed: " + error.message);
+        } catch (_err) {
+            console.error("Upload failed", _err);
+            alert("Upload failed: " + _err.message);
         } finally {
             setUploadingReceipt(null);
             e.target.value = ''; // Reset input
@@ -304,7 +304,7 @@ const DonationManagement = () => {
                                     for (const o of toArchive) {
                                         await TransactionService.archiveTransaction(o.id);
                                     }
-                                } catch (e) { alert("Archive Failed"); }
+                                } catch (_err) { alert("Archive Failed"); }
                                 setLoading(false);
                             }
                         }}
@@ -407,7 +407,6 @@ const DonationManagement = () => {
                                     <input
                                         type="file"
                                         id={`receipt-input-${donation.id}`}
-                                        hide="true"
                                         style={{ display: 'none' }}
                                         accept="image/*"
                                         onChange={(e) => handleAddReceipt(e, donation.id)}
@@ -434,7 +433,7 @@ const DonationManagement = () => {
                                         onClick={async () => {
                                             try {
                                                 await TransactionService.archiveTransaction(donation.id);
-                                            } catch (e) { alert("Archive Failed"); }
+                                            } catch (_err) { alert("Archive Failed"); }
                                         }}
                                         style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', backgroundColor: '#4f46e5', color: 'white', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                                     >

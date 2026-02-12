@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
     Calendar, Clock, Video, Plus, Edit2, Trash2,
     ChevronLeft, AlertCircle, Save, X, ExternalLink, RefreshCw, Info
 } from 'lucide-react';
-import PageHeader from '../components/PageHeader';
-import { db } from '../firebase';
+import PageHeader from '@/components/PageHeader';
+import { db } from '@/firebase';
 import {
     collection, addDoc, getDocs, deleteDoc, doc,
     updateDoc, serverTimestamp, getDoc, setDoc
 } from '@/utils/FirestoreProxy';
-import { getLocalDateString } from '../utils/dateUtils';
-import { compressImage } from '../utils/imageUtils';
-import { bumpServerVersion } from '../utils/SyncManager';
+import { getLocalDateString } from '@/utils/dateUtils';
+import { compressImage } from '@/utils/imageUtils';
+import { bumpServerVersion } from '@/utils/SyncManager';
 
 // Helper to expand a master rule into its next upcoming instance
 const getNextOccurrence = (master, todayStr) => {
@@ -45,7 +45,7 @@ const getNextOccurrence = (master, todayStr) => {
         if (isMatch && !exceptions.includes(dateStr) && dateStr >= todayStr) {
             return {
                 ...master,
-                id: `${master.id}_${dateStr}`,
+                id: `${master.id}_${dateStr} `,
                 masterId: master.id,
                 date: dateStr,
                 isVirtual: true,
@@ -67,7 +67,7 @@ const formatRecurrenceRule = (master) => {
     if (master.frequency === 'daily') return 'Daily';
     if (master.frequency === 'weekly') {
         const days = master.recurringDays?.map(d => daysMap[d]).join(', ');
-        return `Weekly on ${days}`;
+        return `Weekly on ${days} `;
     }
     if (master.frequency === 'monthly') return 'Monthly';
     return 'Recurring';
@@ -119,7 +119,7 @@ const OnlineMeetingManagement = () => {
                 if (m.isRecurringInstance || m.masterId) return;
 
                 if (m.isRecurring) {
-                    const key = `${m.conductedBy}_${m.startTime}_${m.frequency}_${(m.recurringDays || []).sort().join(',')}`;
+                    const key = `${m.conductedBy}_${m.startTime}_${m.frequency}_${(m.recurringDays || []).sort().join(',')} `;
                     if (!groups[key] || new Date(m.date) < new Date(groups[key].date)) {
                         groups[key] = m;
                     }
@@ -132,8 +132,8 @@ const OnlineMeetingManagement = () => {
             const processed = Object.values(groups).map(m => getNextOccurrence(m, todayStr));
             processed.sort((a, b) => a.date.localeCompare(b.date));
             setMeetings(processed);
-        } catch (error) {
-            console.error("Error loading meetings:", error);
+        } catch (_err) {
+            console.error("Error loading meetings:", _err);
         } finally {
             setLoading(false);
         }
@@ -146,8 +146,8 @@ const OnlineMeetingManagement = () => {
                 setUploading(true);
                 const compressed = await compressImage(file);
                 setFormData({ ...formData, banner: compressed, hasBanner: true });
-            } catch (error) {
-                console.error("Compression error:", error);
+            } catch (_err) {
+                console.error("Compression error:", _err);
                 alert("Failed to process image");
             } finally {
                 setUploading(false);
@@ -206,8 +206,8 @@ const OnlineMeetingManagement = () => {
             });
             await bumpServerVersion('online_meetings');
             loadMeetings();
-        } catch (error) {
-            console.error("Error saving meeting:", error);
+        } catch (_err) {
+            console.error("Error saving meeting:", _err);
             alert("Failed to save meeting");
         } finally {
             setLoading(false);
@@ -266,8 +266,8 @@ const OnlineMeetingManagement = () => {
             setDeleteTarget(null);
             await bumpServerVersion('online_meetings');
             loadMeetings();
-        } catch (error) {
-            console.error("Error deleting:", error);
+        } catch (_err) {
+            console.error("Error deleting:", _err);
             alert("Failed to delete");
         } finally {
             setLoading(false);
@@ -276,7 +276,29 @@ const OnlineMeetingManagement = () => {
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', paddingBottom: '3rem' }}>
-            <PageHeader title="Online Meeting Management" />
+            <PageHeader
+                title="Online Meeting Management"
+                rightAction={
+                    <button
+                        onClick={() => navigate('/programs/online')}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.4rem',
+                            padding: '0.5rem 0.8rem',
+                            backgroundColor: '#f3f4f6',
+                            color: '#374151',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '0.75rem',
+                            fontSize: '0.85rem',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                        }}
+                    >
+                        View Listing
+                    </button>
+                }
+            />
 
             <div style={{ maxWidth: '48rem', margin: '0 auto', padding: '1.5rem' }}>
                 {!isAdding ? (

@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Check, Trash2, Rewind, AlertCircle, X, LogOut, Package, Image, Info } from 'lucide-react';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
-import { TransactionService } from '../services/TransactionService';
-import PageHeader from '../components/PageHeader';
-import { compressImage } from '../utils/imageUtils';
-import OCR from '../plugins/OCRPlugin';
+import { TransactionService } from '@/services/TransactionService';
+import PageHeader from '@/components/PageHeader';
+import { compressImage } from '@/utils/imageUtils';
+import OCR from '@/plugins/OCRPlugin';
 import '../components/RegistrationStyles.css';
 
 const TABS = ['PENDING', 'REGISTERED', 'HOLD', 'COMPLETED'];
@@ -18,7 +18,7 @@ const TAB_LABELS = {
 };
 
 import { signOut } from 'firebase/auth';
-import { auth } from '../firebase';
+import { auth } from '@/firebase';
 
 const AdminReview = () => {
     const navigate = useNavigate();
@@ -46,8 +46,8 @@ const AdminReview = () => {
                     } catch (dErr) {
                         console.warn("Disconnect failed:", dErr);
                     }
-                } catch (e) {
-                    console.warn("Google SignOut Error", e);
+                } catch (_err) {
+                    console.warn("Google SignOut Error", _err);
                 }
             }
             await signOut(auth);
@@ -74,8 +74,8 @@ const AdminReview = () => {
                 const snapshot = await getDocs(collection(db, 'programs'));
                 const progs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
                 setAllPrograms(progs);
-            } catch (e) {
-                console.error("Failed to fetch programs", e);
+            } catch (_err) {
+                console.error("Failed to fetch programs", _err);
             }
         };
         fetchPrograms();
@@ -134,7 +134,7 @@ const AdminReview = () => {
                 return r.itemName === criteria.name &&
                     (details.date || "") === criteria.date &&
                     (details.city || "") === criteria.city;
-            } catch (e) { return true; }
+            } catch (_err) { return true; }
         });
 
     // Filter by Source (Refactored to be reusable)
@@ -173,7 +173,7 @@ const AdminReview = () => {
     const handleUpdate = async (id, newStatus) => {
         try {
             await TransactionService.updateStatus(id, newStatus);
-        } catch (e) {
+        } catch (_err) {
             alert("Update Failed");
         }
     };
@@ -187,7 +187,7 @@ const AdminReview = () => {
     const handleArchive = async (id) => {
         try {
             await TransactionService.archiveTransaction(id);
-        } catch (e) {
+        } catch (_err) {
             alert("Archive Failed");
         }
     };
@@ -203,7 +203,7 @@ const AdminReview = () => {
                     await TransactionService.archiveTransaction(tx.id);
                 }
                 alert("Move to storage successful!");
-            } catch (e) {
+            } catch (_err) {
                 alert("Archive Failed");
             } finally {
                 setLoading(false);
@@ -272,8 +272,8 @@ const AdminReview = () => {
             } else {
                 alert("No Image Found");
             }
-        } catch (e) {
-            console.error("Error fetching receipt:", e);
+        } catch (_err) {
+            console.error("Error fetching receipt:", _err);
             alert("Error loading receipt.");
         }
     };
@@ -287,9 +287,9 @@ const AdminReview = () => {
             const base64 = await compressImage(file);
             await TransactionService.uploadReceipt(id, base64);
             alert("Receipt uploaded successfully!");
-        } catch (error) {
-            console.error("Upload failed", error);
-            alert("Upload failed: " + error.message);
+        } catch (_err) {
+            console.error("Upload failed", _err);
+            alert("Upload failed: " + _err.message);
         } finally {
             setUploadingReceipt(null);
             if (e.target) e.target.value = ''; // Reset input
@@ -337,9 +337,9 @@ const AdminReview = () => {
             if (ocrRes.amount) setEditingParsedAmountValue(ocrRes.amount.toString());
 
             alert("Receipt updated and re-processed successfully!");
-        } catch (error) {
-            console.error("Receipt update failed", error);
-            alert("Update failed: " + error.message);
+        } catch (_err) {
+            console.error("Receipt update failed", _err);
+            alert("Update failed: " + _err.message);
         } finally {
             setSavingDetails(false);
             if (e.target) e.target.value = ''; // Reset input
@@ -413,8 +413,8 @@ const AdminReview = () => {
             }
             setViewingImage(null);
             alert(isNowMatchingBank ? "Match verified and corrected!" : "Details updated successfully!");
-        } catch (e) {
-            alert("Failed to update details: " + e.message);
+        } catch (_err) {
+            alert("Failed to update details: " + _err.message);
         } finally {
             setSavingDetails(false);
         }

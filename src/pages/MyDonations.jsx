@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { TransactionService } from '../services/TransactionService';
-import PageHeader from '../components/PageHeader';
+import { TransactionService } from '@/services/TransactionService';
+import PageHeader from '@/components/PageHeader';
 import { LogIn } from 'lucide-react';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
-import { ensureGoogleAuthInitialized } from '../utils/GoogleAuthUtils';
-import { auth } from '../firebase';
+import { ensureGoogleAuthInitialized } from '@/utils/GoogleAuthUtils';
+import { auth } from '@/firebase';
 import { GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
 
 const MyDonations = () => {
@@ -153,7 +153,7 @@ const MyDonations = () => {
                                 borderRadius: '16px',
                                 border: '2px dashed #e5e7eb'
                             }}>
-                                <p style={{ color: '#6b7280', margin: 0 }}>You haven't made any donations yet.</p>
+                                <p style={{ color: '#6b7280', margin: 0 }}>You haven&apos;t made any donations yet.</p>
                             </div>
                         )}
 

@@ -2,18 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, MapPin, AlertCircle, Share2, ChevronLeft } from 'lucide-react';
-import PageHeader from '../components/PageHeader';
+import PageHeader from '@/components/PageHeader';
 import { Share } from '@capacitor/share';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
-import { ensureGoogleAuthInitialized } from '../utils/GoogleAuthUtils';
+import { ensureGoogleAuthInitialized } from '@/utils/GoogleAuthUtils';
 
-import { auth, db } from '../firebase';
+import { auth, db } from '@/firebase';
 import { GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
 import { doc, getDoc, getDocCacheFirst, collection, query, where, orderBy } from '@/utils/FirestoreProxy';
-import { useAdminAuth } from '../context/AdminAuthContext';
-import { getLocalDateString } from '../utils/dateUtils';
+import { useAdminAuth } from '@/context/AdminAuthContext';
+import { getLocalDateString } from '@/utils/dateUtils';
 
 const Programs = () => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -106,8 +106,8 @@ const Programs = () => {
                     } else {
                         console.log("[Programs] Cache EMPTY (or query returned nothing from cache)");
                     }
-                } catch (e) {
-                    console.warn("[Programs] Cache read failed (expected on first load)", e);
+                } catch (_err) {
+                    console.warn("[Programs] Cache read failed (expected on first load)", _err);
                 }
 
                 // If cache empty OR needs sync, fetch from server
@@ -129,8 +129,8 @@ const Programs = () => {
                     }
                 }
 
-            } catch (error) {
-                console.error("[Programs] CRITICAL FETCH ERROR: ", error);
+            } catch (_err) {
+                console.error("[Programs] CRITICAL FETCH ERROR: ", _err);
             } finally {
                 console.log("[Programs] fetchPrograms completed, setting loading to false");
                 setLoading(false);
@@ -170,8 +170,8 @@ const Programs = () => {
                 if (snap.exists()) {
                     setSpecificProgram({ id: snap.id, ...snap.data() });
                 }
-            } catch (e) {
-                console.error("Failed to fetch specific program", e);
+            } catch (_err) {
+                console.error("Failed to fetch specific program", _err);
             } finally {
                 setSpecificLoading(false);
             }
@@ -202,8 +202,8 @@ const Programs = () => {
                     if (snap.exists()) {
                         setViewingBanner(snap.data().banner);
                     }
-                } catch (e) {
-                    console.error("Banner fetch failed", e);
+                } catch (_err) {
+                    console.error("Banner fetch failed", _err);
                 }
             } else {
                 setViewingBanner(null);
@@ -270,14 +270,14 @@ const Programs = () => {
                     program_id: program.id
                 });
             });
-        } catch (error) {
-            console.error('Error sharing banner:', error);
+        } catch (_err) {
+            console.error('Error sharing banner:', _err);
             // Fallback to clipboard if sharing fails
             try {
                 await navigator.clipboard.writeText(program.programBanner);
                 alert('Sharing failed. Banner URL copied to clipboard.');
-            } catch (e) {
-                alert('Sharing failed completely. ' + error.message);
+            } catch (clipErr) {
+                alert('Sharing failed completely. ' + _err.message);
             }
         }
     };
@@ -310,8 +310,8 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
                     program_id: program.id
                 });
             });
-        } catch (error) {
-            console.error('Error sharing:', error);
+        } catch (_err) {
+            console.error('Error sharing:', _err);
             // Fallback to clipboard
             try {
                 await navigator.clipboard.writeText(text + '\n\n' + window.location.href);
@@ -347,6 +347,28 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
         }}>
             <PageHeader
                 title={viewingProgram ? viewingProgram.programName : "Programs"}
+                rightAction={
+                    (useAdminAuth().isAdmin || useAdminAuth().hasAccess('PROGRAM_MANAGEMENT')) && (
+                        <button
+                            onClick={() => navigate('/program')}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.4rem',
+                                padding: '0.5rem 0.8rem',
+                                backgroundColor: '#fff7ed',
+                                color: '#f97316',
+                                border: '1px solid #ffedd5',
+                                borderRadius: '0.75rem',
+                                fontSize: '0.85rem',
+                                fontWeight: 700,
+                                cursor: 'pointer'
+                            }}
+                        >
+                            Manage
+                        </button>
+                    )
+                }
             />
             <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ maxWidth: '42rem', margin: '0 auto', width: '100%' }}>

@@ -3,7 +3,16 @@
  */
 class ApiMonitor {
     constructor() {
-        const saved = JSON.parse(localStorage.getItem('debug_api_stats') || '{}');
+        let saved = {};
+        const isSafe = typeof window !== 'undefined' && typeof localStorage !== 'undefined';
+
+        if (isSafe) {
+            try {
+                saved = JSON.parse(localStorage.getItem('debug_api_stats') || '{}');
+            } catch (_err) {
+                console.warn("ApiMonitor: Could not read localStorage", _err);
+            }
+        }
         this.stats = {
             serverReads: saved.serverReads || 0,
             cacheReads: saved.cacheReads || 0,
@@ -15,7 +24,7 @@ class ApiMonitor {
     }
 
     init() {
-        if (typeof window === 'undefined') return;
+        if (typeof window === 'undefined' || !window.fetch) return;
 
         const originalFetch = window.fetch;
         window.fetch = async (...args) => {
@@ -54,13 +63,17 @@ class ApiMonitor {
     }
 
     saveAndNotify() {
-        localStorage.setItem('debug_api_stats', JSON.stringify(this.stats));
+        if (typeof localStorage !== 'undefined') {
+            localStorage.setItem('debug_api_stats', JSON.stringify(this.stats));
+        }
         this.notify();
     }
 
     reset() {
         this.stats = { serverReads: 0, cacheReads: 0, writes: 0, fetches: 0 };
-        localStorage.setItem('debug_api_stats', JSON.stringify(this.stats));
+        if (typeof localStorage !== 'undefined') {
+            localStorage.setItem('debug_api_stats', JSON.stringify(this.stats));
+        }
         this.notify();
     }
 

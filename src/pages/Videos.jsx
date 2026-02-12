@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Video } from 'lucide-react';
-import PageHeader from '../components/PageHeader';
+import PageHeader from '@/components/PageHeader';
 
 const Videos = () => {
     return (
@@ -18,7 +18,7 @@ const Videos = () => {
                         <Video size={32} />
                     </div>
                     <p className="text-gray-600 mb-8">
-                        Watch Bagavath Ayya's discourses. This section will feature a YouTube playlist.
+                        Watch Bagavath Ayya&apos;s discourses. This section will feature a YouTube playlist.
                     </p>
                     <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 text-sm text-gray-500">
                         Integration Pending: YouTube Data API / Embed

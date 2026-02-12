@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Camera, RotateCcw } from 'lucide-react';
-import PageHeader from '../components/PageHeader';
-import { TransactionService } from '../services/TransactionService';
+import PageHeader from '@/components/PageHeader';
+import { TransactionService } from '@/services/TransactionService';
 import { Camera as CameraPlugin, CameraResultType } from '@capacitor/camera';
 
 const BackOfficeOfflineDonation = () => {
@@ -35,8 +35,8 @@ const BackOfficeOfflineDonation = () => {
                     if (data.pan) setPan(data.pan);
                 }
             }
-        } catch (e) {
-            console.error("Failed to load previous info", e);
+        } catch (_err) {
+            console.error("Failed to load previous info", _err);
         }
     };
 
@@ -48,8 +48,8 @@ const BackOfficeOfflineDonation = () => {
                 resultType: CameraResultType.Base64
             });
             setImage(photo.base64String);
-        } catch (e) {
-            console.error(e);
+        } catch (_err) {
+            console.error(_err);
         }
     };
 
@@ -72,8 +72,8 @@ const BackOfficeOfflineDonation = () => {
                 const existing = localStorage.getItem('last_offline_transaction_details');
                 const merged = existing ? { ...JSON.parse(existing), ...dataToSave } : dataToSave;
                 localStorage.setItem('last_offline_transaction_details', JSON.stringify(merged));
-            } catch (e) {
-                console.error("Failed to save offline details", e);
+            } catch (_err) {
+                console.error("Failed to save offline details", _err);
             }
 
             await TransactionService.recordTransaction({
@@ -97,9 +97,9 @@ const BackOfficeOfflineDonation = () => {
 
             alert("Offline Donation Recorded Successfully!");
             navigate('/admin/back-office');
-        } catch (error) {
-            console.error(error);
-            alert("Error recording donation: " + error.message);
+        } catch (_err) {
+            console.error(_err);
+            alert("Error recording donation: " + _err.message);
         } finally {
             setLoading(false);
         }

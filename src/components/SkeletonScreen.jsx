@@ -8,8 +8,8 @@ import {
     LogIn,
     LayoutDashboard
 } from 'lucide-react';
-import { useAdminAuth } from '../context/AdminAuthContext';
-import { useGlobalSettings } from '../context/GlobalSettingsContext';
+import { useAdminAuth } from '@/context/AdminAuthContext';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 
 const StaticMenuButton = ({ title, icon: Icon }) => (
     <div style={{

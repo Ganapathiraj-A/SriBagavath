@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { motion, Reorder } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Edit2, Trash2, Save, X, GripVertical, ChevronUp, ChevronDown, ChevronLeft } from 'lucide-react';
-import { db, auth } from '../firebase';
+import { db, auth } from '@/firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy, setDoc } from '@/utils/FirestoreProxy';
 import { signOut } from 'firebase/auth';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
 import { LogOut } from 'lucide-react';
-import PageHeader from '../components/PageHeader';
+import PageHeader from '@/components/PageHeader';
 import '../components/RegistrationStyles.css';
 
 const ProgramTypesManagement = () => {

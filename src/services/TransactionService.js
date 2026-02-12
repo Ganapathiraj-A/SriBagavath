@@ -1,5 +1,5 @@
-import { db, auth } from '../firebase';
-import { collection, doc, setDoc, updateDoc, deleteDoc, getDoc, getDocs, onSnapshot, query, orderBy, where, limit, Timestamp, increment } from '@/utils/FirestoreProxy';
+import { db, auth } from '@/firebase';
+import { collection, doc, setDoc, updateDoc, deleteDoc, getDoc, getDocs, onSnapshot, query, orderBy, where, limit, Timestamp, writeBatch } from '@/utils/FirestoreProxy';
 import { StatsService } from './StatsService';
 
 export const TransactionService = {
@@ -13,19 +13,23 @@ export const TransactionService = {
         return id;
     },
 
-    // Record a new transaction (Split Storage: Meta + Image)
+    // Record a new transaction (Atomic Storage: Meta + Image)
     recordTransaction: async (data, base64Image) => {
-        const newDocRef = doc(collection(db, "transactions"));
-        const txId = newDocRef.id;
+        const txId = doc(collection(db, "transactions")).id;
+        const newDocRef = doc(db, "transactions", txId);
 
         const user = auth.currentUser;
-        const userId = user ? user.uid : null;
+        const userId = user?.uid;
+
+        if (!userId) {
+            throw new Error("Unable to record transaction: User not authenticated.");
+        }
 
         const txData = {
             id: txId,
-            itemName: data.itemName, // Program Name or "Book Order"
+            itemName: data.itemName,
             amount: data.amount,
-            status: data.status || 'PENDING', // Allow override (e.g. COMPLETED for offline)
+            status: data.status || 'PENDING',
             isOffline: data.isOffline || false,
             offlineRefNo: data.offlineRefNo || "",
             timestamp: Timestamp.now(),
@@ -34,11 +38,9 @@ export const TransactionService = {
             ocrText: data.ocrText || "",
             utr: data.utr || null,
             parsedAmount: data.parsedAmount || null,
-            itemType: data.itemType || 'PROGRAM', // 'PROGRAM' or 'BOOK'
-            // Bookstore specific
+            itemType: data.itemType || 'PROGRAM',
             orderItems: data.orderItems || [],
             shippingAddress: data.shippingAddress || null,
-            // Additional Fields for Sri Bagavath Registration
             participantCount: data.participantCount || 0,
             primaryApplicant: data.primaryApplicant || {},
             participants: data.participants || [],
@@ -46,29 +48,34 @@ export const TransactionService = {
             programId: data.programId || null,
             programDate: data.programDate || null,
             programCity: data.programCity || null,
-            selectedOptions: data.selectedOptions || [], // Store additional options
+            selectedOptions: data.selectedOptions || [],
             deviceId: TransactionService.getDeviceId(),
-            userId: userId, // Attach User ID for Security Rules
-            userEmail: user ? user.email : null // Explicitly store Gmail ID
+            userId: userId,
+            userEmail: user ? user.email : null
         };
 
+        const batch = writeBatch(db);
+
         // 1. Write Meta
-        await setDoc(newDocRef, txData);
+        batch.set(newDocRef, txData);
 
         // 2. Write Image (if present)
         if (base64Image) {
-            const imgDocRef = doc(collection(db, "transaction_images"), txId);
-            await setDoc(imgDocRef, {
+            const imgDocRef = doc(db, "transaction_images", txId);
+            batch.set(imgDocRef, {
                 id: txId,
                 base64: base64Image,
-                userId: userId // Attach User ID
+                userId: userId
             });
-            // Update Image Stats (Rough estimate of size from Base64 length)
+            // Update Image Stats (Rough estimate)
             const sizeInBytes = base64Image.length * 0.75;
             StatsService.recordImage(sizeInBytes).catch(() => { });
         }
 
-        // 3. Update Stats
+        // 3. Commit Batch
+        await batch.commit();
+
+        // 4. Update Stats (Async / Non-atomic with TX)
         if (data.itemType === 'BOOK') {
             StatsService.recordBookOrder(data.amount, true).catch(() => { });
         } else {
@@ -81,7 +88,8 @@ export const TransactionService = {
 
     // Get live stream of transactions (ADMIN)
     streamTransactions: (callback, onError) => {
-        const q = query(collection(db, "transactions"), orderBy("timestamp", "desc"));
+        // Limited to last 100 for performance
+        const q = query(collection(db, "transactions"), orderBy("timestamp", "desc"), limit(100));
         return onSnapshot(q, (snapshot) => {
             const txs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
             callback(txs);
@@ -158,23 +166,28 @@ export const TransactionService = {
 
     // Delete All Verified (Batch)
     deleteAllVerified: async () => {
-        // Simple client-side filter and batch delete
-        const q = query(collection(db, "transactions"), orderBy("status")); // Needs index?
-        // Fallback to client filter if index issue
-        // Actually, let's just fetch all and filter client side to avoid index creation delay
-        const snap = await getDocs(collection(db, "transactions"));
+        // Optimization: Use server-side query to only fetch COMPLETED transactions
+        const q = query(collection(db, "transactions"), where("status", "==", "COMPLETED"));
+        const snap = await getDocs(q);
 
         const { writeBatch } = await import('@/utils/FirestoreProxy');
-        const batch = writeBatch(db);
+        let batch = writeBatch(db);
         let count = 0;
+        let batchCount = 0;
 
-        snap.docs.forEach(d => {
-            if (d.data().status === 'COMPLETED') {
-                batch.delete(d.ref);
-                deleteDoc(doc(db, "transaction_images", d.id)).catch(() => { });
-                count++;
+        for (const d of snap.docs) {
+            batch.delete(d.ref);
+            // Image delete is separate as it's in a different collection
+            deleteDoc(doc(db, "transaction_images", d.id)).catch(() => { });
+            count++;
+            batchCount++;
+
+            if (batchCount >= 499) {
+                await batch.commit();
+                batch = writeBatch(db);
+                batchCount = 0;
             }
-        });
+        }
 
         if (count > 0) {
             await batch.commit();
@@ -188,8 +201,8 @@ export const TransactionService = {
             const q = query(collection(db, "transactions"), where("programId", "==", programId), limit(1));
             const snap = await getDocs(q);
             return !snap.empty;
-        } catch (e) {
-            console.error("Error checking registrations", e);
+        } catch (_err) {
+            console.error("Error checking registrations", _err);
             return false;
         }
     },
@@ -200,8 +213,8 @@ export const TransactionService = {
             const q = query(collection(db, "transactions"), where("programId", "==", programId));
             const snap = await getDocs(q);
             return snap.docs.map(doc => doc.data());
-        } catch (e) {
-            console.error("Error fetching program registrations", e);
+        } catch (_err) {
+            console.error("Error fetching program registrations", _err);
             return [];
         }
     },
@@ -233,9 +246,9 @@ export const TransactionService = {
                 return true;
             }
             return false;
-        } catch (e) {
-            console.error("Archive transaction failed", e);
-            throw e;
+        } catch (_err) {
+            console.error("Archive transaction failed", _err);
+            throw _err;
         }
     },
 
@@ -266,13 +279,13 @@ export const TransactionService = {
                 return true;
             }
             return false;
-        } catch (e) {
-            console.error("Archive program failed", e);
-            throw e;
+        } catch (_err) {
+            console.error("Archive program failed", _err);
+            throw _err;
         }
     },
 
-    // Upload/Attach Receipt to existing transaction
+    // Upload/Attach Receipt to existing transaction (Atomic Update)
     uploadReceipt: async (id, base64Image) => {
         const txRef = doc(db, "transactions", id);
         const imgRef = doc(db, "transaction_images", id);
@@ -280,20 +293,25 @@ export const TransactionService = {
         const user = auth.currentUser;
         const userId = user ? user.uid : null;
 
+        const batch = writeBatch(db);
+
         // 1. Update Meta
-        await updateDoc(txRef, {
+        batch.update(txRef, {
             hasImage: true,
             updatedAt: new Date().toISOString()
         });
 
         // 2. Write Image
-        await setDoc(imgRef, {
+        batch.set(imgRef, {
             id: id,
             base64: base64Image,
             userId: userId
         });
 
-        // 3. Update Image Stats
+        // 3. Commit
+        await batch.commit();
+
+        // 4. Update Image Stats
         const sizeInBytes = base64Image.length * 0.75;
         StatsService.recordImage(sizeInBytes).catch(() => { });
 

@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Share } from '@capacitor/share';
+import { Capacitor } from '@capacitor/core';
 import { BookOpen, FileText, Edit2, Image as ImageIcon, Upload, Link as LinkIcon, Trash2, X, Search, Share2 } from 'lucide-react';
-import PageHeader from '../components/PageHeader';
-import { useDriveFiles } from '../hooks/useDriveFiles';
-import { DRIVE_CONFIG } from '../data/driveConfig';
-import { useAdminAuth } from '../context/AdminAuthContext';
-import { db } from '../firebase';
+import PageHeader from '@/components/PageHeader';
+import { useAdminAuth } from '@/context/AdminAuthContext';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
+import { db } from '@/firebase';
 import { collection, onSnapshot, doc, setDoc, getDocs, query, orderBy, getDoc } from '@/utils/FirestoreProxy';
-import { compressImage } from '../utils/imageUtils';
-
-const { ENGLISH_BOOKS_FOLDER_ID, TAMIL_BOOKS_FOLDER_ID } = DRIVE_CONFIG;
+import { compressImage } from '@/utils/imageUtils';
+import { useDriveFiles } from '@/hooks/useDriveFiles';
 
 const PdfBooks = () => {
+  const { driveTamilBooksId, driveEnglishBooksId } = useGlobalSettings();
   const { isAdmin } = useAdminAuth();
   const tabs = ['Tamil Books', 'English Books'];
   const [activeTab, setActiveTab] = useState('Tamil Books');
@@ -24,8 +24,8 @@ const PdfBooks = () => {
   const [booksLoading, setBooksLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const englishData = useDriveFiles(ENGLISH_BOOKS_FOLDER_ID, 'digital_books_english');
-  const tamilData = useDriveFiles(TAMIL_BOOKS_FOLDER_ID, 'digital_books_tamil');
+  const englishData = useDriveFiles(driveEnglishBooksId, 'digital_books_english');
+  const tamilData = useDriveFiles(driveTamilBooksId, 'digital_books_tamil');
 
   const current = activeTab === 'English Books' ? englishData : tamilData;
 
@@ -58,8 +58,8 @@ const PdfBooks = () => {
       });
       const booksWithCovers = await Promise.all(coverPromises);
       setPrintedBooks(booksWithCovers);
-    } catch (e) {
-      console.error("Failed to load printed books", e);
+    } catch (_err) {
+      console.error("Failed to load printed books", _err);
     } finally {
       setBooksLoading(false);
     }

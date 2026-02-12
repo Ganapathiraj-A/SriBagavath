@@ -15,14 +15,14 @@ import {
     FileSpreadsheet
 } from 'lucide-react';
 import { signOut, GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
-import { useAdminAuth } from '../context/AdminAuthContext';
-import { useGlobalSettings } from '../context/GlobalSettingsContext';
+import { useAdminAuth } from '@/context/AdminAuthContext';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
-import { ensureGoogleAuthInitialized, GET_GOOGLE_CLIENT_ID } from '../utils/GoogleAuthUtils';
-import { db, auth } from '../firebase';
-import { StatsService } from '../services/StatsService';
+import { ensureGoogleAuthInitialized, GET_GOOGLE_CLIENT_ID } from '@/utils/GoogleAuthUtils';
+import { db, auth } from '@/firebase';
+import { StatsService } from '@/services/StatsService';
 import { collection, query, where, getDocs, addDoc } from '@/utils/FirestoreProxy';
 import { Toast } from '@capacitor/toast';
 
@@ -91,7 +91,7 @@ const MenuButton = ({ title, icon: Icon, path, delay, badgeCount, skipAnimation 
     );
 };
 
-import { useUnseenCounts } from '../hooks/useUnseenCounts';
+import { useUnseenCounts } from '@/hooks/useUnseenCounts';
 
 const Home = () => {
     const { user, isAdmin } = useAdminAuth();
@@ -352,8 +352,8 @@ const Home = () => {
                                                 const err = await response.text();
                                                 throw new Error(err || "WiFi upload failed");
                                             }
-                                        } catch (e) {
-                                            addLog("WiFi Failed: " + e.message);
+                                        } catch (_err) {
+                                            addLog("WiFi Failed: " + _err.message);
                                             // Fallback to Firestore (Legacy)
                                             try {
                                                 const text = logs.join('\n');
@@ -364,7 +364,7 @@ const Home = () => {
                                                 });
                                                 alert("WiFi failed, but logs sent to Firestore!");
                                             } catch (fe) {
-                                                alert("Total failure! WiFi: " + e.message + " | Firestore: " + fe.message);
+                                                alert("Total failure! WiFi: " + _err.message + " | Firestore: " + fe.message);
                                             }
                                         }
                                     }}

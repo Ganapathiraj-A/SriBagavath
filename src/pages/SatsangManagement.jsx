@@ -1,26 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect, useCallback } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
     Calendar, Clock, MapPin, Plus, Edit2, Trash2,
     ChevronLeft, AlertCircle, Save, X, Users, RefreshCw, Info
 } from 'lucide-react';
-import PageHeader from '../components/PageHeader';
-import { db } from '../firebase';
+import PageHeader from '@/components/PageHeader';
+import { db } from '@/firebase';
 import {
     collection, addDoc, getDocs, deleteDoc, doc,
-    updateDoc, query, orderBy, serverTimestamp, getDoc
+    updateDoc, serverTimestamp, getDoc, setDoc,
+    query, orderBy
 } from '@/utils/FirestoreProxy';
-import { compressImage } from '../utils/imageUtils';
-import { getLocalDateString } from '../utils/dateUtils';
-import { bumpServerVersion } from '../utils/SyncManager';
+import { compressImage } from '@/utils/imageUtils';
+import { getLocalDateString } from '@/utils/dateUtils';
+import { bumpServerVersion } from '@/utils/SyncManager';
 
 // Helper to expand a master rule into its next upcoming instance
 const getNextOccurrence = (master, todayStr) => {
     if (!master.isRecurring) return master;
 
     let currentDate = new Date(master.date);
-    const today = new Date(todayStr);
+    const _today = new Date(todayStr);
     const ruleEndDate = master.recurringEndDateType === 'date' ? new Date(master.recurringEndDate) : null;
     const exceptions = master.exceptions || [];
 
@@ -76,7 +76,6 @@ const formatRecurrenceRule = (master) => {
 };
 
 const SatsangManagement = () => {
-    const navigate = useNavigate();
     const [meetings, setMeetings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isAdding, setIsAdding] = useState(false);
@@ -106,43 +105,34 @@ const SatsangManagement = () => {
 
     useEffect(() => {
         loadMeetings();
-    }, []);
+    }, [loadMeetings]);
 
-    const loadMeetings = async () => {
+    const loadMeetings = useCallback(async () => {
+        setLoading(true);
+
         try {
-            setLoading(true);
-            const todayStr = getLocalDateString();
-            const querySnapshot = await getDocs(collection(db, 'satsangs'));
-            const rawDocs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const querySnapshot = await getDocs(
+                query(collection(db, 'satsangs'), orderBy('date', 'desc'))
+            );
+            const loadedMeetings = querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
 
-            // Deduplicate: Group by series attributes and pick the earliest one
-            const groups = {};
-            rawDocs.forEach(m => {
-                // Ignore instances
-                if (m.isRecurringInstance || m.masterId) return;
+            // Apply expansion logic for virtual occurrences
+            const today = getLocalDateString();
+            const expanded = loadedMeetings.map(m => getNextOccurrence(m, today));
 
-                if (m.isRecurring) {
-                    const key = `${m.conductedBy}_${m.startTime}_${m.city}_${m.frequency}_${(m.recurringDays || []).sort().join(',')}`;
-                    if (!groups[key] || new Date(m.date) < new Date(groups[key].date)) {
-                        groups[key] = m;
-                    }
-                } else {
-                    // Non-recurring are unique
-                    groups[m.id] = m;
-                }
-            });
+            // Sort by date ascending to show immediate upcoming
+            expanded.sort((a, b) => a.date.localeCompare(b.date));
 
-            const processed = Object.values(groups).map(m => getNextOccurrence(m, todayStr));
-
-            // Sort by date: upcoming first, then further out
-            processed.sort((a, b) => a.date.localeCompare(b.date));
-            setMeetings(processed);
-        } catch (error) {
-            console.error("Error loading satsangs:", error);
+            setMeetings(expanded);
+        } catch (_err) {
+            console.error('Error loading meetings:', _err);
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     const handleImageChange = async (e) => {
         const file = e.target.files[0];
@@ -151,8 +141,8 @@ const SatsangManagement = () => {
                 setUploading(true);
                 const compressed = await compressImage(file);
                 setFormData({ ...formData, banner: compressed, hasBanner: true });
-            } catch (error) {
-                console.error("Compression error:", error);
+            } catch (_err) {
+                console.error("Compression error:", _err);
                 alert("Failed to process image");
             } finally {
                 setUploading(false);
@@ -214,8 +204,8 @@ const SatsangManagement = () => {
             });
             await bumpServerVersion('satsangs');
             loadMeetings();
-        } catch (error) {
-            console.error("Error saving satsang:", error);
+        } catch (_err) {
+            console.error("Error saving satsang:", _err);
             alert("Failed to save satsang");
         } finally {
             setLoading(false);
@@ -276,8 +266,8 @@ const SatsangManagement = () => {
             setDeleteTarget(null);
             await bumpServerVersion('satsangs');
             loadMeetings();
-        } catch (error) {
-            console.error("Error deleting:", error);
+        } catch (_err) {
+            console.error("Error deleting:", _err);
             alert("Failed to delete");
         } finally {
             setLoading(false);
@@ -286,7 +276,29 @@ const SatsangManagement = () => {
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', paddingBottom: '3rem' }}>
-            <PageHeader title="Satsang Management" />
+            <PageHeader
+                title="Satsang Management"
+                rightAction={
+                    <button
+                        onClick={() => navigate('/programs/satsang')}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.4rem',
+                            padding: '0.5rem 0.8rem',
+                            backgroundColor: '#f3f4f6',
+                            color: '#374151',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '0.75rem',
+                            fontSize: '0.85rem',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                        }}
+                    >
+                        View Listing
+                    </button>
+                }
+            />
 
             <div style={{ maxWidth: '48rem', margin: '0 auto', padding: '1.5rem' }}>
                 {!isAdding ? (

@@ -27,8 +27,8 @@ class UpdateService {
             }
             this.currentVersion = info.version; // e.g. "2.8.192"
             return this.currentVersion;
-        } catch (e) {
-            console.error("Failed to get app info", e);
+        } catch (_err) {
+            console.error("Failed to get app info", _err);
             return "0.0.0";
         }
     }
@@ -114,8 +114,8 @@ class UpdateService {
                 } else {
                     laptopError = `HTTP ${response.status}`;
                 }
-            } catch (e) {
-                laptopError = e.message || "Timeout/Connection Failed";
+            } catch (_err) {
+                laptopError = _err.message || "Timeout/Connection Failed";
                 console.log("Laptop check failed:", laptopError);
             }
         }
@@ -166,9 +166,9 @@ class UpdateService {
                 } else {
                     githubError = `HTTP ${response.status}`;
                 }
-            } catch (e) {
-                console.error("GitHub check failed", e);
-                githubError = e.message || "Connection Failed";
+            } catch (_err) {
+                console.error("GitHub check failed", _err);
+                githubError = _err.message || "Connection Failed";
             }
         }
 
@@ -217,8 +217,8 @@ class UpdateService {
                     };
                 }
             }
-        } catch (e) {
-            console.error("Prod update check failed", e);
+        } catch (_err) {
+            console.error("Prod update check failed", _err);
         }
         return null;
     }
@@ -264,10 +264,10 @@ class UpdateService {
             console.log("Download finished:", result.filePath);
             return result.filePath;
 
-        } catch (error) {
-            console.error("UpdateTrigger Error", error);
+        } catch (_err) {
+            console.error("UpdateTrigger Error", _err);
             if (onProgress) onProgress(0); // Reset UI on error
-            throw error;
+            throw _err;
         }
     }
 

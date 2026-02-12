@@ -1,24 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useGlobalSettings } from '../context/GlobalSettingsContext';
-import { db } from '../firebase';
 import { Camera, CameraResultType } from '@capacitor/camera';
 import { App } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
 import { Trash2, CheckCircle2, QrCode as QrIcon, Camera as CameraIcon, PlayCircle, Eye, EyeOff, ChevronDown, ChevronUp } from 'lucide-react';
 import { Clipboard } from '@capacitor/clipboard';
 
-import { TransactionService } from '../services/TransactionService';
-import OCR from '../plugins/OCRPlugin';
-import { GPayUtils } from '../utils/GPayUtils';
-import qrImage from '../assets/qr_code.jpg';
-import instructionGif from '../assets/payment_instruction.gif';
+import { TransactionService } from '@/services/TransactionService';
+import OCR from '@/plugins/OCRPlugin';
+import { GPayUtils } from '@/utils/GPayUtils';
+import qrImage from '@/assets/qr_code.jpg';
+import instructionGif from '@/assets/payment_instruction.gif';
 import '../components/RegistrationStyles.css';
-import { useCart } from '../context/CartContext';
+import { useCart } from '@/context/CartContext';
 
 // Type Steps matching SBB App
 // SELECTION is skipped as we come from Registration
 const PaymentFlow = () => {
-    const { appVersion } = useGlobalSettings();
+    // const { appVersion } = useGlobalSettings(); // Removed unused
     const location = useLocation();
     const navigate = useNavigate();
     const { clearCart } = useCart();
@@ -77,7 +76,7 @@ const PaymentFlow = () => {
                 return new Date(dateVal.seconds * 1000).toLocaleDateString();
             }
             return new Date(dateVal).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-        } catch (e) {
+        } catch {
             return '';
         }
     };
@@ -111,8 +110,8 @@ const PaymentFlow = () => {
             if (result.amount) {
                 setParsedAmount(result.amount);
             }
-        } catch (e) {
-            setOcrStatus("Error: " + e.message);
+        } catch (_err) {
+            setOcrStatus("Error: " + _err.message);
         }
     };
 
@@ -128,7 +127,7 @@ const PaymentFlow = () => {
                     return;
                 }
 
-                const appVer = appVersion;
+                // res validation
                 const res = await OCR.checkSharedImage();
                 if (res && res.base64) {
                     if (pollInterval) clearInterval(pollInterval);
@@ -138,8 +137,8 @@ const PaymentFlow = () => {
                     setImage(res.base64);
                     processOCR(res.base64);
                 }
-            } catch (e) {
-                console.error("Shared Image Check Failed", e);
+            } catch (_err) {
+                console.error("Shared Image Check Failed", _err);
             }
         };
 
@@ -178,8 +177,8 @@ const PaymentFlow = () => {
             });
             setImage(photo.base64String || null);
             if (photo.base64String) processOCR(photo.base64String);
-        } catch (error) {
-            console.error("Camera Error", error);
+        } catch (_err) {
+            console.error("Camera Error", _err);
         }
     };
 
@@ -221,8 +220,8 @@ const PaymentFlow = () => {
             if (location.state?.itemType === 'DONATION') targetPage = '/my-donations';
 
             navigate(targetPage, { replace: true });
-        } catch (e) {
-            alert("Submission Failed: " + e.message);
+        } catch (_err) {
+            alert("Submission Failed: " + _err.message);
         } finally {
             setLoading(false);
         }
@@ -329,7 +328,7 @@ const PaymentFlow = () => {
 
             <div className="steps-list">
                 <p><strong>1.</strong> UPI ID <b>already copied</b> to clipboard.</p>
-                <p><strong>2.</strong> Once inside GPay, select '<b>Pay anyone</b>' and <b>Paste</b> the ID.</p>
+                <p><strong>2.</strong> Once inside GPay, select &apos;<b>Pay anyone</b>&apos; and <b>Paste</b> the ID.</p>
                 <p><strong>3.</strong> Pay the amount: <b>₹{amount}</b></p>
                 <p><strong>4.</strong> After payment, click <b>Share Screenshot</b> &rarr; <b>More</b> &rarr; <b>SriBagavath</b>.</p>
             </div>

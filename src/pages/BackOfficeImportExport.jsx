@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Download, Upload, FileSpreadsheet, Check, AlertTriangle, X, Users, UserPlus, CloudUpload, CloudDownload, ShoppingBag, Heart } from 'lucide-react';
-import PageHeader from '../components/PageHeader';
-import { db } from '../firebase';
+import PageHeader from '@/components/PageHeader';
+import { db, auth } from '@/firebase';
 import { collection, getDocs, doc, writeBatch, serverTimestamp, query, where, getCountFromServer } from '@/utils/FirestoreProxy';
-import { useGlobalSettings } from '../context/GlobalSettingsContext';
-import Spinner from '../components/Spinner';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
+import Spinner from '@/components/Spinner';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { Capacitor } from '@capacitor/core';
@@ -20,10 +20,8 @@ const BackOfficeImportExport = () => {
     const [selectedProgram, setSelectedProgram] = useState('');
 
     // Import State
-    const [importData, setImportData] = useState('');
     const [parsedData, setParsedData] = useState([]);
     const [selectedIndices, setSelectedIndices] = useState(new Set());
-    const [importErrors, setImportErrors] = useState([]);
     const [activeTab, setActiveTab] = useState('PROGRAMS'); // PROGRAMS, STORE, DONATION
 
     // Date Range State (for Store/Donation)
@@ -61,8 +59,8 @@ const BackOfficeImportExport = () => {
                 }));
 
                 setPrograms(withCounts);
-            } catch (error) {
-                console.error("Error fetching programs", error);
+            } catch (_err) {
+                console.error("Error fetching programs", _err);
             }
         };
         fetchPrograms();
@@ -70,7 +68,6 @@ const BackOfficeImportExport = () => {
 
     // Clear data when tab changes
     useEffect(() => {
-        setImportData('');
         setParsedData([]);
         setSelectedIndices(new Set());
     }, [activeTab]);
@@ -260,9 +257,9 @@ const BackOfficeImportExport = () => {
                 link.click();
                 document.body.removeChild(link);
             }
-        } catch (err) {
-            console.error("Export failed:", err);
-            alert("Export failed: " + err.message);
+        } catch (_err) {
+            console.error("Login verification failed:", _err);
+            alert("Export failed: " + _err.message);
         } finally {
             setLoading(false);
             setLoadingAction(null);
@@ -380,15 +377,14 @@ const BackOfficeImportExport = () => {
 
             await fetch(scriptUrl, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
             alert("Export signal sent! Check GSheet.");
-        } catch (e) {
-            console.error("Export Error:", e);
-            alert("Export Failed: " + e.message);
+        } catch (_err) {
+            console.error("Export Error:", _err);
+            alert("Export Failed: " + _err.message);
         } finally { setLoading(false); setLoadingAction(null); }
     };
 
     // --- IMPORT LOGIC ---
     const handleFetchSheet = async () => {
-        const config = getTargetConfig();
         const importUrl = activeTab === 'PROGRAMS' ? programImportUrl : activeTab === 'STORE' ? bookImportUrl : donationImportUrl;
         if (!importUrl) return alert("Sheet URL not configured.");
 
@@ -402,12 +398,11 @@ const BackOfficeImportExport = () => {
 
             const response = await fetch(exportUrl);
             const csvContent = await response.text();
-            setImportData(csvContent);
             setParsedData([]);
             setTimeout(() => handleParseDirect(csvContent), 100);
             alert(`Fetched data successfully!`);
-        } catch (e) {
-            alert("Fetch Failed: " + e.message);
+        } catch (_err) {
+            alert("Fetch Failed: " + _err.message);
         } finally {
             setLoading(false);
             setLoadingAction(null);
@@ -498,10 +493,6 @@ const BackOfficeImportExport = () => {
         setSelectedIndices(new Set());
     };
 
-    const handleParse = () => {
-        handleParseDirect(importData);
-    };
-
     const handleToggleSelect = (idx) => {
         const next = new Set(selectedIndices);
         if (next.has(idx)) next.delete(idx);
@@ -538,6 +529,7 @@ const BackOfficeImportExport = () => {
             batch.set(docRef, {
                 itemName: selectedProg.programName,
                 itemType: 'PROGRAM',
+                userId: auth.currentUser?.uid, // Required by security rules
                 programId: selectedProg.id,
                 programDate: selectedProg.programDate,
                 programCity: selectedProg.programCity,
@@ -573,9 +565,9 @@ const BackOfficeImportExport = () => {
             setSelectedIndices(new Set());
             alert(`Successfully merged and imported ${selectedRows.length} participants!`);
 
-        } catch (e) {
-            console.error(e);
-            alert("Merge Import Failed: " + e.message);
+        } catch (_err) {
+            console.error(_err);
+            alert("Merge Import Failed: " + _err.message);
         } finally {
             setLoading(false);
             setLoadingAction(null);
@@ -610,6 +602,7 @@ const BackOfficeImportExport = () => {
 
                     let dataToSave = {
                         itemType: activeTab === 'PROGRAMS' ? 'PROGRAM' : activeTab === 'STORE' ? 'BOOK' : 'DONATION',
+                        userId: auth.currentUser?.uid, // Required by security rules
                         amount: Number(row.amount) || 0,
                         isOffline: true,
                         status: 'PENDING',
@@ -659,9 +652,9 @@ const BackOfficeImportExport = () => {
             setSelectedIndices(new Set());
             alert(`Successfully imported ${successCount} individual records!`);
 
-        } catch (e) {
-            console.error(e);
-            alert("Import Failed: " + e.message);
+        } catch (_err) {
+            console.error(_err);
+            alert("Import Failed: " + _err.message);
         } finally {
             setLoading(false);
             setLoadingAction(null);
@@ -763,8 +756,8 @@ const BackOfficeImportExport = () => {
             const payload = { action: 'push_update', targetGid, rows: [headers, ...dataRows] };
             await fetch(scriptUrl, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
             alert("Success! Signal sent. Check the sheet.");
-        } catch (e) {
-            alert("Push Failed: " + e.message);
+        } catch (_err) {
+            alert("Push Failed: " + _err.message);
         } finally {
             setLoading(false);
             setLoadingAction(null);
@@ -884,8 +877,8 @@ const BackOfficeImportExport = () => {
 
             await batch.commit();
             alert(`Updated ${count} records!`);
-        } catch (e) {
-            alert("Pull Failed: " + e.message);
+        } catch (_err) {
+            alert("Pull Failed: " + _err.message);
         } finally {
             setLoading(false);
             setLoadingAction(null);

@@ -328,13 +328,6 @@ function AppContent() {
   const { isInitialized } = useAdminAuth();
   const [showSkeleton, setShowSkeleton] = React.useState(true);
 
-  // Hide skeleton after initialization
-  useEffect(() => {
-    if (isInitialized) {
-      setShowSkeleton(false);
-    }
-  }, [isInitialized]);
-
   // Fallback: hide skeleton after max 2 seconds
   useEffect(() => {
     const maxTimer = setTimeout(() => setShowSkeleton(false), 2000);
@@ -359,8 +352,10 @@ function AppContent() {
     fetchVersion();
   }, []);
 
+  const shouldShowSkeleton = showSkeleton && !isInitialized;
+
   // Show skeleton on first render
-  if (showSkeleton) {
+  if (shouldShowSkeleton) {
     return <SkeletonScreen />;
   }
 

@@ -4,11 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { Heart, IndianRupee, ChevronLeft } from 'lucide-react';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
-import { ensureGoogleAuthInitialized } from '../utils/GoogleAuthUtils';
-import { auth } from '../firebase';
+import { ensureGoogleAuthInitialized } from '@/utils/GoogleAuthUtils';
+import { auth } from '@/firebase';
 import { GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
-import PageHeader from '../components/PageHeader';
-import { useGlobalSettings } from '../context/GlobalSettingsContext';
+import PageHeader from '@/components/PageHeader';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 
 const donationOptions = [
     { id: 'don_1', title: 'Donation - ₹1000', price: 1000, category: 'General' },

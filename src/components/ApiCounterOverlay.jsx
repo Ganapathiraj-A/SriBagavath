@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useGlobalSettings } from '../context/GlobalSettingsContext';
-import ApiMonitor from '../utils/ApiMonitor';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
+import ApiMonitor from '@/utils/ApiMonitor';
 import { RefreshCw, Activity } from 'lucide-react';
 
 const ApiCounterOverlay = () => {

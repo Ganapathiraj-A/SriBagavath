@@ -4,9 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import {
     Plus, Edit2, Trash2, Save, ChevronLeft, Circle
 } from 'lucide-react';
-import { db } from '../firebase';
+import { db } from '@/firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy, where, writeBatch } from '@/utils/FirestoreProxy';
-import PageHeader from '../components/PageHeader';
+import PageHeader from '@/components/PageHeader';
 
 const DailyZoomLinkManagement = () => {
     const navigate = useNavigate();
@@ -32,8 +32,8 @@ const DailyZoomLinkManagement = () => {
             const q = query(ref, orderBy('name', 'asc'));
             const snap = await getDocs(q);
             setLinks(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-        } catch (error) {
-            console.error('Error loading links:', error);
+        } catch (_err) {
+            console.error('Error loading links:', _err);
         } finally {
             setLoading(false);
         }
@@ -75,8 +75,8 @@ const DailyZoomLinkManagement = () => {
             }
             resetForm();
             loadLinks();
-        } catch (error) {
-            alert('Error: ' + error.message);
+        } catch (_err) {
+            alert('Error: ' + _err.message);
         }
     };
 
@@ -88,8 +88,8 @@ const DailyZoomLinkManagement = () => {
             });
             await batch.commit();
             loadLinks();
-        } catch (error) {
-            alert('Error updating default: ' + error.message);
+        } catch (_err) {
+            alert('Error updating default: ' + _err.message);
         }
     };
 
@@ -109,8 +109,8 @@ const DailyZoomLinkManagement = () => {
             try {
                 await deleteDoc(doc(db, 'daily_zoom_links', id));
                 loadLinks();
-            } catch (error) {
-                alert('Error deleting: ' + error.message);
+            } catch (_err) {
+                alert('Error deleting: ' + _err.message);
             }
         }
     };

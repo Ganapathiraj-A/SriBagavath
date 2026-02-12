@@ -4,25 +4,25 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Capacitor } from '@capacitor/core';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Plus, Edit2, Trash2, Calendar as CalendarIcon, ChevronDown, ChevronUp, Package, ChevronLeft, MapPin } from 'lucide-react';
-import PageHeader from '../components/PageHeader';
-import { db, auth } from '../firebase';
+import PageHeader from '@/components/PageHeader';
+import { db, auth } from '@/firebase';
 import '../components/RegistrationStyles.css';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, setDoc, query, where, orderBy, limit, serverTimestamp } from '@/utils/FirestoreProxy';
 import { LogOut } from 'lucide-react';
 import { signOut } from 'firebase/auth';
-import { bumpServerVersion } from '../utils/SyncManager';
+import { bumpServerVersion } from '@/utils/SyncManager';
 // Removed storage imports as we are using Base64 in Firestore
 // Removed storage imports as we are using Base664 in Firestore
-import { tamilnaduCities } from '../data/tamilnaduCities';
-import { TransactionService } from '../services/TransactionService';
-import { StatsService } from '../services/StatsService';
+import { tamilnaduCities } from '@/data/tamilnaduCities';
+import { TransactionService } from '@/services/TransactionService';
+import { StatsService } from '@/services/StatsService';
 import { increment as firestoreIncrement } from '@/utils/FirestoreProxy';
-import { useUnseenCounts } from '../hooks/useUnseenCounts';
-import { getLocalDateString } from '../utils/dateUtils';
+import { useUnseenCounts } from '@/hooks/useUnseenCounts';
+import { getLocalDateString } from '@/utils/dateUtils';
 
 // Helper to compress image to Base64
 // Helper to compress image to Base64
-import { compressImage } from '../utils/imageUtils';
+import { compressImage } from '@/utils/imageUtils';
 
 // Removed hardcoded PROGRAM_TYPES
 
@@ -43,17 +43,18 @@ const ProgramManagement = () => {
                     } catch (dErr) {
                         console.warn("Disconnect failed:", dErr);
                     }
-                } catch (e) {
-                    console.warn("Google SignOut Error", e);
+                } catch (_err) {
+                    console.warn("Google SignOut Error", _err);
                 }
             }
             await signOut(auth);
             navigate('/');
         }
     };
+
     const [searchParams, setSearchParams] = useSearchParams();
-    const counts = useUnseenCounts();
     const [programs, setPrograms] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [programTypes, setProgramTypes] = useState([]);
     const [bannerImage, setBannerImage] = useState(null);
     const [uploading, setUploading] = useState(false);
@@ -63,7 +64,6 @@ const ProgramManagement = () => {
     const showForm = action === 'add' || action === 'edit';
     const editingProgram = action === 'edit' ? programs.find(p => p.id === editingId) : null;
 
-    const [loading, setLoading] = useState(true);
     const [citySearch, setCitySearch] = useState('');
     const [showCitySuggestions, setShowCitySuggestions] = useState(false);
     const [activeTab, setActiveTab] = useState('upcoming'); // 'upcoming' or 'history'
@@ -135,8 +135,8 @@ const ProgramManagement = () => {
                         if (snap.exists()) {
                             setFormData(prev => ({ ...prev, programBanner: snap.data().banner }));
                         }
-                    } catch (e) {
-                        console.error("Edit mode banner fetch failed", e);
+                    } catch (_err) {
+                        console.error("Edit mode banner fetch failed", _err);
                     }
                 };
                 fetchBanner();
@@ -208,8 +208,8 @@ const ProgramManagement = () => {
 
             // Client-side sort fallback if needed, but Firestore orderBy should handle it.
             setPrograms(loadedPrograms);
-        } catch (error) {
-            console.error('Error loading programs:', error);
+        } catch (_err) {
+            console.error('Error loading programs:', _err);
             // It's possible an index is missing for compound queries. 
             // If so, Firebase console will provide a link to create it.
             // For now, assume it works or we'll catch it in testing.
@@ -228,8 +228,8 @@ const ProgramManagement = () => {
                 ...doc.data()
             }));
             setProgramTypes(loadedTypes);
-        } catch (error) {
-            console.error('Error loading program types:', error);
+        } catch (_err) {
+            console.error('Error loading program types:', _err);
         }
     };
 
@@ -292,7 +292,6 @@ const ProgramManagement = () => {
         if (file) {
             setBannerImage(file);
             alert(`File selected: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`);
-        } else {
         }
     };
 
@@ -317,7 +316,6 @@ const ProgramManagement = () => {
                         throw compressError; // Stop submission
                     }
                 }
-            } else {
             }
 
             const programData = {
@@ -375,9 +373,9 @@ const ProgramManagement = () => {
 
             await bumpServerVersion('programs');
 
-        } catch (error) {
-            console.error('Error saving program:', error);
-            alert('Error saving program: ' + error.message);
+        } catch (_err) {
+            console.error('Error saving program:', _err);
+            alert('Error saving program: ' + _err.message);
         } finally {
             setUploading(false);
         }
@@ -409,9 +407,9 @@ const ProgramManagement = () => {
                 await bumpServerVersion('programs');
                 loadPrograms();
             }
-        } catch (error) {
-            console.error('Error deleting program:', error);
-            alert('Error deleting program: ' + error.message);
+        } catch (_err) {
+            console.error('Error deleting program:', _err);
+            alert('Error deleting program: ' + _err.message);
         }
     };
 
@@ -537,6 +535,26 @@ const ProgramManagement = () => {
                 leftAction={
                     <button onClick={() => navigate('/configuration')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
                         <ChevronLeft size={24} />
+                    </button>
+                }
+                rightAction={
+                    <button
+                        onClick={() => navigate('/programs/retreat')}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.4rem',
+                            padding: '0.5rem 0.8rem',
+                            backgroundColor: '#f3f4f6',
+                            color: '#374151',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '0.75rem',
+                            fontSize: '0.85rem',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                        }}
+                    >
+                        View Listing
                     </button>
                 }
             />

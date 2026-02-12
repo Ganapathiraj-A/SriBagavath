@@ -1,28 +1,92 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 import { useNavigate } from 'react-router-dom';
 import {
     ChevronLeft,
     Layers,
+    Save,
+    User,
+    Shield,
+    Info,
+    LogOut,
+    ExternalLink,
+    Smartphone,
+    Code,
+    Bug,
+    Home,
+    Layout,
+    RefreshCw,
+    Database,
     BookOpen,
     Users,
     LayoutDashboard,
     Settings,
-    Landmark,
+    Check,
+    CreditCard,
+    Copy,
     ChevronRight,
-    Download,
+    Cpu,
     Cloud,
-    User,
-    RefreshCw,
-    ShieldAlert,
-    Cpu
+    Landmark
 } from 'lucide-react';
-import PageHeader from '../components/PageHeader';
-import { useAdminAuth } from '../context/AdminAuthContext';
-import { useGlobalSettings } from '../context/GlobalSettingsContext';
+import PageHeader from '@/components/PageHeader';
+import { useAdminAuth } from '@/context/AdminAuthContext';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 
-const SettingItem = ({ title, subtitle, icon: Icon, path, delay, onClick, color = '#2563eb', bgColor = '#eff6ff' }) => {
-    const navigate = useNavigate();
+const CopyableInput = ({ label, value, onChange, placeholder, type = "text", style = {} }) => {
+    const [copied, setCopied] = React.useState(false);
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(value);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, ...style }}>
+            {label && <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#4b5563', display: 'block' }}>{label}</label>}
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <input
+                    type={type}
+                    value={value}
+                    onChange={onChange}
+                    placeholder={placeholder}
+                    style={{
+                        width: '100%',
+                        padding: '0.625rem',
+                        paddingRight: '2.5rem',
+                        fontSize: '0.875rem',
+                        borderRadius: '0.5rem',
+                        border: '1px solid #e5e7eb',
+                        color: '#111827',
+                        outline: 'none',
+                        transition: 'border-color 0.2s'
+                    }}
+                />
+                <button
+                    onClick={handleCopy}
+                    style={{
+                        position: 'absolute',
+                        right: '8px',
+                        padding: '4px',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: copied ? '#10b981' : '#9ca3af',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}
+                    title="Copy to clipboard"
+                >
+                    {copied ? <Check size={16} /> : <Copy size={16} />}
+                </button>
+            </div>
+        </div>
+    );
+};
+
+const SettingItem = ({ title, subtitle, icon: Icon, delay, onClick, color = '#2563eb', bgColor = '#eff6ff' }) => { // eslint-disable-line no-unused-vars
     return (
         <motion.button
             initial={{ opacity: 0, x: -20 }}
@@ -74,14 +138,38 @@ const AdminSettings = () => {
         updateSource, setUpdateSource,
         serverUrl, setServerUrl,
         sheetLink, setSheetLink,
-        programUpdateUrl, setProgramUpdateUrl,
         scriptUrl, setScriptUrl,
+        programImportUrl, setProgramImportUrl,
+        programExportUrl, setProgramExportUrl,
+        programUpdateUrl, setProgramUpdateUrl,
+        bookImportUrl, setBookImportUrl,
+        bookExportUrl, setBookExportUrl,
+        bookUpdateUrl, setBookUpdateUrl,
+        donationImportUrl, setDonationImportUrl,
+        donationExportUrl, setDonationExportUrl,
+        donationUpdateUrl, setDonationUpdateUrl,
+        driveTamilBooksId,
+        driveEnglishBooksId,
+        driveMagazineId,
+        driveAudioBooksId,
         minAppVersion, setMinAppVersion,
         landingPage, setLandingPage,
         showApiCounter, setShowApiCounter,
         showDiagnosticLogs, setShowDiagnosticLogs,
-        deviceId, isDeviceAuthorized, toggleDeviceAuthorization
+        deviceId, isDeviceAuthorized, toggleDeviceAuthorization,
+        setPublicSettings
     } = useGlobalSettings();
+
+    const savePublicSetting = async (key, value) => {
+        try {
+            const { db } = await import('../firebase');
+            const { doc, setDoc } = await import('@/utils/FirestoreProxy');
+            const publicDocRef = doc(db, 'settings', 'public');
+            await setDoc(publicDocRef, { [key]: value }, { merge: true });
+        } catch (_err) {
+            console.error("Error saving public setting:", _err);
+        }
+    };
 
     const handleLandingPageChange = (e) => {
         setLandingPage(e.target.value);
@@ -341,8 +429,17 @@ const AdminSettings = () => {
                                 </h4>
                             </div>
 
-                            <div style={{ fontSize: '0.75rem', color: '#6b7280', backgroundColor: '#f9fafb', padding: '0.75rem', borderRadius: '0.5rem', wordBreak: 'break-all', fontFamily: 'monospace' }}>
-                                ID: {deviceId}
+                            <div style={{ fontSize: '0.75rem', color: '#6b7280', backgroundColor: '#f9fafb', padding: '0.75rem', borderRadius: '0.5rem', wordBreak: 'break-all', fontFamily: 'monospace', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                                <span style={{ flex: 1 }}>ID: {deviceId}</span>
+                                <button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(deviceId);
+                                        alert("Device ID copied!");
+                                    }}
+                                    style={{ background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', padding: '4px' }}
+                                >
+                                    <Copy size={14} />
+                                </button>
                             </div>
 
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -378,16 +475,12 @@ const AdminSettings = () => {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                             {/* Minimum App Version */}
                             <div style={{ backgroundColor: 'white', borderRadius: '1rem', padding: '1.25rem', border: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                    <div style={{ padding: '0.5rem', borderRadius: '8px', backgroundColor: '#eff6ff', color: '#2563eb' }}>
-                                        <Download size={18} />
-                                    </div>
-                                    <div style={{ flex: 1 }}>
-                                        <div style={{ fontSize: '0.9375rem', fontWeight: 600, color: '#111827' }}>Force Update Version</div>
-                                        <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>Users below this are forced to update</div>
-                                    </div>
-                                </div>
-                                <input type="text" value={minAppVersion} onChange={(e) => setMinAppVersion(e.target.value)} placeholder="e.g. 3.0.0" style={{ padding: '0.625rem', fontSize: '0.875rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb', color: '#111827' }} />
+                                <CopyableInput
+                                    label="Force Update Version"
+                                    value={minAppVersion}
+                                    onChange={(e) => setMinAppVersion(e.target.value)}
+                                    placeholder="e.g. 3.0.0"
+                                />
                             </div>
 
                             {/* Online Transactions */}
@@ -420,13 +513,82 @@ const AdminSettings = () => {
                             {/* Functional URLs (Sheet, Script) */}
                             <div style={{ backgroundColor: 'white', borderRadius: '1rem', padding: '1.25rem', border: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                    <div>
-                                        <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#4b5563', display: 'block', marginBottom: '4px' }}>Apps Script URL</label>
-                                        <input type="text" value={scriptUrl} onChange={(e) => setScriptUrl(e.target.value)} style={{ width: '100%', padding: '0.625rem', fontSize: '0.8125rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb', color: '#4b5563' }} />
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                        <CopyableInput
+                                            label="Apps Script URL"
+                                            value={scriptUrl}
+                                            onChange={(e) => setScriptUrl(e.target.value)}
+                                        />
+                                        <CopyableInput
+                                            label="Master Sheet Link"
+                                            value={sheetLink}
+                                            onChange={(e) => setSheetLink(e.target.value)}
+                                        />
                                     </div>
-                                    <div>
-                                        <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#4b5563', display: 'block', marginBottom: '4px' }}>Master Google Sheet Link</label>
-                                        <input type="text" value={sheetLink} onChange={(e) => setSheetLink(e.target.value)} style={{ width: '100%', padding: '0.625rem', fontSize: '0.8125rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb', color: '#4b5563' }} />
+
+                                    {/* Google Drive Configuration */}
+                                    <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #eee' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem' }}>
+                                            <Cloud size={16} color="var(--color-primary)" />
+                                            <h4 style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#4b5563', margin: 0 }}>Google Drive Folders</h4>
+                                        </div>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                            <CopyableInput
+                                                label="Tamil Books Folder"
+                                                value={driveTamilBooksId}
+                                                onChange={(e) => {
+                                                    setPublicSettings(prev => ({ ...prev, driveTamilBooksId: e.target.value }));
+                                                    savePublicSetting('driveTamilBooksId', e.target.value);
+                                                }}
+                                                style={{ fontSize: '0.7rem' }}
+                                            />
+                                            <CopyableInput
+                                                label="English Books Folder"
+                                                value={driveEnglishBooksId}
+                                                onChange={(e) => {
+                                                    setPublicSettings(prev => ({ ...prev, driveEnglishBooksId: e.target.value }));
+                                                    savePublicSetting('driveEnglishBooksId', e.target.value);
+                                                }}
+                                            />
+                                            <CopyableInput
+                                                label="Monthly Magazine"
+                                                value={driveMagazineId}
+                                                onChange={(e) => {
+                                                    setPublicSettings(prev => ({ ...prev, driveMagazineId: e.target.value }));
+                                                    savePublicSetting('driveMagazineId', e.target.value);
+                                                }}
+                                            />
+                                            <CopyableInput
+                                                label="Audio Books Folder"
+                                                value={driveAudioBooksId}
+                                                onChange={(e) => {
+                                                    setPublicSettings(prev => ({ ...prev, driveAudioBooksId: e.target.value }));
+                                                    savePublicSetting('driveAudioBooksId', e.target.value);
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Sub-URLs Grid */}
+                                    <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px dashed #eee' }}>
+                                        <h4 style={{ fontSize: '0.75rem', fontWeight: 600, color: '#9ca3af', marginBottom: '0.75rem' }}>Import/Export Spreadsheet Tabs</h4>
+
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+                                            {/* Programs */}
+                                            <CopyableInput label="Prog. Import" value={programImportUrl} onChange={(e) => setProgramImportUrl(e.target.value)} />
+                                            <CopyableInput label="Prog. Export" value={programExportUrl} onChange={(e) => setProgramExportUrl(e.target.value)} />
+                                            <CopyableInput label="Prog. Update" value={programUpdateUrl} onChange={(e) => setProgramUpdateUrl(e.target.value)} />
+
+                                            {/* Books */}
+                                            <CopyableInput label="Book Import" value={bookImportUrl} onChange={(e) => setBookImportUrl(e.target.value)} />
+                                            <CopyableInput label="Book Export" value={bookExportUrl} onChange={(e) => setBookExportUrl(e.target.value)} />
+                                            <CopyableInput label="Book Update" value={bookUpdateUrl} onChange={(e) => setBookUpdateUrl(e.target.value)} />
+
+                                            {/* Donations */}
+                                            <CopyableInput label="Don. Import" value={donationImportUrl} onChange={(e) => setDonationImportUrl(e.target.value)} />
+                                            <CopyableInput label="Don. Export" value={donationExportUrl} onChange={(e) => setDonationExportUrl(e.target.value)} />
+                                            <CopyableInput label="Don. Update" value={donationUpdateUrl} onChange={(e) => setDonationUpdateUrl(e.target.value)} />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -439,8 +601,8 @@ const AdminSettings = () => {
                         <Cloud size={12} /> Cloud Synchronized Settings & Profile
                     </p>
                 </div>
-            </div >
-        </div >
+            </div>
+        </div>
     );
 };
 

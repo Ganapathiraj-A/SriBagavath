@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useGlobalSettings } from '../context/GlobalSettingsContext';
-import DiagnosticLogs from '../utils/DiagnosticLogs';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
+import DiagnosticLogs from '@/utils/DiagnosticLogs';
 import { Terminal, Copy, Trash2, X, ChevronUp, ChevronDown, Cloud, CloudOff, RefreshCw } from 'lucide-react';
-import { db, auth } from '../firebase';
+import { db, auth } from '@/firebase';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const DiagnosticLogOverlay = () => {
@@ -139,7 +139,7 @@ const DiagnosticLogOverlay = () => {
                             backgroundColor: '#1e293b'
                         }}>
                             <div style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>
-                                TAP 'COPY ALL' & SEND TO ME
+                                TAP &apos;COPY ALL&apos; &amp; SEND TO ME
                             </div>
                             <div style={{ display: 'flex', gap: '8px' }}>
                                 <button

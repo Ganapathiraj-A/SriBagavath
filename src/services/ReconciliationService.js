@@ -1,5 +1,5 @@
-import { db } from '../firebase';
-import { collection, query, where, getDocs, doc, writeBatch, serverTimestamp } from '@/utils/FirestoreProxy';
+import { db } from '@/firebase';
+import { collection, query, where, getDocs, doc, writeBatch, serverTimestamp, orderBy, limit } from '@/utils/FirestoreProxy';
 
 export const ReconciliationService = {
     /**
@@ -112,9 +112,9 @@ export const ReconciliationService = {
             }
 
             return { success: true, matchCount };
-        } catch (error) {
-            console.error("Reconciliation Error:", error);
-            throw error;
+        } catch (_err) {
+            console.error("Reconciliation Error:", _err);
+            throw _err;
         }
     }
 };

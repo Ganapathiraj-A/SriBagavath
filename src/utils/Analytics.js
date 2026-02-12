@@ -1,4 +1,4 @@
-import { analytics } from '../firebase';
+import { analytics } from '@/firebase';
 import { logEvent } from 'firebase/analytics';
 
 const Analytics = {
@@ -8,8 +8,8 @@ const Analytics = {
             if (instance) {
                 logEvent(instance, eventName, eventParams);
             }
-        } catch (error) {
-            console.error('Analytics logEvent failed:', error);
+        } catch (_err) {
+            console.error('Analytics logEvent failed:', _err);
         }
     },
 

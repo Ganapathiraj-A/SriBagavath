@@ -4,15 +4,15 @@ import { useNavigate } from 'react-router-dom';
 import { IndianRupee, ShoppingCart, ChevronLeft, Plus, Minus, Info, RefreshCw } from 'lucide-react';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
-import { ensureGoogleAuthInitialized } from '../utils/GoogleAuthUtils';
-import PageHeader from '../components/PageHeader';
-import LazyImage from '../components/LazyImage';
-import { auth, db } from '../firebase';
+import { ensureGoogleAuthInitialized } from '@/utils/GoogleAuthUtils';
+import PageHeader from '@/components/PageHeader';
+import LazyImage from '@/components/LazyImage';
+import { auth, db } from '@/firebase';
 import { collection, getDocs, query, orderBy, doc, getDoc } from '@/utils/FirestoreProxy';
 import { GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
-import { useCart } from '../context/CartContext';
-import { useAdminAuth } from '../context/AdminAuthContext';
-import { useGlobalSettings } from '../context/GlobalSettingsContext';
+import { useCart } from '@/context/CartContext';
+import { useAdminAuth } from '@/context/AdminAuthContext';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 
 const BookStore = () => {
     const navigate = useNavigate();
@@ -108,8 +108,8 @@ const BookStore = () => {
                     setLoading(false);
                     console.log(`[BookStore] Loaded ${cachedData.length} items from cache`);
                 }
-            } catch (e) {
-                console.warn("[BookStore] Cache read failed", e);
+            } catch (_err) {
+                console.warn("[BookStore] Cache read failed", _err);
             }
 
             // Always background refresh if needsSync or no cache
@@ -131,8 +131,8 @@ const BookStore = () => {
                 }
             }
 
-        } catch (error) {
-            console.error("Error loading products:", error);
+        } catch (_err) {
+            console.error("Error loading products:", _err);
             setLoading(false);
         }
     };

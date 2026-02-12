@@ -1,6 +1,6 @@
-import { db } from '../firebase';
+import { db } from '@/firebase';
 import { doc, updateDoc, increment, setDoc, getDoc, getDocs, collection, deleteDoc, Timestamp } from '@/utils/FirestoreProxy';
-import { getLocalDateString } from '../utils/dateUtils';
+import { getLocalDateString } from '@/utils/dateUtils';
 
 export const StatsService = {
     // 1. Overall Totals (Programs, Registrations, Images, Size)
@@ -9,7 +9,7 @@ export const StatsService = {
         const ref = doc(db, "system_stats", "totals");
         try {
             await updateDoc(ref, updates);
-        } catch (e) {
+        } catch (_err) {
             // If document doesn't exist, create it
             await setDoc(ref, updates, { merge: true });
         }
@@ -170,9 +170,9 @@ export const StatsService = {
             const ref = doc(db, "system_stats", "totals");
             await setDoc(ref, newTotals, { merge: true });
             return true;
-        } catch (e) {
-            console.error("Recalculate failed", e);
-            throw e;
+        } catch (_err) {
+            console.error("Recalculate failed", _err);
+            throw _err;
         }
     },
 
@@ -207,9 +207,9 @@ export const StatsService = {
             await setDoc(doc(db, "geo_stats", "login_counts"), { counts: {}, monthly: {} });
 
             return true;
-        } catch (e) {
-            console.error("Clear all failed", e);
-            throw e;
+        } catch (_err) {
+            console.error("Clear all failed", _err);
+            throw _err;
         }
     },
 
@@ -239,8 +239,8 @@ export const StatsService = {
 
                     localStorage.setItem(sessionKey, "true");
                     localStorage.removeItem('last_stat_log');
-                } catch (e) {
-                    console.error("Core count update failed:", e);
+                } catch (_err) {
+                    console.error("Core count update failed:", _err);
                 }
 
                 // 2. Geo Tracking (With Fallback)
@@ -254,8 +254,8 @@ export const StatsService = {
                         const isIndia = data.country_code === 'IN';
                         locationKey = isIndia ? district : country;
                     }
-                } catch (e) {
-                    console.warn("Geo lookup failed, using fallback:", e);
+                } catch (_err) {
+                    console.warn("Geo lookup failed, using fallback:", _err);
                 }
 
                 try {
@@ -272,14 +272,14 @@ export const StatsService = {
                             throw err;
                         }
                     });
-                } catch (e) {
-                    console.error("Geo recording failed:", e);
+                } catch (_err) {
+                    console.error("Geo recording failed:", _err);
                 }
             } else {
                 console.log("User already tracked for today.");
             }
-        } catch (e) {
-            console.error("trackUserLogin overall failure:", e);
+        } catch (_err) {
+            console.error("trackUserLogin overall failure:", _err);
         }
     }
 };

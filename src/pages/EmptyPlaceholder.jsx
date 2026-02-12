@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Info } from 'lucide-react';
-import PageHeader from '../components/PageHeader';
+import PageHeader from '@/components/PageHeader';
 
 const EmptyPlaceholder = ({ title }) => {
     const navigate = useNavigate();
@@ -37,7 +37,7 @@ const EmptyPlaceholder = ({ title }) => {
                 </div>
                 <h2 style={{ fontSize: '1.5rem', fontWeight: 600, color: '#111827' }}>Coming Soon</h2>
                 <p style={{ color: '#6b7280', maxWidth: '20rem' }}>
-                    We haven't scheduled any upcoming {title} yet. Please check back later!
+                    We haven&apos;t scheduled any upcoming {title} yet. Please check back later!
                 </p>
 
                 <button

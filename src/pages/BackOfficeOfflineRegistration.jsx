@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Plus, Trash2, Camera, RotateCcw } from 'lucide-react';
-import PageHeader from '../components/PageHeader';
-import { db } from '../firebase';
-import { getLocalDateString } from '../utils/dateUtils';
+import PageHeader from '@/components/PageHeader';
+import { db } from '@/firebase';
+import { getLocalDateString } from '@/utils/dateUtils';
 import { collection, query, where, getDocs, Timestamp, orderBy } from '@/utils/FirestoreProxy';
-import { TransactionService } from '../services/TransactionService';
+import { TransactionService } from '@/services/TransactionService';
 import { Camera as CameraPlugin, CameraResultType } from '@capacitor/camera';
 
 const BackOfficeOfflineRegistration = () => {
@@ -44,8 +44,8 @@ const BackOfficeOfflineRegistration = () => {
 
                 console.log("OfflineReg: Filtered Programs:", loaded);
                 setPrograms(loaded);
-            } catch (error) {
-                console.error("Error fetching programs", error);
+            } catch (_err) {
+                console.error("Error fetching programs", _err);
             }
         };
         fetchPrograms();
@@ -69,8 +69,8 @@ const BackOfficeOfflineRegistration = () => {
                     if (data.city) setCity(data.city);
                 }
             }
-        } catch (e) {
-            console.error("Failed to load previous info", e);
+        } catch (_err) {
+            console.error("Failed to load previous info", _err);
         }
     };
 
@@ -108,8 +108,8 @@ const BackOfficeOfflineRegistration = () => {
                 resultType: CameraResultType.Base64
             });
             setImage(photo.base64String);
-        } catch (e) {
-            console.error(e);
+        } catch (_err) {
+            console.error(_err);
         }
     };
 
@@ -145,8 +145,8 @@ const BackOfficeOfflineRegistration = () => {
                 const existing = localStorage.getItem('last_offline_transaction_details');
                 const merged = existing ? { ...JSON.parse(existing), ...dataToSave } : dataToSave;
                 localStorage.setItem('last_offline_transaction_details', JSON.stringify(merged));
-            } catch (e) {
-                console.error("Failed to save offline details", e);
+            } catch (_err) {
+                console.error("Failed to save offline details", _err);
             }
 
             await TransactionService.recordTransaction({
@@ -177,9 +177,9 @@ const BackOfficeOfflineRegistration = () => {
 
             alert("Offline Registration Recorded Successfully!");
             navigate('/admin/back-office');
-        } catch (error) {
-            console.error(error);
-            alert("Error recording transaction: " + error.message);
+        } catch (_err) {
+            console.error(_err);
+            alert("Error recording transaction: " + _err.message);
         } finally {
             setLoading(false);
         }
