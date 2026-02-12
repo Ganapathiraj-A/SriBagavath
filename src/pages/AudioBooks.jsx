@@ -29,6 +29,19 @@ const AudioBooks = () => {
       <PageHeader title="Audio Books" />
 
       <div style={{
+        padding: '0.75rem 1.25rem',
+        backgroundColor: '#fff',
+        borderBottom: '1px solid #f3f4f6',
+        textAlign: 'center',
+        color: '#6b7280',
+        fontSize: '0.85rem',
+        fontStyle: 'italic',
+        lineHeight: 1.5
+      }}>
+        "We Thank Smt Radha Kannan for compiling audio books"
+      </div>
+
+      <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
         gap: '1rem',
