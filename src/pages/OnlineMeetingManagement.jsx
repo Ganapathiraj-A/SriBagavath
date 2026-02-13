@@ -295,7 +295,7 @@ const OnlineMeetingManagement = () => {
                             cursor: 'pointer'
                         }}
                     >
-                        View Listing
+                        <ExternalLink size={16} /> View Listing
                     </button>
                 }
             />

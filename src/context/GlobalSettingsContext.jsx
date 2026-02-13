@@ -148,36 +148,6 @@ export const GlobalSettingsProvider = ({ children }) => {
     // 3. Global Settings Sync (Public)
     useEffect(() => {
         const publicDocRef = doc(db, 'settings', 'public');
-        const legacyDocRef = doc(db, 'settings', 'global');
-
-        const initPublicFetch = async () => {
-            if (!currentUser) return; // Only attempt migration if someone is logged in
-            try {
-                const docSnap = await getDocCacheFirst(publicDocRef);
-                if (docSnap.exists()) {
-                    setPublicSettings(prev => ({ ...prev, ...docSnap.data() }));
-                } else {
-                    // One-time migration for PUBLIC parts from legacy global
-                    console.log("Public settings not found. Attempting migration...");
-                    const legacySnap = await getDoc(legacyDocRef);
-                    if (legacySnap.exists()) {
-                        const legacyData = legacySnap.data();
-                        const publicData = {
-                            onlineTransactionsEnabled: legacyData.onlineTransactionsEnabled ?? true,
-                            minAppVersion: legacyData.minAppVersion ?? '3.0.0',
-                            driveTamilBooksId: legacyData.driveTamilBooksId || '',
-                            driveEnglishBooksId: legacyData.driveEnglishBooksId || '',
-                            driveMagazineId: legacyData.driveMagazineId || '',
-                            driveAudioBooksId: legacyData.driveAudioBooksId || ''
-                        };
-                        await setDoc(publicDocRef, publicData);
-                        setPublicSettings(publicData);
-                    }
-                }
-            } catch {
-                // Silently fail if not authorized to read/migrate legacy global
-            }
-        };
 
         const unsubscribePublic = onSnapshot(publicDocRef, (docSnap) => {
             if (docSnap.exists()) {
@@ -185,7 +155,6 @@ export const GlobalSettingsProvider = ({ children }) => {
             }
         });
 
-        initPublicFetch();
         return () => unsubscribePublic();
     }, [currentUser]);
 
@@ -213,42 +182,6 @@ export const GlobalSettingsProvider = ({ children }) => {
         }
 
         const adminDocRef = doc(db, 'settings', 'admin');
-        const legacyDocRef = doc(db, 'settings', 'global');
-
-        const initAdminFetch = async () => {
-            try {
-                const docSnap = await getDocCacheFirst(adminDocRef);
-                if (docSnap.exists()) {
-                    setAdminSettings(prev => ({ ...prev, ...docSnap.data() }));
-                } else {
-                    // One-time migration for PRIVATE parts from legacy global
-                    console.log("Admin settings not found. Attempting migration...");
-                    const legacySnap = await getDoc(legacyDocRef);
-                    if (legacySnap.exists()) {
-                        const legacyData = legacySnap.data();
-                        const adminData = {
-                            bankPassword: legacyData.bankPassword || '',
-                            sheetLink: legacyData.sheetLink || adminSettings.sheetLink,
-                            scriptUrl: legacyData.scriptUrl || adminSettings.scriptUrl,
-                            programImportUrl: legacyData.programImportUrl || adminSettings.programImportUrl,
-                            programExportUrl: legacyData.programExportUrl || adminSettings.programExportUrl,
-                            programUpdateUrl: legacyData.programUpdateUrl || adminSettings.programUpdateUrl,
-                            bookImportUrl: legacyData.bookImportUrl || adminSettings.bookImportUrl,
-                            bookExportUrl: legacyData.bookExportUrl || adminSettings.bookExportUrl,
-                            bookUpdateUrl: legacyData.bookUpdateUrl || adminSettings.bookUpdateUrl,
-                            donationImportUrl: legacyData.donationImportUrl || adminSettings.donationImportUrl,
-                            donationExportUrl: legacyData.donationExportUrl || adminSettings.donationExportUrl,
-                            donationUpdateUrl: legacyData.donationUpdateUrl || adminSettings.donationUpdateUrl
-                        };
-                        await setDoc(adminDocRef, adminData);
-                        setAdminSettings(adminData);
-                    }
-                }
-            } catch {
-                // Expected to fail if not an admin
-                console.log("Admin settings fetch restricted (Access Denied)");
-            }
-        };
 
         const unsubscribeAdmin = onSnapshot(adminDocRef, (docSnap) => {
             if (docSnap.exists()) {
@@ -256,7 +189,6 @@ export const GlobalSettingsProvider = ({ children }) => {
             }
         }, () => console.log("Admin settings listener restricted"));
 
-        initAdminFetch();
         return () => unsubscribeAdmin();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentUser]);

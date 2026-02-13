@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
     Calendar, Clock, MapPin, Plus, Edit2, Trash2,
-    ChevronLeft, AlertCircle, Save, X, Users, RefreshCw, Info
+    ChevronLeft, AlertCircle, Save, X, Users, RefreshCw, Info, ExternalLink
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { db } from '@/firebase';
@@ -297,7 +297,7 @@ const SatsangManagement = () => {
                             cursor: 'pointer'
                         }}
                     >
-                        View Listing
+                        <ExternalLink size={16} /> View Listing
                     </button>
                 }
             />

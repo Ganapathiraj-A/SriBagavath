@@ -3,7 +3,7 @@ import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
 import { cleanupOldSchedules } from '@/utils/cleanup';
 import { motion } from 'framer-motion';
-import { Plus, Edit2, Trash2, Calendar as CalendarIcon, MapPin, ChevronLeft } from 'lucide-react';
+import { Plus, Edit2, Trash2, Calendar as CalendarIcon, MapPin, ChevronLeft, ExternalLink } from 'lucide-react';
 import { db, auth } from '@/firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy, where, limit, setDoc, serverTimestamp } from '@/utils/FirestoreProxy';
 import { LogOut } from 'lucide-react';
@@ -296,6 +296,26 @@ const ScheduleManagement = () => {
                 leftAction={
                     <button onClick={() => navigate('/configuration')} style={{ background: 'none', border: 'none', padding: '8px', cursor: 'pointer' }}>
                         <ChevronLeft size={24} />
+                    </button>
+                }
+                rightAction={
+                    <button
+                        onClick={() => navigate('/schedule')}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.4rem',
+                            padding: '0.5rem 0.8rem',
+                            backgroundColor: '#f3f4f6',
+                            color: '#374151',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '0.75rem',
+                            fontSize: '0.85rem',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                        }}
+                    >
+                        <ExternalLink size={16} /> View Listing
                     </button>
                 }
             />

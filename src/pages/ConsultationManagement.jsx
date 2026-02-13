@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
-    Plus, Edit2, Trash2, Save, X, ChevronUp, ChevronDown, ChevronLeft, User, Phone
+    Plus, Edit2, Trash2, Save, X, ChevronUp, ChevronDown, ChevronLeft, User, Phone, ExternalLink
 } from 'lucide-react';
 import { db } from '@/firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy } from '@/utils/FirestoreProxy';
@@ -126,6 +126,26 @@ const ConsultationManagement = () => {
                 leftAction={
                     <button onClick={() => navigate('/admin/program-management')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
                         <ChevronLeft size={24} />
+                    </button>
+                }
+                rightAction={
+                    <button
+                        onClick={() => navigate('/programs/consultation')}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.4rem',
+                            padding: '0.5rem 0.8rem',
+                            backgroundColor: '#f3f4f6',
+                            color: '#374151',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '0.75rem',
+                            fontSize: '0.85rem',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                        }}
+                    >
+                        <ExternalLink size={16} /> View Listing
                     </button>
                 }
             />
