@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
     Calendar, Clock, MapPin, Plus, Edit2, Trash2,
@@ -76,6 +77,7 @@ const formatRecurrenceRule = (master) => {
 };
 
 const SatsangManagement = () => {
+    const navigate = useNavigate();
     const [meetings, setMeetings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isAdding, setIsAdding] = useState(false);

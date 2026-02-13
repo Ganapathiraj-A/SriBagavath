@@ -22,6 +22,7 @@ const ProgramManagement = lazy(() => import('./pages/ProgramManagement'));
 const ProgramTypesManagement = lazy(() => import('./pages/ProgramTypesManagement'));
 const ManageUsers = lazy(() => import('./pages/ManageUsers'));
 const ProgramConversations = lazy(() => import('./pages/ProgramConversations'));
+const UrlSettings = lazy(() => import('./pages/UrlSettings'));
 const AyyasSchedule = lazy(() => import('./pages/AyyasSchedule'));
 const ScheduleManagement = lazy(() => import('./pages/ScheduleManagement'));
 const MyRegistrations = lazy(() => import('./pages/MyRegistrations'));
@@ -278,6 +279,7 @@ function AnimatedRoutes() {
           <Route path="/configuration/program-types" element={<ProtectedRoute requiredPermission="PROGRAM_TYPES"><ProgramTypesManagement /></ProtectedRoute>} />
           <Route path="/manage-users" element={<ProtectedRoute requiredPermission="MANAGE_USERS"><ManageUsers /></ProtectedRoute>} />
           <Route path="/conversations/programs" element={<ProtectedRoute requiredPermission="PROGRAM_CONVERSATIONS"><ProgramConversations /></ProtectedRoute>} />
+          <Route path="/admin/url-settings" element={<ProtectedRoute requiredRole="SUPER_ADMIN"><UrlSettings /></ProtectedRoute>} />
           <Route path="/schedule/manage" element={<ProtectedRoute requiredPermission="SCHEDULE_MANAGEMENT"><ScheduleManagement /></ProtectedRoute>} />
 
           <Route path="/admin/program-management" element={<ProtectedRoute><AdminProgramManagement /></ProtectedRoute>} />

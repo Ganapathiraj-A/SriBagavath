@@ -127,7 +127,31 @@ const Consultation = () => {
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
-            <PageHeader title="Consultation" />
+            <PageHeader
+                title="Consultation"
+                rightAction={
+                    (isAdmin || hasAccess('PROGRAM_MANAGEMENT') || hasAccess('CONSULTATION_MANAGEMENT')) && (
+                        <button
+                            onClick={() => navigate('/admin/program-management')}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.4rem',
+                                padding: '0.5rem 0.8rem',
+                                backgroundColor: '#fff7ed',
+                                color: 'var(--color-primary)',
+                                border: '1px solid #ffedd5',
+                                borderRadius: '0.75rem',
+                                fontSize: '0.85rem',
+                                fontWeight: 600,
+                                cursor: 'pointer'
+                            }}
+                        >
+                            Manage
+                        </button>
+                    )
+                }
+            />
 
             <div style={{ padding: '1.5rem', maxWidth: '28rem', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <p style={{ color: '#6b7280', textAlign: 'center', marginBottom: '1rem', fontSize: '0.95rem' }}>

@@ -27,7 +27,9 @@ import {
     ChevronRight,
     Cpu,
     Cloud,
-    Landmark
+    Landmark,
+    Eye,
+    EyeOff
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { useAdminAuth } from '@/context/AdminAuthContext';
@@ -159,6 +161,8 @@ const AdminSettings = () => {
         deviceId, isDeviceAuthorized, toggleDeviceAuthorization,
         setPublicSettings
     } = useGlobalSettings();
+
+    const [showBankPassword, setShowBankPassword] = React.useState(false);
 
     const savePublicSetting = async (key, value) => {
         try {
@@ -499,99 +503,41 @@ const AdminSettings = () => {
                                 </div>
                             </div>
 
+                            {/* URL Configurations Link */}
+                            <SettingItem
+                                title="URL Configurations"
+                                subtitle="Manage Sheets, Scripts & Drive Folder IDs"
+                                icon={LinkIcon}
+                                delay={0.1}
+                                onClick={() => navigate('/admin/url-settings')}
+                                color="#2563eb"
+                                bgColor="#eff6ff"
+                            />
+
                             {/* Bank Password */}
                             <div style={{ backgroundColor: 'white', borderRadius: '1rem', padding: '1.25rem', border: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                                     <div style={{ padding: '0.5rem', borderRadius: '8px', backgroundColor: '#f3f4f6', color: '#374151' }}>
                                         <LayoutDashboard size={18} />
                                     </div>
-                                    <div style={{ fontSize: '0.9375rem', fontWeight: 600, color: '#111827' }}>Bank PDF Password</div>
+                                    <div style={{ flex: 1, fontSize: '0.9375rem', fontWeight: 600, color: '#111827' }}>Bank PDF Password</div>
+                                    <button
+                                        onClick={() => setShowBankPassword(!showBankPassword)}
+                                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', display: 'flex', alignItems: 'center' }}
+                                    >
+                                        {showBankPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
                                 </div>
-                                <input type="password" value={bankPassword} onChange={(e) => setBankPassword(e.target.value)} placeholder="Statement decryption key" style={{ padding: '0.625rem', fontSize: '0.875rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb', color: '#111827' }} />
+                                <input
+                                    type={showBankPassword ? "text" : "password"}
+                                    value={bankPassword}
+                                    onChange={(e) => setBankPassword(e.target.value)}
+                                    placeholder="Statement decryption key"
+                                    style={{ padding: '0.625rem', fontSize: '0.875rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb', color: '#111827' }}
+                                />
                             </div>
 
-                            {/* Functional URLs (Sheet, Script) */}
-                            <div style={{ backgroundColor: 'white', borderRadius: '1rem', padding: '1.25rem', border: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                        <CopyableInput
-                                            label="Apps Script URL"
-                                            value={scriptUrl}
-                                            onChange={(e) => setScriptUrl(e.target.value)}
-                                        />
-                                        <CopyableInput
-                                            label="Master Sheet Link"
-                                            value={sheetLink}
-                                            onChange={(e) => setSheetLink(e.target.value)}
-                                        />
-                                    </div>
 
-                                    {/* Google Drive Configuration */}
-                                    <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #eee' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem' }}>
-                                            <Cloud size={16} color="var(--color-primary)" />
-                                            <h4 style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#4b5563', margin: 0 }}>Google Drive Folders</h4>
-                                        </div>
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                            <CopyableInput
-                                                label="Tamil Books Folder"
-                                                value={driveTamilBooksId}
-                                                onChange={(e) => {
-                                                    setPublicSettings(prev => ({ ...prev, driveTamilBooksId: e.target.value }));
-                                                    savePublicSetting('driveTamilBooksId', e.target.value);
-                                                }}
-                                                style={{ fontSize: '0.7rem' }}
-                                            />
-                                            <CopyableInput
-                                                label="English Books Folder"
-                                                value={driveEnglishBooksId}
-                                                onChange={(e) => {
-                                                    setPublicSettings(prev => ({ ...prev, driveEnglishBooksId: e.target.value }));
-                                                    savePublicSetting('driveEnglishBooksId', e.target.value);
-                                                }}
-                                            />
-                                            <CopyableInput
-                                                label="Monthly Magazine"
-                                                value={driveMagazineId}
-                                                onChange={(e) => {
-                                                    setPublicSettings(prev => ({ ...prev, driveMagazineId: e.target.value }));
-                                                    savePublicSetting('driveMagazineId', e.target.value);
-                                                }}
-                                            />
-                                            <CopyableInput
-                                                label="Audio Books Folder"
-                                                value={driveAudioBooksId}
-                                                onChange={(e) => {
-                                                    setPublicSettings(prev => ({ ...prev, driveAudioBooksId: e.target.value }));
-                                                    savePublicSetting('driveAudioBooksId', e.target.value);
-                                                }}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    {/* Sub-URLs Grid */}
-                                    <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px dashed #eee' }}>
-                                        <h4 style={{ fontSize: '0.75rem', fontWeight: 600, color: '#9ca3af', marginBottom: '0.75rem' }}>Import/Export Spreadsheet Tabs</h4>
-
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
-                                            {/* Programs */}
-                                            <CopyableInput label="Prog. Import" value={programImportUrl} onChange={(e) => setProgramImportUrl(e.target.value)} />
-                                            <CopyableInput label="Prog. Export" value={programExportUrl} onChange={(e) => setProgramExportUrl(e.target.value)} />
-                                            <CopyableInput label="Prog. Update" value={programUpdateUrl} onChange={(e) => setProgramUpdateUrl(e.target.value)} />
-
-                                            {/* Books */}
-                                            <CopyableInput label="Book Import" value={bookImportUrl} onChange={(e) => setBookImportUrl(e.target.value)} />
-                                            <CopyableInput label="Book Export" value={bookExportUrl} onChange={(e) => setBookExportUrl(e.target.value)} />
-                                            <CopyableInput label="Book Update" value={bookUpdateUrl} onChange={(e) => setBookUpdateUrl(e.target.value)} />
-
-                                            {/* Donations */}
-                                            <CopyableInput label="Don. Import" value={donationImportUrl} onChange={(e) => setDonationImportUrl(e.target.value)} />
-                                            <CopyableInput label="Don. Export" value={donationExportUrl} onChange={(e) => setDonationExportUrl(e.target.value)} />
-                                            <CopyableInput label="Don. Update" value={donationUpdateUrl} onChange={(e) => setDonationUpdateUrl(e.target.value)} />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 )}

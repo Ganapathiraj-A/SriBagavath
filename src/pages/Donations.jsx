@@ -140,37 +140,52 @@ const Donations = () => {
                 {/* Tabs */}
                 <div style={{
                     display: 'flex',
-                    gap: '4px',
-                    padding: '4px',
-                    backgroundColor: '#f3f4f6',
-                    borderRadius: '0.875rem',
-                    marginBottom: '24px'
+                    justifyContent: 'center',
+                    gap: '2rem',
+                    marginBottom: '2rem',
+                    borderBottom: '1px solid #e5e7eb',
+                    padding: '0 1rem'
                 }}>
-                    {tabs.map(tab => (
-                        <button
-                            key={tab}
-                            onClick={() => {
-                                setActiveTab(tab);
-                                setSelectedAmount(null);
-                                setCustomAmount('');
-                            }}
-                            style={{
-                                flex: 1,
-                                padding: '10px',
-                                border: 'none',
-                                borderRadius: '0.75rem',
-                                fontSize: '0.875rem',
-                                fontWeight: 600,
-                                backgroundColor: activeTab === tab ? 'white' : 'transparent',
-                                color: activeTab === tab ? '#111827' : '#6b7280',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                                boxShadow: activeTab === tab ? '0 1px 3px 0 rgb(0 0 0 / 0.1)' : 'none'
-                            }}
-                        >
-                            {tab}
-                        </button>
-                    ))}
+                    {tabs.map(tab => {
+                        const isActive = activeTab === tab;
+                        return (
+                            <button
+                                key={tab}
+                                onClick={() => {
+                                    setActiveTab(tab);
+                                    setSelectedAmount(null);
+                                    setCustomAmount('');
+                                }}
+                                style={{
+                                    padding: '0.75rem 0.25rem',
+                                    border: 'none',
+                                    backgroundColor: 'transparent',
+                                    fontSize: '0.875rem',
+                                    fontWeight: 700,
+                                    color: isActive ? 'var(--color-primary)' : '#6b7280',
+                                    position: 'relative',
+                                    cursor: 'pointer',
+                                    transition: 'color 0.2s'
+                                }}
+                            >
+                                {tab}
+                                {isActive && (
+                                    <motion.div
+                                        layoutId="activeTabUnderline"
+                                        style={{
+                                            position: 'absolute',
+                                            bottom: 0,
+                                            left: 0,
+                                            right: 0,
+                                            height: '3px',
+                                            backgroundColor: 'var(--color-primary)',
+                                            borderRadius: '99px'
+                                        }}
+                                    />
+                                )}
+                            </button>
+                        );
+                    })}
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>

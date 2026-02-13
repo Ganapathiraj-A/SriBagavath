@@ -13,7 +13,7 @@ const AyyasSchedule = () => {
     const navigate = useNavigate();
     const [schedules, setSchedules] = useState([]);
     const [loading, setLoading] = useState(true);
-    const { loading: authGlobalLoading } = useAdminAuth();
+    const { loading: authGlobalLoading, isAdmin, hasAccess } = useAdminAuth();
 
     useEffect(() => {
         const fetchSchedules = async () => {
