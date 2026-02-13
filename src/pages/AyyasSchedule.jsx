@@ -137,6 +137,28 @@ const AyyasSchedule = () => {
                         <ChevronLeft size={24} />
                     </button>
                 }
+                rightAction={
+                    (isAdmin || hasAccess('PROGRAM_MANAGEMENT')) && (
+                        <button
+                            onClick={() => navigate('/admin/program-management')}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.4rem',
+                                padding: '0.5rem 0.8rem',
+                                backgroundColor: '#fff7ed',
+                                color: '#f97316',
+                                border: '1px solid #fed7aa',
+                                borderRadius: '0.75rem',
+                                fontSize: '0.85rem',
+                                fontWeight: 600,
+                                cursor: 'pointer'
+                            }}
+                        >
+                            Manage
+                        </button>
+                    )
+                }
             />
             <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ maxWidth: '42rem', margin: '0 auto', width: '100%' }}>

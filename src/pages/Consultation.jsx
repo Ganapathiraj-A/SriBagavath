@@ -89,7 +89,7 @@ const Consultation = () => {
     const navigate = useNavigate();
     const [consultants, setConsultants] = React.useState([]);
     const [loading, setLoading] = React.useState(true);
-    const { isInitialized } = useAdminAuth();
+    const { isInitialized, isAdmin, hasAccess } = useAdminAuth();
 
     React.useEffect(() => {
         const fetchConsultants = async () => {

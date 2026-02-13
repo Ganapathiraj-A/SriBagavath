@@ -38,7 +38,7 @@ const AudioBooks = () => {
         fontStyle: 'italic',
         lineHeight: 1.5
       }}>
-        "We Thank Smt Radha Kannan for compiling audio books"
+        We Thank Smt Radha Kannan for compiling audio books
       </div>
 
       <div style={{
