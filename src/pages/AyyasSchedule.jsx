@@ -140,7 +140,7 @@ const AyyasSchedule = () => {
                 rightAction={
                     (isAdmin || hasAccess('PROGRAM_MANAGEMENT')) && (
                         <button
-                            onClick={() => navigate('/admin/program-management')}
+                            onClick={() => navigate('/schedule/manage')}
                             style={{
                                 display: 'flex',
                                 alignItems: 'center',

@@ -132,7 +132,7 @@ const Consultation = () => {
                 rightAction={
                     (isAdmin || hasAccess('PROGRAM_MANAGEMENT') || hasAccess('CONSULTATION_MANAGEMENT')) && (
                         <button
-                            onClick={() => navigate('/admin/program-management')}
+                            onClick={() => navigate('/admin/consultation')}
                             style={{
                                 display: 'flex',
                                 alignItems: 'center',
