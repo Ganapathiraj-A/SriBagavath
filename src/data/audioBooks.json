@@ -1,224 +1,164 @@
 [
   {
     "id": "1",
-    "title": "Audio Book 1",
+    "title": "ஞான விடுதலை",
     "image": "/assets/audio-books/audio-000.jpg",
-    "link": "https://www.youtube.com/playlist?list=PLA8L7VKmSnUBTOl4uv-sgFjDaNjYwigsm"
+    "link": "https://youtu.be/gpCNYMAUiPQ?si=B-ADSYGg1ZKdJNi7"
   },
   {
     "id": "2",
-    "title": "Audio Book 2",
+    "title": "கவலைகள் அனைத்திற்கும் தீர்வு",
     "image": "/assets/audio-books/audio-002.jpg",
-    "link": "https://www.youtube.com/playlist?list=PLA8L7VKmSnUBTOl4uv-sgFjDaNjYwigsm"
+    "link": "https://youtu.be/0Mf_3ShpcgM?si=3fikGlELpRGS8sjq"
   },
   {
     "id": "3",
-    "title": "Audio Book 3",
+    "title": "தியானத்தை விடு ஞானத்தைப் பெறு",
     "image": "/assets/audio-books/audio-006.jpg",
-    "link": "https://www.youtube.com/playlist?list=PLA8L7VKmSnUDoz-5hdyakaEDS9V3QnzuO"
+    "link": "https://youtu.be/Yi7f16NXDqM?si=izOHbQzBDhBfdqnk"
   },
   {
     "id": "4",
-    "title": "Audio Book 4",
+    "title": "ஞானப் பட்டறை",
     "image": "/assets/audio-books/audio-010.jpg",
-    "link": "https://www.youtube.com/playlist?list=PLA8L7VKmSnUDoz-5hdyakaEDS9V3QnzuO"
+    "link": "https://youtu.be/qYKlgUJXAnM?si=816RNLoDsWze044t"
   },
   {
     "id": "5",
-    "title": "Audio Book 5",
+    "title": "நீங்களும் ஞானியாகலாம்",
     "image": "/assets/audio-books/audio-011.jpg",
-    "link": "https://www.youtube.com/playlist?list=PLA8L7VKmSnUBHAQHNFtclQX12dWKXCjNv"
+    "link": "https://youtu.be/83D1vMkdLv4?si=QYj-W3puZoYvV_KH"
   },
   {
     "id": "6",
-    "title": "Audio Book 6",
+    "title": "ஆன்ம ஞான ரகசியம்",
     "image": "/assets/audio-books/audio-013.jpg",
-    "link": "https://www.youtube.com/playlist?list=PLA8L7VKmSnUBHAQHNFtclQX12dWKXCjNv"
+    "link": "https://youtu.be/yHW2ZF18Dgc?si=-m-MNAh2GN8v0HbP"
   },
   {
     "id": "7",
-    "title": "Audio Book 7",
+    "title": "மெய்ப் பொருள்",
     "image": "/assets/audio-books/audio-015.jpg",
-    "link": "https://www.youtube.com/playlist?list=PLA8L7VKmSnUBkWtNVf_HGGO4iYuFemIKU"
+    "link": "https://youtu.be/UuAol32RGAE?si=-MqBMMJSxlbWj2RF"
   },
   {
     "id": "8",
-    "title": "Audio Book 8",
+    "title": "சத் தரிசனம்",
     "image": "/assets/audio-books/audio-017.jpg",
-    "link": "https://www.youtube.com/playlist?list=PLA8L7VKmSnUBkWtNVf_HGGO4iYuFemIKU"
+    "link": "https://youtu.be/f5W6t6ncs9U?si=rslqiSudPElZQ_IX"
   },
   {
     "id": "9",
-    "title": "Audio Book 9",
+    "title": "கர்ம வினை",
     "image": "/assets/audio-books/audio-019.jpg",
-    "link": "https://www.youtube.com/playlist?list=PLA8L7VKmSnUCEsLO1rulxphb-5DM4H12l"
+    "link": "https://youtu.be/bgQcg6vlw24?si=qUGgsnbz7QvMUInz"
   },
   {
     "id": "10",
-    "title": "Audio Book 10",
+    "title": "மனதில் உறுதி வேண்டாம்",
     "image": "/assets/audio-books/audio-021.jpg",
-    "link": "https://www.youtube.com/playlist?list=PLA8L7VKmSnUCEsLO1rulxphb-5DM4H12l"
+    "link": "https://youtu.be/OijnyTQlVsY?si=iDO05B7r3TfcNzDc"
   },
   {
     "id": "11",
-    "title": "Audio Book 11",
+    "title": "தியானம்",
     "image": "/assets/audio-books/audio-023.jpg",
-    "link": "https://www.youtube.com/playlist?list=PLA8L7VKmSnUA0LKyv4bswomyAuTYozBrO"
+    "link": "https://youtu.be/cjPbdoKRwCI?si=xoSbmP35e7WdLOvq"
   },
   {
     "id": "12",
-    "title": "Audio Book 12",
+    "title": "பகவத் பயணம்",
     "image": "/assets/audio-books/audio-027.jpg",
-    "link": "https://www.youtube.com/playlist?list=PLA8L7VKmSnUA0LKyv4bswomyAuTYozBrO"
+    "link": "https://youtu.be/lBzfDtjDcxc?si=x1M45ZoUgPFNGbeK"
   },
   {
     "id": "13",
-    "title": "Audio Book 13",
+    "title": "வேதாந்தம்",
     "image": "/assets/audio-books/audio-029.jpg",
-    "link": "https://www.youtube.com/playlist?list=PLA8L7VKmSnUBkWtNVf_HGGO4iYuFemIKU"
+    "link": "https://youtu.be/0Ni7uQouc2M?si=OZxdQKVo7vDSyjU7"
   },
   {
     "id": "14",
-    "title": "Audio Book 14",
+    "title": "புதிய உலகம் படைப்போம்",
     "image": "/assets/audio-books/audio-031.jpg",
-    "link": "https://www.youtube.com/playlist?list=PLA8L7VKmSnUBkWtNVf_HGGO4iYuFemIKU"
+    "link": "https://youtu.be/Suf6Z-1JrMI?si=EzFFAAtRLbRoUeeK"
   },
   {
     "id": "15",
-    "title": "Audio Book 15",
+    "title": "ஜென் கதைகள்",
     "image": "/assets/audio-books/audio-033.jpg",
-    "link": "https://www.youtube.com/playlist?list=PLA8L7VKmSnUDT2RWjaGJTujFcFhp1khVd"
+    "link": "https://youtu.be/YF-hWHUGilA?si=J46IG2QpefVYbRqc"
   },
   {
     "id": "16",
-    "title": "Audio Book 16",
+    "title": "ஞான மலர்வு",
     "image": "/assets/audio-books/audio-035.jpg",
-    "link": "https://www.youtube.com/playlist?list=PLA8L7VKmSnUDT2RWjaGJTujFcFhp1khVd"
+    "link": "https://youtu.be/tTU67XsHGLY?si=5yZ4Pska9Mcj8Dqq"
   },
   {
     "id": "17",
-    "title": "Audio Book 17",
+    "title": "தேடிப் போக வீடு இல்லை",
     "image": "/assets/audio-books/audio-037.jpg",
-    "link": "<</Subtype/Link/Rect[ 228.74 78.984 357.05 212.09] /BS<</W 0>>/F 4/A<</Type/Action/S/URI/URI(hhttps://www.youtube.com/playlist?list=PLA8L7VKmSnUBkWtNVf_HGGO4iYuFemIKU) >>/StructParent 33>>"
+    "link": "https://youtu.be/TxDI6eduae0?si=ro7qF23V9FNme3aJ"
   },
   {
     "id": "18",
-    "title": "Audio Book 18",
+    "title": "தீய பழக்கங்களை விட முடியுமா",
     "image": "/assets/audio-books/audio-041.jpg",
-    "link": "<</Subtype/Link/Rect[ 228.74 78.984 357.05 212.09] /BS<</W 0>>/F 4/A<</Type/Action/S/URI/URI(hhttps://www.youtube.com/playlist?list=PLA8L7VKmSnUBkWtNVf_HGGO4iYuFemIKU) >>/StructParent 34>>"
+    "link": "https://youtu.be/XsAxVTx2xS4?si=HKLLXprtK4iUOMi7"
   },
   {
     "id": "19",
-    "title": "Audio Book 19",
+    "title": "சிந்தனையும் சிந்தித்தலும்",
     "image": "/assets/audio-books/audio-045.jpg",
-    "link": "https://www.youtube.com/playlist?list=PLA8L7VKmSnUDyunyRUh6UH9LCAO4MEzPC"
+    "link": "https://youtu.be/pS5whScU-nc?si=4CXnBJwkKZf7nfhA"
   },
   {
     "id": "20",
-    "title": "Audio Book 20",
+    "title": "சும்மா இரு",
     "image": "/assets/audio-books/audio-047.jpg",
-    "link": "https://www.youtube.com/playlist?list=PLA8L7VKmSnUDyunyRUh6UH9LCAO4MEzPC"
+    "link": "https://youtu.be/HQQwDxmFEFM?si=L7IdTdTkpJ6RxLyV"
   },
   {
     "id": "21",
-    "title": "Audio Book 21",
+    "title": "நான் யார்",
     "image": "/assets/audio-books/audio-049.jpg",
-    "link": "https://youtube.com/playlist?list=PLA8L7VKmSnUAsiI_ZJ_fx3zP_-CVecOyQ&si=-Um9fKgQ2Q0TXZxj"
+    "link": "https://youtu.be/DbGYeGmZckU?si=_TOUtTYpI_FTFGz2"
   },
   {
     "id": "22",
-    "title": "Audio Book 22",
+    "title": "யோக சிகிச்சை",
     "image": "/assets/audio-books/audio-051.jpg",
-    "link": "https://youtube.com/playlist?list=PLA8L7VKmSnUAsiI_ZJ_fx3zP_-CVecOyQ&si=-Um9fKgQ2Q0TXZxj"
+    "link": "https://youtu.be/WCsmQ5AwPmk?si=Oaa_s4MghG2dP-7G"
   },
   {
     "id": "23",
-    "title": "Audio Book 23",
+    "title": "எதிர்மறை உணர்ச்சிகளை வெல்வது எவ்வாறு",
     "image": "/assets/audio-books/audio-053.jpg",
-    "link": "https://www.youtube.com/playlist?list=PLA8L7VKmSnUBIMzyGvxZDkIomb4cjWdOl"
+    "link": "https://youtu.be/5X7gezKp6Nw?si=246K3NWmeAY-DWy2"
   },
   {
     "id": "24",
-    "title": "Audio Book 24",
+    "title": "சூன்யப் பிரவாகம்",
     "image": "/assets/audio-books/audio-055.jpg",
-    "link": "https://www.youtube.com/playlist?list=PLA8L7VKmSnUBIMzyGvxZDkIomb4cjWdOl"
-  },
-  {
-    "id": "25",
-    "title": "Audio Book 25",
-    "image": "/assets/audio-books/audio-057.png",
-    "link": "https://www.youtube.com/playlist?list=PLA8L7VKmSnUAOLPdOUQMGWWdx00LVQmZ_"
-  },
-  {
-    "id": "26",
-    "title": "Audio Book 26",
-    "image": "/assets/audio-books/audio-058.png",
-    "link": "https://www.youtube.com/playlist?list=PLA8L7VKmSnUAOLPdOUQMGWWdx00LVQmZ_"
-  },
-  {
-    "id": "27",
-    "title": "Audio Book 27",
-    "image": "/assets/audio-books/audio-059.png",
-    "link": "https://www.youtube.com/playlist?list=PLA8L7VKmSnUCzoxJryMO0lP5V1xDOOhye"
-  },
-  {
-    "id": "28",
-    "title": "Audio Book 28",
-    "image": "/assets/audio-books/audio-061.png",
-    "link": "https://www.youtube.com/playlist?list=PLA8L7VKmSnUCzoxJryMO0lP5V1xDOOhye"
-  },
-  {
-    "id": "29",
-    "title": "Audio Book 29",
-    "image": "/assets/audio-books/audio-063.png",
-    "link": "https://www.youtube.com/playlist?list=PLA8L7VKmSnUBkWtNVf_HGGO4iYuFemIKU"
+    "link": "https://youtu.be/YnNdJtNLH3Q?si=iApJ_cWiWofru4Ai"
   },
   {
     "id": "30",
-    "title": "Audio Book 30",
+    "title": "ஆன்மாவைத் துறந்து ஆன்மாவாக இரு",
     "image": "/assets/audio-books/audio-065.jpg",
-    "link": "https://www.youtube.com/playlist?list=PLA8L7VKmSnUBkWtNVf_HGGO4iYuFemIKU"
-  },
-  {
-    "id": "31",
-    "title": "Audio Book 31",
-    "image": "/assets/audio-books/audio-067.png",
-    "link": "https://www.youtube.com/playlist?list=PLA8L7VKmSnUDKxoY8h9kH_SGcWc7IIPAu"
-  },
-  {
-    "id": "32",
-    "title": "Audio Book 32",
-    "image": "/assets/audio-books/audio-069.png",
-    "link": "https://www.youtube.com/playlist?list=PLA8L7VKmSnUDKxoY8h9kH_SGcWc7IIPAu"
-  },
-  {
-    "id": "33",
-    "title": "Audio Book 33",
-    "image": "/assets/audio-books/audio-071.png",
-    "link": "https://www.youtube.com/playlist?list=PLA8L7VKmSnUD6AbVl5ChgRdeXC-JloDlP"
+    "link": "https://youtu.be/4N7Fz3MyVBc?si=R5HBVrI_uJfLiayd"
   },
   {
     "id": "34",
-    "title": "Audio Book 34",
+    "title": "நம்மை அறிவோம்",
     "image": "/assets/audio-books/audio-073.jpg",
-    "link": "https://www.youtube.com/playlist?list=PLA8L7VKmSnUD6AbVl5ChgRdeXC-JloDlP"
+    "link": "https://youtu.be/P32e_zpG_ME?si=QqsiAPWEBibiU26Y"
   },
   {
     "id": "35",
-    "title": "Audio Book 35",
+    "title": "பத்து கட்டளைகள் ",
     "image": "/assets/audio-books/audio-075.jpg",
-    "link": "https://www.youtube.com/playlist?list=PLA8L7VKmSnUBkWtNVf_HGGO4iYuFemIKU"
-  },
-  {
-    "id": "36",
-    "title": "Audio Book 36",
-    "image": "/assets/audio-books/audio-077.png",
-    "link": "https://www.youtube.com/playlist?list=PLA8L7VKmSnUBkWtNVf_HGGO4iYuFemIKU"
-  },
-  {
-    "id": "37",
-    "title": "Audio Book 37",
-    "image": "/assets/audio-books/audio-078.png",
-    "link": "https://www.youtube.com/playlist?list=PLA8L7VKmSnUAwg6RoFwPVMqED_Lt8ssm0"
+    "link": "https://youtu.be/_2DSu-Jnezc?si=yl1CZKRxh4ktb58e"
   }
 ]
