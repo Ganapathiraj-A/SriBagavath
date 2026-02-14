@@ -130,7 +130,7 @@ const Consultation = () => {
             <PageHeader
                 title="Consultation"
                 rightAction={
-                    (isAdmin || hasAccess('PROGRAM_MANAGEMENT') || hasAccess('CONSULTATION_MANAGEMENT')) && (
+                    (isAdmin || (typeof hasAccess === 'function' && (hasAccess('PROGRAM_MANAGEMENT') || hasAccess('CONSULTATION_MANAGEMENT')))) && (
                         <button
                             onClick={() => navigate('/admin/consultation')}
                             style={{

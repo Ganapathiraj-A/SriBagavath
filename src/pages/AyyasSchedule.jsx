@@ -155,7 +155,7 @@ const AyyasSchedule = () => {
                                 cursor: 'pointer'
                             }}
                         >
-                            Manage
+                            Edit
                         </button>
                     )
                 }

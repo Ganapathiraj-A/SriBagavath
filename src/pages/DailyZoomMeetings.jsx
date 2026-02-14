@@ -376,7 +376,7 @@ Join us for our daily spiritual gathering.
                                 cursor: 'pointer'
                             }}
                         >
-                            Manage
+                            Edit
                         </button>
                     )
                 }

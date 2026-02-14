@@ -138,7 +138,7 @@ const SatsangListing = () => {
             <PageHeader
                 title="Satsang"
                 rightAction={
-                    (isAdmin || hasAccess('PROGRAM_MANAGEMENT')) && (
+                    (isAdmin || (typeof hasAccess === 'function' && hasAccess('PROGRAM_MANAGEMENT'))) && (
                         <button
                             onClick={() => navigate('/admin/satsang')}
                             style={{
