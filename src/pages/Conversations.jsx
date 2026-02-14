@@ -1,19 +1,30 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Send, Youtube, ChevronLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Send, Youtube, PlaySquare } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 
-const LinkButton = ({ title, icon: Icon, url, delay }) => {
+const LinkButton = ({ title, icon: Icon, url, path, delay }) => {
+  const navigate = useNavigate();
+
+  const handleClick = (e) => {
+    if (path) {
+      e.preventDefault();
+      navigate(path);
+    }
+  };
+
   return (
     <motion.a
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
+      href={url || '#'}
+      target={url ? "_blank" : undefined}
+      rel={url ? "noopener noreferrer" : undefined}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.5 }}
       whileHover={{ scale: 1.02, backgroundColor: 'var(--color-secondary)' }}
       whileTap={{ scale: 0.98 }}
+      onClick={handleClick}
       style={{
         width: '100%',
         padding: '1rem',
@@ -76,17 +87,24 @@ const Conversations = () => {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <LinkButton
+              title="Recorded Programs"
+              icon={PlaySquare}
+              path="/conversations/recorded-programs"
+              delay={0.1}
+            />
+
+            <LinkButton
               title="Telegram"
               icon={Send}
               url="https://t.me/Bagavath_conversations"
-              delay={0.1}
+              delay={0.2}
             />
 
             <LinkButton
               title="YouTube"
               icon={Youtube}
               url="https://youtube.com/@bagavathpathai?si=F2JEXlLNpDngYujc"
-              delay={0.2}
+              delay={0.3}
             />
           </div>
         </motion.div>

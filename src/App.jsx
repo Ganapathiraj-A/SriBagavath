@@ -23,6 +23,7 @@ const ProgramTypesManagement = lazy(() => import('./pages/ProgramTypesManagement
 const ManageUsers = lazy(() => import('./pages/ManageUsers'));
 const ProgramConversations = lazy(() => import('./pages/ProgramConversations'));
 const UrlSettings = lazy(() => import('./pages/UrlSettings'));
+const RecordedPrograms = lazy(() => import('./pages/RecordedPrograms'));
 const AyyasSchedule = lazy(() => import('./pages/AyyasSchedule'));
 const ScheduleManagement = lazy(() => import('./pages/ScheduleManagement'));
 const MyRegistrations = lazy(() => import('./pages/MyRegistrations'));
@@ -203,7 +204,8 @@ function AnimatedRoutes() {
           '/audio-books': '/books',
           '/videos': '/books',
           '/monthly-magazine': '/books',
-          '/conversations': '/books'
+          '/conversations': '/books',
+          '/conversations/recorded-programs': '/conversations'
         };
 
         if (parentMappings[pathname]) {
@@ -256,6 +258,7 @@ function AnimatedRoutes() {
           <Route path="/programs/consultation" element={<Consultation />} />
           <Route path="/programs/online/daily" element={<DailyZoomMeetings />} />
           <Route path="/conversations" element={<Conversations />} />
+          <Route path="/conversations/recorded-programs" element={<RecordedPrograms />} />
           <Route path="/books" element={<Books />} />
           <Route path="/bookstore" element={<BookStore />} />
           <Route path="/book/:bookId" element={<BookDetails />} />
