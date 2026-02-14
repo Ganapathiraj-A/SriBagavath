@@ -8,15 +8,15 @@ import { motion } from 'framer-motion';
 const ALL_PERMISSIONS = [
     { id: 'ADMIN_REVIEW', label: 'Admin Review (Reg, Pur, Don)' },
     { id: 'ATTENDANCE', label: 'Attendance' },
-    { id: 'REPORTING', label: 'Reporting & Analytics' },
-    { id: 'IMPORT_EXPORT', label: 'Import/Export' },
     { id: 'BANKING', label: 'Banking (Recon, Books)' },
-    { id: 'PROGRAM_MANAGEMENT', label: 'Program Management (incl. Types)' },
-    { id: 'DAILY_ZOOM_MANAGEMENT', label: 'Daily Zoom Management' },
     { id: 'CONSULTATION_MANAGEMENT', label: 'Consultation Management' },
-    { id: 'SCHEDULE_MANAGEMENT', label: 'Schedule Management' },
-    { id: 'OFFLINE_ENTRY', label: 'Offline Entry Screens' },
+    { id: 'DAILY_ZOOM_MANAGEMENT', label: 'Daily Zoom Management' },
+    { id: 'IMPORT_EXPORT', label: 'Import/Export' },
     { id: 'MANAGE_USERS', label: 'Manage Users' },
+    { id: 'OFFLINE_ENTRY', label: 'Offline Entry Screens' },
+    { id: 'PROGRAM_MANAGEMENT', label: 'Program Management (incl. Types)' },
+    { id: 'REPORTING', label: 'Reporting & Analytics' },
+    { id: 'SCHEDULE_MANAGEMENT', label: 'Schedule Management' },
 ];
 
 const ManageUsers = () => {
