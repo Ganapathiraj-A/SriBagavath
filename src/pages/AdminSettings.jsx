@@ -190,7 +190,7 @@ const AdminSettings = () => {
                     subtitle: 'Retreats, Meetings, Satsang, Types & Consultation',
                     icon: Layers,
                     path: '/admin/program-management',
-                    permission: ['PROGRAM_MANAGEMENT', 'PROGRAM_TYPES', 'CONSULTATION_MANAGEMENT', 'DAILY_ZOOM_MANAGEMENT'],
+                    permission: ['PROGRAM_MANAGEMENT', 'CONSULTATION_MANAGEMENT', 'DAILY_ZOOM_MANAGEMENT'],
                     color: '#f97316',
                     bgColor: '#fff7ed'
                 },
@@ -200,7 +200,7 @@ const AdminSettings = () => {
                     subtitle: 'Add books, descriptions & covers',
                     icon: BookOpen,
                     path: '/admin/books',
-                    permission: 'ADMIN_REVIEW',
+                    permission: 'BANKING',
                     color: '#8b5cf6',
                     bgColor: '#f5f3ff'
                 },
@@ -225,7 +225,7 @@ const AdminSettings = () => {
                     subtitle: 'Usage stats, storage & system status',
                     icon: LayoutDashboard,
                     path: '/admin-dashboard',
-                    permission: 'ADMIN_REVIEW',
+                    permission: 'REPORTING',
                     color: '#06b6d4',
                     bgColor: '#ecfeff'
                 },
@@ -235,7 +235,7 @@ const AdminSettings = () => {
                     subtitle: 'Clear local cache & reset sync registry',
                     icon: RefreshCw,
                     action: 'CLEAR_CACHE',
-                    permission: 'ADMIN_REVIEW',
+                    permission: 'REPORTING',
                     color: '#ef4444',
                     bgColor: '#fef2f2'
                 }

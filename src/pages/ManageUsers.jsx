@@ -6,12 +6,16 @@ import { Check, X, Shield, Mail, Calendar, Trash2, Edit, Plus } from 'lucide-rea
 import { motion } from 'framer-motion';
 
 const ALL_PERMISSIONS = [
-    { id: 'PROGRAM_MANAGEMENT', label: 'Program Management' },
-    { id: 'PROGRAM_TYPES', label: 'Program Types' },
-    { id: 'CONSULTATION_MANAGEMENT', label: 'Consultation Management' },
+    { id: 'ADMIN_REVIEW', label: 'Admin Review (Reg, Pur, Don)' },
+    { id: 'ATTENDANCE', label: 'Attendance' },
+    { id: 'REPORTING', label: 'Reporting & Analytics' },
+    { id: 'IMPORT_EXPORT', label: 'Import/Export' },
+    { id: 'BANKING', label: 'Banking (Recon, Books)' },
+    { id: 'PROGRAM_MANAGEMENT', label: 'Program Management (incl. Types)' },
     { id: 'DAILY_ZOOM_MANAGEMENT', label: 'Daily Zoom Management' },
+    { id: 'CONSULTATION_MANAGEMENT', label: 'Consultation Management' },
     { id: 'SCHEDULE_MANAGEMENT', label: 'Schedule Management' },
-    { id: 'ADMIN_REVIEW', label: 'Admin Review' },
+    { id: 'OFFLINE_ENTRY', label: 'Offline Entry Screens' },
     { id: 'MANAGE_USERS', label: 'Manage Users' },
 ];
 

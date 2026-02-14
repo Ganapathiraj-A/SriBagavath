@@ -305,7 +305,7 @@ function AnimatedRoutes() {
           {/* Admin Routes */}
           <Route path="/configuration" element={<ProtectedRoute><Configuration /></ProtectedRoute>} />
           <Route path="/program" element={<ProtectedRoute requiredPermission="PROGRAM_MANAGEMENT"><ProgramManagement /></ProtectedRoute>} />
-          <Route path="/configuration/program-types" element={<ProtectedRoute requiredPermission="PROGRAM_TYPES"><ProgramTypesManagement /></ProtectedRoute>} />
+          <Route path="/configuration/program-types" element={<ProtectedRoute requiredPermission="PROGRAM_MANAGEMENT"><ProgramTypesManagement /></ProtectedRoute>} />
           <Route path="/manage-users" element={<ProtectedRoute requiredPermission="MANAGE_USERS"><ManageUsers /></ProtectedRoute>} />
           <Route path="/conversations/programs" element={<ProtectedRoute requiredPermission="PROGRAM_CONVERSATIONS"><ProgramConversations /></ProtectedRoute>} />
           <Route path="/admin/url-settings" element={<ProtectedRoute requiredRole="SUPER_ADMIN"><UrlSettings /></ProtectedRoute>} />
@@ -320,28 +320,28 @@ function AnimatedRoutes() {
           <Route path="/admin/daily-zoom/links" element={<ProtectedRoute requiredPermission="DAILY_ZOOM_MANAGEMENT"><DailyZoomLinkManagement /></ProtectedRoute>} />
           <Route path="/admin/purchases" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BookStoreManagement /></ProtectedRoute>} />
           <Route path="/admin/donations" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><DonationManagement /></ProtectedRoute>} />
-          <Route path="/admin/books" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><AdminBookManagement /></ProtectedRoute>} />
+          <Route path="/admin/books" element={<ProtectedRoute requiredPermission="BANKING"><AdminBookManagement /></ProtectedRoute>} />
 
           <Route path="/admin-review" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><AdminReview /></ProtectedRoute>} />
-          <Route path="/admin-dashboard" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin-dashboard" element={<ProtectedRoute requiredPermission="REPORTING"><AdminDashboard /></ProtectedRoute>} />
           <Route path="/admin/settings" element={<ProtectedRoute><AdminSettings /></ProtectedRoute>} />
 
           {/* Back Office Routes */}
-          <Route path="/admin/back-office" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOffice /></ProtectedRoute>} />
-          <Route path="/admin/back-office/reporting" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficeReporting /></ProtectedRoute>} />
-          <Route path="/admin/back-office/programs" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficePrograms /></ProtectedRoute>} />
-          <Route path="/admin/back-office/attendance/:programId" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficeAttendance /></ProtectedRoute>} />
-          <Route path="/admin/back-office/reconciliation" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BankReconciliation /></ProtectedRoute>} />
-          <Route path="/admin/back-office/reconciliation/upload" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BankStatementUpload /></ProtectedRoute>} />
-          <Route path="/admin/back-office/reconciliation/registrations" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BankReconciliationRegs /></ProtectedRoute>} />
-          <Route path="/admin/back-office/reconciliation/view" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BankStatementView /></ProtectedRoute>} />
+          <Route path="/admin/back-office" element={<ProtectedRoute requiredPermission="REPORTING"><BackOffice /></ProtectedRoute>} />
+          <Route path="/admin/back-office/reporting" element={<ProtectedRoute requiredPermission="REPORTING"><BackOfficeReporting /></ProtectedRoute>} />
+          <Route path="/admin/back-office/programs" element={<ProtectedRoute requiredPermission="ATTENDANCE"><BackOfficePrograms /></ProtectedRoute>} />
+          <Route path="/admin/back-office/attendance/:programId" element={<ProtectedRoute requiredPermission="ATTENDANCE"><BackOfficeAttendance /></ProtectedRoute>} />
+          <Route path="/admin/back-office/reconciliation" element={<ProtectedRoute requiredPermission="BANKING"><BankReconciliation /></ProtectedRoute>} />
+          <Route path="/admin/back-office/reconciliation/upload" element={<ProtectedRoute requiredPermission="BANKING"><BankStatementUpload /></ProtectedRoute>} />
+          <Route path="/admin/back-office/reconciliation/registrations" element={<ProtectedRoute requiredPermission="BANKING"><BankReconciliationRegs /></ProtectedRoute>} />
+          <Route path="/admin/back-office/reconciliation/view" element={<ProtectedRoute requiredPermission="BANKING"><BankStatementView /></ProtectedRoute>} />
           {/* Bank Verification Hub Reverted */}
 
           {/* Offline Transactions Screens */}
-          <Route path="/admin/back-office/offline-registration" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficeOfflineRegistration /></ProtectedRoute>} />
-          <Route path="/admin/back-office/offline-books" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficeOfflineBooks /></ProtectedRoute>} />
-          <Route path="/admin/back-office/offline-donation" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficeOfflineDonation /></ProtectedRoute>} />
-          <Route path="/admin/back-office/import-export" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BackOfficeImportExport /></ProtectedRoute>} />
+          <Route path="/admin/back-office/offline-registration" element={<ProtectedRoute requiredPermission="OFFLINE_ENTRY"><BackOfficeOfflineRegistration /></ProtectedRoute>} />
+          <Route path="/admin/back-office/offline-books" element={<ProtectedRoute requiredPermission="OFFLINE_ENTRY"><BackOfficeOfflineBooks /></ProtectedRoute>} />
+          <Route path="/admin/back-office/offline-donation" element={<ProtectedRoute requiredPermission="OFFLINE_ENTRY"><BackOfficeOfflineDonation /></ProtectedRoute>} />
+          <Route path="/admin/back-office/import-export" element={<ProtectedRoute requiredPermission="IMPORT_EXPORT"><BackOfficeImportExport /></ProtectedRoute>} />
 
           {/* Public view but management is admin */}
           <Route path="/schedule" element={<AyyasSchedule />} />

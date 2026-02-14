@@ -123,9 +123,15 @@ const Configuration = () => {
                 { title: 'Registration', icon: Shield, path: '/admin-review', permission: 'ADMIN_REVIEW', badgeCount: counts.registrations },
                 { title: 'Purchases', icon: IndianRupee, path: '/admin/purchases', permission: 'ADMIN_REVIEW', color: '#10b981', bgColor: '#f0fdf4', badgeCount: counts.purchases },
                 { title: 'Donations', icon: Heart, path: '/admin/donations', permission: 'ADMIN_REVIEW', color: '#ef4444', bgColor: '#fef2f2', badgeCount: counts.donations },
-                { title: 'Attendance', icon: Layers, path: '/admin/back-office/programs', permission: 'ADMIN_REVIEW', color: '#f59e0b', bgColor: '#fffbeb' },
-                { title: 'Reconciliation', icon: Landmark, path: '/admin/back-office/reconciliation', permission: 'ADMIN_REVIEW', color: '#10b981', bgColor: '#f0fdf4' },
-                { title: 'Reporting', icon: BarChart3, path: '/admin/back-office/reporting', permission: 'ADMIN_REVIEW', color: '#8b5cf6', bgColor: '#f5f3ff' },
+            ]
+        },
+        {
+            title: 'Back Office',
+            items: [
+                { title: 'Attendance', icon: Layers, path: '/admin/back-office/programs', permission: 'ATTENDANCE', color: '#f59e0b', bgColor: '#fffbeb' },
+                { title: 'Reconciliation', icon: Landmark, path: '/admin/back-office/reconciliation', permission: 'BANKING', color: '#10b981', bgColor: '#f0fdf4' },
+                { title: 'Reporting', icon: BarChart3, path: '/admin/back-office/reporting', permission: 'REPORTING', color: '#8b5cf6', bgColor: '#f5f3ff' },
+                { title: 'Import/Export', icon: ArrowRightLeft, path: '/admin/back-office/import-export', permission: 'IMPORT_EXPORT', color: '#10b981', bgColor: '#d1fae5' },
             ]
         },
         {
@@ -133,21 +139,27 @@ const Configuration = () => {
             items: [
                 { title: 'Retreats', icon: Calendar, path: '/program', permission: 'PROGRAM_MANAGEMENT', color: '#f97316', bgColor: '#fff7ed' },
                 { title: 'Online Meetings', icon: Video, path: '/admin/online-meetings', permission: 'PROGRAM_MANAGEMENT', color: '#3b82f6', bgColor: '#eff6ff' },
-                { title: 'Daily Zoom', icon: Video, path: '/admin/daily-zoom', permission: 'DAILY_ZOOM_MANAGEMENT', color: '#6366f1', bgColor: '#eef2ff' },
                 { title: 'Satsangs', icon: Users, path: '/admin/satsang', permission: 'PROGRAM_MANAGEMENT', color: '#06b6d4', bgColor: '#ecfeff' },
+                { title: 'Program Types', icon: Layers, path: '/configuration/program-types', permission: 'PROGRAM_MANAGEMENT', color: '#8b5cf6', bgColor: '#f5f3ff' },
+                { title: 'Daily Zoom', icon: Video, path: '/admin/daily-zoom', permission: 'DAILY_ZOOM_MANAGEMENT', color: '#6366f1', bgColor: '#eef2ff' },
                 { title: 'Consultation', icon: Phone, path: '/admin/consultation', permission: 'CONSULTATION_MANAGEMENT', color: '#ec4899', bgColor: '#fdf2f8' },
-                { title: 'Program Types', icon: Layers, path: '/configuration/program-types', permission: 'PROGRAM_TYPES', color: '#8b5cf6', bgColor: '#f5f3ff' },
                 { title: 'Schedules', icon: Calendar, path: '/schedule/manage', permission: 'SCHEDULE_MANAGEMENT', color: '#f59e0b', bgColor: '#fffbeb' },
+            ]
+        },
+        {
+            title: 'Offline Entry',
+            items: [
+                { title: 'Offline Registration', icon: Shield, path: '/admin/back-office/offline-registration', permission: 'OFFLINE_ENTRY', color: '#3b82f6', bgColor: '#eff6ff' },
+                { title: 'Offline Books', icon: BookOpen, path: '/admin/back-office/offline-books', permission: 'OFFLINE_ENTRY', color: '#10b981', bgColor: '#f0fdf4' },
+                { title: 'Offline Donation', icon: Heart, path: '/admin/back-office/offline-donation', permission: 'OFFLINE_ENTRY', color: '#ef4444', bgColor: '#fef2f2' },
             ]
         },
         {
             title: 'System & Books',
             items: [
-                { title: 'Book Management', icon: BookOpen, path: '/admin/books', permission: 'ADMIN_REVIEW', color: '#10b981', bgColor: '#f0fdf4' },
+                { title: 'Book Management', icon: BookOpen, path: '/admin/books', permission: 'BANKING', color: '#10b981', bgColor: '#f0fdf4' },
                 { title: 'Manage Admins', icon: Users, path: '/manage-users', permission: 'MANAGE_USERS', color: '#ef4444', bgColor: '#fef2f2' },
-                { title: 'Analytics & Health', icon: LayoutDashboard, path: '/admin-dashboard', permission: 'ADMIN_REVIEW', color: '#06b6d4', bgColor: '#ecfeff' },
-                { title: 'URL Settings', icon: LinkIcon, path: '/admin/url-settings', permission: 'SUPER_ADMIN', color: '#3b82f6', bgColor: '#eff6ff' },
-                { title: 'Import/Export', icon: ArrowRightLeft, path: '/admin/back-office/import-export', permission: 'ADMIN_REVIEW', color: '#10b981', bgColor: '#d1fae5' },
+                { title: 'Analytics & Health', icon: LayoutDashboard, path: '/admin-dashboard', permission: 'REPORTING', color: '#06b6d4', bgColor: '#ecfeff' },
                 {
                     title: 'Maintenance',
                     icon: RefreshCw,
@@ -157,10 +169,11 @@ const Configuration = () => {
                             window.location.reload();
                         }
                     },
-                    permission: 'ADMIN_REVIEW',
+                    permission: 'REPORTING',
                     color: '#ef4444',
                     bgColor: '#fef2f2'
                 },
+                { title: 'URL Settings', icon: LinkIcon, path: '/admin/url-settings', permission: 'SUPER_ADMIN', color: '#3b82f6', bgColor: '#eff6ff' },
             ]
         }
     ];
