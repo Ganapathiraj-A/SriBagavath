@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
+import { useAdminAuth } from '@/context/AdminAuthContext';
 
 const PageHeader = ({
     title,
@@ -12,6 +13,7 @@ const PageHeader = ({
 }) => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { role } = useAdminAuth();
 
     // Hierarchical navigate back
     const handleBack = () => {
@@ -103,6 +105,20 @@ const PageHeader = ({
         }
 
         if (parentMappings[pathname]) {
+            // Power User Restriction: Always go back to Admin Home for admin paths
+            const isAdminPath = pathname.startsWith('/admin/') ||
+                pathname === '/program' ||
+                pathname === '/manage-users' ||
+                pathname === '/schedule/manage' ||
+                pathname === '/configuration/program-types' ||
+                pathname === '/admin-review' ||
+                pathname === '/admin-dashboard';
+
+            if (role === 'POWER_USER' && isAdminPath) {
+                navigate('/configuration');
+                return;
+            }
+
             navigate(parentMappings[pathname]);
             return;
         }

@@ -25,7 +25,6 @@ const ProgramConversations = lazy(() => import('./pages/ProgramConversations'));
 const UrlSettings = lazy(() => import('./pages/UrlSettings'));
 const RecordedPrograms = lazy(() => import('./pages/RecordedPrograms'));
 const DigitalBooksHub = lazy(() => import('./pages/DigitalBooksHub'));
-const RelatedVideosHub = lazy(() => import('./pages/RelatedVideosHub'));
 const AyyasSchedule = lazy(() => import('./pages/AyyasSchedule'));
 const ScheduleManagement = lazy(() => import('./pages/ScheduleManagement'));
 const MyRegistrations = lazy(() => import('./pages/MyRegistrations'));
@@ -85,6 +84,7 @@ import SkeletonScreen from './components/SkeletonScreen';
 function AnimatedRoutes() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { role } = useAdminAuth();
 
   // Centralized Screen Tracking
   useEffect(() => {
@@ -207,9 +207,8 @@ function AnimatedRoutes() {
           '/bookstore': '/books',
           '/digital-books': '/books',
           '/pdf-books': '/books',
-          '/related-videos': '/books',
-          '/audio-books': '/related-videos',
-          '/videos': '/related-videos',
+          '/audio-books': '/books',
+          '/videos': '/books',
           '/monthly-magazine': '/books',
           '/conversations': '/books',
           '/conversations/recorded-programs': '/books'
@@ -221,6 +220,20 @@ function AnimatedRoutes() {
         }
 
         if (parentMappings[pathname]) {
+          // Power User Restriction: Always go back to Admin Home for admin paths
+          const isAdminPath = pathname.startsWith('/admin/') ||
+            pathname === '/program' ||
+            pathname === '/manage-users' ||
+            pathname === '/schedule/manage' ||
+            pathname === '/configuration/program-types' ||
+            pathname === '/admin-review' ||
+            pathname === '/admin-dashboard';
+
+          if (role === 'POWER_USER' && isAdminPath) {
+            navigate('/configuration');
+            return;
+          }
+
           navigate(parentMappings[pathname]);
           return;
         }
@@ -283,7 +296,6 @@ function AnimatedRoutes() {
           <Route path="/videos" element={<Videos />} />
           <Route path="/pdf-books" element={<PdfBooks />} />
           <Route path="/digital-books" element={<DigitalBooksHub />} />
-          <Route path="/related-videos" element={<RelatedVideosHub />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/my-registrations" element={<MyRegistrations />} />
           <Route path="/event-registration" element={<EventRegistration />} />
