@@ -203,13 +203,13 @@ function AnimatedRoutes() {
           '/schedule': '/programs',
           '/bookstore': '/books',
           '/digital-books': '/books',
-          '/pdf-books': '/digital-books',
+          '/pdf-books': '/books',
           '/related-videos': '/books',
           '/audio-books': '/related-videos',
           '/videos': '/related-videos',
           '/monthly-magazine': '/books',
           '/conversations': '/books',
-          '/conversations/recorded-programs': '/digital-books'
+          '/conversations/recorded-programs': '/books'
         };
 
         if (parentMappings[pathname]) {

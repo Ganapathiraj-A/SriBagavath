@@ -84,10 +84,11 @@ const PageHeader = ({
             '/schedule': '/programs',
             '/bookstore': '/books',
             '/pdf-books': '/books',
-            '/audio-books': '/books',
-            '/videos': '/books',
+            '/audio-books': '/related-videos',
+            '/videos': '/related-videos',
             '/monthly-magazine': '/books',
-            '/conversations': '/books'
+            '/conversations': '/books',
+            '/conversations/recorded-programs': '/books'
         };
 
         if (parentMappings[pathname]) {
