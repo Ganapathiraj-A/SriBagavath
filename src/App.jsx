@@ -212,6 +212,11 @@ function AnimatedRoutes() {
           '/conversations/recorded-programs': '/books'
         };
 
+        if (location.state?.returnPath) {
+          navigate(location.state.returnPath);
+          return;
+        }
+
         if (parentMappings[pathname]) {
           navigate(parentMappings[pathname]);
           return;

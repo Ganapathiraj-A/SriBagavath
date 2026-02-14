@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, MapPin, Share2, ChevronLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import PageHeader from '@/components/PageHeader';
 import { Share } from '@capacitor/share';
 import { db } from '@/firebase';
@@ -13,6 +13,7 @@ const AyyasSchedule = () => {
     const navigate = useNavigate();
     const [schedules, setSchedules] = useState([]);
     const [loading, setLoading] = useState(true);
+    const location = useLocation();
     const { loading: authGlobalLoading, isAdmin, hasAccess } = useAdminAuth();
 
     useEffect(() => {
@@ -140,7 +141,7 @@ const AyyasSchedule = () => {
                 rightAction={
                     (isAdmin || hasAccess('PROGRAM_MANAGEMENT')) && (
                         <button
-                            onClick={() => navigate('/schedule/manage')}
+                            onClick={() => navigate('/schedule/manage', { state: { returnPath: location.pathname } })}
                             style={{
                                 display: 'flex',
                                 alignItems: 'center',

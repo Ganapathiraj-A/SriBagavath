@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, MapPin, AlertCircle, Share2, ChevronLeft } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
@@ -18,6 +18,7 @@ import { getLocalDateString } from '@/utils/dateUtils';
 const Programs = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
+    const location = useLocation();
     const [programs, setPrograms] = useState([]);
     const [specificProgram, setSpecificProgram] = useState(null); // Separate state for linked program
     const [loading, setLoading] = useState(true);
@@ -350,7 +351,7 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
                 rightAction={
                     (isAdmin || hasAccess('PROGRAM_MANAGEMENT')) && (
                         <button
-                            onClick={() => navigate('/program')}
+                            onClick={() => navigate('/program', { state: { returnPath: location.pathname + location.search } })}
                             style={{
                                 display: 'flex',
                                 alignItems: 'center',

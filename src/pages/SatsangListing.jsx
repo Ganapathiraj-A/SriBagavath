@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Clock, MapPin, ChevronLeft, Users, RefreshCw } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
@@ -64,6 +64,7 @@ const getNextOccurrence = (master, todayStr) => {
 
 const SatsangListing = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [meetings, setMeetings] = useState([]);
     const [loading, setLoading] = useState(true);
     const { loading: authGlobalLoading, isAdmin, hasAccess } = useAdminAuth();
@@ -140,7 +141,7 @@ const SatsangListing = () => {
                 rightAction={
                     (isAdmin || (typeof hasAccess === 'function' && hasAccess('PROGRAM_MANAGEMENT'))) && (
                         <button
-                            onClick={() => navigate('/admin/satsang')}
+                            onClick={() => navigate('/admin/satsang', { state: { returnPath: location.pathname } })}
                             style={{
                                 display: 'flex',
                                 alignItems: 'center',

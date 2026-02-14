@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Video, Calendar, User, Youtube, Share2, ChevronRight, Loader2, Clock, Edit2 } from 'lucide-react';
 import { Share } from '@capacitor/share';
@@ -149,6 +149,7 @@ let teachersCache = null;
 
 const DailyZoomMeetings = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const { isAdmin, hasAccess, loading: authLoading } = useAdminAuth();
     const [activeTab, setActiveTab] = useState('upcoming');
     const [upcomingMeetings, setUpcomingMeetings] = useState([]);
@@ -361,7 +362,7 @@ Join us for our daily spiritual gathering.
                 rightAction={
                     (isAdmin || hasAccess('DAILY_ZOOM_MANAGEMENT')) && (
                         <button
-                            onClick={() => navigate('/admin/daily-zoom')}
+                            onClick={() => navigate('/admin/daily-zoom', { state: { returnPath: location.pathname } })}
                             style={{
                                 display: 'flex',
                                 alignItems: 'center',
