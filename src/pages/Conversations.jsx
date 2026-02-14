@@ -87,24 +87,17 @@ const Conversations = () => {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <LinkButton
-              title="Recorded Programs"
-              icon={PlaySquare}
-              path="/conversations/recorded-programs"
-              delay={0.1}
-            />
-
-            <LinkButton
               title="Telegram"
               icon={Send}
               url="https://t.me/Bagavath_conversations"
-              delay={0.2}
+              delay={0.1}
             />
 
             <LinkButton
               title="YouTube"
               icon={Youtube}
               url="https://youtube.com/@bagavathpathai?si=F2JEXlLNpDngYujc"
-              delay={0.3}
+              delay={0.2}
             />
           </div>
         </motion.div>

@@ -365,7 +365,7 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
                                 cursor: 'pointer'
                             }}
                         >
-                            Manage
+                            Edit
                         </button>
                     )
                 }

@@ -147,7 +147,7 @@ const Consultation = () => {
                                 cursor: 'pointer'
                             }}
                         >
-                            Manage
+                            Edit
                         </button>
                     )
                 }

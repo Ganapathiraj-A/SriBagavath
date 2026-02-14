@@ -153,7 +153,7 @@ const OnlineMeetings = () => {
                                 cursor: 'pointer'
                             }}
                         >
-                            Manage
+                            Edit
                         </button>
                     )
                 }

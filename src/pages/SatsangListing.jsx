@@ -155,7 +155,7 @@ const SatsangListing = () => {
                                 cursor: 'pointer'
                             }}
                         >
-                            Manage
+                            Edit
                         </button>
                     )
                 }
