@@ -99,13 +99,6 @@ const Conversations = () => {
               url="https://youtube.com/@bagavathpathai?si=F2JEXlLNpDngYujc"
               delay={0.2}
             />
-
-            <LinkButton
-              title="Recorded Programs"
-              icon={PlaySquare}
-              path="/conversations/recorded-programs"
-              delay={0.3}
-            />
           </div>
         </motion.div>
       </div >

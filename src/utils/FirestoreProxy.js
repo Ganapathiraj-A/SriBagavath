@@ -4,6 +4,14 @@ import ApiMonitor from './ApiMonitor';
 // Re-export everything from the original SDK
 export * from 'firebase/firestore';
 
+// Explicit exports to avoid reference errors in some environments
+export {
+    collection, doc, query, orderBy, where, limit,
+    startAfter, addDoc as firebaseAddDoc, setDoc as firebaseSetDoc,
+    updateDoc as firebaseUpdateDoc, deleteDoc as firebaseDeleteDoc,
+    getDoc as firebaseGetDoc, getDocs as firebaseGetDocs
+} from 'firebase/firestore';
+
 // Helper to track reads from snapshots
 const lastLoggedDocs = new Map(); // Track last doc count/data for listeners to avoid spam
 

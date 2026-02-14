@@ -75,8 +75,7 @@ const RelatedVideosHub = () => {
                     }}
                 >
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        <HubButton title="Videos" icon={Video} path="/videos" delay={0.1} />
-                        <HubButton title="Audio Books" icon={Headphones} path="/audio-books" delay={0.2} />
+                        <HubButton title="Audio Books" icon={Headphones} path="/audio-books" delay={0.1} />
                     </div>
                 </motion.div>
             </div>

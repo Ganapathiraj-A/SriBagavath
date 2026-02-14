@@ -105,10 +105,6 @@ const SatsangManagement = () => {
 
     const ORANGE = '#f97316';
 
-    useEffect(() => {
-        loadMeetings();
-    }, [loadMeetings]);
-
     const loadMeetings = useCallback(async () => {
         setLoading(true);
 
@@ -134,7 +130,11 @@ const SatsangManagement = () => {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [getNextOccurrence]); // Added missing dependency for completeness
+
+    useEffect(() => {
+        loadMeetings();
+    }, [loadMeetings]);
 
     const handleImageChange = async (e) => {
         const file = e.target.files[0];

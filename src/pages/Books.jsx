@@ -71,9 +71,9 @@ const Books = () => {
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         <BookTypeButton title="Print Books" icon={BookOpen} path="/bookstore" delay={0.1} />
-                        <BookTypeButton title="Digital Books" icon={BookOpen} path="/digital-books" delay={0.2} />
-                        <BookTypeButton title="Monthly Magazine" icon={FileText} path="/monthly-magazine" delay={0.3} />
-                        <BookTypeButton title="Conversations" icon={Video} path="/conversations" delay={0.4} />
+                        <BookTypeButton title="Digital Books" icon={BookOpen} path="/pdf-books" delay={0.2} />
+                        <BookTypeButton title="Recorded Programs" icon={Video} path="/conversations/recorded-programs" delay={0.3} />
+                        <BookTypeButton title="Monthly Magazine" icon={FileText} path="/monthly-magazine" delay={0.4} />
                         <BookTypeButton title="Related Videos" icon={Video} path="/related-videos" delay={0.5} />
                     </div>
                 </motion.div>
