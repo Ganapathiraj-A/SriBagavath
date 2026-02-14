@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Clock, User, ChevronLeft, Video, RefreshCw } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
@@ -64,6 +64,7 @@ const getNextOccurrence = (master, todayStr) => {
 
 const OnlineMeetings = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [meetings, setMeetings] = useState([]);
     const [loading, setLoading] = useState(true);
     const { loading: authLoading, isAdmin, hasAccess } = useAdminAuth();
@@ -138,7 +139,7 @@ const OnlineMeetings = () => {
                 rightAction={
                     (isAdmin || hasAccess('PROGRAM_MANAGEMENT')) && (
                         <button
-                            onClick={() => navigate('/admin/online-meetings')}
+                            onClick={() => navigate('/admin/online-meetings', { state: { returnPath: location.pathname } })}
                             style={{
                                 display: 'flex',
                                 alignItems: 'center',

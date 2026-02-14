@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Calendar, Clock, MapPin, Share2, ChevronLeft, User, Users } from 'lucide-react';
 import { Share } from '@capacitor/share';
 import { Filesystem, Directory } from '@capacitor/filesystem';
@@ -11,6 +11,7 @@ import { doc, getDocCacheFirst } from '@/utils/FirestoreProxy';
 const SatsangDetails = () => {
     const { id: rawId } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
     const [meeting, setMeeting] = useState(null);
     const [banner, setBanner] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -56,17 +57,17 @@ const SatsangDetails = () => {
     const handleShare = async () => {
         if (!meeting) return;
         const text = `
-*Satsang with ${meeting.conductedBy}*
-${meeting.description || meeting.descriptions ? '\n' + (meeting.description || meeting.descriptions) + '\n' : ''}
-📅 *Date:* ${new Date(meeting.date).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
-⏰ *Time:* ${meeting.startTime} - ${meeting.endTime}
-📍 *City:* ${meeting.city}
-🏠 *Venue:* ${meeting.venue}
-        `.trim();
+    * Satsang with ${meeting.conductedBy}*
+        ${meeting.description || meeting.descriptions ? '\n' + (meeting.description || meeting.descriptions) + '\n' : ''}
+📅 * Date:* ${new Date(meeting.date).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
+⏰ * Time:* ${meeting.startTime} - ${meeting.endTime}
+📍 * City:* ${meeting.city}
+🏠 * Venue:* ${meeting.venue}
+`.trim();
 
         try {
             await Share.share({
-                title: `Satsang - ${meeting.conductedBy}`,
+                title: `Satsang - ${meeting.conductedBy} `,
                 text: text,
             });
         } catch (_err) {

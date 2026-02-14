@@ -80,7 +80,11 @@ const PageHeader = ({
             '/my-donations': '/donations',
             '/my-orders': '/bookstore',
             '/my-registrations': '/programs/retreat',
+            '/programs/retreat': '/programs',
+            '/programs/online': '/programs',
+            '/programs/satsang': '/programs',
             '/programs/consultation': '/programs',
+            '/programs/online/daily': '/programs',
             '/schedule': '/programs',
             '/bookstore': '/books',
             '/pdf-books': '/books',
@@ -88,7 +92,9 @@ const PageHeader = ({
             '/videos': '/related-videos',
             '/monthly-magazine': '/books',
             '/conversations': '/books',
-            '/conversations/recorded-programs': '/books'
+            '/conversations/recorded-programs': '/books',
+            '/digital-books': '/books',
+            '/related-videos': '/books'
         };
 
         if (location.state?.returnPath) {

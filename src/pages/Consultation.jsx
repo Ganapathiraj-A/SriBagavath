@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronLeft, Phone, Copy, Check } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
@@ -87,6 +87,7 @@ const ContactCard = ({ name, number, delay }) => {
 
 const Consultation = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [consultants, setConsultants] = React.useState([]);
     const [loading, setLoading] = React.useState(true);
     const { isInitialized, isAdmin, hasAccess } = useAdminAuth();
@@ -132,7 +133,7 @@ const Consultation = () => {
                 rightAction={
                     (isAdmin || (typeof hasAccess === 'function' && (hasAccess('PROGRAM_MANAGEMENT') || hasAccess('CONSULTATION_MANAGEMENT')))) && (
                         <button
-                            onClick={() => navigate('/admin/consultation')}
+                            onClick={() => navigate('/admin/consultation', { state: { returnPath: location.pathname } })}
                             style={{
                                 display: 'flex',
                                 alignItems: 'center',
