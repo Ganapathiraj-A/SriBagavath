@@ -169,6 +169,8 @@ function AnimatedRoutes() {
         const parentMappings = {
           '/admin/back-office': '/configuration',
           '/admin/settings': '/configuration',
+          '/admin/url-settings': '/configuration',
+          '/admin/related-videos': '/configuration',
           '/admin-review': '/configuration',
           '/admin/purchases': '/configuration',
           '/admin/donations': '/configuration',
