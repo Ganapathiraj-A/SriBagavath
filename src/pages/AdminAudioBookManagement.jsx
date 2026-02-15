@@ -103,7 +103,7 @@ const AdminAudioBookManagement = () => {
     );
 
     return (
-        <div style={{ backgroundColor: '#f9fafb', minHeight: '100vh', paddingBottom: '2rem' }}>
+        <div style={{ backgroundColor: '#f9fafb', minHeight: '100vh', paddingBottom: '2rem', overflowX: 'hidden' }}>
             <PageHeader
                 title="Audio Book Management"
                 rightAction={
@@ -274,12 +274,12 @@ const AdminAudioBookManagement = () => {
                             onClick={e => e.stopPropagation()}
                             style={{
                                 backgroundColor: 'white',
-                                width: '100%',
+                                width: '95%',
                                 maxWidth: '450px',
                                 maxHeight: '90vh',
                                 overflowY: 'auto',
                                 borderRadius: '24px',
-                                padding: '1.5rem',
+                                padding: '1.25rem', // Slightly reduced padding
                                 boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)',
                                 position: 'relative'
                             }}
@@ -311,12 +311,12 @@ const AdminAudioBookManagement = () => {
                                     <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '0.5rem' }}>
                                         Image (Square Recommended)
                                     </label>
-                                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                                        <div style={{ width: '64px', height: '64px', borderRadius: '10px', backgroundColor: '#f3f4f6', overflow: 'hidden', border: '1px solid #e5e7eb' }}>
-                                            {formData.image ? <img src={formData.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Music size={24} style={{ margin: '20px' }} color="#9ca3af" />}
+                                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                        <div style={{ width: '60px', height: '60px', borderRadius: '10px', backgroundColor: '#f3f4f6', overflow: 'hidden', border: '1px solid #e5e7eb', flexShrink: 0 }}>
+                                            {formData.image ? <img src={formData.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Music size={24} style={{ margin: '18px' }} color="#9ca3af" />}
                                         </div>
                                         <label style={{
-                                            flex: 1,
+                                            flex: '1 1 150px',
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',

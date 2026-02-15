@@ -10,7 +10,6 @@ import Home from './pages/Home'; // Home stays static for immediate visible pain
 // Lazy load all other pages
 const About = lazy(() => import('./pages/About'));
 const Programs = lazy(() => import('./pages/Programs'));
-const Conversations = lazy(() => import('./pages/Conversations'));
 const Books = lazy(() => import('./pages/Books'));
 const MonthlyMagazine = lazy(() => import('./pages/MonthlyMagazine'));
 const AudioBooks = lazy(() => import('./pages/AudioBooks'));
@@ -286,7 +285,6 @@ function AnimatedRoutes() {
           <Route path="/programs/satsang/:id" element={<SatsangDetails />} />
           <Route path="/programs/consultation" element={<Consultation />} />
           <Route path="/programs/online/daily" element={<DailyZoomMeetings />} />
-          <Route path="/conversations" element={<Conversations />} />
           <Route path="/conversations/recorded-programs" element={<RecordedPrograms />} />
           <Route path="/books" element={<Books />} />
           <Route path="/bookstore" element={<BookStore />} />

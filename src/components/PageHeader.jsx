@@ -191,12 +191,12 @@ const PageHeader = ({
 
             {/* Center: Title */}
             <h1 style={{
-                fontSize: '1.5rem', // Match Books-ish size (Books is 1.875rem, but 1.5 is safer for mobile headers)
-                fontWeight: 500, // Match Registration screen look
+                fontSize: '1.4rem', // Slightly smaller for better fit
+                fontWeight: 500,
                 margin: 0,
                 textAlign: 'center',
-                color: '#111827', // Dark gray
-                maxWidth: '60%', // Reduced slightly to make room for right icons
+                color: '#111827',
+                maxWidth: '75%', // Increased to prevent wrap/clipping
                 lineHeight: 1.2
             }}>
                 {title}

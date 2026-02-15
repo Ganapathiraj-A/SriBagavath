@@ -95,8 +95,7 @@ const Books = () => {
                         <BookTypeButton title="Audio Books" icon={Headphones} path="/audio-books" delay={0.3} />
                         <BookTypeButton title="Recorded Programs" icon={Video} path="/conversations/recorded-programs" delay={0.4} />
                         <BookTypeButton title="Monthly Magazine" icon={FileText} path="/monthly-magazine" delay={0.5} />
-                        <BookTypeButton title="Conversations" icon={Youtube} path="/conversations" delay={0.6} />
-                        <BookTypeButton title="Related Videos" icon={Youtube} path="/videos" delay={0.7} />
+                        <BookTypeButton title="Related Videos" icon={Youtube} path="/videos" delay={0.6} />
                     </div>
                 </motion.div>
             </div>
