@@ -197,6 +197,7 @@ const AdminAudioBookManagement = () => {
                             <motion.div
                                 key={book.id}
                                 layout
+                                onClick={() => handleOpenModal(book)}
                                 style={{
                                     backgroundColor: 'white',
                                     padding: '1rem',
@@ -204,8 +205,11 @@ const AdminAudioBookManagement = () => {
                                     border: '1px solid #e5e7eb',
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: '12px'
+                                    gap: '12px',
+                                    cursor: 'pointer',
+                                    transition: 'background-color 0.2s'
                                 }}
+                                whileHover={{ backgroundColor: '#f9fafb' }}
                             >
                                 <div style={{
                                     width: '60px',
@@ -230,19 +234,8 @@ const AdminAudioBookManagement = () => {
                                         {book.link}
                                     </p>
                                 </div>
-                                <div style={{ display: 'flex', gap: '4px' }}>
-                                    <button
-                                        onClick={() => handleOpenModal(book)}
-                                        style={{ padding: '8px', border: 'none', background: 'none', color: '#6b7280', cursor: 'pointer' }}
-                                    >
-                                        <Edit2 size={18} />
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(book.id)}
-                                        style={{ padding: '8px', border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer' }}
-                                    >
-                                        <Trash2 size={18} />
-                                    </button>
+                                <div style={{ display: 'flex', gap: '4px', opacity: 0.5 }}>
+                                    <Edit2 size={18} color="#6b7280" />
                                 </div>
                             </motion.div>
                         ))}
@@ -360,32 +353,55 @@ const AdminAudioBookManagement = () => {
                                     />
                                 </div>
 
-                                <button
-                                    type="submit"
-                                    disabled={saving}
-                                    style={{
-                                        marginTop: '1.5rem',
-                                        marginBottom: '0.5rem',
-                                        padding: '1rem',
-                                        backgroundColor: 'var(--color-primary)',
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: '12px',
-                                        fontWeight: 600,
-                                        fontSize: '1rem',
-                                        cursor: 'pointer',
-                                        opacity: saving ? 0.7 : 1,
-                                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                                    }}
-                                >
-                                    {saving ? 'Saving...' : (editingBook ? 'Update Audio Book' : 'Save Audio Book')}
-                                </button>
+                                <div style={{ display: 'flex', gap: '12px', marginTop: '1.5rem' }}>
+                                    {editingBook && (
+                                        <button
+                                            type="button"
+                                            onClick={() => handleDelete(editingBook.id)}
+                                            style={{
+                                                flex: 1,
+                                                padding: '1rem',
+                                                backgroundColor: '#fef2f2',
+                                                color: '#ef4444',
+                                                border: '1px solid #fecaca',
+                                                borderRadius: '12px',
+                                                fontWeight: 600,
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                gap: '8px'
+                                            }}
+                                        >
+                                            <Trash2 size={20} /> Delete
+                                        </button>
+                                    )}
+                                    <button
+                                        type="submit"
+                                        disabled={saving}
+                                        style={{
+                                            flex: 2,
+                                            padding: '1rem',
+                                            backgroundColor: 'var(--color-primary)',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '12px',
+                                            fontWeight: 700,
+                                            fontSize: '1rem',
+                                            cursor: 'pointer',
+                                            opacity: saving ? 0.7 : 1,
+                                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                        }}
+                                    >
+                                        {saving ? 'Saving...' : (editingBook ? 'Update' : 'Save')}
+                                    </button>
+                                </div>
                             </form>
                         </motion.div>
                     </div>
                 )}
             </AnimatePresence>
-        </div>
+        </div >
     );
 };
 

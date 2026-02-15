@@ -3,6 +3,7 @@ import { AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Plus, Edit2, Trash2, ChevronLeft, LogOut, Package, Image as ImageIcon, BookOpen, X, ChevronUp, ChevronDown, RefreshCw, Eye } from 'lucide-react';
+import { useAdminAuth } from '@/context/AdminAuthContext';
 import PageHeader from '@/components/PageHeader';
 import LazyImage from '@/components/LazyImage';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
