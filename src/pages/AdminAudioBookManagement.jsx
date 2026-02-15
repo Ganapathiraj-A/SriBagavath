@@ -112,45 +112,47 @@ const AdminAudioBookManagement = () => {
                         style={{
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '6px',
-                            padding: '8px 16px',
+                            justifyContent: 'center',
+                            width: '40px',
+                            height: '40px',
                             backgroundColor: 'white',
                             border: '1px solid #e5e7eb',
-                            borderRadius: '20px',
-                            fontSize: '0.85rem',
-                            fontWeight: 600,
-                            cursor: 'pointer'
+                            borderRadius: '50%',
+                            cursor: 'pointer',
+                            boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
                         }}
+                        title="View Listing"
                     >
-                        <Eye size={16} /> View Listing
+                        <Eye size={20} color="#6b7280" />
                     </button>
                 }
             />
 
             <div style={{ maxWidth: '48rem', margin: '0 auto', padding: '1rem' }}>
-                <div style={{ display: 'flex', gap: '12px', marginBottom: '1.5rem' }}>
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '1.5rem' }}>
                     <div style={{
                         flex: 1,
                         display: 'flex',
                         alignItems: 'center',
                         gap: '8px',
-                        padding: '0 1rem',
+                        padding: '0 0.85rem',
                         backgroundColor: 'white',
                         borderRadius: '12px',
-                        border: '1px solid #e5e7eb'
+                        border: '1px solid #e5e7eb',
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
                     }}>
                         <Search size={18} color="#9ca3af" />
                         <input
                             type="text"
-                            placeholder="Search audio books..."
+                            placeholder="Search..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             style={{
                                 width: '100%',
-                                padding: '0.75rem 0',
+                                padding: '0.65rem 0',
                                 border: 'none',
                                 outline: 'none',
-                                fontSize: '0.95rem'
+                                fontSize: '0.9rem'
                             }}
                         />
                     </div>
@@ -160,16 +162,18 @@ const AdminAudioBookManagement = () => {
                             display: 'flex',
                             alignItems: 'center',
                             gap: '6px',
-                            padding: '0 1.25rem',
+                            padding: '0 1rem',
                             backgroundColor: 'var(--color-primary)',
                             color: 'white',
                             border: 'none',
                             borderRadius: '12px',
                             fontWeight: 600,
-                            cursor: 'pointer'
+                            fontSize: '0.9rem',
+                            cursor: 'pointer',
+                            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)'
                         }}
                     >
-                        <Plus size={20} /> Add
+                        <Plus size={18} /> Add
                     </button>
                 </div>
 
@@ -272,9 +276,12 @@ const AdminAudioBookManagement = () => {
                                 backgroundColor: 'white',
                                 width: '100%',
                                 maxWidth: '450px',
+                                maxHeight: '90vh',
+                                overflowY: 'auto',
                                 borderRadius: '24px',
                                 padding: '1.5rem',
-                                boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)'
+                                boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)',
+                                position: 'relative'
                             }}
                         >
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
@@ -357,18 +364,21 @@ const AdminAudioBookManagement = () => {
                                     type="submit"
                                     disabled={saving}
                                     style={{
-                                        marginTop: '1rem',
+                                        marginTop: '1.5rem',
+                                        marginBottom: '0.5rem',
                                         padding: '1rem',
                                         backgroundColor: 'var(--color-primary)',
                                         color: 'white',
                                         border: 'none',
                                         borderRadius: '12px',
                                         fontWeight: 600,
+                                        fontSize: '1rem',
                                         cursor: 'pointer',
-                                        opacity: saving ? 0.7 : 1
+                                        opacity: saving ? 0.7 : 1,
+                                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                                     }}
                                 >
-                                    {saving ? 'Saving...' : 'Save Audio Book'}
+                                    {saving ? 'Saving...' : (editingBook ? 'Update Audio Book' : 'Save Audio Book')}
                                 </button>
                             </form>
                         </motion.div>

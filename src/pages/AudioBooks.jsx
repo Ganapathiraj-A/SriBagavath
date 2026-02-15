@@ -57,20 +57,20 @@ const AudioBooks = () => {
           <button
             onClick={() => navigate('/admin/audio-books', { state: { returnPath: '/audio-books' } })}
             style={{
-              padding: '6px 12px',
-              backgroundColor: '#fff7ed',
-              color: 'var(--color-primary)',
-              border: '1px solid var(--color-primary)',
-              borderRadius: '20px',
-              fontSize: '0.85rem',
-              fontWeight: 600,
-              cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '6px'
+              justifyContent: 'center',
+              width: '40px',
+              height: '40px',
+              backgroundColor: 'white',
+              border: '1px solid #e5e7eb',
+              borderRadius: '50%',
+              cursor: 'pointer',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
             }}
+            title="Edit"
           >
-            <Edit2 size={16} /> Edit
+            <Edit2 size={20} color="var(--color-primary)" />
           </button>
         )}
       />

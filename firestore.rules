@@ -153,6 +153,16 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    match /audio_books/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /relatedVideos/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     match /diagnostic_reports/{reportId} {
       allow read: if isAdmin();
       allow create: if request.auth != null || 
