@@ -13,7 +13,8 @@ import { useDriveFiles } from '@/hooks/useDriveFiles';
 
 const PdfBooks = () => {
   const { driveTamilBooksId, driveEnglishBooksId } = useGlobalSettings();
-  const { isAdmin } = useAdminAuth();
+  const { isAdmin, hasAccess } = useAdminAuth();
+  const canEdit = hasAccess('DIGITAL_BOOKS_MANAGEMENT');
   const tabs = ['Tamil Books', 'English Books'];
   const [activeTab, setActiveTab] = useState('Tamil Books');
   const [editMode, setEditMode] = useState(false);
@@ -170,7 +171,7 @@ const PdfBooks = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className="card"
                 onClick={() => {
-                  if (isAdmin && editMode) {
+                  if (canEdit && editMode) {
                     setEditingFile(file);
                     setIsModalOpen(true);
                     loadPrintedBooks();
@@ -276,7 +277,7 @@ const PdfBooks = () => {
           ))}
         </div>
 
-        {isAdmin && (
+        {canEdit && (
           <button
             onClick={() => setEditMode(!editMode)}
             style={{

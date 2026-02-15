@@ -93,43 +93,10 @@ const Books = () => {
                         <BookTypeButton title="Print Books" icon={BookOpen} path="/bookstore" delay={0.1} />
                         <BookTypeButton title="Digital Books" icon={BookOpen} path="/pdf-books" delay={0.2} />
                         <BookTypeButton title="Audio Books" icon={Headphones} path="/audio-books" delay={0.3} />
-                        <BookTypeButton title="Recorded Programs" icon={Video} path="/conversations/recorded-programs" delay={0.4} />
-                        <BookTypeButton title="Monthly Magazine" icon={FileText} path="/monthly-magazine" delay={0.5} />
-
-                        {relatedVideos.length > 0 && (
-                            <div style={{ marginTop: '2rem' }}>
-                                <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#374151', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <Youtube size={20} color="#ef4444" /> Related Videos
-                                </h2>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                    {relatedVideos.map((video, index) => (
-                                        <motion.button
-                                            key={video.id}
-                                            initial={{ opacity: 0, x: -20 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: 0.6 + (index * 0.1) }}
-                                            whileHover={{ scale: 1.01, backgroundColor: '#f9fafb' }}
-                                            onClick={() => window.open(video.url, '_blank')}
-                                            style={{
-                                                width: '100%',
-                                                padding: '1rem',
-                                                backgroundColor: 'white',
-                                                borderRadius: '0.5rem',
-                                                border: '1px solid #e5e7eb',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'space-between',
-                                                textAlign: 'left',
-                                                cursor: 'pointer'
-                                            }}
-                                        >
-                                            <span style={{ fontSize: '1rem', color: '#4b5563', fontWeight: 500 }}>{video.title}</span>
-                                            <ExternalLink size={16} color="#9ca3af" />
-                                        </motion.button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
+                        <BookTypeButton title="Conversations" icon={Youtube} path="/conversations" delay={0.4} />
+                        <BookTypeButton title="Recorded Programs" icon={Video} path="/conversations/recorded-programs" delay={0.5} />
+                        <BookTypeButton title="Related Videos" icon={Youtube} path="/videos" delay={0.6} />
+                        <BookTypeButton title="Monthly Magazine" icon={FileText} path="/monthly-magazine" delay={0.7} />
                     </div>
                 </motion.div>
             </div>

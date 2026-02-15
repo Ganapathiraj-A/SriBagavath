@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Plus, Edit2, Trash2, ChevronLeft, LogOut, Package, Image as ImageIcon, BookOpen, X, ChevronUp, ChevronDown, RefreshCw } from 'lucide-react';
+import { Plus, Edit2, Trash2, ChevronLeft, LogOut, Package, Image as ImageIcon, BookOpen, X, ChevronUp, ChevronDown, RefreshCw, Eye } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import LazyImage from '@/components/LazyImage';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
@@ -89,6 +89,8 @@ const CATEGORIES = ['Tamil Books', 'English Books'];
 const AdminBookManagement = () => {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
+    const { isAdmin, hasAccess } = useAdminAuth();
+    const canManage = hasAccess('PRINT_BOOKS_MANAGEMENT');
     const [books, setBooks] = useState([]);
     const [covers, setCovers] = useState({});
     const [loading, setLoading] = useState(true);
@@ -354,9 +356,24 @@ const AdminBookManagement = () => {
         <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
             <PageHeader
                 title="Book Management"
-                leftAction={
-                    <button onClick={() => navigate('/configuration')} style={{ background: 'none', border: 'none', padding: '8px', cursor: 'pointer' }}>
-                        <ChevronLeft size={24} />
+                rightAction={
+                    <button
+                        onClick={() => navigate('/bookstore')}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '8px 12px',
+                            backgroundColor: '#f3f4f6',
+                            border: '1px solid #d1d5db',
+                            borderRadius: '20px',
+                            color: '#4b5563',
+                            fontSize: '0.85rem',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                        }}
+                    >
+                        <Eye size={16} /> View Listing
                     </button>
                 }
             />

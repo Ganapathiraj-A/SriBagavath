@@ -12,12 +12,14 @@ import { collection, getDocs, query, orderBy, doc, getDoc } from '@/utils/Firest
 import { GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
 import { useCart } from '@/context/CartContext';
 import { useAdminAuth } from '@/context/AdminAuthContext';
+import { Edit2 } from 'lucide-react';
 import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 
 const BookStore = () => {
     const navigate = useNavigate();
     const { cart, addToCart, removeFromCart } = useCart();
-    const { loading: authGlobalLoading } = useAdminAuth();
+    const { isAdmin, hasAccess, loading: authGlobalLoading } = useAdminAuth();
+    const canEdit = hasAccess('PRINT_BOOKS_MANAGEMENT');
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('Tamil Books');
@@ -153,7 +155,29 @@ const BookStore = () => {
 
     return (
         <div style={{ backgroundColor: '#f9fafb', minHeight: '100vh', paddingBottom: '100px' }}>
-            <PageHeader title="Print Books" />
+            <PageHeader
+                title="Print Books"
+                rightAction={canEdit && (
+                    <button
+                        onClick={() => navigate('/admin/books', { state: { returnPath: '/bookstore' } })}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '8px 12px',
+                            backgroundColor: '#fff7ed',
+                            border: '1px solid var(--color-primary)',
+                            borderRadius: '20px',
+                            color: 'var(--color-primary)',
+                            fontSize: '0.85rem',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                        }}
+                    >
+                        <Edit2 size={16} /> Edit
+                    </button>
+                )}
+            />
 
             {/* Tabs Navigation */}
             <div style={{

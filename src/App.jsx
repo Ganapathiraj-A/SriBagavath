@@ -57,6 +57,7 @@ const Donations = lazy(() => import('./pages/Donations'));
 const MyDonations = lazy(() => import('./pages/MyDonations'));
 const AdminSettings = lazy(() => import('./pages/AdminSettings'));
 const AdminBookManagement = lazy(() => import('./pages/AdminBookManagement'));
+const AdminAudioBookManagement = lazy(() => import('./pages/AdminAudioBookManagement'));
 const BookDetails = lazy(() => import('./pages/BookDetails'));
 const BackOffice = lazy(() => import('./pages/BackOffice'));
 const BackOfficeReporting = lazy(() => import('./pages/BackOfficeReporting'));
@@ -324,7 +325,8 @@ function AnimatedRoutes() {
           <Route path="/admin/daily-zoom/links" element={<ProtectedRoute requiredPermission="DAILY_ZOOM_MANAGEMENT"><DailyZoomLinkManagement /></ProtectedRoute>} />
           <Route path="/admin/purchases" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><BookStoreManagement /></ProtectedRoute>} />
           <Route path="/admin/donations" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><DonationManagement /></ProtectedRoute>} />
-          <Route path="/admin/books" element={<ProtectedRoute requiredPermission="BANKING"><AdminBookManagement /></ProtectedRoute>} />
+          <Route path="/admin/books" element={<ProtectedRoute requiredPermission="PRINT_BOOKS_MANAGEMENT"><AdminBookManagement /></ProtectedRoute>} />
+          <Route path="/admin/audio-books" element={<ProtectedRoute requiredPermission="AUDIO_BOOKS_MANAGEMENT"><AdminAudioBookManagement /></ProtectedRoute>} />
 
           <Route path="/admin-review" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><AdminReview /></ProtectedRoute>} />
           <Route path="/admin-dashboard" element={<ProtectedRoute requiredPermission="REPORTING"><AdminDashboard /></ProtectedRoute>} />

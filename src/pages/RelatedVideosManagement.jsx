@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { collection, query, getDocs, onSnapshot, doc, setDoc, deleteDoc, serverTimestamp, orderBy } from '@/utils/FirestoreProxy';
 import { db } from '@/firebase';
 import PageHeader from '@/components/PageHeader';
-import { Plus, Trash2, Edit, Save, X, ExternalLink, Video, ChevronLeft } from 'lucide-react';
+import { Plus, Trash2, Edit, Save, X, ExternalLink, Video, ChevronLeft, Eye } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const RelatedVideosManagement = () => {
@@ -70,9 +70,24 @@ const RelatedVideosManagement = () => {
         <div style={{ minHeight: '100vh', backgroundColor: '#f9f9f9' }}>
             <PageHeader
                 title="Related Videos Management"
-                leftAction={
-                    <button onClick={() => navigate('/admin/settings')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
-                        <ChevronLeft size={24} />
+                rightAction={
+                    <button
+                        onClick={() => navigate('/videos')}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '8px 12px',
+                            backgroundColor: '#f3f4f6',
+                            border: '1px solid #d1d5db',
+                            borderRadius: '20px',
+                            color: '#4b5563',
+                            fontSize: '0.85rem',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                        }}
+                    >
+                        <Eye size={16} /> View Listing
                     </button>
                 }
             />

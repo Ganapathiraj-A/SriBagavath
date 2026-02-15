@@ -93,10 +93,12 @@ const PageHeader = ({
             '/bookstore': '/books',
             '/pdf-books': '/books',
             '/audio-books': '/related-videos',
-            '/videos': '/related-videos',
+            '/videos': '/books',
             '/monthly-magazine': '/books',
             '/conversations': '/books',
             '/conversations/recorded-programs': '/books',
+            '/admin/books': '/configuration',
+            '/admin/audio-books': '/configuration',
             '/digital-books': '/books',
             '/related-videos': '/books'
         };
