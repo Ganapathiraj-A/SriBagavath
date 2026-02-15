@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Youtube, ExternalLink } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
@@ -9,7 +10,8 @@ import { Edit2 } from 'lucide-react';
 
 const Videos = () => {
     const navigate = useNavigate();
-    const { isAdmin } = useAdminAuth();
+    const { hasAccess } = useAdminAuth();
+    const isAdmin = hasAccess('RELATED_VIDEO_MANAGEMENT');
     const [videos, setVideos] = useState([]);
     const [loading, setLoading] = useState(true);
 

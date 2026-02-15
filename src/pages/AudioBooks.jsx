@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Share2, Play, Edit2 } from 'lucide-react';
+import { Share2, Play, Edit2, Music } from 'lucide-react';
 import { Share } from '@capacitor/share';
 import { Capacitor } from '@capacitor/core';
 import { useNavigate } from 'react-router-dom';
@@ -24,6 +24,9 @@ const AudioBooks = () => {
         ...doc.data()
       }));
       setAudioBooks(books);
+      setLoading(false);
+    }, (error) => {
+      console.error("Error fetching audio books:", error);
       setLoading(false);
     });
     return () => unsub();
