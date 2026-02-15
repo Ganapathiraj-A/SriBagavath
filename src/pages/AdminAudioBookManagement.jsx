@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Plus, Search, Edit2, Trash2, GripVertical,
-    Save, X, Upload, Eye, Music
+    Save, X, Upload, Eye, Music, ChevronUp, ChevronDown
 } from 'lucide-react';
 import {
     collection, onSnapshot, doc, setDoc,
@@ -345,12 +345,32 @@ const AdminAudioBookManagement = () => {
                                     <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '0.5rem' }}>
                                         Display Order
                                     </label>
-                                    <input
-                                        type="number"
-                                        value={formData.order}
-                                        onChange={e => setFormData(prev => ({ ...prev, order: parseInt(e.target.value) || 0 }))}
-                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #d1d5db', outline: 'none' }}
-                                    />
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <div style={{ position: 'relative', flex: 1 }}>
+                                            <input
+                                                type="number"
+                                                value={formData.order}
+                                                onChange={e => setFormData(prev => ({ ...prev, order: parseInt(e.target.value) || 0 }))}
+                                                style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #d1d5db', outline: 'none' }}
+                                            />
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData(prev => ({ ...prev, order: prev.order + 1 }))}
+                                                style={{ border: '1px solid #d1d5db', background: 'white', borderRadius: '6px', padding: '2px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                            >
+                                                <ChevronUp size={16} />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData(prev => ({ ...prev, order: Math.max(0, prev.order - 1) }))}
+                                                style={{ border: '1px solid #d1d5db', background: 'white', borderRadius: '6px', padding: '2px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                            >
+                                                <ChevronDown size={16} />
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div style={{ display: 'flex', gap: '12px', marginTop: '1.5rem' }}>
