@@ -30,7 +30,9 @@ export const GlobalSettingsProvider = ({ children }) => {
         driveTamilBooksId: '1y0X_HByCzQbD-niqKODg-Nan9r70_dMs',
         driveEnglishBooksId: '1_PpyDSaAyeBaZ6154-7BHM7oIqs4O0Gv',
         driveMagazineId: '152NrOoCD56T9hUK-KLGF7ULwlnDvoVY0',
-        driveAudioBooksId: '1L65ifCQ_bAQauymMH5JyDgul7LIL3cnL'
+        driveAudioBooksId: '1L65ifCQ_bAQauymMH5JyDgul7LIL3cnL',
+        onlineRegistrationContact: '',
+        offlineRegistrationContact: ''
     });
 
     const [adminSettings, setAdminSettings] = useState({
@@ -264,6 +266,8 @@ export const GlobalSettingsProvider = ({ children }) => {
             driveEnglishBooksId: publicSettings.driveEnglishBooksId,
             driveMagazineId: publicSettings.driveMagazineId,
             driveAudioBooksId: publicSettings.driveAudioBooksId,
+            onlineRegistrationContact: publicSettings.onlineRegistrationContact,
+            offlineRegistrationContact: publicSettings.offlineRegistrationContact,
 
             toggleOnlineTransactions: (val) => updatePublic({ onlineTransactionsEnabled: val }),
             setMinAppVersion: (val) => updatePublic({ minAppVersion: val }),
@@ -283,6 +287,8 @@ export const GlobalSettingsProvider = ({ children }) => {
             setDriveEnglishBooksId: (val) => updatePublic({ driveEnglishBooksId: val }),
             setDriveMagazineId: (val) => updatePublic({ driveMagazineId: val }),
             setDriveAudioBooksId: (val) => updatePublic({ driveAudioBooksId: val }),
+            setOnlineRegistrationContact: (val) => updatePublic({ onlineRegistrationContact: val }),
+            setOfflineRegistrationContact: (val) => updatePublic({ offlineRegistrationContact: val }),
 
             // Developer Settings (Per-User)
             devMode: userSettings.devMode ?? DEFAULT_USER_SETTINGS.devMode,

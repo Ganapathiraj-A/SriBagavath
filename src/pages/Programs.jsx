@@ -14,6 +14,7 @@ import { GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'fireb
 import { doc, getDoc, getDocCacheFirst, collection, query, where, orderBy } from '@/utils/FirestoreProxy';
 import { useAdminAuth } from '@/context/AdminAuthContext';
 import { getLocalDateString } from '@/utils/dateUtils';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 
 const Programs = () => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -66,6 +67,7 @@ const Programs = () => {
     };
 
     const { loading: authGlobalLoading, isAdmin, hasAccess } = useAdminAuth();
+    const { onlineRegistrationContact } = useGlobalSettings();
 
     useEffect(() => {
         const fetchPrograms = async () => {
@@ -566,7 +568,7 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
                                 }}>
                                     For registration queries please contact{' '}
                                     <button
-                                        onClick={() => handleCopy('7904118421')}
+                                        onClick={() => handleCopy(onlineRegistrationContact)}
                                         style={{
                                             background: 'none',
                                             border: 'none',
@@ -578,7 +580,7 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
                                             textDecoration: 'underline'
                                         }}
                                     >
-                                        7904118421
+                                        {onlineRegistrationContact}
                                     </button>
                                 </div>
 

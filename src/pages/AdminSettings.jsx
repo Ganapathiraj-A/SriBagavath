@@ -22,6 +22,7 @@ import {
     LayoutDashboard,
     Settings,
     Check,
+    Video,
     CreditCard,
     Copy,
     ChevronRight,

@@ -10,7 +10,7 @@ const EventRegistration = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { program, savedState } = location.state || {};
-    const { onlineTransactionsEnabled } = useGlobalSettings();
+    const { onlineTransactionsEnabled, offlineRegistrationContact } = useGlobalSettings();
 
     // Redirect if no program
     useEffect(() => {
@@ -518,7 +518,7 @@ const EventRegistration = () => {
                         textAlign: 'center'
                     }}>
                         <p style={{ margin: 0, color: '#b91c1c', fontWeight: 600, fontSize: '0.9rem' }}>
-                            To register please contact 7904118421
+                            To register please contact {offlineRegistrationContact}
                         </p>
                     </div>
                 )}

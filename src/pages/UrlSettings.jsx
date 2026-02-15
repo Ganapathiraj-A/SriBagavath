@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    ChevronLeft, Cloud, Save, Check, Copy, ExternalLink, Link as LinkIcon
+    ChevronLeft, Cloud, Save, Check, Copy, ExternalLink, Link as LinkIcon, Info
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { useAdminAuth } from '@/context/AdminAuthContext';
@@ -79,6 +79,8 @@ const UrlSettings = () => {
         driveEnglishBooksId,
         driveMagazineId,
         driveAudioBooksId,
+        onlineRegistrationContact,
+        offlineRegistrationContact,
         setPublicSettings
     } = useGlobalSettings();
 
@@ -176,6 +178,33 @@ const UrlSettings = () => {
                                 setPublicSettings(prev => ({ ...prev, driveAudioBooksId: e.target.value }));
                                 savePublicSetting('driveAudioBooksId', e.target.value);
                             }}
+                        />
+                    </div>
+                </div>
+
+                <div style={{ backgroundColor: 'white', borderRadius: '1rem', padding: '1.5rem', border: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.25rem' }}>
+                        <Info size={18} color="var(--color-primary)" />
+                        <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>Public Information</h3>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '1.25rem' }}>
+                        <CopyableInput
+                            label="Online Registration Contact"
+                            value={onlineRegistrationContact}
+                            onChange={(e) => {
+                                setPublicSettings(prev => ({ ...prev, onlineRegistrationContact: e.target.value }));
+                                savePublicSetting('onlineRegistrationContact', e.target.value);
+                            }}
+                            placeholder="e.g., 7904118421"
+                        />
+                        <CopyableInput
+                            label="Offline Registration Contact"
+                            value={offlineRegistrationContact}
+                            onChange={(e) => {
+                                setPublicSettings(prev => ({ ...prev, offlineRegistrationContact: e.target.value }));
+                                savePublicSetting('offlineRegistrationContact', e.target.value);
+                            }}
+                            placeholder="e.g., 7904118421"
                         />
                     </div>
                 </div>

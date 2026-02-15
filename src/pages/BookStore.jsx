@@ -22,7 +22,7 @@ const BookStore = () => {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('Tamil Books');
     const [authLoading, setAuthLoading] = useState(false);
-    const { onlineTransactionsEnabled } = useGlobalSettings();
+    const { onlineTransactionsEnabled, offlineRegistrationContact } = useGlobalSettings();
 
     const ensureAuth = async () => {
         if (auth.currentUser && !auth.currentUser.isAnonymous) {
@@ -340,7 +340,7 @@ const BookStore = () => {
                     zIndex: 100
                 }}>
                     <p style={{ margin: 0, fontWeight: 700, fontSize: '1rem' }}>
-                        To order books please contact 7904118421
+                        To order books please contact {offlineRegistrationContact}
                     </p>
                 </div>
             )}

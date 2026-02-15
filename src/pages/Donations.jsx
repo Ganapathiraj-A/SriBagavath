@@ -33,7 +33,7 @@ const Donations = () => {
     const [customAmount, setCustomAmount] = useState('');
     const [authLoading, setAuthLoading] = useState(false);
     const [activeTab, setActiveTab] = useState('General');
-    const { onlineTransactionsEnabled } = useGlobalSettings();
+    const { onlineTransactionsEnabled, offlineRegistrationContact } = useGlobalSettings();
 
     const tabs = ['General', 'Annadhanam', 'Membership'];
 
@@ -254,7 +254,7 @@ const Donations = () => {
                         textAlign: 'center'
                     }}>
                         <p style={{ margin: 0, color: '#b91c1c', fontWeight: 600, fontSize: '0.95rem' }}>
-                            To make donations please contact 7904118421
+                            To make donations please contact {offlineRegistrationContact}
                         </p>
                     </div>
                 )}
