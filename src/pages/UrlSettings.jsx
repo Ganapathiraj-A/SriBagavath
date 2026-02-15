@@ -110,7 +110,7 @@ const UrlSettings = () => {
             <PageHeader
                 title="URL Configurations"
                 leftAction={
-                    <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
+                    <button onClick={() => navigate('/admin/settings')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
                         <ChevronLeft size={24} />
                     </button>
                 }

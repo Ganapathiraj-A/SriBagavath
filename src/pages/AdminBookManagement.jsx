@@ -111,6 +111,45 @@ const AdminBookManagement = () => {
         coverUrl: ''
     });
 
+    const resetForm = useCallback(() => {
+        setFormData({
+            title: '',
+            description: '',
+            category: activeTab,
+            price: '',
+            weight: '',
+            hasCover: false,
+            coverUrl: ''
+        });
+        setCoverImage(null);
+    }, [activeTab]);
+
+    const loadBooks = useCallback(async () => {
+        setLoading(true);
+
+        try {
+            const ref = collection(db, 'books');
+            const q = query(
+                ref,
+                where('category', '==', activeTab),
+                orderBy('order', 'asc')
+            );
+
+            const querySnapshot = await getDocs(q);
+            const loadedBooks = querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+
+            setBooks(loadedBooks);
+
+        } catch (_err) {
+            console.error('Error loading books:', _err);
+        } finally {
+            setLoading(false);
+        }
+    }, [activeTab]);
+
     useEffect(() => {
         loadBooks();
     }, [loadBooks]);
@@ -146,32 +185,6 @@ const AdminBookManagement = () => {
             setFormData(prev => ({ ...prev, category: activeTab }));
         }
     }, [editingBook, action, activeTab, resetForm]);
-
-    const loadBooks = useCallback(async () => {
-        setLoading(true);
-
-        try {
-            const ref = collection(db, 'books');
-            const q = query(
-                ref,
-                where('category', '==', activeTab),
-                orderBy('order', 'asc')
-            );
-
-            const querySnapshot = await getDocs(q);
-            const loadedBooks = querySnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-
-            setBooks(loadedBooks);
-
-        } catch (_err) {
-            console.error('Error loading books:', _err);
-        } finally {
-            setLoading(false);
-        }
-    }, [activeTab]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -228,14 +241,6 @@ const AdminBookManagement = () => {
             }
 
             if (finalCoverUrl && (coverImage || finalCoverUrl !== editingBook?.coverUrl)) {
-                // If editing and had a previous cover, decrement the old size first
-                // If editing and had a previous cover, we record stats
-                if (editingBook?.hasCover) {
-                    // Note: We don't have accurate old size here without re-fetching, 
-                    // but we can estimate or skip for performance
-                    // await StatsService.recordImage(-oldSizeInBytes, 'BOOK_COVER');
-                }
-
                 await setDoc(doc(db, 'book_covers', bookId), {
                     cover: finalCoverUrl,
                     updatedAt: serverTimestamp()
@@ -286,19 +291,6 @@ const AdminBookManagement = () => {
             }
         }
     };
-
-    const resetForm = useCallback(() => {
-        setFormData({
-            title: '',
-            description: '',
-            category: activeTab,
-            price: '',
-            weight: '',
-            hasCover: false,
-            coverUrl: ''
-        });
-        setCoverImage(null);
-    }, [activeTab]);
 
     /*
     /*
