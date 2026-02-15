@@ -1,0 +1,237 @@
+import React, { useState, useEffect } from 'react';
+import { collection, query, getDocs, onSnapshot, doc, setDoc, deleteDoc, serverTimestamp, orderBy } from '@/utils/FirestoreProxy';
+import { db } from '@/firebase';
+import PageHeader from '@/components/PageHeader';
+import { Plus, Trash2, Edit, Save, X, ExternalLink, Video } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const RelatedVideosManagement = () => {
+    const [videos, setVideos] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [isAdding, setIsAdding] = useState(false);
+    const [editingId, setEditingId] = useState(null);
+
+    // Form State
+    const [formData, setFormData] = useState({ title: '', url: '' });
+
+    useEffect(() => {
+        const q = query(collection(db, 'relatedVideos'), orderBy('createdAt', 'desc'));
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            setVideos(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+            setLoading(false);
+        });
+        return () => unsubscribe();
+    }, []);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!formData.title || !formData.url) return;
+
+        try {
+            const docId = editingId || doc(collection(db, 'relatedVideos')).id;
+            await setDoc(doc(db, 'relatedVideos', docId), {
+                ...formData,
+                createdAt: serverTimestamp()
+            }, { merge: true });
+
+            resetForm();
+            alert(editingId ? "Video updated successfully!" : "Video added successfully!");
+        } catch (error) {
+            console.error("Error saving video:", error);
+            alert("Failed to save video");
+        }
+    };
+
+    const handleEdit = (video) => {
+        setFormData({ title: video.title, url: video.url });
+        setEditingId(video.id);
+        setIsAdding(true);
+    };
+
+    const handleDelete = async (id) => {
+        if (!confirm("Are you sure you want to delete this video entry?")) return;
+        try {
+            await deleteDoc(doc(db, 'relatedVideos', id));
+        } catch (error) {
+            console.error("Error deleting video:", error);
+            alert("Failed to delete video");
+        }
+    };
+
+    const resetForm = () => {
+        setFormData({ title: '', url: '' });
+        setIsAdding(false);
+        setEditingId(null);
+    };
+
+    return (
+        <div style={{ minHeight: '100vh', backgroundColor: '#f9f9f9' }}>
+            <PageHeader title="Related Videos Management" />
+
+            <div style={{ maxWidth: '600px', margin: '0 auto', padding: '1.5rem' }}>
+
+                {/* Add/Edit Button */}
+                {!isAdding && (
+                    <motion.button
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setIsAdding(true)}
+                        style={{
+                            width: '100%',
+                            padding: '1rem',
+                            backgroundColor: 'var(--color-primary)',
+                            color: 'white',
+                            borderRadius: '0.75rem',
+                            border: 'none',
+                            fontWeight: 600,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '0.5rem',
+                            marginBottom: '2rem',
+                            cursor: 'pointer',
+                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                        }}
+                    >
+                        <Plus size={20} /> Add New Playlist
+                    </motion.button>
+                )}
+
+                {/* Form Section */}
+                <AnimatePresence>
+                    {isAdding && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            style={{
+                                backgroundColor: 'white',
+                                padding: '1.5rem',
+                                borderRadius: '1rem',
+                                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                                marginBottom: '2rem',
+                                overflow: 'hidden'
+                            }}
+                        >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                                <h3 style={{ margin: 0, color: '#111827' }}>{editingId ? 'Edit Playlist' : 'New Playlist'}</h3>
+                                <button onClick={resetForm} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer' }}>
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#374151', marginBottom: '0.25rem' }}>Title</label>
+                                    <input
+                                        type="text"
+                                        value={formData.title}
+                                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                        placeholder="e.g., Monthly Satsang Playlists"
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', outline: 'none' }}
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#374151', marginBottom: '0.25rem' }}>YouTube URL</label>
+                                    <input
+                                        type="url"
+                                        value={formData.url}
+                                        onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+                                        placeholder="https://youtube.com/playlist?list=..."
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', outline: 'none' }}
+                                        required
+                                    />
+                                </div>
+                                <button
+                                    type="submit"
+                                    style={{
+                                        marginTop: '0.5rem',
+                                        padding: '0.75rem',
+                                        backgroundColor: 'var(--color-primary)',
+                                        color: 'white',
+                                        borderRadius: '0.5rem',
+                                        border: 'none',
+                                        fontWeight: 600,
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '0.5rem'
+                                    }}
+                                >
+                                    <Save size={18} /> {editingId ? 'Update Entry' : 'Save Entry'}
+                                </button>
+                            </form>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* List Section */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.5rem' }}>Existing Entries</h3>
+                    {loading ? (
+                        <div style={{ textAlign: 'center', padding: '2rem', color: '#9ca3af' }}>Loading entries...</div>
+                    ) : videos.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '3rem', backgroundColor: 'white', borderRadius: '1rem', color: '#9ca3af', border: '2px dashed #e5e7eb' }}>
+                            No playlists configured yet.
+                        </div>
+                    ) : (
+                        videos.map((video) => (
+                            <motion.div
+                                key={video.id}
+                                layout
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                style={{
+                                    backgroundColor: 'white',
+                                    padding: '1rem',
+                                    borderRadius: '0.75rem',
+                                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    border: '1px solid #f3f4f6'
+                                }}
+                            >
+                                <div style={{ overflow: 'hidden', marginRight: '1rem' }}>
+                                    <div style={{ fontWeight: 600, color: '#111827', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <Video size={16} color="#ef4444" />
+                                        {video.title}
+                                    </div>
+                                    <div style={{ fontSize: '0.75rem', color: '#6b7280', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', marginTop: '0.25rem' }}>
+                                        {video.url}
+                                    </div>
+                                </div>
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <button
+                                        onClick={() => window.open(video.url, '_blank')}
+                                        style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb', background: 'white', color: '#3b82f6', cursor: 'pointer' }}
+                                        title="View Link"
+                                    >
+                                        <ExternalLink size={18} />
+                                    </button>
+                                    <button
+                                        onClick={() => handleEdit(video)}
+                                        style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb', background: 'white', color: '#6366f1', cursor: 'pointer' }}
+                                        title="Edit"
+                                    >
+                                        <Edit size={18} />
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(video.id)}
+                                        style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb', background: 'white', color: '#ef4444', cursor: 'pointer' }}
+                                        title="Delete"
+                                    >
+                                        <Trash2 size={18} />
+                                    </button>
+                                </div>
+                            </motion.div>
+                        ))
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default RelatedVideosManagement;

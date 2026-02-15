@@ -15,6 +15,7 @@ const ALL_PERMISSIONS = [
     { id: 'MANAGE_USERS', label: 'Manage Users' },
     { id: 'OFFLINE_ENTRY', label: 'Offline Entry Screens' },
     { id: 'PROGRAM_MANAGEMENT', label: 'Program Management (incl. Types)' },
+    { id: 'RELATED_VIDEO_MANAGEMENT', label: 'Related Video Management' },
     { id: 'REPORTING', label: 'Reporting & Analytics' },
     { id: 'SCHEDULE_MANAGEMENT', label: 'Schedule Management' },
 ];

@@ -144,6 +144,7 @@ const Configuration = () => {
                 { title: 'Daily Zoom', icon: Video, path: '/admin/daily-zoom', permission: 'DAILY_ZOOM_MANAGEMENT', color: '#6366f1', bgColor: '#eef2ff' },
                 { title: 'Consultation', icon: Phone, path: '/admin/consultation', permission: 'CONSULTATION_MANAGEMENT', color: '#ec4899', bgColor: '#fdf2f8' },
                 { title: 'Schedules', icon: Calendar, path: '/schedule/manage', permission: 'SCHEDULE_MANAGEMENT', color: '#f59e0b', bgColor: '#fffbeb' },
+                { title: 'Related Videos', icon: Video, path: '/admin/related-videos', permission: 'RELATED_VIDEO_MANAGEMENT', color: '#ef4444', bgColor: '#fef2f2' },
             ]
         },
         {

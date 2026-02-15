@@ -23,6 +23,7 @@ const ProgramTypesManagement = lazy(() => import('./pages/ProgramTypesManagement
 const ManageUsers = lazy(() => import('./pages/ManageUsers'));
 const ProgramConversations = lazy(() => import('./pages/ProgramConversations'));
 const UrlSettings = lazy(() => import('./pages/UrlSettings'));
+const RelatedVideosManagement = lazy(() => import('./pages/RelatedVideosManagement'));
 const RecordedPrograms = lazy(() => import('./pages/RecordedPrograms'));
 const DigitalBooksHub = lazy(() => import('./pages/DigitalBooksHub'));
 const AyyasSchedule = lazy(() => import('./pages/AyyasSchedule'));
@@ -309,6 +310,7 @@ function AnimatedRoutes() {
           <Route path="/manage-users" element={<ProtectedRoute requiredPermission="MANAGE_USERS"><ManageUsers /></ProtectedRoute>} />
           <Route path="/conversations/programs" element={<ProtectedRoute requiredPermission="PROGRAM_CONVERSATIONS"><ProgramConversations /></ProtectedRoute>} />
           <Route path="/admin/url-settings" element={<ProtectedRoute requiredRole="SUPER_ADMIN"><UrlSettings /></ProtectedRoute>} />
+          <Route path="/admin/related-videos" element={<ProtectedRoute requiredPermission="RELATED_VIDEO_MANAGEMENT"><RelatedVideosManagement /></ProtectedRoute>} />
           <Route path="/schedule/manage" element={<ProtectedRoute requiredPermission="SCHEDULE_MANAGEMENT"><ScheduleManagement /></ProtectedRoute>} />
 
           <Route path="/admin/program-management" element={<ProtectedRoute><AdminProgramManagement /></ProtectedRoute>} />

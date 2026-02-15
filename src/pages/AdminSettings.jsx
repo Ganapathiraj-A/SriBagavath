@@ -213,6 +213,16 @@ const AdminSettings = () => {
                     permission: 'MANAGE_USERS',
                     color: '#ec4899',
                     bgColor: '#fdf2f8'
+                },
+                {
+                    id: 'RELATED_VIDEO_MANAGEMENT',
+                    title: 'Related Videos',
+                    subtitle: 'YouTube playlist links',
+                    icon: Video,
+                    path: '/admin/related-videos',
+                    permission: 'RELATED_VIDEO_MANAGEMENT',
+                    color: '#ef4444',
+                    bgColor: '#fef2f2'
                 }
             ]
         },
