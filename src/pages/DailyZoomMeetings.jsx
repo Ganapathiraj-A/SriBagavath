@@ -67,7 +67,15 @@ const MeetingCard = ({ meeting, delay, isAdmin, onShare }) => {
             {/* Right Column: Content */}
             <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                    <h3 style={{ fontSize: '1.15rem', fontWeight: 750, color: '#111827', margin: 0, lineHeight: 1.2 }}>
+                    <h3 style={{
+                        fontSize: '1.15rem',
+                        fontWeight: 750,
+                        color: '#111827',
+                        margin: 0,
+                        lineHeight: 1.2,
+                        wordBreak: 'break-word',
+                        overflowWrap: 'anywhere'
+                    }}>
                         {meeting.name}
                     </h3>
                     <button

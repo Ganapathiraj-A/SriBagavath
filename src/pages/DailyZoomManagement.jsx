@@ -353,7 +353,16 @@ const DailyZoomManagement = () => {
                                         </button>
                                     </div>
                                     {formData.joinUrl && (
-                                        <div style={{ fontSize: '0.75rem', color: '#6b7280', padding: '0 0.25rem', overflow: 'hidden', wordBreak: 'break-all', whiteSpace: 'normal' }}>
+                                        <div style={{
+                                            fontSize: '0.75rem',
+                                            color: '#6b7280',
+                                            padding: '0 0.25rem',
+                                            overflow: 'hidden',
+                                            wordBreak: 'break-all',
+                                            overflowWrap: 'anywhere',
+                                            whiteSpace: 'normal',
+                                            minWidth: 0
+                                        }}>
                                             URL: {formData.joinUrl}
                                         </div>
                                     )}
@@ -420,7 +429,14 @@ const DailyZoomManagement = () => {
                                             {m.image ? <img src={m.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : <div style={{ width: '100%', height: '100%', backgroundColor: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><User size={20} color="#9ca3af" /></div>}
                                         </div>
                                         <div style={{ flex: 1, minWidth: 0 }}>
-                                            <div style={{ fontWeight: 600, fontSize: '0.95rem', color: '#111827', marginBottom: '0.1rem' }}>{m.name}</div>
+                                            <div style={{
+                                                fontWeight: 600,
+                                                fontSize: '0.95rem',
+                                                color: '#111827',
+                                                marginBottom: '0.1rem',
+                                                wordBreak: 'break-word',
+                                                overflowWrap: 'anywhere'
+                                            }}>{m.name}</div>
                                             <div style={{ fontSize: '0.85rem', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                                                 <Calendar size={13} /> {m.date}
                                             </div>

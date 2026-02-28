@@ -126,7 +126,14 @@ ${meeting.description || meeting.descriptions ? '\n' + (meeting.description || m
 
                     <div style={{ padding: '2rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                            <h1 style={{ fontSize: '1.75rem', fontWeight: 'bold', color: '#111827', margin: 0 }}>
+                            <h1 style={{
+                                fontSize: '1.75rem',
+                                fontWeight: 'bold',
+                                color: '#111827',
+                                margin: 0,
+                                wordBreak: 'break-word',
+                                overflowWrap: 'anywhere'
+                            }}>
                                 {meeting.conductedBy}
                             </h1>
                             <div style={{ display: 'flex', gap: '0.75rem' }}>

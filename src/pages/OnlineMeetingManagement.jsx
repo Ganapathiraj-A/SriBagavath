@@ -336,7 +336,14 @@ const OnlineMeetingManagement = () => {
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                         <div>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-                                                <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#111827', margin: 0 }}>
+                                                <h3 style={{
+                                                    fontSize: '1.125rem',
+                                                    fontWeight: 600,
+                                                    color: '#111827',
+                                                    margin: 0,
+                                                    wordBreak: 'break-word',
+                                                    overflowWrap: 'anywhere'
+                                                }}>
                                                     {meeting.conductedBy}
                                                 </h3>
                                                 {meeting.isRecurring && (
@@ -462,6 +469,21 @@ const OnlineMeetingManagement = () => {
                                         placeholder="https://..."
                                         style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', outline: 'none' }}
                                     />
+                                    {formData.joinLink && (
+                                        <div style={{
+                                            fontSize: '0.75rem',
+                                            color: '#6b7280',
+                                            marginTop: '0.4rem',
+                                            padding: '0 0.25rem',
+                                            overflow: 'hidden',
+                                            wordBreak: 'break-all',
+                                            overflowWrap: 'anywhere',
+                                            whiteSpace: 'normal',
+                                            minWidth: 0
+                                        }}>
+                                            URL: {formData.joinLink}
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div>
