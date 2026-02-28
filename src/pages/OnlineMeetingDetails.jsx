@@ -104,7 +104,7 @@ ${meeting.description || meeting.descriptions ? '\n' + (meeting.description || m
     if (!meeting) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><p>Meeting not found.</p></div>;
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', paddingBottom: '3rem' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)', paddingBottom: '3rem' }}>
             <PageHeader
                 title="Meeting Details"
                 leftAction={
@@ -118,7 +118,7 @@ ${meeting.description || meeting.descriptions ? '\n' + (meeting.description || m
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    style={{ backgroundColor: 'white', borderRadius: '1rem', overflow: 'hidden', boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)' }}
+                    style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', overflow: 'hidden', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)' }}
                 >
                     {banner && (
                         <img src={banner} alt="Meeting Banner" loading="lazy" style={{ width: '100%', display: 'block' }} />
@@ -129,7 +129,7 @@ ${meeting.description || meeting.descriptions ? '\n' + (meeting.description || m
                             <h1 style={{
                                 fontSize: '1.75rem',
                                 fontWeight: 'bold',
-                                color: '#111827',
+                                color: 'var(--color-text)',
                                 margin: 0,
                                 wordBreak: 'break-word',
                                 overflowWrap: 'anywhere'
@@ -145,9 +145,9 @@ ${meeting.description || meeting.descriptions ? '\n' + (meeting.description || m
                                         gap: '0.5rem',
                                         padding: '0.625rem 1rem',
                                         borderRadius: '0.75rem',
-                                        backgroundColor: '#fff7ed',
-                                        color: '#f97316',
-                                        border: '1px solid #ffedd5',
+                                        backgroundColor: 'var(--color-primary-transparent)',
+                                        color: 'var(--color-primary)',
+                                        border: '1px solid var(--color-primary)',
                                         cursor: 'pointer',
                                         fontSize: '0.875rem',
                                         fontWeight: 600
@@ -166,9 +166,9 @@ ${meeting.description || meeting.descriptions ? '\n' + (meeting.description || m
                                             gap: '0.5rem',
                                             padding: '0.625rem 1rem',
                                             borderRadius: '0.75rem',
-                                            backgroundColor: '#fff7ed',
-                                            color: '#f97316',
-                                            border: '1px solid #ffedd5',
+                                            backgroundColor: 'var(--color-primary-transparent)',
+                                            color: 'var(--color-primary)',
+                                            border: '1px solid var(--color-primary)',
                                             cursor: 'pointer',
                                             fontSize: '0.875rem',
                                             fontWeight: 600
@@ -182,13 +182,13 @@ ${meeting.description || meeting.descriptions ? '\n' + (meeting.description || m
                             </div>
                         </div>
 
-                        <div style={{ display: 'grid', gap: '1.5rem', color: '#4b5563' }}>
+                        <div style={{ display: 'grid', gap: '1.5rem', color: 'var(--color-text)' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                <div style={{ padding: '0.75rem', backgroundColor: '#fff7ed', borderRadius: '0.75rem', color: '#f97316' }}>
+                                <div style={{ padding: '0.75rem', backgroundColor: 'var(--color-primary-transparent)', borderRadius: '0.75rem', color: 'var(--color-primary)' }}>
                                     <Calendar size={24} />
                                 </div>
                                 <div>
-                                    <span style={{ display: 'block', fontSize: '0.875rem', color: '#6b7280' }}>Date</span>
+                                    <span style={{ display: 'block', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Date</span>
                                     <span style={{ fontSize: '1.125rem', fontWeight: 500 }}>
                                         {new Date(meeting.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                                     </span>
@@ -196,11 +196,11 @@ ${meeting.description || meeting.descriptions ? '\n' + (meeting.description || m
                             </div>
 
                             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                <div style={{ padding: '0.75rem', backgroundColor: '#fff7ed', borderRadius: '0.75rem', color: '#f97316' }}>
+                                <div style={{ padding: '0.75rem', backgroundColor: 'var(--color-primary-transparent)', borderRadius: '0.75rem', color: 'var(--color-primary)' }}>
                                     <Clock size={24} />
                                 </div>
                                 <div>
-                                    <span style={{ display: 'block', fontSize: '0.875rem', color: '#6b7280' }}>Time</span>
+                                    <span style={{ display: 'block', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Time</span>
                                     <span style={{ fontSize: '1.125rem', fontWeight: 500 }}>
                                         {meeting.startTime} - {meeting.endTime}
                                     </span>
@@ -210,10 +210,10 @@ ${meeting.description || meeting.descriptions ? '\n' + (meeting.description || m
 
                         {(meeting.description || meeting.descriptions) && (
                             <div style={{ marginTop: '2rem' }}>
-                                <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#6b7280', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.025em' }}>
+                                <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.025em' }}>
                                     Description
                                 </span>
-                                <p style={{ fontSize: '1.0625rem', color: '#374151', lineHeight: '1.7', whiteSpace: 'pre-wrap', margin: 0 }}>
+                                <p style={{ fontSize: '1.0625rem', color: 'var(--color-text)', lineHeight: '1.7', whiteSpace: 'pre-wrap', margin: 0 }}>
                                     {meeting.description || meeting.descriptions}
                                 </p>
                             </div>

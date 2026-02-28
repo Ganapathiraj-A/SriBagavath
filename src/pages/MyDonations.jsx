@@ -83,7 +83,7 @@ const MyDonations = () => {
     };
 
     return (
-        <div style={{ backgroundColor: '#f9fafb', minHeight: '100vh', paddingBottom: '20px' }}>
+        <div style={{ backgroundColor: 'var(--color-background)', minHeight: '100vh', paddingBottom: '20px' }}>
             <PageHeader title="My Donations" />
 
             <div style={{ padding: '16px', maxWidth: '32rem', margin: '0 auto' }}>
@@ -92,14 +92,15 @@ const MyDonations = () => {
                         textAlign: 'center',
                         marginTop: '60px',
                         padding: '30px',
-                        backgroundColor: 'white',
+                        backgroundColor: 'var(--color-card)',
                         borderRadius: '20px',
-                        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
+                        boxShadow: 'var(--shadow-md)',
                         maxWidth: '400px',
-                        margin: '60px auto'
+                        margin: '60px auto',
+                        border: '1px solid var(--color-border)'
                     }}>
                         <div style={{
-                            backgroundColor: '#ecfdf5',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
                             width: '64px',
                             height: '64px',
                             borderRadius: '32px',
@@ -110,8 +111,8 @@ const MyDonations = () => {
                         }}>
                             <LogIn size={32} color="#10b981" />
                         </div>
-                        <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#111827', marginBottom: '8px' }}>Sign in Required</h2>
-                        <p style={{ color: '#4b5563', marginBottom: '24px', fontSize: '15px' }}>
+                        <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--color-text)', marginBottom: '8px' }}>Sign in Required</h2>
+                        <p style={{ color: 'var(--color-text-muted)', marginBottom: '24px', fontSize: '15px' }}>
                             Please sign in with your Google account to view your past donations.
                         </p>
                         <button
@@ -139,7 +140,7 @@ const MyDonations = () => {
                 ) : (
                     <>
                         {loading && (
-                            <div style={{ textAlign: 'center', marginTop: '40px', color: '#6b7280' }}>
+                            <div style={{ textAlign: 'center', marginTop: '40px', color: 'var(--color-text-muted)' }}>
                                 Loading Donations...
                             </div>
                         )}
@@ -149,28 +150,29 @@ const MyDonations = () => {
                                 textAlign: 'center',
                                 marginTop: '60px',
                                 padding: '24px',
-                                backgroundColor: 'white',
+                                backgroundColor: 'var(--color-card)',
                                 borderRadius: '16px',
-                                border: '2px dashed #e5e7eb'
+                                border: '2px dashed var(--color-border)'
                             }}>
-                                <p style={{ color: '#6b7280', margin: 0 }}>You haven&apos;t made any donations yet.</p>
+                                <p style={{ color: 'var(--color-text-muted)', margin: 0 }}>You haven&apos;t made any donations yet.</p>
                             </div>
                         )}
 
                         {donations.map(donation => (
                             <div key={donation.id} className="card" style={{
                                 marginBottom: '16px',
-                                backgroundColor: 'white',
+                                backgroundColor: 'var(--color-card)',
                                 padding: '20px',
                                 borderRadius: '16px',
-                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                boxShadow: 'var(--shadow-sm)',
+                                border: '1px solid var(--color-border)'
                             }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                                     <div>
-                                        <span style={{ fontSize: '12px', color: '#6b7280', display: 'block', marginBottom: '4px' }}>
+                                        <span style={{ fontSize: '12px', color: 'var(--color-text-muted)', display: 'block', marginBottom: '4px' }}>
                                             {formatDate(donation.timestamp)}
                                         </span>
-                                        <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#111827' }}>
+                                        <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: 'var(--color-text)' }}>
                                             General Donation
                                         </h3>
                                     </div>
@@ -188,9 +190,9 @@ const MyDonations = () => {
                                     </span>
                                 </div>
 
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #f3f4f6' }}>
-                                    <span style={{ color: '#4b5563', fontSize: '14px' }}>Amount Paid</span>
-                                    <span style={{ fontSize: '20px', fontWeight: '800', color: '#059669' }}>₹{donation.amount}</span>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--color-border)' }}>
+                                    <span style={{ color: 'var(--color-text-muted)', fontSize: '14px' }}>Amount Paid</span>
+                                    <span style={{ fontSize: '20px', fontWeight: '800', color: '#10b981' }}>₹{donation.amount}</span>
                                 </div>
                             </div>
                         ))}

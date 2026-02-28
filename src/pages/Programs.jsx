@@ -359,9 +359,9 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
                                 alignItems: 'center',
                                 gap: '0.4rem',
                                 padding: '0.5rem 0.8rem',
-                                backgroundColor: '#fff7ed',
-                                color: '#f97316',
-                                border: '1px solid #ffedd5',
+                                backgroundColor: 'var(--color-primary-transparent)',
+                                color: 'var(--color-primary)',
+                                border: '1px solid var(--color-primary)',
                                 borderRadius: '0.75rem',
                                 fontSize: '0.85rem',
                                 fontWeight: 700,
@@ -384,10 +384,11 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -20 }}
                                 style={{
-                                    backgroundColor: 'white',
+                                    backgroundColor: 'var(--color-card)',
                                     borderRadius: '1rem',
                                     padding: '2rem',
-                                    boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+                                    boxShadow: 'var(--shadow-md)',
+                                    border: '1px solid var(--color-border)'
                                 }}
                             >
                                 {/* Image First - Only if no text details shown */}
@@ -415,17 +416,17 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
                                         style={{
                                             display: 'grid',
                                             gap: '1.5rem',
-                                            color: '#374151',
+                                            color: 'var(--color-text)',
                                             cursor: viewingBanner ? 'pointer' : 'default',
                                             marginBottom: '1.5rem'
                                         }}
                                         onClick={() => viewingBanner && setShowTextDetails(false)}
                                     >
-                                        <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#111827', margin: 0 }}>
+                                        <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: 'var(--color-text)', margin: 0 }}>
                                             {viewingProgram.programName}
                                         </h1>
                                         <div>
-                                            <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#6b7280', marginBottom: '0.25rem' }}>
+                                            <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>
                                                 Date & Time
                                             </span>
                                             <div style={{ fontSize: '1.125rem' }}>
@@ -439,20 +440,20 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
                                         </div>
 
                                         <div>
-                                            <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#6b7280', marginBottom: '0.25rem' }}>
+                                            <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>
                                                 Location
                                             </span>
                                             <div style={{ fontSize: '1.125rem' }}>
                                                 {viewingProgram.programCity}
                                             </div>
-                                            <div style={{ marginTop: '0.25rem', color: '#4b5563' }}>
+                                            <div style={{ marginTop: '0.25rem', color: 'var(--color-text-muted)' }}>
                                                 {viewingProgram.programVenue}
                                             </div>
                                         </div>
 
                                         {viewingProgram.programDescription && (
                                             <div>
-                                                <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#6b7280', marginBottom: '0.25rem' }}>
+                                                <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>
                                                     Description
                                                 </span>
                                                 <div style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
@@ -462,14 +463,14 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
                                         )}
 
                                         <div>
-                                            <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#6b7280', marginBottom: '0.25rem' }}>
+                                            <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>
                                                 Registration Details
                                             </span>
                                             <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
                                                 <div>
                                                     Status:{' '}
                                                     <span style={{
-                                                        color: viewingProgram.registrationStatus === 'Open' ? '#059669' : '#dc2626',
+                                                        color: viewingProgram.registrationStatus === 'Open' ? '#10b981' : 'var(--color-error)',
                                                         fontWeight: 500
                                                     }}>
                                                         {viewingProgram.registrationStatus}
@@ -514,7 +515,7 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
                                                     alignItems: 'center',
                                                     gap: '0.5rem',
                                                     color: 'var(--color-primary)',
-                                                    background: 'none',
+                                                    background: 'var(--color-card)',
                                                     border: '1px solid var(--color-primary)',
                                                     padding: '0.5rem 1rem',
                                                     borderRadius: '0.375rem',
@@ -563,7 +564,7 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
                                 <div style={{
                                     textAlign: 'center',
                                     marginBottom: '2rem',
-                                    color: '#4b5563',
+                                    color: 'var(--color-text-muted)',
                                     fontSize: '0.95rem'
                                 }}>
                                     For registration queries please contact{' '}
@@ -586,13 +587,14 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
 
                                 {programs.length === 0 ? (
                                     <div style={{
-                                        backgroundColor: 'white',
+                                        backgroundColor: 'var(--color-card)',
                                         borderRadius: '1rem',
                                         padding: '3rem',
                                         textAlign: 'center',
-                                        boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)'
+                                        boxShadow: 'var(--shadow-sm)',
+                                        border: '1px solid var(--color-border)'
                                     }}>
-                                        <p style={{ fontSize: '1.125rem', color: '#6b7280' }}>
+                                        <p style={{ fontSize: '1.125rem', color: 'var(--color-text-muted)' }}>
                                             No upcoming programs scheduled at the moment.
                                         </p>
                                     </div>
@@ -605,18 +607,18 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
                                                 animate={{ opacity: 1, y: 0 }}
                                                 transition={{ delay: index * 0.1 }}
                                                 style={{
-                                                    backgroundColor: 'white',
+                                                    backgroundColor: 'var(--color-card)',
                                                     borderRadius: '1rem',
                                                     padding: '1.25rem',
-                                                    boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-                                                    border: '1px solid #f3f4f6'
+                                                    boxShadow: 'var(--shadow-sm)',
+                                                    border: '1px solid var(--color-border)'
                                                 }}
                                             >
                                                 {/* Row 1: Program Title */}
                                                 <h2 style={{
                                                     fontSize: '1.125rem',
                                                     fontWeight: 600,
-                                                    color: '#111827',
+                                                    color: 'var(--color-text)',
                                                     margin: '0 0 0.4rem 0',
                                                     lineHeight: '1.3'
                                                 }}>
@@ -629,7 +631,7 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
                                                     alignItems: 'center',
                                                     gap: '0.75rem',
                                                     flexWrap: 'wrap',
-                                                    color: '#6b7280',
+                                                    color: 'var(--color-text-muted)',
                                                     fontSize: '0.8125rem',
                                                     marginBottom: '1rem'
                                                 }}>
@@ -676,9 +678,9 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
                                                             fontSize: '0.7rem',
                                                             fontWeight: 500,
                                                             whiteSpace: 'nowrap',
-                                                            backgroundColor: '#fef2f2',
-                                                            color: '#dc2626',
-                                                            border: '1px solid #fecaca'
+                                                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                                            color: 'var(--color-error)',
+                                                            border: '1px solid var(--color-error)'
                                                         }}>
                                                             Registration Closed
                                                         </span>
@@ -692,9 +694,9 @@ ${program.programDescription ? `📝 *Description:*\n${program.programDescriptio
                                                             }}
                                                             style={{
                                                                 padding: '0.4rem 0.875rem',
-                                                                backgroundColor: 'white',
-                                                                color: '#374151',
-                                                                border: '1px solid #d1d5db',
+                                                                backgroundColor: 'var(--color-card)',
+                                                                color: 'var(--color-text)',
+                                                                border: '1px solid var(--color-border)',
                                                                 borderRadius: '0.5rem',
                                                                 cursor: 'pointer',
                                                                 fontSize: '0.8125rem',

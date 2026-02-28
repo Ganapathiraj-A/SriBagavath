@@ -271,7 +271,7 @@ function AnimatedRoutes() {
   return (
     <AnimatePresence mode="wait">
       <Suspense fallback={
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', backgroundColor: '#f9fafb', color: '#6b7280' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', backgroundColor: 'var(--color-background)', color: 'var(--color-text-muted)' }}>
           Loading...
         </div>
       }>

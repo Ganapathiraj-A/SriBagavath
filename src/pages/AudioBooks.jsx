@@ -62,11 +62,11 @@ const AudioBooks = () => {
               justifyContent: 'center',
               width: '40px',
               height: '40px',
-              backgroundColor: 'white',
-              border: '1px solid #e5e7eb',
+              backgroundColor: 'var(--color-card)',
+              border: '1px solid var(--color-border)',
               borderRadius: '50%',
               cursor: 'pointer',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+              boxShadow: 'var(--shadow-sm)'
             }}
             title="Edit"
           >
@@ -77,10 +77,10 @@ const AudioBooks = () => {
 
       <div style={{
         padding: '0.75rem 1.25rem',
-        backgroundColor: '#fff',
-        borderBottom: '1px solid #f3f4f6',
+        backgroundColor: 'var(--color-card)',
+        borderBottom: '1px solid var(--color-border)',
         textAlign: 'center',
-        color: '#6b7280',
+        color: 'var(--color-text-muted)',
         fontSize: '0.85rem',
         fontStyle: 'italic',
         lineHeight: 1.5
@@ -89,9 +89,9 @@ const AudioBooks = () => {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>Loading audio books...</div>
+        <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)' }}>Loading audio books...</div>
       ) : audioBooks.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>No audio books found.</div>
+        <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)' }}>No audio books found.</div>
       ) : (
         <div style={{
           display: 'grid',
@@ -109,20 +109,20 @@ const AudioBooks = () => {
               transition={{ delay: index * 0.05 }}
               onClick={() => window.open(book.link, '_blank')}
               style={{
-                backgroundColor: 'white',
+                backgroundColor: 'var(--color-card)',
                 borderRadius: '1rem',
                 overflow: 'hidden',
-                boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)',
+                boxShadow: 'var(--shadow-md)',
                 cursor: 'pointer',
                 position: 'relative',
                 display: 'flex',
                 flexDirection: 'column'
               }}
-              whileHover={{ y: -4, boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+              whileHover={{ y: -4, boxShadow: 'var(--shadow-lg)' }}
               whileTap={{ scale: 0.98 }}
             >
               {/* Image Aspect Ratio Container */}
-              <div style={{ position: 'relative', paddingTop: '140%', backgroundColor: '#f3f4f6' }}>
+              <div style={{ position: 'relative', paddingTop: '140%', backgroundColor: 'var(--color-surface)' }}>
                 {book.image ? (
                   <img
                     src={book.image}
@@ -142,7 +142,7 @@ const AudioBooks = () => {
                     top: 0, left: 0, width: '100%', height: '100%',
                     display: 'flex', alignItems: 'center', justifyContent: 'center'
                   }}>
-                    <Music size={32} color="#9ca3af" />
+                    <Music size={32} color="var(--color-text-light)" />
                   </div>
                 )}
 
@@ -169,13 +169,13 @@ const AudioBooks = () => {
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                backgroundColor: 'white',
-                borderTop: '1px solid #f3f4f6'
+                backgroundColor: 'var(--color-card)',
+                borderTop: '1px solid var(--color-border)'
               }}>
                 <span style={{
                   fontWeight: 600,
                   fontSize: '0.9rem',
-                  color: '#374151',
+                  color: 'var(--color-text)',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
@@ -190,8 +190,8 @@ const AudioBooks = () => {
                     padding: '6px',
                     borderRadius: '50%',
                     border: 'none',
-                    backgroundColor: '#f3f4f6',
-                    color: '#6b7280',
+                    backgroundColor: 'var(--color-surface)',
+                    color: 'var(--color-text-muted)',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',

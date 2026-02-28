@@ -45,10 +45,10 @@ const MenuButton = ({ title, icon: Icon, path, delay, badgeCount, skipAnimation 
             style={{
                 width: '100%',
                 padding: '1rem',
-                backgroundColor: 'white',
+                backgroundColor: 'var(--color-card)',
                 borderRadius: '0.75rem',
-                boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-                border: '1px solid #f3f4f6',
+                boxShadow: 'var(--shadow-sm)',
+                border: '1px solid var(--color-border)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'flex-start',
@@ -70,7 +70,7 @@ const MenuButton = ({ title, icon: Icon, path, delay, badgeCount, skipAnimation 
             }}>
                 <Icon size={24} color="var(--color-primary)" />
             </div>
-            <span style={{ fontSize: '1.125rem', fontWeight: 500, color: '#1f2937' }}>{title}</span>
+            <span style={{ fontSize: '1.125rem', fontWeight: 500, color: 'var(--color-text)' }}>{title}</span>
             {badgeCount > 0 && (
                 <div style={{
                     position: 'absolute',
@@ -408,9 +408,9 @@ const Home = () => {
                         margin: '0 auto 1.5rem auto',
                         borderRadius: '9999px',
                         overflow: 'hidden',
-                        border: '4px solid white',
-                        boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
-                        backgroundColor: '#e5e7eb',
+                        border: '4px solid var(--color-background)',
+                        boxShadow: 'var(--shadow-lg)',
+                        backgroundColor: 'var(--color-surface)',
                         position: 'relative'
                     }}>
                         <img
@@ -423,8 +423,8 @@ const Home = () => {
                             }}
                         />
                     </div>
-                    <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.5rem' }}>Sri Bagavath Mission</h1>
-                    <p style={{ color: '#6b7280' }}>Welcome to the official app</p>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-text)', marginBottom: '0.5rem' }}>Sri Bagavath Mission</h1>
+                    <p style={{ color: 'var(--color-text-muted)' }}>Welcome to the official app</p>
 
                     <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px' }}>
                         {isActualUser ? (
@@ -499,9 +499,9 @@ const Home = () => {
                     marginTop: '2rem',
                     textAlign: 'center',
                     paddingBottom: '2.5rem', // Increased to move higher
-                    opacity: 0.5,
+                    opacity: 0.7,
                     fontSize: '0.75rem',
-                    color: '#6b7280',
+                    color: 'var(--color-text-light)',
                     fontWeight: '500'
                 }}>
                     {import.meta.env.MODE} | v{appVersion}

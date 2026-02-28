@@ -15,10 +15,10 @@ const StaticMenuButton = ({ title, icon: Icon }) => (
     <div style={{
         width: '100%',
         padding: '1rem',
-        backgroundColor: 'white',
+        backgroundColor: 'var(--color-card)',
         borderRadius: '0.75rem',
-        boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-        border: '1px solid #f3f4f6',
+        boxShadow: 'var(--shadow-sm)',
+        border: '1px solid var(--color-border)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'flex-start',
@@ -28,16 +28,16 @@ const StaticMenuButton = ({ title, icon: Icon }) => (
         <div style={{
             padding: '0.75rem',
             borderRadius: '9999px',
-            backgroundColor: '#fff7ed',
-            color: 'var(--color-primary, #ea580c)',
+            backgroundColor: 'var(--color-primary-transparent)',
+            color: 'var(--color-primary)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0
         }}>
-            <Icon size={24} color="var(--color-primary, #ea580c)" />
+            <Icon size={24} color="var(--color-primary)" />
         </div>
-        <span style={{ fontSize: '1.125rem', fontWeight: 500, color: '#1f2937' }}>{title}</span>
+        <span style={{ fontSize: '1.125rem', fontWeight: 500, color: 'var(--color-text)' }}>{title}</span>
     </div>
 );
 
@@ -64,7 +64,7 @@ const SkeletonScreen = () => {
     return (
         <div style={{
             minHeight: '100vh',
-            backgroundColor: 'var(--color-surface, #f9fafb)',
+            backgroundColor: 'var(--color-background)',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -79,9 +79,9 @@ const SkeletonScreen = () => {
                         margin: '0 auto 1.5rem auto',
                         borderRadius: '9999px',
                         overflow: 'hidden',
-                        border: '4px solid white',
-                        boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
-                        backgroundColor: '#e5e7eb',
+                        border: '4px solid var(--color-primary)',
+                        boxShadow: 'var(--shadow-lg)',
+                        backgroundColor: 'var(--color-surface)',
                         position: 'relative'
                     }}>
                         <img
@@ -90,12 +90,12 @@ const SkeletonScreen = () => {
                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
                     </div>
-                    <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.5rem' }}>Sri Bagavath Mission</h1>
-                    <p style={{ color: '#6b7280' }}>Welcome to the official app</p>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-text)', marginBottom: '0.5rem' }}>Sri Bagavath Mission</h1>
+                    <p style={{ color: 'var(--color-text-muted)' }}>Welcome to the official app</p>
 
                     <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         {isActualUser ? (
-                            <div style={{ color: '#dc2626', fontSize: '0.9rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'underline' }}>
+                            <div style={{ color: 'var(--color-error)', fontSize: '0.9rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'underline' }}>
                                 <LogOut size={14} /> Logout
                             </div>
                         ) : (
@@ -103,7 +103,7 @@ const SkeletonScreen = () => {
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '4px',
-                                color: 'var(--color-primary, #ea580c)',
+                                color: 'var(--color-primary)',
                                 fontSize: '0.9rem',
                                 fontWeight: 500,
                                 textDecoration: 'underline'
@@ -128,7 +128,7 @@ const SkeletonScreen = () => {
                     paddingBottom: '2.5rem',
                     opacity: 0.5,
                     fontSize: '0.75rem',
-                    color: '#6b7280',
+                    color: 'var(--color-text-muted)',
                     fontWeight: '500'
                 }}>
                     {import.meta.env.MODE} | v{appVersion}

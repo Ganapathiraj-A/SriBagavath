@@ -19,10 +19,10 @@ const BookTypeButton = ({ title, icon: Icon, path, delay }) => {
             style={{
                 width: '100%',
                 padding: '1rem',
-                backgroundColor: 'white',
+                backgroundColor: 'var(--color-card)',
                 borderRadius: '0.75rem',
-                boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-                border: '1px solid #f3f4f6',
+                boxShadow: 'var(--shadow-sm)',
+                border: '1px solid var(--color-border)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'flex-start',
@@ -43,7 +43,7 @@ const BookTypeButton = ({ title, icon: Icon, path, delay }) => {
             }}>
                 <Icon size={24} color="var(--color-primary)" />
             </div>
-            <span style={{ fontSize: '1.125rem', fontWeight: 500, color: '#1f2937' }}>{title}</span>
+            <span style={{ fontSize: '1.125rem', fontWeight: 500, color: 'var(--color-text)' }}>{title}</span>
         </motion.button>
     );
 };
@@ -79,13 +79,13 @@ const Books = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     style={{
-                        backgroundColor: 'white',
+                        backgroundColor: 'var(--color-card)',
                         borderRadius: '1rem',
                         padding: '2rem',
-                        boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)'
+                        boxShadow: 'var(--shadow-sm)'
                     }}
                 >
-                    <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#111827', marginBottom: '2rem', textAlign: 'center' }}>
+                    <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: 'var(--color-text)', marginBottom: '2rem', textAlign: 'center' }}>
                         Books & Media
                     </h1>
 

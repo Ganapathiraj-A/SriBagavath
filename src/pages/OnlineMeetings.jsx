@@ -133,7 +133,7 @@ const OnlineMeetings = () => {
     }, [authLoading]);
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', paddingBottom: '3rem' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)', paddingBottom: '3rem' }}>
             <PageHeader
                 title="Online Meetings"
                 rightAction={
@@ -145,9 +145,9 @@ const OnlineMeetings = () => {
                                 alignItems: 'center',
                                 gap: '0.4rem',
                                 padding: '0.5rem 0.8rem',
-                                backgroundColor: '#fff7ed',
+                                backgroundColor: 'var(--color-primary-transparent)',
                                 color: 'var(--color-primary)',
-                                border: '1px solid #ffedd5',
+                                border: '1px solid var(--color-primary)',
                                 borderRadius: '0.75rem',
                                 fontSize: '0.85rem',
                                 fontWeight: 700,
@@ -163,11 +163,11 @@ const OnlineMeetings = () => {
             <div style={{ padding: '1.5rem', maxWidth: '42rem', margin: '0 auto', width: '100%' }}>
 
                 {loading ? (
-                    <p style={{ textAlign: 'center', color: '#6b7280' }}>Loading upcoming meetings...</p>
+                    <p style={{ textAlign: 'center', color: 'var(--color-text-muted)' }}>Loading upcoming meetings...</p>
                 ) : meetings.length === 0 ? (
-                    <div style={{ backgroundColor: 'white', borderRadius: '1rem', padding: '3rem', textAlign: 'center', boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)' }}>
-                        <Video size={48} color="#9ca3af" style={{ marginBottom: '1rem' }} />
-                        <p style={{ fontSize: '1.125rem', color: '#6b7280' }}>No online meetings scheduled at the moment.</p>
+                    <div style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '3rem', textAlign: 'center', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)' }}>
+                        <Video size={48} color="var(--color-text-light)" style={{ marginBottom: '1rem' }} />
+                        <p style={{ fontSize: '1.125rem', color: 'var(--color-text-muted)' }}>No online meetings scheduled at the moment.</p>
                     </div>
                 ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -178,11 +178,11 @@ const OnlineMeetings = () => {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.1 }}
                                 style={{
-                                    backgroundColor: 'white',
+                                    backgroundColor: 'var(--color-card)',
                                     borderRadius: '1rem',
                                     padding: '1.5rem',
-                                    boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)',
-                                    border: '1px solid #f3f4f6'
+                                    boxShadow: 'var(--shadow-sm)',
+                                    border: '1px solid var(--color-border)'
                                 }}
                             >
                                 <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
@@ -192,13 +192,13 @@ const OnlineMeetings = () => {
                                         flexDirection: 'column',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        backgroundColor: '#fff7ed',
+                                        backgroundColor: 'var(--color-primary-transparent)',
                                         color: 'var(--color-primary)',
                                         padding: '0.875rem',
                                         borderRadius: '0.75rem',
                                         minWidth: '4.5rem',
                                         flexShrink: 0,
-                                        border: '1px solid #ffedd5'
+                                        border: '1px solid var(--color-primary)'
                                     }}>
                                         <span style={{
                                             fontSize: '0.75rem',
@@ -221,7 +221,7 @@ const OnlineMeetings = () => {
                                     {/* Content Column */}
                                     <div style={{ flex: 1, minWidth: 0 }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                            <h2 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#111827', margin: 0 }}>
+                                            <h2 style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>
                                                 {meeting.conductedBy}
                                             </h2>
                                             <Video size={20} color="var(--color-primary)" style={{ flexShrink: 0, marginLeft: '0.5rem' }} />
@@ -229,7 +229,7 @@ const OnlineMeetings = () => {
 
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.5rem' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: '#4b5563', fontSize: '0.875rem' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>
                                                     <Clock size={14} />
                                                     {meeting.startTime}
                                                 </div>
@@ -239,11 +239,11 @@ const OnlineMeetings = () => {
                                                         alignItems: 'center',
                                                         gap: '0.25rem',
                                                         fontSize: '0.7rem',
-                                                        backgroundColor: '#f3f4f6',
+                                                        backgroundColor: 'var(--color-surface)',
                                                         padding: '2px 8px',
                                                         borderRadius: '999px',
-                                                        color: '#374151',
-                                                        border: `1px solid #e5e7eb`
+                                                        color: 'var(--color-text)',
+                                                        border: `1px solid var(--color-border)`
                                                     }}>
                                                         <RefreshCw size={10} />
                                                         {meeting.recurrenceText}
@@ -254,7 +254,7 @@ const OnlineMeetings = () => {
                                             {meeting.description && (
                                                 <p style={{
                                                     fontSize: '0.875rem',
-                                                    color: '#6b7280',
+                                                    color: 'var(--color-text-muted)',
                                                     margin: '0.25rem 0 0 0',
                                                     display: '-webkit-box',
                                                     WebkitLineClamp: 2,
@@ -272,7 +272,7 @@ const OnlineMeetings = () => {
                                                 onClick={() => navigate(`/programs/online/${meeting.id}`)}
                                                 style={{
                                                     padding: '0.5rem 1rem',
-                                                    backgroundColor: 'white',
+                                                    backgroundColor: 'var(--color-card)',
                                                     color: 'var(--color-primary)',
                                                     border: '1px solid var(--color-primary)',
                                                     borderRadius: '0.5rem',

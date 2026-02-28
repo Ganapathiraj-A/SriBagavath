@@ -22,9 +22,9 @@ const ContactItem = ({ icon: Icon, content, href }) => (
     >
         <div style={{
             padding: '0.75rem',
-            backgroundColor: 'white',
+            backgroundColor: 'var(--color-card)',
             borderRadius: '0.5rem',
-            boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+            boxShadow: 'var(--shadow-sm)',
             color: 'var(--color-primary)',
             display: 'flex',
             alignItems: 'center',
@@ -34,14 +34,14 @@ const ContactItem = ({ icon: Icon, content, href }) => (
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.25rem', flex: 1 }}>
             {href ? (
-                <a href={href} style={{ color: '#4b5563', transition: 'color 0.2s', fontSize: '1.1rem', fontWeight: 500 }}
+                <a href={href} style={{ color: 'var(--color-text)', transition: 'color 0.2s', fontSize: '1.1rem', fontWeight: 500 }}
                     onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'}
-                    onMouseLeave={(e) => e.currentTarget.style.color = '#4b5563'}
+                    onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text)'}
                 >
                     {content}
                 </a>
             ) : (
-                <p style={{ color: '#4b5563', margin: 0, fontSize: '1.1rem', fontWeight: 500 }}>{content}</p>
+                <p style={{ color: 'var(--color-text)', margin: 0, fontSize: '1.1rem', fontWeight: 500 }}>{content}</p>
             )}
         </div>
     </div>
@@ -66,10 +66,11 @@ const Contact = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         style={{
-                            backgroundColor: 'white',
+                            backgroundColor: 'var(--color-card)',
                             borderRadius: '1rem',
                             padding: '2rem',
-                            boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+                            boxShadow: 'var(--shadow-md)',
+                            border: '1px solid var(--color-border)'
                         }}
                     >
 

@@ -18,10 +18,10 @@ const FolderButton = ({ title, onClick, delay }) => {
             style={{
                 width: '100%',
                 padding: '1rem',
-                backgroundColor: 'white',
+                backgroundColor: 'var(--color-card)',
                 borderRadius: '0.75rem',
-                boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-                border: '1px solid #f3f4f6',
+                boxShadow: 'var(--shadow-sm)',
+                border: '1px solid var(--color-border)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'flex-start',
@@ -33,7 +33,7 @@ const FolderButton = ({ title, onClick, delay }) => {
             <div style={{
                 padding: '0.75rem',
                 borderRadius: '9999px',
-                backgroundColor: '#fff7ed',
+                backgroundColor: 'var(--color-primary-transparent)',
                 color: 'var(--color-primary)',
                 display: 'flex',
                 alignItems: 'center',
@@ -42,7 +42,7 @@ const FolderButton = ({ title, onClick, delay }) => {
             }}>
                 <Folder size={24} color="var(--color-primary)" />
             </div>
-            <span style={{ fontSize: '1.125rem', fontWeight: 500, color: '#1f2937' }}>{title}</span>
+            <span style={{ fontSize: '1.125rem', fontWeight: 500, color: 'var(--color-text)' }}>{title}</span>
         </motion.button>
     );
 };
@@ -57,19 +57,19 @@ const FileLink = ({ file }) => {
             rel="noopener noreferrer"
             style={{
                 padding: '0.75rem 1rem',
-                backgroundColor: '#f9fafb',
-                border: '1px solid #e5e7eb',
+                backgroundColor: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
                 borderRadius: '0.5rem',
                 fontSize: '0.875rem',
                 fontWeight: 500,
-                color: '#1f2937',
+                color: 'var(--color-text)',
                 textDecoration: 'none',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.75rem'
             }}
         >
-            <FileText size={18} color="#4b5563" />
+            <FileText size={18} color="var(--color-text-light)" />
             <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {file.name}
             </span>
@@ -165,21 +165,22 @@ const MonthlyMagazine = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     style={{
-                        backgroundColor: 'white',
+                        backgroundColor: 'var(--color-card)',
                         borderRadius: '1rem',
                         padding: '2rem',
-                        boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)'
+                        boxShadow: 'var(--shadow-sm)',
+                        border: '1px solid var(--color-border)'
                     }}
                 >
 
 
                     {loading ? (
-                        <div style={{ textAlign: 'center', color: '#4b5563', padding: '2rem' }}>Loading...</div>
+                        <div style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: '2rem' }}>Loading...</div>
                     ) : error ? (
                         <div style={{
-                            padding: '0.75rem', backgroundColor: '#fef2f2',
-                            border: '1px solid #fecaca', borderRadius: '0.5rem',
-                            color: '#b91c1c', fontSize: '0.875rem'
+                            padding: '0.75rem', backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            border: '1px solid var(--color-error)', borderRadius: '0.5rem',
+                            color: 'var(--color-error)', fontSize: '0.875rem'
                         }}>
                             {error}
                         </div>
@@ -188,7 +189,7 @@ const MonthlyMagazine = () => {
                             {/* Files List */}
                             {files.length > 0 && (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                    <h2 style={{ fontSize: '1rem', fontWeight: 600, color: '#4b5563' }}>Files</h2>
+                                    <h2 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Files</h2>
                                     {files.map(file => (
                                         <FileLink key={file.id} file={file} />
                                     ))}
@@ -198,7 +199,7 @@ const MonthlyMagazine = () => {
                             {/* Folders List */}
                             {folders.length > 0 && (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                    <h2 style={{ fontSize: '1rem', fontWeight: 600, color: '#4b5563' }}>Folders</h2>
+                                    <h2 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Folders</h2>
                                     {folders.map((folder, index) => (
                                         <FolderButton
                                             key={folder.id}
@@ -211,7 +212,7 @@ const MonthlyMagazine = () => {
                             )}
 
                             {files.length === 0 && folders.length === 0 && (
-                                <div style={{ textAlign: 'center', color: '#9ca3af', fontStyle: 'italic' }}>
+                                <div style={{ textAlign: 'center', color: 'var(--color-text-light)', fontStyle: 'italic' }}>
                                     No files or folders found.
                                 </div>
                             )}

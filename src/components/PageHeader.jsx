@@ -8,8 +8,8 @@ const PageHeader = ({
     showBack = true,
     leftAction = null,
     rightAction = null,
-    bgColor = 'white',
-    textColor = '#111827'
+    bgColor = 'transparent',
+    textColor = 'var(--color-text)'
 }) => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -195,13 +195,13 @@ const PageHeader = ({
                 fontWeight: 500,
                 margin: 0,
                 textAlign: 'center',
-                color: '#111827',
+                color: 'var(--color-text)',
                 maxWidth: '75%', // Increased to prevent wrap/clipping
                 lineHeight: 1.2
             }}>
                 {title}
                 {subtitle && (
-                    <div style={{ fontSize: '0.75rem', fontWeight: 400, color: '#6b7280', marginTop: '2px' }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--color-text-muted)', marginTop: '2px' }}>
                         {subtitle}
                     </div>
                 )}

@@ -110,35 +110,35 @@ const BookDetails = () => {
     const quantity = cart[bookId] || 0;
 
     return (
-        <div style={{ backgroundColor: '#f9fafb', minHeight: '100vh', paddingBottom: '100px' }}>
+        <div style={{ backgroundColor: 'var(--color-background)', minHeight: '100vh', paddingBottom: '100px' }}>
             <PageHeader title="Book Details" />
 
             <div style={{ padding: '16px' }}>
-                <div className="card" style={{ padding: '20px', overflow: 'hidden' }}>
+                <div className="card" style={{ padding: '20px', overflow: 'hidden', backgroundColor: 'var(--color-card)', borderRadius: '1rem', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'center' }}>
-                        <div style={{ width: '100%', maxWidth: '300px', aspectRatio: '3/4', backgroundColor: '#f3f4f6', borderRadius: '12px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+                        <div style={{ width: '100%', maxWidth: '300px', aspectRatio: '3/4', backgroundColor: 'var(--color-surface)', borderRadius: '12px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-md)' }}>
                             {cover ? (
                                 <img src={cover} alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             ) : (
-                                <div style={{ color: '#9ca3af' }}>No Cover Available</div>
+                                <div style={{ color: 'var(--color-text-light)' }}>No Cover Available</div>
                             )}
                         </div>
 
                         <div style={{ width: '100%' }}>
-                            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '8px' }}>{book.title}</h2>
-                            <p style={{ fontSize: '0.875rem', color: '#6b7280', backgroundColor: '#f3f4f6', display: 'inline-block', padding: '4px 12px', borderRadius: '9999px', marginBottom: '16px' }}>{book.category}</p>
+                            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-text)', marginBottom: '8px' }}>{book.title}</h2>
+                            <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', backgroundColor: 'var(--color-surface)', display: 'inline-block', padding: '4px 12px', borderRadius: '9999px', marginBottom: '16px' }}>{book.category}</p>
 
                             <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--color-primary)', marginBottom: '20px' }}>₹{book.price}</div>
 
-                            <div style={{ borderTop: '1px solid #f3f4f6', paddingTop: '20px', marginBottom: '24px' }}>
-                                <p style={{ fontSize: '1rem', lineHeight: '1.6', color: '#4b5563', whiteSpace: 'pre-line' }}>
+                            <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '20px', marginBottom: '24px' }}>
+                                <p style={{ fontSize: '1rem', lineHeight: '1.6', color: 'var(--color-text)', whiteSpace: 'pre-line' }}>
                                     {book.description || 'No description available for this book.'}
                                 </p>
                             </div>
 
                             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                                 {quantity > 0 ? (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px', backgroundColor: '#f3f4f6', padding: '8px 16px', borderRadius: '12px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px', backgroundColor: 'var(--color-surface)', padding: '8px 16px', borderRadius: '12px' }}>
                                         <button
                                             onClick={handleRemoveFromCart}
                                             disabled={authLoading}
@@ -146,7 +146,7 @@ const BookDetails = () => {
                                         >
                                             <Minus size={24} />
                                         </button>
-                                        <span style={{ fontSize: '1.25rem', fontWeight: 'bold', minWidth: '24px', textAlign: 'center' }}>{quantity}</span>
+                                        <span style={{ fontSize: '1.25rem', fontWeight: 'bold', minWidth: '24px', textAlign: 'center', color: 'var(--color-text)' }}>{quantity}</span>
                                         <button
                                             onClick={handleAddToCart}
                                             disabled={authLoading}
@@ -159,7 +159,7 @@ const BookDetails = () => {
                                     <button
                                         onClick={handleAddToCart}
                                         disabled={authLoading}
-                                        style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '16px', backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 'bold', fontSize: '1rem', cursor: authLoading ? 'wait' : 'pointer' }}
+                                        style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '16px', backgroundColor: 'var(--color-primary)', color: 'var(--color-text-on-primary)', border: 'none', borderRadius: '12px', fontWeight: 'bold', fontSize: '1rem', cursor: authLoading ? 'wait' : 'pointer' }}
                                     >
                                         <IndianRupee size={20} /> {authLoading ? 'Signing in...' : 'Add to Cart'}
                                     </button>

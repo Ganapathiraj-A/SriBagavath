@@ -9,7 +9,8 @@ const About = () => {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white rounded-2xl p-8 shadow-sm"
+                    className="bg-card rounded-2xl p-8 shadow-sm"
+                    style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)' }}
                 >
                     <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
                         <div style={{
@@ -18,9 +19,9 @@ const About = () => {
                             margin: '0 auto 1.5rem auto',
                             borderRadius: '9999px',
                             overflow: 'hidden',
-                            border: '4px solid #fed7aa',
-                            boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
-                            backgroundColor: '#e5e7eb',
+                            border: '4px solid var(--color-primary)',
+                            boxShadow: 'var(--shadow-md)',
+                            backgroundColor: 'var(--color-surface)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center'
@@ -41,11 +42,11 @@ const About = () => {
                                 }}
                             />
                         </div>
-                        <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.5rem' }}>Sri Bagavath</h1>
+                        <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: 'var(--color-text)', marginBottom: '0.5rem' }}>Sri Bagavath</h1>
                         <div style={{ height: '4px', width: '5rem', backgroundColor: 'var(--color-primary)', margin: '0 auto', borderRadius: '9999px' }}></div>
                     </div>
 
-                    <div style={{ textAlign: 'center', color: '#6b7280', lineHeight: '1.75' }}>
+                    <div style={{ textAlign: 'center', color: 'var(--color-text-muted)', lineHeight: '1.75' }}>
                         <p style={{ marginBottom: '1.5rem', fontSize: '1.125rem' }}>
                             <strong style={{ color: 'var(--color-primary-dark)' }}>SRI BAGAVATH</strong> Completely newly evolved shining revelations of understanding by Shri Bagavath, are for the ‘Seekers of Truth’.
                         </p>

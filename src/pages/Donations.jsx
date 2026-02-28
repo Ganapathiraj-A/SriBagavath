@@ -93,7 +93,7 @@ const Donations = () => {
     const filteredOptions = donationOptions.filter(o => o.category === activeTab);
 
     return (
-        <div style={{ backgroundColor: '#f9fafb', minHeight: '100vh', paddingBottom: '40px' }}>
+        <div style={{ backgroundColor: 'var(--color-background)', minHeight: '100vh', paddingBottom: '40px' }}>
             <PageHeader title="Donations" />
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '16px 16px 0', gap: '8px' }}>
@@ -104,13 +104,13 @@ const Donations = () => {
                         alignItems: 'center',
                         gap: '6px',
                         padding: '8px 12px',
-                        backgroundColor: 'white',
-                        border: '1px solid #ddd',
+                        backgroundColor: 'var(--color-card)',
+                        border: '1px solid var(--color-border)',
                         borderRadius: '0.875rem',
                         fontSize: '14px',
                         fontWeight: 600,
-                        color: '#374151',
-                        boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)'
+                        color: 'var(--color-text)',
+                        boxShadow: 'var(--shadow-sm)'
                     }}
                 >
                     <Heart size={18} />
@@ -123,8 +123,8 @@ const Donations = () => {
                     <div style={{
                         width: '56px',
                         height: '56px',
-                        backgroundColor: '#fee2e2',
-                        color: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        color: 'var(--color-error)',
                         borderRadius: '1rem',
                         display: 'flex',
                         alignItems: 'center',
@@ -133,8 +133,8 @@ const Donations = () => {
                     }}>
                         <Heart size={28} />
                     </div>
-                    <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#111827', margin: 0 }}>Support Our Mission</h2>
-                    <p style={{ color: '#6b7280', marginTop: '6px', fontSize: '0.9rem', lineHeight: 1.4 }}>
+                    <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-text)', margin: 0 }}>Support Our Mission</h2>
+                    <p style={{ color: 'var(--color-text-muted)', marginTop: '6px', fontSize: '0.9rem', lineHeight: 1.4 }}>
                         Your contributions help us reach more people and spread spiritual awareness.
                     </p>
                 </div>
@@ -145,7 +145,7 @@ const Donations = () => {
                     justifyContent: 'center',
                     gap: '2rem',
                     marginBottom: '2rem',
-                    borderBottom: '1px solid #e5e7eb',
+                    borderBottom: '1px solid var(--color-border)',
                     padding: '0 1rem'
                 }}>
                     {tabs.map(tab => {
@@ -164,7 +164,7 @@ const Donations = () => {
                                     backgroundColor: 'transparent',
                                     fontSize: '0.875rem',
                                     fontWeight: 700,
-                                    color: isActive ? 'var(--color-primary)' : '#6b7280',
+                                    color: isActive ? 'var(--color-primary)' : 'var(--color-text-muted)',
                                     position: 'relative',
                                     cursor: 'pointer',
                                     transition: 'color 0.2s'
@@ -203,9 +203,9 @@ const Donations = () => {
                             }}
                             style={{
                                 padding: '1.25rem',
-                                backgroundColor: onlineTransactionsEnabled ? 'white' : '#f3f4f6',
+                                backgroundColor: onlineTransactionsEnabled ? 'var(--color-card)' : 'var(--color-surface)',
                                 borderRadius: '1rem',
-                                border: selectedAmount === option.id ? '2px solid var(--color-primary)' : '1px solid #e5e7eb',
+                                border: selectedAmount === option.id ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
                                 cursor: onlineTransactionsEnabled ? 'pointer' : 'default',
                                 display: 'flex',
                                 justifyContent: 'space-between',
@@ -215,7 +215,7 @@ const Donations = () => {
                             }}
                         >
                             <div style={{ flex: 1 }}>
-                                <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: '#111827' }}>{option.title}</h3>
+                                <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: 'var(--color-text)' }}>{option.title}</h3>
                                 {option.isCustom && selectedAmount === option.id && (
                                     <input
                                         type="number"
@@ -227,11 +227,13 @@ const Donations = () => {
                                             marginTop: '12px',
                                             padding: '10px',
                                             borderRadius: '0.5rem',
-                                            border: '1px solid #e5e7eb',
+                                            border: '1px solid var(--color-border)',
                                             width: '100%',
                                             fontSize: '0.925rem',
                                             outline: 'none',
-                                            boxSizing: 'border-box'
+                                            boxSizing: 'border-box',
+                                            backgroundColor: 'var(--color-surface)',
+                                            color: 'var(--color-text)'
                                         }}
                                         autoFocus
                                     />
@@ -245,12 +247,13 @@ const Donations = () => {
                                             marginTop: '12px',
                                             padding: '10px',
                                             borderRadius: '0.5rem',
-                                            border: '1px solid #e5e7eb',
+                                            border: '1px solid var(--color-border)',
                                             width: '100%',
                                             fontSize: '0.925rem',
                                             outline: 'none',
                                             boxSizing: 'border-box',
-                                            backgroundColor: 'white'
+                                            backgroundColor: 'var(--color-surface)',
+                                            color: 'var(--color-text)'
                                         }}
                                     >
                                         {[500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 5000, 6000, 7000, 8000, 9000, 10000].map(amt => (
@@ -277,12 +280,12 @@ const Donations = () => {
                     <div style={{
                         marginTop: '32px',
                         padding: '16px',
-                        backgroundColor: '#fef2f2',
-                        border: '1px solid #fee2e2',
+                        backgroundColor: 'rgba(239, 68, 68, 0.05)',
+                        border: '1px solid var(--color-error)',
                         borderRadius: '0.875rem',
                         textAlign: 'center'
                     }}>
-                        <p style={{ margin: 0, color: '#b91c1c', fontWeight: 600, fontSize: '0.95rem' }}>
+                        <p style={{ margin: 0, color: 'var(--color-error)', fontWeight: 600, fontSize: '0.95rem' }}>
                             To make donations please contact {offlineRegistrationContact}
                         </p>
                     </div>
@@ -315,7 +318,7 @@ const Donations = () => {
                     </button>
                 )}
 
-                <p style={{ textAlign: 'center', marginTop: '20px', color: '#6b7280', fontSize: '0.8rem' }}>
+                <p style={{ textAlign: 'center', marginTop: '20px', color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>
                     Transactions are secure and handled via UPI.
                 </p>
             </div>

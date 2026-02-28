@@ -162,14 +162,14 @@ const BookStore = () => {
 
     if (loading) {
         return (
-            <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f9fafb' }}>
-                <p style={{ color: '#6b7280' }}>Loading Bookstore...</p>
+            <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--color-background)' }}>
+                <p style={{ color: 'var(--color-text-muted)' }}>Loading Bookstore...</p>
             </div>
         );
     }
 
     return (
-        <div style={{ backgroundColor: '#f9fafb', minHeight: '100vh', paddingBottom: '100px' }}>
+        <div style={{ backgroundColor: 'var(--color-background)', minHeight: '100vh', paddingBottom: '100px' }}>
             <PageHeader
                 title="Print Books"
                 rightAction={canEdit && (
@@ -180,7 +180,7 @@ const BookStore = () => {
                             alignItems: 'center',
                             gap: '6px',
                             padding: '8px 12px',
-                            backgroundColor: '#fff7ed',
+                            backgroundColor: 'var(--color-primary-transparent)',
                             border: '1px solid var(--color-primary)',
                             borderRadius: '20px',
                             color: 'var(--color-primary)',
@@ -198,7 +198,7 @@ const BookStore = () => {
             <div style={{
                 display: 'flex',
                 margin: '0 16px',
-                borderBottom: '1px solid #e5e7eb',
+                borderBottom: '1px solid var(--color-border)',
                 gap: '20px',
                 justifyContent: 'space-between',
                 alignItems: 'center'
@@ -213,7 +213,7 @@ const BookStore = () => {
                                 border: 'none',
                                 borderBottom: activeTab === tab ? '2px solid var(--color-primary)' : '2px solid transparent',
                                 backgroundColor: 'transparent',
-                                color: activeTab === tab ? 'var(--color-primary)' : '#6b7280',
+                                color: activeTab === tab ? 'var(--color-primary)' : 'var(--color-text-muted)',
                                 fontWeight: activeTab === tab ? '600' : '500',
                                 fontSize: '0.95rem',
                                 cursor: 'pointer',
@@ -239,7 +239,7 @@ const BookStore = () => {
                         borderBottom: '2px solid transparent',
                         fontSize: '0.9rem',
                         fontWeight: 500,
-                        color: '#6b7280',
+                        color: 'var(--color-text-muted)',
                         cursor: 'pointer'
                     }}
                 >
@@ -258,7 +258,7 @@ const BookStore = () => {
                         animate={{ opacity: 1, y: 0 }}
                         className="card"
                         onClick={() => navigate(`/book/${product.id}`)}
-                        style={{ display: 'flex', gap: '12px', alignItems: 'center', padding: '12px', cursor: 'pointer', position: 'relative' }}
+                        style={{ display: 'flex', gap: '12px', alignItems: 'center', padding: '12px', cursor: 'pointer', position: 'relative', backgroundColor: 'var(--color-card)', borderRadius: '1rem', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)' }}
                     >
                         <LazyImage
                             firestorePath={`book_covers/${product.id}`}
@@ -266,12 +266,12 @@ const BookStore = () => {
                             width="60px"
                             height="80px"
                             borderRadius="6px"
-                            placeholder={() => <div style={{ color: '#9ca3af', fontSize: '10px', textAlign: 'center', padding: '4px' }}>No Cover</div>}
+                            placeholder={() => <div style={{ color: 'var(--color-text-light)', fontSize: '10px', textAlign: 'center', padding: '4px' }}>No Cover</div>}
                         />
                         <div style={{ flex: 1, minWidth: 0 }}>
-                            <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: '#111827', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{product.title}</h3>
+                            <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{product.title}</h3>
                             <p style={{ margin: '4px 0 0 0', color: 'var(--color-primary)', fontWeight: 700, fontSize: '0.95rem' }}>₹{product.price}</p>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px', color: '#9ca3af', fontSize: '0.75rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px', color: 'var(--color-text-light)', fontSize: '0.75rem' }}>
                                 <Info size={12} /> Click for details
                             </div>
                         </div>
@@ -287,18 +287,18 @@ const BookStore = () => {
                                                 onClick={() => handleRemoveFromCart(product)}
                                                 disabled={authLoading}
                                                 aria-label={`Remove ${product.title} from cart`}
-                                                style={{ width: '32px', height: '32px', borderRadius: '50%', border: '1px solid #e5e7eb', background: 'white', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: authLoading ? 'wait' : 'pointer' }}
+                                                style={{ width: '32px', height: '32px', borderRadius: '50%', border: '1px solid var(--color-border)', background: 'var(--color-card)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: authLoading ? 'wait' : 'pointer' }}
                                             >
                                                 <Minus size={16} />
                                             </button>
-                                            <span style={{ fontWeight: 600, minWidth: '20px', textAlign: 'center', fontSize: '1rem' }}>{cart[product.id]}</span>
+                                            <span style={{ fontWeight: 600, minWidth: '20px', textAlign: 'center', fontSize: '1rem', color: 'var(--color-text)' }}>{cart[product.id]}</span>
                                         </>
                                     )}
                                     <button
                                         onClick={() => handleAddToCart(product)}
                                         disabled={authLoading}
                                         aria-label={`Add ${product.title} to cart`}
-                                        style={{ width: '32px', height: '32px', borderRadius: '50%', border: 'none', background: 'var(--color-primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: authLoading ? 'wait' : 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
+                                        style={{ width: '32px', height: '32px', borderRadius: '50%', border: 'none', background: 'var(--color-primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: authLoading ? 'wait' : 'pointer', boxShadow: 'var(--shadow-sm)' }}
                                     >
                                         <Plus size={16} />
                                     </button>
@@ -310,7 +310,7 @@ const BookStore = () => {
             </div>
 
             {filteredProducts.length === 0 && !loading && (
-                <div style={{ padding: '60px 20px', textAlign: 'center', color: '#6b7280' }}>
+                <div style={{ padding: '60px 20px', textAlign: 'center', color: 'var(--color-text-muted)' }}>
                     <p>No books available in this category.</p>
                 </div>
             )}
@@ -325,7 +325,7 @@ const BookStore = () => {
                         left: '20px',
                         right: '20px',
                         backgroundColor: 'var(--color-primary)',
-                        color: 'white',
+                        color: 'var(--color-text-on-primary)',
                         padding: '16px 24px',
                         borderRadius: '16px',
                         display: 'flex',
@@ -355,7 +355,7 @@ const BookStore = () => {
                             fontWeight: 'bold',
                             fontSize: '1rem',
                             cursor: 'pointer',
-                            boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                            boxShadow: 'var(--shadow-md)'
                         }}
                     >
                         Checkout
@@ -369,13 +369,12 @@ const BookStore = () => {
                     bottom: '20px',
                     left: '20px',
                     right: '20px',
-                    backgroundColor: '#fef2f2',
-                    border: '1px solid #fee2e2',
-                    color: '#b91c1c',
+                    backgroundColor: 'var(--color-error)',
+                    color: 'white',
                     padding: '16px 24px',
                     borderRadius: '16px',
                     textAlign: 'center',
-                    boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
+                    boxShadow: 'var(--shadow-lg)',
                     zIndex: 100
                 }}>
                     <p style={{ margin: 0, fontWeight: 700, fontSize: '1rem' }}>

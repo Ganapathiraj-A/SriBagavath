@@ -20,11 +20,11 @@ const MeetingCard = ({ meeting, delay, isAdmin, onShare }) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay, duration: 0.4 }}
             style={{
-                backgroundColor: 'white',
+                backgroundColor: 'var(--color-card)',
                 padding: '1rem',
                 borderRadius: '1.25rem',
-                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-                border: '1px solid #f3f4f6',
+                boxShadow: 'var(--shadow-md)',
+                border: '1px solid var(--color-border)',
                 display: 'flex',
                 gap: '1rem',
                 position: 'relative'
@@ -39,7 +39,7 @@ const MeetingCard = ({ meeting, delay, isAdmin, onShare }) => {
                     width="4.25rem"
                     height="4.25rem"
                     borderRadius="1rem"
-                    placeholder={() => <User size={24} color="#9ca3af" />}
+                    placeholder={() => <User size={24} color="var(--color-text-light)" />}
                 />
 
                 {/* Date Box */}
@@ -48,12 +48,12 @@ const MeetingCard = ({ meeting, delay, isAdmin, onShare }) => {
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    backgroundColor: '#fff7ed',
-                    color: '#f97316',
+                    backgroundColor: 'var(--color-primary-transparent)',
+                    color: 'var(--color-primary)',
                     padding: '0.5rem',
                     borderRadius: '0.75rem',
                     width: '100%',
-                    border: '1px solid #ffedd5'
+                    border: '1px solid var(--color-primary)'
                 }}>
                     <span style={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                         {date.toLocaleDateString('en-US', { month: 'short' })}
@@ -70,7 +70,7 @@ const MeetingCard = ({ meeting, delay, isAdmin, onShare }) => {
                     <h3 style={{
                         fontSize: '1.15rem',
                         fontWeight: 750,
-                        color: '#111827',
+                        color: 'var(--color-text)',
                         margin: 0,
                         lineHeight: 1.2,
                         wordBreak: 'break-word',
@@ -84,7 +84,7 @@ const MeetingCard = ({ meeting, delay, isAdmin, onShare }) => {
                         style={{
                             background: 'none',
                             border: 'none',
-                            color: '#6b7280',
+                            color: 'var(--color-text-muted)',
                             padding: '0.25rem',
                             cursor: 'pointer'
                         }}
@@ -94,7 +94,7 @@ const MeetingCard = ({ meeting, delay, isAdmin, onShare }) => {
                 </div>
 
                 {meeting.description && (
-                    <p style={{ fontSize: '0.9rem', color: '#4b5563', margin: '0 0 1rem 0', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    <p style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)', margin: '0 0 1rem 0', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                         {meeting.description}
                     </p>
                 )}
@@ -132,9 +132,9 @@ const MeetingCard = ({ meeting, delay, isAdmin, onShare }) => {
                                 justifyContent: 'center',
                                 gap: '0.4rem',
                                 padding: '0.6rem 0.75rem',
-                                backgroundColor: '#fee2e2',
-                                color: '#dc2626',
-                                border: '1px solid #fecaca',
+                                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                color: 'var(--color-error)',
+                                border: '1px solid var(--color-error)',
                                 borderRadius: '0.75rem',
                                 fontSize: '0.85rem',
                                 fontWeight: 700,
@@ -364,7 +364,7 @@ Join us for our daily spiritual gathering.
         .filter(m => selectedTeacherId === 'all' || m.teacherId === selectedTeacherId);
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>
             <PageHeader
                 title="Daily Zoom Meeting"
                 rightAction={
@@ -376,9 +376,9 @@ Join us for our daily spiritual gathering.
                                 alignItems: 'center',
                                 gap: '0.4rem',
                                 padding: '0.5rem 0.8rem',
-                                backgroundColor: '#fff7ed',
+                                backgroundColor: 'var(--color-primary-transparent)',
                                 color: ORANGE,
-                                border: '1px solid #ffedd5',
+                                border: '1px solid var(--color-primary)',
                                 borderRadius: '0.75rem',
                                 fontSize: '0.85rem',
                                 fontWeight: 700,
@@ -393,7 +393,7 @@ Join us for our daily spiritual gathering.
 
             <div style={{ padding: '1.5rem', maxWidth: '32rem', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <p style={{ color: '#6b7280', margin: 0, fontSize: '0.95rem' }}>
+                    <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '0.95rem' }}>
                         Join our daily spiritual gatherings online
                     </p>
                     <button
@@ -404,9 +404,9 @@ Join us for our daily spiritual gathering.
                             alignItems: 'center',
                             gap: '0.4rem',
                             padding: '0.4rem 0.75rem',
-                            backgroundColor: 'white',
-                            color: '#4b5563',
-                            border: '1px solid #e5e7eb',
+                            backgroundColor: 'var(--color-card)',
+                            color: 'var(--color-text)',
+                            border: '1px solid var(--color-border)',
                             borderRadius: '0.5rem',
                             fontSize: '0.85rem',
                             fontWeight: 600,
@@ -427,17 +427,17 @@ Join us for our daily spiritual gathering.
                             style={{
                                 padding: '0.75rem',
                                 borderRadius: '0.75rem',
-                                border: '1px solid #d1d5db',
-                                backgroundColor: 'white',
+                                border: '1px solid var(--color-border)',
+                                backgroundColor: 'var(--color-card)',
                                 fontSize: '1rem',
                                 fontWeight: 500,
-                                color: '#111827',
+                                color: 'var(--color-text)',
                                 outline: 'none',
                                 width: '100%',
                                 cursor: 'pointer',
                                 boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
                                 appearance: 'none',
-                                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
                                 backgroundRepeat: 'no-repeat',
                                 backgroundPosition: 'right 0.75rem center',
                                 backgroundSize: '1.25rem'
@@ -454,7 +454,7 @@ Join us for our daily spiritual gathering.
                 {/* Tab Switcher - Underlined Style (matching Book Store) */}
                 <div style={{
                     display: 'flex',
-                    borderBottom: '1px solid #e5e7eb',
+                    borderBottom: '1px solid var(--color-border)',
                     gap: '24px',
                     marginTop: '0.5rem'
                 }}>
@@ -465,7 +465,7 @@ Join us for our daily spiritual gathering.
                             border: 'none',
                             borderBottom: activeTab === 'upcoming' ? `2px solid ${ORANGE}` : '2px solid transparent',
                             backgroundColor: 'transparent',
-                            color: activeTab === 'upcoming' ? ORANGE : '#6b7280',
+                            color: activeTab === 'upcoming' ? ORANGE : 'var(--color-text-muted)',
                             fontWeight: activeTab === 'upcoming' ? 700 : 500,
                             fontSize: '0.95rem',
                             cursor: 'pointer',
@@ -484,7 +484,7 @@ Join us for our daily spiritual gathering.
                             border: 'none',
                             borderBottom: activeTab === 'past' ? `2px solid ${ORANGE}` : '2px solid transparent',
                             backgroundColor: 'transparent',
-                            color: activeTab === 'past' ? ORANGE : '#6b7280',
+                            color: activeTab === 'past' ? ORANGE : 'var(--color-text-muted)',
                             fontWeight: activeTab === 'past' ? 700 : 500,
                             fontSize: '0.95rem',
                             cursor: 'pointer',
@@ -500,12 +500,12 @@ Join us for our daily spiritual gathering.
 
                 {!loading && (
                     <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-                        <h2 style={{ fontSize: '1rem', fontWeight: 750, color: '#111827', margin: '0.5rem 0 0.2rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <h2 style={{ fontSize: '1rem', fontWeight: 750, color: 'var(--color-text)', margin: '0.5rem 0 0.2rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             {activeTab === 'upcoming' ? <Calendar size={18} color={ORANGE} /> : <Clock size={18} color={ORANGE} />}
                             {activeTab === 'upcoming' ? 'Upcoming Meetings' : 'Past Meetings'}
                         </h2>
                         {displayedMeetings.length > 0 && (
-                            <span style={{ fontSize: '0.8rem', color: '#6b7280', fontWeight: 500 }}>
+                            <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>
                                 {displayedMeetings.length} {displayedMeetings.length === 1 ? 'meeting' : 'meetings'}
                             </span>
                         )}
@@ -513,14 +513,14 @@ Join us for our daily spiritual gathering.
                 )}
 
                 {loading ? (
-                    <div style={{ textAlign: 'center', color: '#9ca3af', padding: '3rem' }}>
+                    <div style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: '3rem' }}>
                         <Loader2 className="animate-spin" size={32} style={{ margin: '0 auto 1rem auto' }} />
                         <p>Loading meetings...</p>
                     </div>
                 ) : displayedMeetings.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '3rem', backgroundColor: 'white', borderRadius: '1rem', border: '1px solid #e5e7eb' }}>
-                        <Video size={48} color="#9ca3af" style={{ marginBottom: '1rem' }} />
-                        <p style={{ color: '#6b7280' }}>No {activeTab} meetings found for the selected criteria.</p>
+                    <div style={{ textAlign: 'center', padding: '3rem', backgroundColor: 'var(--color-card)', borderRadius: '1rem', border: '1px solid var(--color-border)' }}>
+                        <Video size={48} color="var(--color-text-light)" style={{ marginBottom: '1rem' }} />
+                        <p style={{ color: 'var(--color-text-muted)' }}>No {activeTab} meetings found for the selected criteria.</p>
                     </div>
                 ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -544,9 +544,9 @@ Join us for our daily spiritual gathering.
                                     justifyContent: 'center',
                                     gap: '0.5rem',
                                     padding: '0.75rem',
-                                    backgroundColor: 'white',
+                                    backgroundColor: 'var(--color-card)',
                                     color: ORANGE,
-                                    border: `1px solid #fed7aa`,
+                                    border: `1px solid var(--color-border)`,
                                     borderRadius: '0.75rem',
                                     fontWeight: 700,
                                     fontSize: '0.9rem',

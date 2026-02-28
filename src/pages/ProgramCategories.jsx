@@ -13,16 +13,16 @@ const CategoryButton = ({ title, icon: Icon, path, delay, hasNew }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay, duration: 0.5 }}
-            whileHover={{ scale: 1.02, backgroundColor: '#f9fafb' }}
+            whileHover={{ scale: 1.02, backgroundColor: 'var(--color-secondary)' }}
             whileTap={{ scale: 0.98 }}
             onClick={() => navigate(path)}
             style={{
                 width: '100%',
                 padding: '1.25rem',
-                backgroundColor: 'white',
+                backgroundColor: 'var(--color-card)',
                 borderRadius: '1rem',
-                boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)',
-                border: '1px solid #e5e7eb',
+                boxShadow: 'var(--shadow-sm)',
+                border: '1px solid var(--color-border)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '1.25rem',
@@ -33,7 +33,7 @@ const CategoryButton = ({ title, icon: Icon, path, delay, hasNew }) => {
             <div style={{
                 padding: '0.75rem',
                 borderRadius: '12px',
-                backgroundColor: '#fff7ed',
+                backgroundColor: 'var(--color-primary-transparent)',
                 color: 'var(--color-primary)',
                 display: 'flex',
                 alignItems: 'center',
@@ -41,7 +41,7 @@ const CategoryButton = ({ title, icon: Icon, path, delay, hasNew }) => {
             }}>
                 <Icon size={24} />
             </div>
-            <span style={{ fontSize: '1.125rem', fontWeight: 600, color: '#111827' }}>{title}</span>
+            <span style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--color-text)' }}>{title}</span>
             {hasNew && (
                 <div style={{
                     position: 'absolute',
@@ -83,7 +83,7 @@ const ProgramCategories = () => {
     ];
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>
             <PageHeader
                 title="Programs"
                 leftAction={
@@ -94,7 +94,7 @@ const ProgramCategories = () => {
             />
 
             <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem', maxWidth: '28rem', margin: '0 auto' }}>
-                <p style={{ color: '#6b7280', textAlign: 'center', marginBottom: '0.5rem', fontSize: '0.95rem' }}>
+                <p style={{ color: 'var(--color-text-muted)', textAlign: 'center', marginBottom: '0.5rem', fontSize: '0.95rem' }}>
                     Select a category to view upcoming programs
                 </p>
                 <CategoryButton

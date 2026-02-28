@@ -24,19 +24,19 @@ const ContactCard = ({ name, number, delay }) => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay, duration: 0.4 }}
             style={{
-                backgroundColor: 'white',
+                backgroundColor: 'var(--color-card)',
                 padding: '1.25rem',
                 borderRadius: '1rem',
-                boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)',
-                border: '1px solid #e5e7eb',
+                boxShadow: 'var(--shadow-sm)',
+                border: '1px solid var(--color-border)',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '1rem'
             }}
         >
             <div>
-                <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#111827', margin: 0 }}>{name}</h3>
-                <p style={{ fontSize: '1rem', color: '#6b7280', margin: '0.25rem 0 0 0' }}>{number}</p>
+                <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>{name}</h3>
+                <p style={{ fontSize: '1rem', color: 'var(--color-text-muted)', margin: '0.25rem 0 0 0' }}>{number}</p>
             </div>
 
             <div style={{ display: 'flex', gap: '0.75rem' }}>
@@ -69,15 +69,15 @@ const ContactCard = ({ name, number, delay }) => {
                         justifyContent: 'center',
                         gap: '0.5rem',
                         padding: '0.75rem',
-                        backgroundColor: '#f3f4f6',
-                        color: '#374151',
+                        backgroundColor: 'var(--color-surface)',
+                        color: 'var(--color-text)',
                         border: 'none',
                         borderRadius: '0.5rem',
                         fontWeight: 600,
                         cursor: 'pointer'
                     }}
                 >
-                    {copied ? <Check size={18} color="#059669" /> : <Copy size={18} />}
+                    {copied ? <Check size={18} color="var(--color-error)" /> : <Copy size={18} />}
                     {copied ? 'Copied' : 'Copy'}
                 </button>
             </div>
@@ -127,7 +127,7 @@ const Consultation = () => {
     }, [isInitialized]);
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>
             <PageHeader
                 title="Consultation"
                 rightAction={
@@ -139,9 +139,9 @@ const Consultation = () => {
                                 alignItems: 'center',
                                 gap: '0.4rem',
                                 padding: '0.5rem 0.8rem',
-                                backgroundColor: '#fff7ed',
+                                backgroundColor: 'var(--color-primary-transparent)',
                                 color: 'var(--color-primary)',
-                                border: '1px solid #ffedd5',
+                                border: '1px solid var(--color-primary)',
                                 borderRadius: '0.75rem',
                                 fontSize: '0.85rem',
                                 fontWeight: 600,
@@ -155,14 +155,14 @@ const Consultation = () => {
             />
 
             <div style={{ padding: '1.5rem', maxWidth: '28rem', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <p style={{ color: '#6b7280', textAlign: 'center', marginBottom: '1rem', fontSize: '0.95rem' }}>
+                <p style={{ color: 'var(--color-text-muted)', textAlign: 'center', marginBottom: '1rem', fontSize: '0.95rem' }}>
                     Contact our Teachers for personalized guidance
                 </p>
 
                 {loading ? (
-                    <p style={{ textAlign: 'center', color: '#9ca3af', padding: '2rem' }}>Loading teachers...</p>
+                    <p style={{ textAlign: 'center', color: 'var(--color-text-light)', padding: '2rem' }}>Loading teachers...</p>
                 ) : consultants.length === 0 ? (
-                    <p style={{ textAlign: 'center', color: '#9ca3af', padding: '2rem' }}>No teacher contacts available.</p>
+                    <p style={{ textAlign: 'center', color: 'var(--color-text-light)', padding: '2rem' }}>No teacher contacts available.</p>
                 ) : (
                     consultants.map((c, idx) => (
                         <ContactCard key={c.id} name={c.name} number={c.number} delay={idx * 0.1} />
@@ -172,10 +172,10 @@ const Consultation = () => {
                 <div style={{
                     marginTop: '2rem',
                     padding: '1.25rem',
-                    backgroundColor: '#fff7ed',
+                    backgroundColor: 'var(--color-primary-transparent)',
                     borderRadius: '0.75rem',
-                    border: '1px solid #fed7aa',
-                    color: '#9a3412',
+                    border: '1px solid var(--color-primary)',
+                    color: 'var(--color-primary)',
                     fontSize: '0.875rem',
                     display: 'flex',
                     alignItems: 'flex-start',

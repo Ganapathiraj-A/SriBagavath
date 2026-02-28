@@ -43,11 +43,11 @@ const Videos = () => {
                             justifyContent: 'center',
                             width: '40px',
                             height: '40px',
-                            backgroundColor: 'white',
-                            border: '1px solid #e5e7eb',
+                            backgroundColor: 'var(--color-card)',
+                            border: '1px solid var(--color-border)',
                             borderRadius: '50%',
                             cursor: 'pointer',
-                            boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                            boxShadow: 'var(--shadow-sm)'
                         }}
                         title="Edit"
                     >
@@ -61,18 +61,18 @@ const Videos = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     style={{
-                        backgroundColor: 'white',
+                        backgroundColor: 'var(--color-card)',
                         borderRadius: '1rem',
                         padding: '1.5rem',
-                        boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)'
+                        boxShadow: 'var(--shadow-sm)'
                     }}
                 >
                     {loading ? (
-                        <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
+                        <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
                             Loading videos...
                         </div>
                     ) : videos.length === 0 ? (
-                        <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
+                        <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
                             No videos configured yet.
                         </div>
                     ) : (
@@ -82,14 +82,14 @@ const Videos = () => {
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: 0.1 }}
-                                whileHover={{ scale: 1.01, backgroundColor: '#f9fafb' }}
+                                whileHover={{ scale: 1.01, backgroundColor: 'var(--color-surface)' }}
                                 onClick={() => window.open('https://t.me/Bagavath_conversations', '_blank')}
                                 style={{
                                     width: '100%',
                                     padding: '1.25rem',
-                                    backgroundColor: 'white',
+                                    backgroundColor: 'var(--color-background)',
                                     borderRadius: '0.75rem',
-                                    border: '1px solid #e5e7eb',
+                                    border: '1px solid var(--color-border)',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'space-between',
@@ -108,25 +108,25 @@ const Videos = () => {
                                     }}>
                                         <Send size={20} color="var(--color-primary)" />
                                     </div>
-                                    <span style={{ fontSize: '1rem', color: '#111827', fontWeight: 500 }}>
+                                    <span style={{ fontSize: '1rem', color: 'var(--color-text)', fontWeight: 500 }}>
                                         Telegram
                                     </span>
                                 </div>
-                                <ExternalLink size={18} color="#9ca3af" />
+                                <ExternalLink size={18} color="var(--color-text-light)" />
                             </motion.button>
 
                             <motion.button
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: 0.2 }}
-                                whileHover={{ scale: 1.01, backgroundColor: '#f9fafb' }}
+                                whileHover={{ scale: 1.01, backgroundColor: 'var(--color-surface)' }}
                                 onClick={() => window.open('https://youtube.com/@bagavathpathai?si=F2JEXlLNpDngYujc', '_blank')}
                                 style={{
                                     width: '100%',
                                     padding: '1.25rem',
-                                    backgroundColor: 'white',
+                                    backgroundColor: 'var(--color-background)',
                                     borderRadius: '0.75rem',
-                                    border: '1px solid #e5e7eb',
+                                    border: '1px solid var(--color-border)',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'space-between',
@@ -145,11 +145,11 @@ const Videos = () => {
                                     }}>
                                         <Youtube size={20} color="var(--color-primary)" />
                                     </div>
-                                    <span style={{ fontSize: '1rem', color: '#111827', fontWeight: 500 }}>
+                                    <span style={{ fontSize: '1rem', color: 'var(--color-text)', fontWeight: 500 }}>
                                         YouTube
                                     </span>
                                 </div>
-                                <ExternalLink size={18} color="#9ca3af" />
+                                <ExternalLink size={18} color="var(--color-text-light)" />
                             </motion.button>
 
                             {/* Dynamic Playlist Videos */}
@@ -159,14 +159,14 @@ const Videos = () => {
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ delay: (index + 3) * 0.1 }}
-                                    whileHover={{ scale: 1.01, backgroundColor: '#f9fafb' }}
+                                    whileHover={{ scale: 1.01, backgroundColor: 'var(--color-surface)' }}
                                     onClick={() => window.open(video.url, '_blank')}
                                     style={{
                                         width: '100%',
                                         padding: '1.25rem',
-                                        backgroundColor: 'white',
+                                        backgroundColor: 'var(--color-background)',
                                         borderRadius: '0.75rem',
-                                        border: '1px solid #e5e7eb',
+                                        border: '1px solid var(--color-border)',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'space-between',
@@ -178,18 +178,18 @@ const Videos = () => {
                                         <div style={{
                                             padding: '0.5rem',
                                             borderRadius: '9999px',
-                                            backgroundColor: '#fef2f2',
+                                            backgroundColor: 'var(--color-background-secondary)',
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center'
                                         }}>
-                                            <Youtube size={20} color="#ef4444" />
+                                            <Youtube size={20} color="var(--color-error)" />
                                         </div>
-                                        <span style={{ fontSize: '1rem', color: '#111827', fontWeight: 500 }}>
+                                        <span style={{ fontSize: '1rem', color: 'var(--color-text)', fontWeight: 500 }}>
                                             {video.title}
                                         </span>
                                     </div>
-                                    <ExternalLink size={18} color="#9ca3af" />
+                                    <ExternalLink size={18} color="var(--color-text-light)" />
                                 </motion.button>
                             ))}
                         </div>

@@ -108,7 +108,7 @@ const SatsangDetails = () => {
     if (!meeting) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><p>Satsang not found.</p></div>;
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', paddingBottom: '3rem' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)', paddingBottom: '3rem' }}>
             <PageHeader
                 title="Satsang Details"
                 leftAction={
@@ -122,7 +122,7 @@ const SatsangDetails = () => {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    style={{ backgroundColor: 'white', borderRadius: '1rem', overflow: 'hidden', boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)' }}
+                    style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', overflow: 'hidden', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)' }}
                 >
                     {banner && (
                         <img src={banner} alt="Satsang Banner" loading="lazy" style={{ width: '100%', display: 'block' }} />
@@ -130,7 +130,7 @@ const SatsangDetails = () => {
 
                     <div style={{ padding: '2rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                            <h1 style={{ fontSize: '1.75rem', fontWeight: 'bold', color: '#111827', margin: 0 }}>
+                            <h1 style={{ fontSize: '1.75rem', fontWeight: 'bold', color: 'var(--color-text)', margin: 0 }}>
                                 {meeting.conductedBy}
                             </h1>
                             <div style={{ display: 'flex', gap: '0.75rem' }}>
@@ -142,9 +142,9 @@ const SatsangDetails = () => {
                                         gap: '0.5rem',
                                         padding: '0.625rem 1rem',
                                         borderRadius: '0.75rem',
-                                        backgroundColor: '#fff7ed',
-                                        color: ORANGE,
-                                        border: '1px solid #ffedd5',
+                                        backgroundColor: 'var(--color-primary-transparent)',
+                                        color: 'var(--color-primary)',
+                                        border: '1px solid var(--color-primary)',
                                         cursor: 'pointer',
                                         fontSize: '0.875rem',
                                         fontWeight: 600
@@ -179,9 +179,9 @@ const SatsangDetails = () => {
                             </div>
                         </div>
 
-                        <div style={{ display: 'grid', gap: '1.5rem', color: '#4b5563' }}>
+                        <div style={{ display: 'grid', gap: '1.5rem', color: 'var(--color-text)' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                <div style={{ padding: '0.75rem', backgroundColor: '#fff7ed', borderRadius: '0.75rem', color: ORANGE }}>
+                                <div style={{ padding: '0.75rem', backgroundColor: 'var(--color-primary-transparent)', borderRadius: '0.75rem', color: 'var(--color-primary)' }}>
                                     <Calendar size={24} />
                                 </div>
                                 <div>
@@ -193,11 +193,11 @@ const SatsangDetails = () => {
                             </div>
 
                             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                <div style={{ padding: '0.75rem', backgroundColor: '#fff7ed', borderRadius: '0.75rem', color: ORANGE }}>
+                                <div style={{ padding: '0.75rem', backgroundColor: 'var(--color-primary-transparent)', borderRadius: '0.75rem', color: 'var(--color-primary)' }}>
                                     <Clock size={24} />
                                 </div>
                                 <div>
-                                    <span style={{ display: 'block', fontSize: '0.875rem', color: '#6b7280' }}>Time</span>
+                                    <span style={{ display: 'block', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Time</span>
                                     <span style={{ fontSize: '1.125rem', fontWeight: 500 }}>
                                         {meeting.startTime} - {meeting.endTime}
                                     </span>
@@ -205,15 +205,15 @@ const SatsangDetails = () => {
                             </div>
 
                             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                <div style={{ padding: '0.75rem', backgroundColor: '#fff7ed', borderRadius: '0.75rem', color: ORANGE }}>
+                                <div style={{ padding: '0.75rem', backgroundColor: 'var(--color-primary-transparent)', borderRadius: '0.75rem', color: 'var(--color-primary)' }}>
                                     <MapPin size={24} />
                                 </div>
                                 <div>
-                                    <span style={{ display: 'block', fontSize: '0.875rem', color: '#6b7280' }}>Location</span>
+                                    <span style={{ display: 'block', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Location</span>
                                     <span style={{ fontSize: '1.125rem', fontWeight: 500 }}>
                                         {meeting.city}
                                     </span>
-                                    <span style={{ display: 'block', fontSize: '0.95rem', color: '#4b5563', marginTop: '0.25rem' }}>
+                                    <span style={{ display: 'block', fontSize: '0.95rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
                                         {meeting.venue}
                                     </span>
                                 </div>
@@ -222,10 +222,10 @@ const SatsangDetails = () => {
 
                         {(meeting.description || meeting.descriptions) && (
                             <div style={{ marginTop: '2.5rem' }}>
-                                <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#6b7280', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.025em' }}>
+                                <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.025em' }}>
                                     Description
                                 </span>
-                                <p style={{ fontSize: '1.0625rem', color: '#374151', lineHeight: '1.7', whiteSpace: 'pre-wrap', margin: 0 }}>
+                                <p style={{ fontSize: '1.0625rem', color: 'var(--color-text)', lineHeight: '1.7', whiteSpace: 'pre-wrap', margin: 0 }}>
                                     {meeting.description || meeting.descriptions}
                                 </p>
                             </div>

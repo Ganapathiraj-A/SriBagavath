@@ -135,7 +135,7 @@ const SatsangListing = () => {
     }, [authGlobalLoading]);
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', paddingBottom: '3rem' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)', paddingBottom: '3rem' }}>
             <PageHeader
                 title="Satsang"
                 rightAction={
@@ -147,9 +147,9 @@ const SatsangListing = () => {
                                 alignItems: 'center',
                                 gap: '0.4rem',
                                 padding: '0.5rem 0.8rem',
-                                backgroundColor: '#fff7ed',
-                                color: '#f97316',
-                                border: '1px solid #ffedd5',
+                                backgroundColor: 'var(--color-primary-transparent)',
+                                color: 'var(--color-primary)',
+                                border: '1px solid var(--color-primary)',
                                 borderRadius: '0.75rem',
                                 fontSize: '0.85rem',
                                 fontWeight: 700,
@@ -165,11 +165,11 @@ const SatsangListing = () => {
             <div style={{ padding: '1.5rem', maxWidth: '42rem', margin: '0 auto', width: '100%' }}>
 
                 {loading ? (
-                    <p style={{ textAlign: 'center', color: '#6b7280' }}>Loading upcoming Satsangs...</p>
+                    <p style={{ textAlign: 'center', color: 'var(--color-text-muted)' }}>Loading upcoming Satsangs...</p>
                 ) : meetings.length === 0 ? (
-                    <div style={{ backgroundColor: 'white', borderRadius: '1rem', padding: '3rem', textAlign: 'center', boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)' }}>
-                        <Users size={48} color="#9ca3af" style={{ marginBottom: '1rem' }} />
-                        <p style={{ fontSize: '1.125rem', color: '#6b7280' }}>No Satsang scheduled at the moment.</p>
+                    <div style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '3rem', textAlign: 'center', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)' }}>
+                        <Users size={48} color="var(--color-text-light)" style={{ marginBottom: '1rem' }} />
+                        <p style={{ fontSize: '1.125rem', color: 'var(--color-text-muted)' }}>No Satsang scheduled at the moment.</p>
                     </div>
                 ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -180,11 +180,11 @@ const SatsangListing = () => {
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ delay: index * 0.1 }}
                                 style={{
-                                    backgroundColor: 'white',
+                                    backgroundColor: 'var(--color-card)',
                                     borderRadius: '1rem',
                                     padding: '1.5rem',
-                                    boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)',
-                                    border: '1px solid #f3f4f6',
+                                    boxShadow: 'var(--shadow-sm)',
+                                    border: '1px solid var(--color-border)',
                                     position: 'relative',
                                     overflow: 'hidden'
                                 }}
@@ -195,7 +195,7 @@ const SatsangListing = () => {
                                     left: 0,
                                     width: '4px',
                                     height: '100%',
-                                    backgroundColor: ORANGE
+                                    backgroundColor: 'var(--color-primary)'
                                 }} />
 
                                 <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
@@ -205,13 +205,13 @@ const SatsangListing = () => {
                                         flexDirection: 'column',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        backgroundColor: '#fff7ed',
-                                        color: ORANGE,
+                                        backgroundColor: 'var(--color-primary-transparent)',
+                                        color: 'var(--color-primary)',
                                         padding: '0.875rem',
                                         borderRadius: '0.75rem',
                                         minWidth: '4.5rem',
                                         flexShrink: 0,
-                                        border: `1px solid #ffedd5`
+                                        border: `1px solid var(--color-primary)`
                                     }}>
                                         <span style={{
                                             fontSize: '0.75rem',
@@ -234,17 +234,17 @@ const SatsangListing = () => {
                                     {/* Content Column */}
                                     <div style={{ flex: 1, minWidth: 0 }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                            <h2 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#111827', margin: 0 }}>
+                                            <h2 style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>
                                                 {meeting.conductedBy}
                                             </h2>
-                                            <div style={{ padding: '0.4rem', backgroundColor: '#fff7ed', borderRadius: '50%', color: ORANGE, flexShrink: 0, marginLeft: '0.5rem' }}>
+                                            <div style={{ padding: '0.4rem', backgroundColor: 'var(--color-primary-transparent)', borderRadius: '50%', color: 'var(--color-primary)', flexShrink: 0, marginLeft: '0.5rem' }}>
                                                 <Users size={16} />
                                             </div>
                                         </div>
 
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.5rem' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: '#4b5563', fontSize: '0.875rem' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>
                                                     <MapPin size={14} />
                                                     {meeting.city}
                                                 </div>
@@ -254,11 +254,11 @@ const SatsangListing = () => {
                                                         alignItems: 'center',
                                                         gap: '0.25rem',
                                                         fontSize: '0.7rem',
-                                                        backgroundColor: '#f3f4f6',
+                                                        backgroundColor: 'var(--color-surface)',
                                                         padding: '2px 8px',
                                                         borderRadius: '999px',
-                                                        color: '#374151',
-                                                        border: `1px solid #e5e7eb`
+                                                        color: 'var(--color-text)',
+                                                        border: `1px solid var(--color-border)`
                                                     }}>
                                                         <RefreshCw size={10} />
                                                         {meeting.recurrenceText}
@@ -272,9 +272,9 @@ const SatsangListing = () => {
                                                 onClick={() => navigate(`/programs/satsang/${meeting.id}`)}
                                                 style={{
                                                     padding: '0.5rem 1rem',
-                                                    backgroundColor: 'white',
-                                                    color: ORANGE,
-                                                    border: `1px solid ${ORANGE}`,
+                                                    backgroundColor: 'var(--color-card)',
+                                                    color: 'var(--color-primary)',
+                                                    border: `1px solid var(--color-primary)`,
                                                     borderRadius: '0.5rem',
                                                     fontWeight: 600,
                                                     cursor: 'pointer',
