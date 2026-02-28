@@ -85,7 +85,7 @@ const compressImage = (file) => {
     });
 };
 
-const CATEGORIES = ['Tamil Books', 'English Books'];
+const CATEGORIES = ['Tamil Books', 'English Books', 'Hindi Books', 'Telugu Books'];
 
 const AdminBookManagement = () => {
     const navigate = useNavigate();
@@ -401,7 +401,7 @@ const AdminBookManagement = () => {
                                     boxShadow: '0 4px 6px -1px rgba(249, 115, 22, 0.2)'
                                 }}
                             >
-                                <Plus size={20} /> Add New {activeTab === 'Tamil Books' ? 'Tamil' : 'English'} Book
+                                <Plus size={20} /> Add New {activeTab.replace(' Books', '')} Book
                             </button>
                         </div>
 
@@ -431,7 +431,7 @@ const AdminBookManagement = () => {
                                         transition: 'all 0.2s ease'
                                     }}
                                 >
-                                    {tab}
+                                    {tab.replace(' Books', '')}
                                 </button>
                             ))}
                         </div>
@@ -512,7 +512,9 @@ const AdminBookManagement = () => {
                             <div style={{ display: 'grid', gap: '0.5rem' }}>
                                 <label style={{ fontWeight: 600, color: '#4b5563', fontSize: '0.9rem' }}>Category *</label>
                                 <select name="category" value={formData.category} onChange={handleInputChange} required style={{ width: '100%', padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid #fed7aa', backgroundColor: '#fff7ed' }}>
-                                    {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                                    {CATEGORIES.map(cat => (
+                                        <option key={cat} value={cat}>{cat.replace(' Books', '')}</option>
+                                    ))}
                                 </select>
                             </div>
 

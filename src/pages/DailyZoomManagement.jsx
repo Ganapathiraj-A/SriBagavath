@@ -353,7 +353,7 @@ const DailyZoomManagement = () => {
                                         </button>
                                     </div>
                                     {formData.joinUrl && (
-                                        <div style={{ fontSize: '0.75rem', color: '#6b7280', padding: '0 0.25rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        <div style={{ fontSize: '0.75rem', color: '#6b7280', padding: '0 0.25rem', overflow: 'hidden', wordBreak: 'break-all' }}>
                                             URL: {formData.joinUrl}
                                         </div>
                                     )}

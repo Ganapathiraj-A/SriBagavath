@@ -23,6 +23,7 @@ const donationOptions = [
     { id: 'ann_custom', title: 'Custom Annadhanam', price: 0, category: 'Annadhanam', isCustom: true },
 
     // Membership options
+    { id: 'mem_monthly', title: 'Monthly Donation', price: 0, category: 'Membership', isMonthly: true },
     { id: 'mem_annual', title: 'Annual Member', price: 10000, category: 'Membership' },
     { id: 'mem_founder', title: 'Founder Member', price: 25000, category: 'Membership' }
 ];
@@ -31,6 +32,7 @@ const Donations = () => {
     const navigate = useNavigate();
     const [selectedAmount, setSelectedAmount] = useState(null);
     const [customAmount, setCustomAmount] = useState('');
+    const [monthlyAmount, setMonthlyAmount] = useState('500');
     const [authLoading, setAuthLoading] = useState(false);
     const [activeTab, setActiveTab] = useState('General');
     const { onlineTransactionsEnabled, offlineRegistrationContact } = useGlobalSettings();
@@ -70,7 +72,7 @@ const Donations = () => {
     };
 
     const handleProceed = async (option) => {
-        const amount = option.isCustom ? parseInt(customAmount) : option.price;
+        const amount = option.isCustom ? parseInt(customAmount) : (option.isMonthly ? parseInt(monthlyAmount) : option.price);
         if (!amount || amount <= 0) {
             alert("Please enter a valid donation amount.");
             return;
@@ -81,7 +83,7 @@ const Donations = () => {
                 state: {
                     cart: { [option.id]: 1 },
                     totalPrice: amount,
-                    items: [{ ...option, price: amount, quantity: 1 }],
+                    items: [{ ...option, title: option.isMonthly ? `Monthly Donation - ₹${amount}` : option.title, price: amount, quantity: 1 }],
                     isDonation: true
                 }
             });
@@ -234,10 +236,37 @@ const Donations = () => {
                                         autoFocus
                                     />
                                 )}
+                                {option.isMonthly && selectedAmount === option.id && (
+                                    <select
+                                        value={monthlyAmount}
+                                        onChange={(e) => setMonthlyAmount(e.target.value)}
+                                        onClick={(e) => e.stopPropagation()}
+                                        style={{
+                                            marginTop: '12px',
+                                            padding: '10px',
+                                            borderRadius: '0.5rem',
+                                            border: '1px solid #e5e7eb',
+                                            width: '100%',
+                                            fontSize: '0.925rem',
+                                            outline: 'none',
+                                            boxSizing: 'border-box',
+                                            backgroundColor: 'white'
+                                        }}
+                                    >
+                                        {[500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 5000, 6000, 7000, 8000, 9000, 10000].map(amt => (
+                                            <option key={amt} value={amt}>₹{amt.toLocaleString()}</option>
+                                        ))}
+                                    </select>
+                                )}
                             </div>
-                            {!option.isCustom && (
+                            {!option.isCustom && !option.isMonthly && (
                                 <span style={{ fontWeight: 700, fontSize: '1.125rem', color: 'var(--color-primary)', marginLeft: '1rem' }}>
                                     ₹{option.price.toLocaleString()}
+                                </span>
+                            )}
+                            {option.isMonthly && selectedAmount !== option.id && (
+                                <span style={{ fontWeight: 700, fontSize: '1.125rem', color: 'var(--color-primary)', marginLeft: '1rem' }}>
+                                    ₹{parseInt(monthlyAmount).toLocaleString()}+
                                 </span>
                             )}
                         </motion.div>

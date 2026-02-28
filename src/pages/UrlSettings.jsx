@@ -77,6 +77,8 @@ const UrlSettings = () => {
         donationUpdateUrl, setDonationUpdateUrl,
         driveTamilBooksId,
         driveEnglishBooksId,
+        driveHindiBooksId,
+        driveTeluguBooksId,
         driveMagazineId,
         driveAudioBooksId,
         onlineRegistrationContact,
@@ -161,6 +163,22 @@ const UrlSettings = () => {
                             onChange={(e) => {
                                 setPublicSettings(prev => ({ ...prev, driveEnglishBooksId: e.target.value }));
                                 savePublicSetting('driveEnglishBooksId', e.target.value);
+                            }}
+                        />
+                        <CopyableInput
+                            label="Hindi Books Folder"
+                            value={driveHindiBooksId}
+                            onChange={(e) => {
+                                setPublicSettings(prev => ({ ...prev, driveHindiBooksId: e.target.value }));
+                                savePublicSetting('driveHindiBooksId', e.target.value);
+                            }}
+                        />
+                        <CopyableInput
+                            label="Telugu Books Folder"
+                            value={driveTeluguBooksId}
+                            onChange={(e) => {
+                                setPublicSettings(prev => ({ ...prev, driveTeluguBooksId: e.target.value }));
+                                savePublicSetting('driveTeluguBooksId', e.target.value);
                             }}
                         />
                         <CopyableInput

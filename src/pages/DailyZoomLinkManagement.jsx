@@ -195,7 +195,7 @@ const DailyZoomLinkManagement = () => {
                                             <span style={{ fontWeight: 600, color: '#111827' }}>{l.name}</span>
                                             {l.isDefault && <span style={{ fontSize: '0.65rem', backgroundColor: '#fff7ed', color: '#f97316', padding: '2px 6px', borderRadius: '4px', fontWeight: 700, textTransform: 'uppercase' }}>Default</span>}
                                         </div>
-                                        <div style={{ fontSize: '0.8rem', color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{l.url}</div>
+                                        <div style={{ fontSize: '0.8rem', color: '#6b7280', overflow: 'hidden', wordBreak: 'break-all' }}>{l.url}</div>
                                     </div>
                                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                                         {!l.isDefault && (

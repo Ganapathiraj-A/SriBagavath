@@ -205,7 +205,7 @@ const BookStore = () => {
                                 transition: 'all 0.2s ease'
                             }}
                         >
-                            {tab}
+                            {tab.replace(' Books', '')}
                         </button>
                     ))}
                 </div>

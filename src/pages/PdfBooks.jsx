@@ -12,10 +12,10 @@ import { compressImage } from '@/utils/imageUtils';
 import { useDriveFiles } from '@/hooks/useDriveFiles';
 
 const PdfBooks = () => {
-  const { driveTamilBooksId, driveEnglishBooksId } = useGlobalSettings();
+  const { driveTamilBooksId, driveEnglishBooksId, driveHindiBooksId, driveTeluguBooksId } = useGlobalSettings();
   const { isAdmin, hasAccess } = useAdminAuth();
   const canEdit = hasAccess('DIGITAL_BOOKS_MANAGEMENT');
-  const tabs = ['Tamil Books', 'English Books'];
+  const tabs = ['Tamil Books', 'English Books', 'Hindi Books', 'Telugu Books'];
   const [activeTab, setActiveTab] = useState('Tamil Books');
   const [editMode, setEditMode] = useState(false);
   const [configs, setConfigs] = useState({});
@@ -27,8 +27,12 @@ const PdfBooks = () => {
 
   const englishData = useDriveFiles(driveEnglishBooksId, 'digital_books_english');
   const tamilData = useDriveFiles(driveTamilBooksId, 'digital_books_tamil');
+  const hindiData = useDriveFiles(driveHindiBooksId, 'digital_books_hindi');
+  const teluguData = useDriveFiles(driveTeluguBooksId, 'digital_books_telugu');
 
-  const current = activeTab === 'English Books' ? englishData : tamilData;
+  const current = activeTab === 'English Books' ? englishData :
+    activeTab === 'Hindi Books' ? hindiData :
+      activeTab === 'Telugu Books' ? teluguData : tamilData;
 
   // Listen to configs
   useEffect(() => {
@@ -272,7 +276,7 @@ const PdfBooks = () => {
                 transition: 'all 0.2s ease'
               }}
             >
-              {tab}
+              {tab.replace(' Books', '')}
             </button>
           ))}
         </div>
