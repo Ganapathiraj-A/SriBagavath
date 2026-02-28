@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Check, Trash2, Rewind, AlertCircle, X, LogOut, Package, Truck, User } from 'lucide-react';
+import { ChevronLeft, Check, Trash2, Rewind, AlertCircle, X, LogOut, Package, Truck, User, Search } from 'lucide-react';
 import { TransactionService } from '@/services/TransactionService';
 import PageHeader from '@/components/PageHeader';
 import { compressImage } from '@/utils/imageUtils';
@@ -26,6 +26,7 @@ const BookStoreManagement = () => {
     const [editingParsedAmountValue, setEditingParsedAmountValue] = useState('');
     const [savingDetails, setSavingDetails] = useState(false);
     const [viewingImage, setViewingImage] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
         // Clear badges
@@ -48,6 +49,14 @@ const BookStoreManagement = () => {
     });
 
     const displayedOrders = filteredBySource.filter(order => {
+        const matchesSearch = !searchTerm.trim() ||
+            order.shippingAddress?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            order.shippingAddress?.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            order.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            order.utr?.toLowerCase().includes(searchTerm.toLowerCase());
+
+        if (!matchesSearch) return false;
+
         if (activeTab === 'PENDING') return order.status === 'PENDING' || (order.status !== 'COMPLETED' && order.status !== 'PROCESSING' && order.status !== 'SHIPPED' && order.status !== 'REJECTED');
         return order.status === activeTab;
     });
