@@ -142,7 +142,15 @@ const BookStore = () => {
     const totalCount = Object.values(cart).reduce((a, b) => a + b, 0);
     const totalPrice = products.reduce((acc, p) => acc + (p.price * (cart[p.id] || 0)), 0);
 
-    const tabs = ['Tamil Books', 'English Books'];
+    const tabs = ['Tamil Books', 'English Books', 'Hindi Books', 'Telugu Books'];
+
+    const NATIVE_LABELS = {
+        'Tamil Books': 'தமிழ்',
+        'English Books': 'English',
+        'Hindi Books': 'हिन्दी',
+        'Telugu Books': 'తెలుగు'
+    };
+
     const filteredProducts = products.filter(p => p.category === activeTab);
 
     if (loading) {
@@ -205,7 +213,7 @@ const BookStore = () => {
                                 transition: 'all 0.2s ease'
                             }}
                         >
-                            {tab.replace(' Books', '')}
+                            {NATIVE_LABELS[tab] || tab}
                         </button>
                     ))}
                 </div>

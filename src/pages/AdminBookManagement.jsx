@@ -87,6 +87,13 @@ const compressImage = (file) => {
 
 const CATEGORIES = ['Tamil Books', 'English Books', 'Hindi Books', 'Telugu Books'];
 
+const NATIVE_LABELS = {
+    'Tamil Books': 'தமிழ்',
+    'English Books': 'English',
+    'Hindi Books': 'हिन्दी',
+    'Telugu Books': 'తెలుగు'
+};
+
 const AdminBookManagement = () => {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
@@ -401,7 +408,7 @@ const AdminBookManagement = () => {
                                     boxShadow: '0 4px 6px -1px rgba(249, 115, 22, 0.2)'
                                 }}
                             >
-                                <Plus size={20} /> Add New {activeTab.replace(' Books', '')} Book
+                                <Plus size={20} /> Add New {NATIVE_LABELS[activeTab] || activeTab} Book
                             </button>
                         </div>
 
@@ -431,7 +438,7 @@ const AdminBookManagement = () => {
                                         transition: 'all 0.2s ease'
                                     }}
                                 >
-                                    {tab.replace(' Books', '')}
+                                    {NATIVE_LABELS[tab] || tab}
                                 </button>
                             ))}
                         </div>
@@ -513,7 +520,7 @@ const AdminBookManagement = () => {
                                 <label style={{ fontWeight: 600, color: '#4b5563', fontSize: '0.9rem' }}>Category *</label>
                                 <select name="category" value={formData.category} onChange={handleInputChange} required style={{ width: '100%', padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid #fed7aa', backgroundColor: '#fff7ed' }}>
                                     {CATEGORIES.map(cat => (
-                                        <option key={cat} value={cat}>{cat.replace(' Books', '')}</option>
+                                        <option key={cat} value={cat}>{NATIVE_LABELS[cat] || cat}</option>
                                     ))}
                                 </select>
                             </div>

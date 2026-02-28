@@ -34,6 +34,13 @@ const PdfBooks = () => {
     activeTab === 'Hindi Books' ? hindiData :
       activeTab === 'Telugu Books' ? teluguData : tamilData;
 
+  const NATIVE_LABELS = {
+    'Tamil Books': 'தமிழ்',
+    'English Books': 'English',
+    'Hindi Books': 'हिन्दी',
+    'Telugu Books': 'తెలుగు'
+  };
+
   // Listen to configs
   useEffect(() => {
     const unsub = onSnapshot(collection(db, 'digital_book_configs'), (snapshot) => {
@@ -276,7 +283,7 @@ const PdfBooks = () => {
                 transition: 'all 0.2s ease'
               }}
             >
-              {tab.replace(' Books', '')}
+              {NATIVE_LABELS[tab] || tab}
             </button>
           ))}
         </div>
