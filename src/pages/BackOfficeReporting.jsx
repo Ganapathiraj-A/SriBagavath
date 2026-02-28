@@ -27,23 +27,23 @@ const ReportCard = ({ title, icon: Icon, value, subtitle, delay, color = 'var(--
         transition={{ delay, duration: 0.5 }}
         style={{
             padding: '1.5rem',
-            backgroundColor: 'white',
+            backgroundColor: 'var(--color-surface)',
             borderRadius: '0.75rem',
-            boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-            border: '1px solid #f3f4f6',
+            boxShadow: 'var(--shadow-sm)',
+            border: '1px solid var(--color-border)',
             display: 'flex',
             flexDirection: 'column',
             gap: '0.5rem'
         }}
     >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#6b7280' }}>{title}</span>
-            <div style={{ padding: '0.5rem', borderRadius: '9999px', backgroundColor: '#f9fafb' }}>
+            <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-muted)' }}>{title}</span>
+            <div style={{ padding: '0.5rem', borderRadius: '9999px', backgroundColor: 'var(--color-surface-alt)' }}>
                 <Icon size={18} color={color} />
             </div>
         </div>
-        <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#111827' }}>{value}</div>
-        {subtitle && <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>{subtitle}</span>}
+        <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-text)' }}>{value}</div>
+        {subtitle && <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{subtitle}</span>}
     </motion.div>
 );
 
@@ -303,11 +303,11 @@ const BackOfficeReporting = () => {
     };
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-surface)' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>
             <div style={{
                 padding: '1rem 1.5rem',
-                backgroundColor: 'white',
-                borderBottom: '1px solid #f3f4f6',
+                backgroundColor: 'var(--color-surface)',
+                borderBottom: '1px solid var(--color-border)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
@@ -316,10 +316,10 @@ const BackOfficeReporting = () => {
                 zIndex: 10
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <button onClick={() => navigate('/admin/back-office')} style={{ padding: '8px', background: 'none', border: 'none', cursor: 'pointer' }}>
+                    <button onClick={() => navigate('/admin/back-office')} style={{ padding: '8px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text)' }}>
                         <ChevronLeft size={24} />
                     </button>
-                    <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Reporting</h2>
+                    <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-text)' }}>Reporting</h2>
                 </div>
                 <button
                     onClick={handleExport}
@@ -346,25 +346,25 @@ const BackOfficeReporting = () => {
                 <div
                     onClick={() => setShowFilters(!showFilters)}
                     style={{
-                        backgroundColor: 'white',
+                        backgroundColor: 'var(--color-surface)',
                         padding: '1rem 1.5rem',
                         borderRadius: '0.75rem',
-                        boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+                        boxShadow: 'var(--shadow-sm)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
                         cursor: 'pointer',
-                        border: '1px solid #f3f4f6'
+                        border: '1px solid var(--color-border)'
                     }}
                 >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                         <Filter size={18} color="var(--color-primary)" />
-                        <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#4b5563' }}>
+                        <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>
                             {getFilterSummary()}
                         </span>
                     </div>
                     <motion.div animate={{ rotate: showFilters ? 180 : 0 }}>
-                        <ChevronLeft size={20} style={{ transform: 'rotate(-90deg)' }} />
+                        <ChevronLeft size={20} style={{ transform: 'rotate(-90deg)', color: 'var(--color-text-muted)' }} />
                     </motion.div>
                 </div>
 
@@ -375,39 +375,39 @@ const BackOfficeReporting = () => {
                             animate={{ height: 'auto', opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
                             style={{
-                                backgroundColor: 'white',
+                                backgroundColor: 'var(--color-surface)',
                                 padding: '1.5rem',
                                 borderRadius: '0.75rem',
-                                boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+                                boxShadow: 'var(--shadow-sm)',
                                 display: 'flex',
                                 flexWrap: 'wrap',
                                 gap: '1.5rem',
                                 alignItems: 'center',
                                 overflow: 'hidden',
-                                border: '1px solid #f3f4f6',
+                                border: '1px solid var(--color-border)',
                                 marginTop: '-1.5rem'
                             }}
                         >
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                                    <label style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 600 }}>START DATE</label>
+                                    <label style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>START DATE</label>
                                     <input
                                         type="date"
                                         value={dateRange.start}
                                         onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value, allTime: false }))}
                                         disabled={dateRange.allTime}
-                                        style={{ padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid #d1d5db' }}
+                                        style={{ padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}
                                     />
                                 </div>
                                 <ArrowRight size={16} color="#9ca3af" style={{ marginTop: '1rem' }} />
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                                    <label style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 600 }}>END DATE</label>
+                                    <label style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>END DATE</label>
                                     <input
                                         type="date"
                                         value={dateRange.end}
                                         onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value, allTime: false }))}
                                         disabled={dateRange.allTime}
-                                        style={{ padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid #d1d5db' }}
+                                        style={{ padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}
                                     />
                                 </div>
                             </div>
@@ -417,18 +417,18 @@ const BackOfficeReporting = () => {
                                     type="checkbox"
                                     checked={dateRange.allTime}
                                     onChange={(e) => setDateRange(prev => ({ ...prev, allTime: e.target.checked }))}
-                                    style={{ width: '1.125rem', height: '1.125rem' }}
+                                    style={{ width: '1.125rem', height: '1.125rem', accentColor: 'var(--color-primary)' }}
                                 />
-                                <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>All Time Report</span>
+                                <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text)' }}>All Time Report</span>
                             </label>
 
                             {((activeTab === 'programs' || activeTab === 'overall') && !selectedProgram) && (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', minWidth: '12rem' }}>
-                                    <label style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 600 }}>PROGRAM TYPE</label>
+                                    <label style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>PROGRAM TYPE</label>
                                     <select
                                         value={selectedType}
                                         onChange={(e) => setSelectedType(e.target.value)}
-                                        style={{ padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid #d1d5db', backgroundColor: 'white' }}
+                                        style={{ padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}
                                     >
                                         <option value="all">All Types</option>
                                         {programTypes.map(t => (
@@ -459,7 +459,7 @@ const BackOfficeReporting = () => {
                     )}
                 </AnimatePresence>
 
-                <div style={{ display: 'flex', borderBottom: '2px solid #f3f4f6', gap: '2rem' }}>
+                <div style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', gap: '2rem' }}>
                     {['overall', 'programs', 'books', 'donations'].map(tab => (
                         <button
                             key={tab}
@@ -471,7 +471,7 @@ const BackOfficeReporting = () => {
                                 backgroundColor: 'transparent',
                                 border: 'none',
                                 cursor: 'pointer',
-                                color: activeTab === tab ? 'var(--color-primary)' : '#6b7280',
+                                color: activeTab === tab ? 'var(--color-primary)' : 'var(--color-text-muted)',
                                 borderBottom: activeTab === tab ? '2px solid var(--color-primary)' : 'none',
                                 marginBottom: '-2px',
                                 textTransform: 'capitalize'
@@ -549,26 +549,26 @@ const BackOfficeReporting = () => {
                                                 >
                                                     <ChevronLeft size={18} /> Back to all programs
                                                 </button>
-                                                <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '1rem', boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)' }}>
-                                                    <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem' }}>{selectedProgram.name}</h3>
+                                                <div style={{ backgroundColor: 'var(--color-surface)', padding: '2rem', borderRadius: '1rem', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)' }}>
+                                                    <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem', color: 'var(--color-text)' }}>{selectedProgram.name}</h3>
                                                     <div style={{ display: 'flex', gap: '4rem' }}>
                                                         <div>
-                                                            <div style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.5rem' }}>Total Participants</div>
-                                                            <div style={{ fontSize: '2.5rem', fontWeight: 800 }}>{selectedProgram.count}</div>
+                                                            <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Total Participants</div>
+                                                            <div style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--color-text)' }}>{selectedProgram.count}</div>
                                                         </div>
                                                         <div>
-                                                            <div style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.5rem' }}>Revenue</div>
-                                                            <div style={{ fontSize: '2.5rem', fontWeight: 800, color: '#16a34a' }}>₹{selectedProgram.amount.toLocaleString()}</div>
+                                                            <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Revenue</div>
+                                                            <div style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--color-success)' }}>₹{selectedProgram.amount.toLocaleString()}</div>
                                                         </div>
                                                     </div>
                                                     <div style={{ marginTop: '2.5rem' }}>
-                                                        <h4 style={{ fontWeight: 600, marginBottom: '1rem' }}>Gender Distribution</h4>
+                                                        <h4 style={{ fontWeight: 600, marginBottom: '1rem', color: 'var(--color-text)' }}>Gender Distribution</h4>
                                                         <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
-                                                            <div style={{ flex: 1, height: '1.5rem', backgroundColor: '#f3f4f6', borderRadius: '1rem', overflow: 'hidden', display: 'flex' }}>
+                                                            <div style={{ flex: 1, height: '1.5rem', backgroundColor: 'var(--color-surface-alt)', borderRadius: '1rem', overflow: 'hidden', display: 'flex' }}>
                                                                 <div style={{ width: `${(selectedProgram.male / selectedProgram.count) * 100}%`, backgroundColor: '#3b82f6' }} title="Male" />
                                                                 <div style={{ width: `${(selectedProgram.female / selectedProgram.count) * 100}%`, backgroundColor: '#ec4899' }} title="Female" />
                                                             </div>
-                                                            <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.875rem' }}>
+                                                            <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
                                                                 <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#3b82f6' }} /> Male: {selectedProgram.male}</span>
                                                                 <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#ec4899' }} /> Female: {selectedProgram.female}</span>
                                                             </div>
@@ -579,36 +579,36 @@ const BackOfficeReporting = () => {
                                         ) : (
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                                 {stats.programs.length === 0 ? (
-                                                    <div style={{ textAlign: 'center', padding: '4rem', color: '#6b7280' }}>No program records found for this range.</div>
+                                                    <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--color-text-muted)' }}>No program records found for this range.</div>
                                                 ) : (
                                                     stats.programs.map((p, idx) => (
                                                         <div
                                                             key={p.id}
                                                             onClick={() => setSelectedProgram(p)}
                                                             style={{
-                                                                backgroundColor: 'white',
+                                                                backgroundColor: 'var(--color-surface)',
                                                                 padding: '1.25rem',
                                                                 borderRadius: '0.75rem',
                                                                 display: 'flex',
                                                                 alignItems: 'center',
                                                                 justifyContent: 'space-between',
                                                                 cursor: 'pointer',
-                                                                border: '1px solid #f3f4f6',
-                                                                boxShadow: '0 1px 2px rgba(0,0,0,0.02)'
+                                                                border: '1px solid var(--color-border)',
+                                                                boxShadow: 'var(--shadow-sm)'
                                                             }}
                                                         >
                                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                                                                <span style={{ fontWeight: 600 }}>{p.name}</span>
-                                                                <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{p.type}</span>
+                                                                <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>{p.name}</span>
+                                                                <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{p.type}</span>
                                                             </div>
                                                             <div style={{ display: 'flex', gap: '3rem', textAlign: 'right', alignItems: 'center' }}>
                                                                 <div>
-                                                                    <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>Participants</div>
-                                                                    <div style={{ fontWeight: 600 }}>{p.count}</div>
+                                                                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Participants</div>
+                                                                    <div style={{ fontWeight: 600, color: 'var(--color-text)' }}>{p.count}</div>
                                                                 </div>
                                                                 <div style={{ width: '8rem' }}>
-                                                                    <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>Revenue</div>
-                                                                    <div style={{ fontWeight: 700, color: '#16a34a' }}>₹{p.amount.toLocaleString()}</div>
+                                                                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Revenue</div>
+                                                                    <div style={{ fontWeight: 700, color: 'var(--color-success)' }}>₹{p.amount.toLocaleString()}</div>
                                                                 </div>
                                                                 <ChevronLeft size={20} color="#d1d5db" style={{ transform: 'rotate(180deg)' }} />
                                                             </div>
@@ -623,29 +623,30 @@ const BackOfficeReporting = () => {
                                 {activeTab === 'books' && (
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                         {stats.books.length === 0 ? (
-                                            <div style={{ textAlign: 'center', padding: '4rem', color: '#6b7280' }}>No book sales records found.</div>
+                                            <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--color-text-muted)' }}>No book sales records found.</div>
                                         ) : (
                                             stats.books.map(b => (
                                                 <div
                                                     key={b.id}
                                                     style={{
-                                                        backgroundColor: 'white',
+                                                        backgroundColor: 'var(--color-surface)',
                                                         padding: '1.25rem',
                                                         borderRadius: '0.75rem',
                                                         display: 'flex',
                                                         justifyContent: 'space-between',
-                                                        border: '1px solid #f3f4f6'
+                                                        border: '1px solid var(--color-border)',
+                                                        boxShadow: 'var(--shadow-sm)'
                                                     }}
                                                 >
-                                                    <span style={{ fontWeight: 600 }}>{b.title}</span>
+                                                    <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>{b.title}</span>
                                                     <div style={{ display: 'flex', gap: '4rem', textAlign: 'right' }}>
                                                         <div>
-                                                            <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>Sold</div>
-                                                            <div style={{ fontWeight: 600 }}>{b.count}</div>
+                                                            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Sold</div>
+                                                            <div style={{ fontWeight: 600, color: 'var(--color-text)' }}>{b.count}</div>
                                                         </div>
                                                         <div>
-                                                            <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>Amount</div>
-                                                            <div style={{ fontWeight: 700, color: '#16a34a' }}>₹{b.amount.toLocaleString()}</div>
+                                                            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Amount</div>
+                                                            <div style={{ fontWeight: 700, color: 'var(--color-success)' }}>₹{b.amount.toLocaleString()}</div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -655,20 +656,20 @@ const BackOfficeReporting = () => {
                                 )}
 
                                 {activeTab === 'donations' && (
-                                    <div style={{ backgroundColor: 'white', padding: '3rem', borderRadius: '1rem', textAlign: 'center', boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)' }}>
-                                        <div style={{ padding: '1rem', borderRadius: '50%', backgroundColor: '#fef2f2', display: 'inline-block', marginBottom: '1.5rem' }}>
+                                    <div style={{ backgroundColor: 'var(--color-surface)', padding: '3rem', borderRadius: '1rem', textAlign: 'center', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)' }}>
+                                        <div style={{ padding: '1rem', borderRadius: '50%', backgroundColor: 'var(--color-error-transparent)', display: 'inline-block', marginBottom: '1.5rem' }}>
                                             <Heart size={32} color="#ef4444" fill="#ef4444" />
                                         </div>
-                                        <h3 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Consolidated Donations</h3>
-                                        <p style={{ color: '#6b7280', marginTop: '0.5rem' }}>Summary for the selected period</p>
+                                        <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-text)' }}>Consolidated Donations</h3>
+                                        <p style={{ color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>Summary for the selected period</p>
                                         <div style={{ display: 'flex', justifyContent: 'center', gap: '4rem', marginTop: '2.5rem' }}>
                                             <div>
-                                                <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Total Amount</div>
-                                                <div style={{ fontSize: '2.5rem', fontWeight: 800, color: '#16a34a' }}>₹{stats.donations.total.toLocaleString()}</div>
+                                                <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Total Amount</div>
+                                                <div style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--color-success)' }}>₹{stats.donations.total.toLocaleString()}</div>
                                             </div>
                                             <div>
-                                                <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Count</div>
-                                                <div style={{ fontSize: '2.5rem', fontWeight: 800 }}>{stats.donations.count}</div>
+                                                <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Count</div>
+                                                <div style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--color-text)' }}>{stats.donations.count}</div>
                                             </div>
                                         </div>
                                     </div>

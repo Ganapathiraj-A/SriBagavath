@@ -888,42 +888,42 @@ const BackOfficeImportExport = () => {
     const renderImportPreview = () => {
         if (parsedData.length === 0) return null;
         return (
-            <div className="card" style={{ padding: '20px', borderRadius: '16px', backgroundColor: 'white', border: '1px solid #e5e7eb', marginTop: '20px' }}>
+            <div className="card" style={{ padding: '20px', borderRadius: '16px', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', marginTop: '20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                    <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0 }}>{activeTab === 'PROGRAMS' ? 'Program' : activeTab === 'STORE' ? 'Store' : 'Donation'} Import Preview ({parsedData.length} records)</h3>
-                    <button onClick={() => setParsedData([])} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: 'var(--color-text)' }}>{activeTab === 'PROGRAMS' ? 'Program' : activeTab === 'STORE' ? 'Store' : 'Donation'} Import Preview ({parsedData.length} records)</h3>
+                    <button onClick={() => setParsedData([])} style={{ background: 'none', border: 'none', color: 'var(--color-error)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <X size={16} /> Clear
                     </button>
                 </div>
-                <div style={{ overflowX: 'auto', maxHeight: '400px', border: '1px solid #eee', borderRadius: '8px' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-                        <thead style={{ backgroundColor: '#f9fafb', position: 'sticky', top: 0 }}>
+                <div style={{ overflowX: 'auto', maxHeight: '400px', border: '1px solid var(--color-border)', borderRadius: '8px' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', color: 'var(--color-text)' }}>
+                        <thead style={{ backgroundColor: 'var(--color-surface-alt)', position: 'sticky', top: 0 }}>
                             <tr>
-                                <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #eee' }}>
+                                <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>
                                     <input type="checkbox" checked={selectedIndices.size === parsedData.length} onChange={handleToggleSelectAll} />
                                 </th>
-                                <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #eee' }}>Name</th>
-                                <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #eee' }}>Mobile</th>
-                                <th style={{ padding: '10px', textAlign: 'right', borderBottom: '1px solid #eee' }}>Amount</th>
-                                {activeTab === 'DONATION' && <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #eee' }}>Place</th>}
-                                {activeTab === 'DONATION' && <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #eee' }}>PAN</th>}
-                                {activeTab === 'STORE' && <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #eee' }}>Items</th>}
-                                <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid #eee' }}>Status</th>
+                                <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>Name</th>
+                                <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>Mobile</th>
+                                <th style={{ padding: '10px', textAlign: 'right', borderBottom: '1px solid var(--color-border)' }}>Amount</th>
+                                {activeTab === 'DONATION' && <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>Place</th>}
+                                {activeTab === 'DONATION' && <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>PAN</th>}
+                                {activeTab === 'STORE' && <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>Items</th>}
+                                <th style={{ padding: '10px', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>Status</th>
                             </tr>
                         </thead>
                         <tbody>
                             {parsedData.map((row, idx) => (
-                                <tr key={idx} style={{ backgroundColor: selectedIndices.has(idx) ? '#eff6ff' : 'white' }}>
-                                    <td style={{ padding: '10px', borderBottom: '1px solid #f3f4f6' }}>
+                                <tr key={idx} style={{ backgroundColor: selectedIndices.has(idx) ? 'var(--color-primary-transparent)' : 'var(--color-surface)' }}>
+                                    <td style={{ padding: '10px', borderBottom: '1px solid var(--color-border)' }}>
                                         <input type="checkbox" checked={selectedIndices.has(idx)} onChange={() => handleToggleSelect(idx)} />
                                     </td>
-                                    <td style={{ padding: '10px', borderBottom: '1px solid #f3f4f6' }}>{row.name}</td>
-                                    <td style={{ padding: '10px', borderBottom: '1px solid #f3f4f6' }}>{row.mobile}</td>
-                                    <td style={{ padding: '10px', textAlign: 'right', borderBottom: '1px solid #f3f4f6' }}>₹{row.amount}</td>
-                                    {activeTab === 'DONATION' && <td style={{ padding: '10px', borderBottom: '1px solid #f3f4f6' }}>{row.city}</td>}
-                                    {activeTab === 'DONATION' && <td style={{ padding: '10px', borderBottom: '1px solid #f3f4f6' }}>{row.pan}</td>}
-                                    {activeTab === 'STORE' && <td style={{ padding: '10px', borderBottom: '1px solid #f3f4f6' }}>{row.items}</td>}
-                                    <td style={{ padding: '10px', borderBottom: '1px solid #f3f4f6', fontSize: '11px' }}>{row.status}</td>
+                                    <td style={{ padding: '10px', borderBottom: '1px solid var(--color-border)' }}>{row.name}</td>
+                                    <td style={{ padding: '10px', borderBottom: '1px solid var(--color-border)' }}>{row.mobile}</td>
+                                    <td style={{ padding: '10px', textAlign: 'right', borderBottom: '1px solid var(--color-border)' }}>₹{row.amount}</td>
+                                    {activeTab === 'DONATION' && <td style={{ padding: '10px', borderBottom: '1px solid var(--color-border)' }}>{row.city}</td>}
+                                    {activeTab === 'DONATION' && <td style={{ padding: '10px', borderBottom: '1px solid var(--color-border)' }}>{row.pan}</td>}
+                                    {activeTab === 'STORE' && <td style={{ padding: '10px', borderBottom: '1px solid var(--color-border)' }}>{row.items}</td>}
+                                    <td style={{ padding: '10px', borderBottom: '1px solid var(--color-border)', fontSize: '11px' }}>{row.status}</td>
                                 </tr>
                             ))}
                         </tbody>
@@ -933,7 +933,7 @@ const BackOfficeImportExport = () => {
                     <button
                         onClick={handleImportIndividualSelected}
                         disabled={loading || selectedIndices.size === 0}
-                        style={{ flex: 1, padding: '12px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, opacity: (loading || selectedIndices.size === 0) ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                        style={{ flex: 1, padding: '12px', backgroundColor: 'var(--color-success)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, opacity: (loading || selectedIndices.size === 0) ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                     >
                         {loadingAction === 'IMPORT' ? <Spinner size={16} /> : null} Import Selected ({selectedIndices.size})
                     </button>
@@ -941,7 +941,7 @@ const BackOfficeImportExport = () => {
                         <button
                             onClick={handleMergeImportSelected}
                             disabled={loading || selectedIndices.size === 0}
-                            style={{ flex: 1, padding: '12px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, opacity: (loading || selectedIndices.size === 0) ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                            style={{ flex: 1, padding: '12px', backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, opacity: (loading || selectedIndices.size === 0) ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                         >
                             {loadingAction === 'MERGE' ? <Spinner size={16} /> : null} Merge & Import ({selectedIndices.size})
                         </button>
@@ -954,13 +954,13 @@ const BackOfficeImportExport = () => {
     const renderSyncSection = (title) => (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             {/* Import Data */}
-            <div className="card" style={{ padding: '20px', borderRadius: '16px', backgroundColor: 'white', border: '1px solid #e5e7eb' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', color: '#2563eb' }}>
+            <div className="card" style={{ padding: '20px', borderRadius: '16px', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', color: 'var(--color-primary)' }}>
                     <Upload size={24} />
                     <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>Import {title}</h2>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'center' }}>
-                    <button onClick={handleFetchSheet} disabled={loading} style={{ padding: '10px 20px', borderRadius: '8px', backgroundColor: '#2563eb', color: 'white', border: 'none', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', opacity: loading ? 0.7 : 1 }}>
+                    <button onClick={handleFetchSheet} disabled={loading} style={{ padding: '10px 20px', borderRadius: '8px', backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', opacity: loading ? 0.7 : 1 }}>
                         {loadingAction === 'FETCH' ? <Spinner size={18} /> : <Upload size={18} />} Sync from Sheet
                     </button>
                 </div>
@@ -968,33 +968,33 @@ const BackOfficeImportExport = () => {
             </div>
 
             {/* Export Data */}
-            <div className="card" style={{ padding: '20px', borderRadius: '16px', backgroundColor: 'white', border: '1px solid #e5e7eb' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', color: '#047857' }}>
+            <div className="card" style={{ padding: '20px', borderRadius: '16px', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', color: 'var(--color-success)' }}>
                     <Download size={24} />
                     <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>Export {title}</h2>
                 </div>
                 <div style={{ display: 'flex', gap: '12px' }}>
-                    <button onClick={handleExportToSheet} disabled={loading} style={{ flex: 1, padding: '12px', backgroundColor: '#059669', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', opacity: loading ? 0.7 : 1 }}>
+                    <button onClick={handleExportToSheet} disabled={loading} style={{ flex: 1, padding: '12px', backgroundColor: 'var(--color-success)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', opacity: loading ? 0.7 : 1 }}>
                         {loadingAction === 'EXPORT_SHEET' ? <Spinner size={16} /> : null} GSheet Export
                     </button>
-                    <button onClick={handleExport} disabled={loading} style={{ flex: 1, padding: '12px', backgroundColor: '#f3f4f6', color: '#4b5563', border: '1px solid #d1d5db', borderRadius: '8px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', opacity: loading ? 0.7 : 1 }}>
-                        {loadingAction === 'EXPORT_CSV' ? <Spinner size={16} color="#4b5563" /> : null} CSV
+                    <button onClick={handleExport} disabled={loading} style={{ flex: 1, padding: '12px', backgroundColor: 'var(--color-surface-alt)', color: 'var(--color-text)', border: '1px solid var(--color-border)', borderRadius: '8px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', opacity: loading ? 0.7 : 1 }}>
+                        {loadingAction === 'EXPORT_CSV' ? <Spinner size={16} color="var(--color-text)" /> : null} CSV
                     </button>
                 </div>
             </div>
 
             {/* Update Sync */}
-            <div className="card" style={{ padding: '20px', borderRadius: '16px', backgroundColor: 'white', border: '1px solid #e5e7eb' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', color: '#6366f1' }}>
+            <div className="card" style={{ padding: '20px', borderRadius: '16px', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', color: 'var(--color-primary)' }}>
                     <CloudUpload size={24} />
                     <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>Sync Updates</h2>
                 </div>
-                <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '16px' }}>Bulk edit details in the sheet and pull them back.</p>
+                <p style={{ fontSize: '14px', color: 'var(--color-text-muted)', marginBottom: '16px' }}>Bulk edit details in the sheet and pull them back.</p>
                 <div style={{ display: 'flex', gap: '12px' }}>
-                    <button onClick={handleUniversalPush} disabled={loading} style={{ flex: 1, padding: '12px', backgroundColor: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', opacity: loading ? 0.7 : 1 }}>
+                    <button onClick={handleUniversalPush} disabled={loading} style={{ flex: 1, padding: '12px', backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', opacity: loading ? 0.7 : 1 }}>
                         {loadingAction === 'PUSH' ? <Spinner size={16} /> : null} Push to Sheet
                     </button>
-                    <button onClick={handleUniversalPull} disabled={loading} style={{ flex: 1, padding: '12px', backgroundColor: '#4338ca', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', opacity: loading ? 0.7 : 1 }}>
+                    <button onClick={handleUniversalPull} disabled={loading} style={{ flex: 1, padding: '12px', backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', opacity: loading ? 0.7 : 1 }}>
                         {loadingAction === 'PULL' ? <Spinner size={16} /> : null} Pull Updates
                     </button>
                 </div>
@@ -1004,12 +1004,12 @@ const BackOfficeImportExport = () => {
 
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', paddingBottom: '40px' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)', paddingBottom: '40px' }}>
             <PageHeader
                 title="Import / Export Data"
                 subtitle={`v${appVersion}`}
                 leftAction={
-                    <button onClick={() => navigate('/admin/back-office')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
+                    <button onClick={() => navigate('/admin/back-office')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', color: 'var(--color-text)' }}>
                         <ChevronLeft size={24} />
                     </button>
                 }
@@ -1018,15 +1018,15 @@ const BackOfficeImportExport = () => {
             <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
                 {/* --- MASTER SPREADSHEET (TOP LVL) --- */}
-                <div className="card" style={{ padding: '16px', borderRadius: '12px', backgroundColor: '#f0f9ff', border: '1px solid #bae6fd' }}>
+                <div className="card" style={{ padding: '16px', borderRadius: '12px', backgroundColor: 'var(--color-primary-transparent)', border: '1px solid var(--color-primary)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                        <FileSpreadsheet size={20} color="#0284c7" />
-                        <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#0369a1', margin: 0 }}>Master Spreadsheet</h3>
+                        <FileSpreadsheet size={20} color="var(--color-primary)" />
+                        <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-primary)', margin: 0 }}>Master Spreadsheet</h3>
                     </div>
                     <div style={{ display: 'flex', gap: '10px' }}>
                         <button
                             onClick={() => window.open(sheetLink, '_blank')}
-                            style={{ flex: 2, padding: '10px', borderRadius: '8px', backgroundColor: '#0284c7', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                            style={{ flex: 2, padding: '10px', borderRadius: '8px', backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                         >
                             Open Spreadsheet
                         </button>
@@ -1035,7 +1035,7 @@ const BackOfficeImportExport = () => {
                                 navigator.clipboard.writeText(sheetLink);
                                 alert("Link copied to clipboard!");
                             }}
-                            style={{ flex: 1, padding: '10px', borderRadius: '8px', backgroundColor: 'white', color: '#0369a1', border: '1px solid #bae6fd', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}
+                            style={{ flex: 1, padding: '10px', borderRadius: '8px', backgroundColor: 'var(--color-surface)', color: 'var(--color-primary)', border: '1px solid var(--color-primary)', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}
                         >
                             Copy URL
                         </button>
@@ -1045,10 +1045,10 @@ const BackOfficeImportExport = () => {
                 {/* --- TAB NAVIGATION --- */}
                 <div style={{
                     display: 'flex',
-                    backgroundColor: 'white',
+                    backgroundColor: 'var(--color-surface)',
                     borderRadius: '12px',
                     padding: '4px',
-                    border: '1px solid #e5e7eb',
+                    border: '1px solid var(--color-border)',
                     marginBottom: '8px'
                 }}>
                     {[
@@ -1072,8 +1072,8 @@ const BackOfficeImportExport = () => {
                                 fontWeight: 600,
                                 fontSize: '14px',
                                 transition: 'all 0.2s',
-                                backgroundColor: activeTab === tab.id ? '#2563eb' : 'transparent',
-                                color: activeTab === tab.id ? 'white' : '#64748b'
+                                backgroundColor: activeTab === tab.id ? 'var(--color-primary)' : 'transparent',
+                                color: activeTab === tab.id ? 'white' : 'var(--color-text-muted)'
                             }}
                         >
                             {tab.icon}
@@ -1089,14 +1089,14 @@ const BackOfficeImportExport = () => {
                             position: 'sticky',
                             top: '0',
                             zIndex: 10,
-                            backgroundColor: '#f9fafb',
+                            backgroundColor: 'var(--color-background)',
                             padding: '8px 0',
-                            borderBottom: '1px solid #e5e7eb'
+                            borderBottom: '1px solid var(--color-border)'
                         }}>
-                            <div className="card" style={{ padding: '16px', borderRadius: '12px', backgroundColor: 'white', border: '1px solid #2563eb', boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.1)' }}>
+                            <div className="card" style={{ padding: '16px', borderRadius: '12px', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-primary)', boxShadow: 'var(--shadow-sm)' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                                    <FileSpreadsheet size={18} color="#2563eb" />
-                                    <label style={{ fontSize: '13px', fontWeight: 600, color: '#2563eb' }}>Select Active Program</label>
+                                    <FileSpreadsheet size={18} color="var(--color-primary)" />
+                                    <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-primary)' }}>Select Active Program</label>
                                 </div>
                                 <select
                                     value={selectedProgram}
@@ -1105,10 +1105,11 @@ const BackOfficeImportExport = () => {
                                         width: '100%',
                                         padding: '12px',
                                         borderRadius: '8px',
-                                        border: '2px solid #2563eb',
+                                        border: '2px solid var(--color-primary)',
+                                        backgroundColor: 'var(--color-background)',
                                         fontSize: '15px',
                                         fontWeight: 600,
-                                        color: '#1e3a8a',
+                                        color: 'var(--color-text)',
                                         outline: 'none'
                                     }}
                                 >
@@ -1126,20 +1127,20 @@ const BackOfficeImportExport = () => {
 
                 {activeTab === 'STORE' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                        <div className="card" style={{ padding: '16px', borderRadius: '12px', backgroundColor: 'white', border: '1px solid #0891b2' }}>
+                        <div className="card" style={{ padding: '16px', borderRadius: '12px', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-primary-transparent)' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                                <ShoppingBag size={18} color="#0891b2" />
-                                <label style={{ fontSize: '13px', fontWeight: 600, color: '#0891b2' }}>Select Scope</label>
+                                <ShoppingBag size={18} color="var(--color-primary)" />
+                                <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-primary)' }}>Select Scope</label>
                             </div>
                             <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-                                <button onClick={() => setDateMode('ALL')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid #0891b2', backgroundColor: dateMode === 'ALL' ? '#0891b2' : 'white', color: dateMode === 'ALL' ? 'white' : '#0891b2', fontWeight: 600, fontSize: '13px' }}>All Data</button>
-                                <button onClick={() => setDateMode('RANGE')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid #0891b2', backgroundColor: dateMode === 'RANGE' ? '#0891b2' : 'white', color: dateMode === 'RANGE' ? 'white' : '#0891b2', fontWeight: 600, fontSize: '13px' }}>Date Range</button>
+                                <button onClick={() => setDateMode('ALL')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid var(--color-primary)', backgroundColor: dateMode === 'ALL' ? 'var(--color-primary)' : 'var(--color-surface)', color: dateMode === 'ALL' ? 'white' : 'var(--color-primary)', fontWeight: 600, fontSize: '13px' }}>All Data</button>
+                                <button onClick={() => setDateMode('RANGE')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid var(--color-primary)', backgroundColor: dateMode === 'RANGE' ? 'var(--color-primary)' : 'var(--color-surface)', color: dateMode === 'RANGE' ? 'white' : 'var(--color-primary)', fontWeight: 600, fontSize: '13px' }}>Date Range</button>
                             </div>
                             {dateMode === 'RANGE' && (
                                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                                    <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid #d1d5db' }} />
-                                    <span style={{ fontSize: '12px', color: '#6b7280' }}>to</span>
-                                    <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid #d1d5db' }} />
+                                    <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }} />
+                                    <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>to</span>
+                                    <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }} />
                                 </div>
                             )}
                         </div>
@@ -1149,20 +1150,20 @@ const BackOfficeImportExport = () => {
 
                 {activeTab === 'DONATION' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                        <div className="card" style={{ padding: '16px', borderRadius: '12px', backgroundColor: 'white', border: '1px solid #e11d48' }}>
+                        <div className="card" style={{ padding: '16px', borderRadius: '12px', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-error-transparent)' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                                <Heart size={18} color="#e11d48" />
-                                <label style={{ fontSize: '13px', fontWeight: 600, color: '#e11d48' }}>Select Scope</label>
+                                <Heart size={18} color="var(--color-error)" />
+                                <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-error)' }}>Select Scope</label>
                             </div>
                             <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-                                <button onClick={() => setDateMode('ALL')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid #e11d48', backgroundColor: dateMode === 'ALL' ? '#e11d48' : 'white', color: dateMode === 'ALL' ? 'white' : '#e11d48', fontWeight: 600, fontSize: '13px' }}>All Data</button>
-                                <button onClick={() => setDateMode('RANGE')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid #e11d48', backgroundColor: dateMode === 'RANGE' ? '#e11d48' : 'white', color: dateMode === 'RANGE' ? 'white' : '#e11d48', fontWeight: 600, fontSize: '13px' }}>Date Range</button>
+                                <button onClick={() => setDateMode('ALL')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid var(--color-error)', backgroundColor: dateMode === 'ALL' ? 'var(--color-error)' : 'var(--color-surface)', color: dateMode === 'ALL' ? 'white' : 'var(--color-error)', fontWeight: 600, fontSize: '13px' }}>All Data</button>
+                                <button onClick={() => setDateMode('RANGE')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid var(--color-error)', backgroundColor: dateMode === 'RANGE' ? 'var(--color-error)' : 'var(--color-surface)', color: dateMode === 'RANGE' ? 'white' : 'var(--color-error)', fontWeight: 600, fontSize: '13px' }}>Date Range</button>
                             </div>
                             {dateMode === 'RANGE' && (
                                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                                    <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid #d1d5db' }} />
-                                    <span style={{ fontSize: '12px', color: '#6b7280' }}>to</span>
-                                    <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid #d1d5db' }} />
+                                    <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }} />
+                                    <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>to</span>
+                                    <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }} />
                                 </div>
                             )}
                         </div>

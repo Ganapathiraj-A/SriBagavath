@@ -173,7 +173,7 @@ const ProgramTypesManagement = () => {
     }
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-surface)' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>
             <PageHeader
                 title="Program Types"
                 leftAction={
@@ -188,53 +188,53 @@ const ProgramTypesManagement = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                 >
-                    <div style={{ backgroundColor: 'white', borderRadius: '1rem', padding: '2rem', boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)', marginBottom: '2rem' }}>
+                    <div style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '2rem', boxShadow: 'var(--shadow-sm)', marginBottom: '2rem', border: '1px solid var(--color-border)' }}>
                         {/* Title handled by PageHeader */}
 
-                        <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1rem', marginBottom: '2rem', padding: '1.5rem', backgroundColor: '#f9fafb', borderRadius: '0.75rem' }}>
+                        <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1rem', marginBottom: '2rem', padding: '1.5rem', backgroundColor: 'var(--color-surface)', borderRadius: '0.75rem', border: '1px solid var(--color-border)' }}>
                             <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                <label style={{ fontWeight: 500 }}>Program Type Name *</label>
+                                <label style={{ fontWeight: 500, color: 'var(--color-text)' }}>Program Type Name *</label>
                                 <input
                                     type="text"
                                     name="name"
                                     value={formData.name}
                                     onChange={handleInputChange}
                                     required
-                                    style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%' }}
+                                    style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', width: '100%', backgroundColor: 'var(--color-card)', color: 'var(--color-text)' }}
                                 />
                             </div>
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                    <label style={{ fontWeight: 500 }}>Max Participants</label>
+                                    <label style={{ fontWeight: 500, color: 'var(--color-text)' }}>Max Participants</label>
                                     <input
                                         type="number"
                                         name="maxParticipants"
                                         value={formData.maxParticipants}
                                         onChange={handleInputChange}
-                                        style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%' }}
+                                        style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', width: '100%', backgroundColor: 'var(--color-card)', color: 'var(--color-text)' }}
                                     />
                                 </div>
                                 <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                    <label style={{ fontWeight: 500 }}>Program Fee (₹)</label>
+                                    <label style={{ fontWeight: 500, color: 'var(--color-text)' }}>Program Fee (₹)</label>
                                     <input
                                         type="number"
                                         name="programFee"
                                         value={formData.programFee}
                                         onChange={handleInputChange}
-                                        style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%' }}
+                                        style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', width: '100%', backgroundColor: 'var(--color-card)', color: 'var(--color-text)' }}
                                     />
                                 </div>
                             </div>
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
                                 <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                    <label style={{ fontWeight: 500 }}>Is Consent Needed?</label>
+                                    <label style={{ fontWeight: 500, color: 'var(--color-text)' }}>Is Consent Needed?</label>
                                     <select
                                         name="isConsentNeeded"
                                         value={formData.isConsentNeeded}
                                         onChange={handleInputChange}
-                                        style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%' }}
+                                        style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', width: '100%', backgroundColor: 'var(--color-card)', color: 'var(--color-text)' }}
                                     >
                                         <option value="N">No</option>
                                         <option value="Y">Yes</option>
@@ -245,7 +245,7 @@ const ProgramTypesManagement = () => {
                             {formData.isConsentNeeded === 'Y' && (
                                 <>
                                     <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                        <label style={{ fontWeight: 500 }}>Consent Screen Text</label>
+                                        <label style={{ fontWeight: 500, color: 'var(--color-text)' }}>Consent Screen Text</label>
                                         <textarea
                                             name="consentText"
                                             className="consent-text-container"
@@ -253,7 +253,7 @@ const ProgramTypesManagement = () => {
                                             onChange={handleInputChange}
                                             placeholder="Detailed consent information..."
                                             rows={4}
-                                            style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%', fontFamily: 'inherit' }}
+                                            style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', width: '100%', fontFamily: 'inherit', backgroundColor: 'var(--color-card)', color: 'var(--color-text)' }}
                                         />
                                     </div>
                                     <div style={{ display: 'grid', gap: '0.5rem' }}>
@@ -264,18 +264,18 @@ const ProgramTypesManagement = () => {
                                             value={formData.consentQuestion}
                                             onChange={handleInputChange}
                                             placeholder="e.g., Do you agree to the above terms?"
-                                            style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%' }}
+                                            style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', width: '100%', backgroundColor: 'var(--color-card)', color: 'var(--color-text)' }}
                                         />
                                     </div>
                                 </>
                             )}
 
-                            <div style={{ display: 'grid', gap: '1rem', marginTop: '1rem', borderTop: '1px solid #e5e7eb', paddingTop: '1rem' }}>
+                            <div style={{ display: 'grid', gap: '1rem', marginTop: '1rem', borderTop: '1px solid var(--color-border)', paddingTop: '1rem' }}>
                                 <label style={{ fontWeight: 500 }}>Additional Options (e.g., Special Accommodation, Food)</label>
                                 {formData.additionalOptions.map((option, index) => (
                                     <div key={index} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr auto', gap: '0.5rem', alignItems: 'end' }}>
                                         <div>
-                                            <label style={{ fontSize: '0.75rem', color: '#6b7280' }}>Option Name</label>
+                                            <label style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Option Name</label>
                                             <input
                                                 type="text"
                                                 value={option.name}
@@ -285,11 +285,11 @@ const ProgramTypesManagement = () => {
                                                     setFormData(prev => ({ ...prev, additionalOptions: updated }));
                                                 }}
                                                 placeholder="e.g. Special Accommodation"
-                                                style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%' }}
+                                                style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', width: '100%', backgroundColor: 'var(--color-card)', color: 'var(--color-text)' }}
                                             />
                                         </div>
                                         <div>
-                                            <label style={{ fontSize: '0.75rem', color: '#6b7280' }}>Fee (₹)</label>
+                                            <label style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Fee (₹)</label>
                                             <input
                                                 type="number"
                                                 value={option.fee}
@@ -299,11 +299,11 @@ const ProgramTypesManagement = () => {
                                                     setFormData(prev => ({ ...prev, additionalOptions: updated }));
                                                 }}
                                                 placeholder="0"
-                                                style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%' }}
+                                                style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', width: '100%', backgroundColor: 'var(--color-card)', color: 'var(--color-text)' }}
                                             />
                                         </div>
                                         <div>
-                                            <label style={{ fontSize: '0.75rem', color: '#6b7280' }}>Max Count</label>
+                                            <label style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Max Count</label>
                                             <input
                                                 type="number"
                                                 value={option.maxCount}
@@ -313,7 +313,7 @@ const ProgramTypesManagement = () => {
                                                     setFormData(prev => ({ ...prev, additionalOptions: updated }));
                                                 }}
                                                 placeholder="Optional"
-                                                style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%' }}
+                                                style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', width: '100%', backgroundColor: 'var(--color-card)', color: 'var(--color-text)' }}
                                             />
                                         </div>
                                         <button
@@ -322,7 +322,7 @@ const ProgramTypesManagement = () => {
                                                 const updated = formData.additionalOptions.filter((_, i) => i !== index);
                                                 setFormData(prev => ({ ...prev, additionalOptions: updated }));
                                             }}
-                                            style={{ padding: '0.5rem', color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer' }}
+                                            style={{ padding: '0.5rem', color: 'var(--color-error)', background: 'none', border: 'none', cursor: 'pointer' }}
                                         >
                                             <Trash2 size={18} />
                                         </button>
@@ -363,7 +363,7 @@ const ProgramTypesManagement = () => {
                                         <button
                                             type="button"
                                             onClick={resetForm}
-                                            style={{ flex: 1, padding: '0.75rem', backgroundColor: '#9ca3af', color: 'white', border: 'none', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                                            style={{ flex: 1, padding: '0.75rem', backgroundColor: 'var(--color-text-muted)', color: 'white', border: 'none', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
                                         >
                                             <X size={18} />
                                             Cancel
@@ -378,12 +378,12 @@ const ProgramTypesManagement = () => {
                                         style={{
                                             width: '100%',
                                             padding: '0.75rem',
-                                            backgroundColor: '#fee2e2',
-                                            color: '#dc2626',
+                                            backgroundColor: 'var(--color-error-transparent)',
+                                            color: 'var(--color-error)',
                                             borderRadius: '0.5rem',
                                             fontWeight: 600,
                                             cursor: 'pointer',
-                                            border: '1px solid #fecaca',
+                                            border: '1px solid var(--color-error-transparent)',
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
@@ -398,9 +398,9 @@ const ProgramTypesManagement = () => {
                         </form>
 
                         <div style={{ display: 'grid', gap: '0.75rem' }}>
-                            <h2 style={{ fontSize: '1.25rem', fontWeight: 500, color: '#000000', marginBottom: '0.5rem' }}>Existing Types</h2>
+                            <h2 style={{ fontSize: '1.25rem', fontWeight: 500, color: 'var(--color-text)', marginBottom: '0.5rem' }}>Existing Types</h2>
                             {!isEditing && (
-                                <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: 500 }}>
+                                <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.25rem', fontWeight: 500 }}>
                                     Click program type to edit
                                 </p>
                             )}
@@ -412,9 +412,9 @@ const ProgramTypesManagement = () => {
                                         display: 'flex',
                                         alignItems: 'center',
                                         padding: '1.25rem',
-                                        backgroundColor: '#f9fafb',
+                                        backgroundColor: 'var(--color-surface)',
                                         borderRadius: '1rem',
-                                        border: '1px solid #e5e7eb',
+                                        border: '1px solid var(--color-border)',
                                         gap: '1.25rem',
                                         cursor: 'pointer',
                                         boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)'
@@ -430,11 +430,11 @@ const ProgramTypesManagement = () => {
 
                                     <div style={{ flex: 1, display: 'grid', gap: '0.25rem' }}>
                                         <div style={{ fontWeight: 600, fontSize: '1.125rem' }}>{type.name}</div>
-                                        <div style={{ fontSize: '0.875rem', color: '#6b7280', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                                        <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                                             <span>Max Participants: {type.maxParticipants || '-'}</span>
                                             <span>Fee: ₹{type.programFee || '0'}</span>
                                             {type.additionalOptions && type.additionalOptions.length > 0 && (
-                                                <span style={{ color: 'var(--color-primary)', fontSize: '0.75rem', backgroundColor: '#eff6ff', padding: '0.1rem 0.5rem', borderRadius: '1rem' }}>
+                                                <span style={{ color: 'var(--color-primary)', fontSize: '0.75rem', backgroundColor: 'var(--color-primary-transparent)', padding: '0.1rem 0.5rem', borderRadius: '1rem' }}>
                                                     {type.additionalOptions.length} Options
                                                 </span>
                                             )}

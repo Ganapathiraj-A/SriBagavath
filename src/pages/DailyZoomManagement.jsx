@@ -190,17 +190,17 @@ const DailyZoomManagement = () => {
     if (loading && meetings.length === 0) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><p>Loading...</p></div>;
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>
             <PageHeader
                 title="Manage Daily Zoom"
                 leftAction={
-                    <button onClick={() => navigate('/admin/program-management')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
+                    <button onClick={() => navigate('/admin/program-management')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', color: 'var(--color-text)' }}>
                         <ChevronLeft size={24} />
                     </button>
                 }
                 rightAction={
                     <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-                        <button onClick={() => navigate('/programs/online/daily')} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: '#fff7ed', border: '1px solid #fed7aa', color: '#9a3412', padding: '6px 10px', borderRadius: '0.5rem', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                        <button onClick={() => navigate('/programs/online/daily')} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'var(--color-warning-transparent)', border: '1px solid var(--color-warning-transparent)', color: 'var(--color-warning)', padding: '6px 10px', borderRadius: '0.5rem', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
                             <Video size={14} /> Listing
                         </button>
                     </div>
@@ -210,7 +210,7 @@ const DailyZoomManagement = () => {
             <div style={{ maxWidth: '42rem', margin: '0 auto', padding: '1rem' }}>
                 <div style={{
                     display: 'flex',
-                    borderBottom: '1px solid #e5e7eb',
+                    borderBottom: '1px solid var(--color-border)',
                     gap: '24px',
                     marginBottom: '1.5rem',
                     padding: '0 4px',
@@ -232,7 +232,7 @@ const DailyZoomManagement = () => {
                                     border: 'none',
                                     borderBottom: isActive ? '2px solid var(--color-primary)' : '2px solid transparent',
                                     backgroundColor: 'transparent',
-                                    color: isActive ? 'var(--color-primary)' : '#6b7280',
+                                    color: isActive ? 'var(--color-primary)' : 'var(--color-text-muted)',
                                     fontWeight: isActive ? 700 : 500,
                                     fontSize: '0.9rem',
                                     textTransform: 'capitalize',
@@ -254,11 +254,11 @@ const DailyZoomManagement = () => {
                     transition={{ duration: 0.2 }}
                 >
                     {(activeTab === 'add' || activeTab === 'edit') && (
-                        <div style={{ backgroundColor: 'white', borderRadius: '1rem', padding: '1.25rem', boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)' }}>
+                        <div style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '1.25rem', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)' }}>
                             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.25rem' }}>
                                     <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
                                             <Calendar size={16} color="var(--color-primary)" /> Meeting Date
                                         </label>
                                         <input
@@ -267,12 +267,12 @@ const DailyZoomManagement = () => {
                                             value={formData.date}
                                             onChange={handleInputChange}
                                             required
-                                            style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%', fontSize: '1rem' }}
+                                            style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', width: '100%', fontSize: '1rem', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
                                         />
                                     </div>
 
                                     <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
                                             <User size={16} color="var(--color-primary)" /> Select Teacher
                                         </label>
                                         <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -281,7 +281,7 @@ const DailyZoomManagement = () => {
                                                 value={formData.teacherId}
                                                 onChange={handleTeacherSelect}
                                                 required
-                                                style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', backgroundColor: 'white', fontSize: '1rem' }}
+                                                style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', fontSize: '1rem' }}
                                             >
                                                 <option value="">Select Teacher...</option>
                                                 {teachers.map(t => (
@@ -292,7 +292,7 @@ const DailyZoomManagement = () => {
                                                 type="button"
                                                 onClick={() => navigate('/admin/daily-zoom/teachers')}
                                                 aria-label="Manage Teachers"
-                                                style={{ padding: '0.75rem', backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '0.5rem', color: '#4b5563', cursor: 'pointer' }}
+                                                style={{ padding: '0.75rem', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '0.5rem', color: 'var(--color-text-muted)', cursor: 'pointer' }}
                                             >
                                                 <Plus size={20} />
                                             </button>
@@ -301,19 +301,19 @@ const DailyZoomManagement = () => {
                                 </div>
 
                                 {formData.teacherId && (
-                                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', padding: '0.75rem', backgroundColor: '#f9fafb', borderRadius: '0.75rem', border: '1px solid #e5e7eb' }}>
+                                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', padding: '0.75rem', backgroundColor: 'var(--color-surface)', borderRadius: '0.75rem', border: '1px solid var(--color-border)' }}>
                                         <div style={{ width: '3rem', height: '3rem', borderRadius: '50%', overflow: 'hidden', flexShrink: 0 }}>
-                                            {formData.image ? <img src={formData.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <User size={20} color="#9ca3af" />}
+                                            {formData.image ? <img src={formData.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <User size={20} color="var(--color-text-light)" />}
                                         </div>
                                         <div>
-                                            <div style={{ fontWeight: 600, color: '#111827' }}>{formData.name}</div>
-                                            <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>Teacher profile selected</div>
+                                            <div style={{ fontWeight: 600, color: 'var(--color-text)' }}>{formData.name}</div>
+                                            <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Teacher profile selected</div>
                                         </div>
                                     </div>
                                 )}
 
                                 <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>
+                                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
                                         <FileText size={16} color="var(--color-primary)" /> Description (Optional)
                                     </label>
                                     <textarea
@@ -322,12 +322,12 @@ const DailyZoomManagement = () => {
                                         onChange={handleInputChange}
                                         placeholder="Meeting details/topic..."
                                         rows={2}
-                                        style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%', resize: 'none', fontSize: '1rem' }}
+                                        style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', width: '100%', resize: 'none', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', fontSize: '1rem' }}
                                     />
                                 </div>
 
                                 <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>
+                                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
                                         <LinkIcon size={16} color="var(--color-primary)" /> Meeting Link
                                     </label>
                                     <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -336,7 +336,7 @@ const DailyZoomManagement = () => {
                                             value={formData.linkId}
                                             onChange={handleLinkSelect}
                                             required
-                                            style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', backgroundColor: 'white', fontSize: '1rem' }}
+                                            style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', fontSize: '1rem' }}
                                         >
                                             <option value="">Select Link...</option>
                                             {links.map(l => (
@@ -347,7 +347,7 @@ const DailyZoomManagement = () => {
                                             type="button"
                                             onClick={() => navigate('/admin/daily-zoom/links')}
                                             aria-label="Manage Links"
-                                            style={{ padding: '0.75rem', backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '0.5rem', color: '#4b5563', cursor: 'pointer' }}
+                                            style={{ padding: '0.75rem', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '0.5rem', color: 'var(--color-text-muted)', cursor: 'pointer' }}
                                         >
                                             <Plus size={20} />
                                         </button>
@@ -355,7 +355,7 @@ const DailyZoomManagement = () => {
                                     {formData.joinUrl && (
                                         <div style={{
                                             fontSize: '0.75rem',
-                                            color: '#6b7280',
+                                            color: 'var(--color-text-muted)',
                                             padding: '0 0.25rem',
                                             overflow: 'hidden',
                                             wordBreak: 'break-all',
@@ -369,7 +369,7 @@ const DailyZoomManagement = () => {
                                 </div>
 
                                 <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: '#374151', fontSize: '0.9rem' }}>
+                                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
                                         <Youtube size={16} color="#ef4444" /> YouTube Link (Optional)
                                     </label>
                                     <input
@@ -378,7 +378,7 @@ const DailyZoomManagement = () => {
                                         value={formData.youtubeUrl}
                                         onChange={handleInputChange}
                                         placeholder="https://youtube.com/live/..."
-                                        style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%', fontSize: '1rem' }}
+                                        style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', width: '100%', fontSize: '1rem' }}
                                     />
                                 </div>
 
@@ -394,7 +394,7 @@ const DailyZoomManagement = () => {
                                         <button
                                             type="button"
                                             onClick={resetForm}
-                                            style={{ padding: '0.875rem', backgroundColor: '#f3f4f6', color: '#374151', border: 'none', borderRadius: '0.6rem', cursor: 'pointer', fontWeight: 600 }}
+                                            style={{ padding: '0.875rem', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', border: '1px solid var(--color-border)', borderRadius: '0.6rem', cursor: 'pointer', fontWeight: 600 }}
                                         >
                                             Cancel
                                         </button>
@@ -407,7 +407,7 @@ const DailyZoomManagement = () => {
                     {(activeTab === 'upcoming' || activeTab === 'history') && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                             {(activeTab === 'upcoming' ? meetings : historyMeetings).length === 0 ? (
-                                <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '1rem', textAlign: 'center', color: '#9ca3af', border: '1px dashed #d1d5db' }}>
+                                <div style={{ backgroundColor: 'var(--color-card)', padding: '2rem', borderRadius: '1rem', textAlign: 'center', color: 'var(--color-text-muted)', border: '1px dashed var(--color-border)' }}>
                                     No meetings found in {activeTab}.
                                 </div>
                             ) : (
@@ -418,26 +418,26 @@ const DailyZoomManagement = () => {
                                             display: 'flex',
                                             alignItems: 'center',
                                             padding: '1rem',
-                                            backgroundColor: 'white',
+                                            backgroundColor: 'var(--color-card)',
                                             borderRadius: '1rem',
-                                            boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-                                            border: '1px solid #e5e7eb',
+                                            boxShadow: 'var(--shadow-sm)',
+                                            border: '1px solid var(--color-border)',
                                             gap: '1rem'
                                         }}
                                     >
                                         <div style={{ width: '3.5rem', height: '3.5rem', borderRadius: '0.75rem', overflow: 'hidden', flexShrink: 0 }}>
-                                            {m.image ? <img src={m.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : <div style={{ width: '100%', height: '100%', backgroundColor: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><User size={20} color="#9ca3af" /></div>}
+                                            {m.image ? <img src={m.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : <div style={{ width: '100%', height: '100%', backgroundColor: 'var(--color-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><User size={20} color="var(--color-text-light)" /></div>}
                                         </div>
                                         <div style={{ flex: 1, minWidth: 0 }}>
                                             <div style={{
                                                 fontWeight: 600,
                                                 fontSize: '0.95rem',
-                                                color: '#111827',
+                                                color: 'var(--color-text)',
                                                 marginBottom: '0.1rem',
                                                 wordBreak: 'break-word',
                                                 overflowWrap: 'anywhere'
                                             }}>{m.name}</div>
-                                            <div style={{ fontSize: '0.85rem', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                            <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                                                 <Calendar size={13} /> {m.date}
                                             </div>
                                         </div>
@@ -445,14 +445,14 @@ const DailyZoomManagement = () => {
                                             <button
                                                 onClick={() => handleEdit(m)}
                                                 aria-label={`Edit ${m.name}`}
-                                                style={{ padding: '0.6rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb', backgroundColor: 'white', color: '#4b5563', cursor: 'pointer' }}
+                                                style={{ padding: '0.6rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text-muted)', cursor: 'pointer' }}
                                             >
                                                 <Edit2 size={16} />
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(m.id)}
                                                 aria-label={`Delete ${m.name}`}
-                                                style={{ padding: '0.6rem', borderRadius: '0.5rem', border: '1px solid #fee2e2', backgroundColor: '#fff1f1', color: '#ef4444', cursor: 'pointer' }}
+                                                style={{ padding: '0.6rem', borderRadius: '0.5rem', border: '1px solid var(--color-error-transparent)', backgroundColor: 'var(--color-error-transparent)', color: 'var(--color-error)', cursor: 'pointer' }}
                                             >
                                                 <Trash2 size={16} />
                                             </button>

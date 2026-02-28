@@ -282,9 +282,9 @@ const PaymentFlow = () => {
                 className="btn-secondary full-width"
                 style={{
                     marginBottom: '16px',
-                    backgroundColor: '#fff7ed',
-                    border: '1px solid #ffedd5',
-                    color: '#c2410c',
+                    backgroundColor: 'var(--color-primary-transparent)',
+                    border: '1px solid var(--color-primary-transparent)',
+                    color: 'var(--color-primary)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -315,8 +315,8 @@ const PaymentFlow = () => {
                     borderRadius: '12px',
                     overflow: 'hidden',
                     marginBottom: '16px',
-                    border: '1px solid #ddd',
-                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                    border: '1px solid var(--color-border)',
+                    boxShadow: 'var(--shadow-md)'
                 }}>
                     <img
                         src={instructionGif}
@@ -359,16 +359,16 @@ const PaymentFlow = () => {
 
             {/* Transaction Summary Section */}
             <div style={{
-                background: '#f3f4f6',
+                background: 'var(--color-surface)',
                 padding: '16px',
                 borderRadius: '12px',
                 marginBottom: '20px',
-                border: '1px solid #e5e7eb'
+                border: '1px solid var(--color-border)'
             }}>
-                <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', color: '#111' }}>
+                <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', color: 'var(--color-text)' }}>
                     {submissionName}
                     {itemType !== 'BOOK' && (programDate || programCity) && (
-                        <div style={{ fontSize: '13px', fontWeight: 'normal', color: '#666', marginTop: '2px' }}>
+                        <div style={{ fontSize: '13px', fontWeight: 'normal', color: 'var(--color-text-muted)', marginTop: '2px' }}>
                             {formatProgramDate(programDate)}
                             {programCity ? ` • ${programCity} ` : ''}
                         </div>
@@ -380,45 +380,45 @@ const PaymentFlow = () => {
                         <>
                             {(location.state?.orderItems || storedData.orderItems || [])?.map((item, i) => (
                                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
-                                    <span style={{ color: '#666' }}>{item?.title || 'Book'} x {item?.quantity || 1}</span>
+                                    <span style={{ color: 'var(--color-text-muted)' }}>{item?.title || 'Book'} x {item?.quantity || 1}</span>
                                     <span style={{ fontWeight: 600 }}>₹{(item?.price || 0) * (item?.quantity || 1)}</span>
                                 </div>
                             ))}
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', marginTop: '8px', padding: '8px', background: 'white', borderRadius: '4px' }}>
-                                <span style={{ color: '#666' }}>Shipping to</span>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', marginTop: '8px', padding: '8px', background: 'var(--color-card)', borderRadius: '4px' }}>
+                                <span style={{ color: 'var(--color-text-muted)' }}>Shipping to</span>
                                 <span style={{ fontWeight: 600, textAlign: 'right' }}>{(location.state?.shippingAddress || storedData.shippingAddress)?.name || 'Guest'}<br />{(location.state?.shippingAddress || storedData.shippingAddress)?.city || ''}</span>
                             </div>
                         </>
                     ) : (
                         <>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
-                                <span style={{ color: '#666' }}>Participants</span>
+                                <span style={{ color: 'var(--color-text-muted)' }}>Participants</span>
                                 <span style={{ fontWeight: 600 }}>{participantCount || (participants?.length) || 1}</span>
                             </div>
                             {participants && participants.length > 0 && (
-                                <div style={{ paddingLeft: '8px', borderLeft: '2px solid #ddd', margin: '4px 0' }}>
+                                <div style={{ paddingLeft: '8px', borderLeft: '2px solid var(--color-border)', margin: '4px 0' }}>
                                     {participants.map((p, i) => (
-                                        <div key={i} style={{ fontSize: '12px', color: '#4b5563', marginBottom: '2px' }}>
+                                        <div key={i} style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '2px' }}>
                                             {i + 1}. {p?.name || 'Unknown'} ({p?.gender || ''}, {p?.age || ''})
                                         </div>
                                     ))}
                                 </div>
                             )}
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
-                                <span style={{ color: '#666' }}>Primary Contact</span>
+                                <span style={{ color: 'var(--color-text-muted)' }}>Primary Contact</span>
                                 <span style={{ fontWeight: 600 }}>{primaryApplicant?.name || 'Applicant'}</span>
                             </div>
                             {place && (
                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
-                                    <span style={{ color: '#666' }}>Coming From</span>
+                                    <span style={{ color: 'var(--color-text-muted)' }}>Coming From</span>
                                     <span style={{ fontWeight: 600 }}>{place}</span>
                                 </div>
                             )}
                             {selectedOptions && selectedOptions.length > 0 && (
-                                <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed #e5e7eb' }}>
-                                    <div style={{ fontSize: '13px', color: '#666', fontWeight: 600, marginBottom: '4px' }}>Additional Options</div>
+                                <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed var(--color-border)' }}>
+                                    <div style={{ fontSize: '13px', color: 'var(--color-text-muted)', fontWeight: 600, marginBottom: '4px' }}>Additional Options</div>
                                     {selectedOptions.map((opt, i) => (
-                                        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#4b5563' }}>
+                                        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--color-text-muted)' }}>
                                             <span>{opt?.name}</span>
                                             <span>₹{opt?.fee}</span>
                                         </div>
@@ -427,27 +427,27 @@ const PaymentFlow = () => {
                             )}
                         </>
                     )}
-                    <hr style={{ border: 'none', borderTop: '1px solid #e5e7eb', margin: '8px 0' }} />
+                    <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: '8px 0' }} />
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '16px' }}>
                         <span style={{ fontWeight: 600 }}>Total Amount</span>
-                        <span style={{ fontWeight: 800, color: '#111' }}>₹{amount || 0}</span>
+                        <span style={{ fontWeight: 800, color: 'var(--color-text)' }}>₹{amount || 0}</span>
                     </div>
                 </div>
             </div>
 
             <div className="screenshot-section" style={{ marginTop: '0px' }}>
                 {image ? (
-                    <div className="preview-container" style={{ alignItems: 'center', background: '#f0fdf4', border: '1px solid #dcfce7', borderRadius: '10px' }}>
+                    <div className="preview-container" style={{ alignItems: 'center', background: 'var(--color-success-transparent)', border: '1px solid var(--color-success)', borderRadius: '10px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                             <CheckCircle2 size={28} color="#22c55e" weight="fill" />
                             <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                <span style={{ fontWeight: 600, color: '#166534' }}>Attached Screenshot</span>
+                                <span style={{ fontWeight: 600, color: 'var(--color-success)' }}>Attached Screenshot</span>
                                 <button
                                     onClick={() => setViewingImage(image)}
                                     style={{
                                         border: 'none',
                                         background: 'none',
-                                        color: '#2563eb',
+                                        color: 'var(--color-primary)',
                                         fontSize: '13px',
                                         padding: 0,
                                         textAlign: 'left',
@@ -458,12 +458,12 @@ const PaymentFlow = () => {
                                 </button>
                             </div>
                         </div>
-                        <button className="btn-icon" onClick={() => setImage(null)} style={{ background: '#fee2e2', color: '#dc2626' }}><Trash2 size={20} /></button>
+                        <button className="btn-icon" onClick={() => setImage(null)} style={{ background: 'var(--color-error-transparent)', color: 'var(--color-error)' }}><Trash2 size={20} /></button>
                     </div>
                 ) : (
-                    <div className="placeholder-img" onClick={captureImage} style={{ height: '100px', border: '2px dashed #ddd' }}>
-                        <CameraIcon size={40} color="#9ca3af" />
-                        <span style={{ color: '#6b7280', marginTop: '8px', fontSize: '14px' }}>Tap to Scan/Upload Screenshot</span>
+                    <div className="placeholder-img" onClick={captureImage} style={{ height: '100px', border: '2px dashed var(--color-border)' }}>
+                        <CameraIcon size={40} color="var(--color-text-muted)" />
+                        <span style={{ color: 'var(--color-text-muted)', marginTop: '8px', fontSize: '14px' }}>Tap to Scan/Upload Screenshot</span>
                     </div>
                 )}
             </div>
@@ -472,19 +472,19 @@ const PaymentFlow = () => {
                 (rawText || ocrStatus) && (
                     <div style={{ marginTop: '16px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div style={{ fontSize: '14px', color: '#2563eb', fontWeight: 600 }}>
+                            <div style={{ fontSize: '14px', color: 'var(--color-primary)', fontWeight: 600 }}>
                                 {ocrStatus}
-                                {utr && <div style={{ fontSize: '12px', color: '#1d4ed8' }}>UTR: {utr}</div>}
+                                {utr && <div style={{ fontSize: '12px', color: 'var(--color-primary)' }}>UTR: {utr}</div>}
                             </div>
                             <button
                                 onClick={() => setShowFullOcr(!showFullOcr)}
-                                style={{ border: 'none', background: 'none', color: '#666', fontSize: '12px', textDecoration: 'underline' }}
+                                style={{ border: 'none', background: 'none', color: 'var(--color-text-muted)', fontSize: '12px', textDecoration: 'underline' }}
                             >
                                 {showFullOcr ? "Hide Scanned Data" : "View Scanned Data"}
                             </button>
                         </div>
                         {showFullOcr && (
-                            <div className="debug-box" style={{ marginTop: '8px', background: '#f9fafb' }}>
+                            <div className="debug-box" style={{ marginTop: '8px', background: 'var(--color-surface)' }}>
                                 <strong>Scanned Data (Full):</strong>
                                 <pre style={{ whiteSpace: 'pre-wrap', maxHeight: '150px', overflowY: 'auto', fontSize: '11px', marginTop: '4px' }}>{rawText || "No Text Detected"}</pre>
                             </div>
@@ -513,7 +513,7 @@ const PaymentFlow = () => {
                             flexDirection: 'column',
                             alignItems: 'center',
                             gap: '15px',
-                            background: 'white',
+                            background: 'var(--color-card)',
                             padding: '15px',
                             borderRadius: '16px',
                             maxWidth: '90%'
@@ -526,7 +526,7 @@ const PaymentFlow = () => {
                             <button
                                 className="btn-primary"
                                 onClick={() => setViewingImage(null)}
-                                style={{ width: '100%', background: '#2563eb', borderRadius: '8px' }}
+                                style={{ width: '100%', background: 'var(--color-primary)', borderRadius: '8px' }}
                             >
                                 Close
                             </button>

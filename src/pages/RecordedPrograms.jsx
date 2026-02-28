@@ -17,10 +17,11 @@ const RecordedPrograms = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     style={{
-                        backgroundColor: 'white',
+                        backgroundColor: 'var(--color-card)',
                         borderRadius: '1rem',
                         padding: '1.5rem',
-                        boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+                        boxShadow: 'var(--shadow-sm)',
+                        border: '1px solid var(--color-border)',
                         overflow: 'hidden'
                     }}
                 >
@@ -51,7 +52,7 @@ const RecordedPrograms = () => {
                     </div>
 
                     <div style={{ textAlign: 'center' }}>
-                        <p style={{ color: '#4b5563', marginBottom: '1.5rem', fontSize: '0.95rem' }}>
+                        <p style={{ color: 'var(--color-text-muted)', marginBottom: '1.5rem', fontSize: '0.95rem' }}>
                             Watch the recordings of our past programs and sathsangs.
                         </p>
 

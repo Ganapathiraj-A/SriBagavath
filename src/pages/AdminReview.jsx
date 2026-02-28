@@ -243,7 +243,7 @@ const AdminReview = () => {
             <span>
                 {parts.map((part, i) =>
                     part.toLowerCase() === utr.toLowerCase()
-                        ? <span key={i} style={{ backgroundColor: '#fef08a', color: '#854d0e', fontWeight: 600, padding: '0 2px', borderRadius: '2px' }}>{part}</span>
+                        ? <span key={i} style={{ backgroundColor: 'var(--color-warning-transparent)', color: 'var(--color-warning)', fontWeight: 600, padding: '0 2px', borderRadius: '2px' }}>{part}</span>
                         : part
                 )}
             </span>
@@ -427,7 +427,7 @@ const AdminReview = () => {
             {viewingImage && (
                 <div className="modal-overlay" onClick={() => setViewingImage(null)} style={{ zIndex: 1100 }}>
                     <div className="modal-content" onClick={e => e.stopPropagation()} style={{
-                        background: 'white',
+                        background: 'var(--color-card)',
                         padding: '1.25rem',
                         borderRadius: '1.5rem',
                         maxWidth: '28rem',
@@ -443,8 +443,8 @@ const AdminReview = () => {
                         {/* Header */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div>
-                                <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: '#111827' }}>Verify Receipt</h2>
-                                <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '2px' }}>Check UTR and Amount against the image</div>
+                                <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-text)' }}>Verify Receipt</h2>
+                                <div style={{ fontSize: '13px', color: 'var(--color-text-muted)', marginTop: '2px' }}>Check UTR and Amount against the image</div>
                             </div>
                             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                                 <button
@@ -452,14 +452,14 @@ const AdminReview = () => {
                                     disabled={savingDetails}
                                     style={{
                                         border: 'none',
-                                        background: '#eff6ff',
+                                        background: 'var(--color-primary-transparent)',
                                         padding: '8px 12px',
                                         borderRadius: '8px',
                                         cursor: 'pointer',
                                         display: 'flex',
                                         alignItems: 'center',
                                         gap: '6px',
-                                        color: '#2563eb',
+                                        color: 'var(--color-primary)',
                                         fontSize: '13px',
                                         fontWeight: 600
                                     }}
@@ -473,29 +473,29 @@ const AdminReview = () => {
                                     accept="image/*"
                                     onChange={handleUpdateReceiptInModal}
                                 />
-                                <button onClick={() => setViewingImage(null)} style={{ border: 'none', background: '#f3f4f6', padding: '8px', borderRadius: '50%', cursor: 'pointer' }}>
-                                    <X size={20} color="#6b7280" />
+                                <button onClick={() => setViewingImage(null)} style={{ border: 'none', background: 'var(--color-surface)', padding: '8px', borderRadius: '50%', cursor: 'pointer' }}>
+                                    <X size={20} color="var(--color-text-muted)" />
                                 </button>
                             </div>
                         </div>
 
                         {/* Receipt Image */}
-                        <div style={{ position: 'relative', borderRadius: '1rem', overflowY: 'auto', border: '1px solid #e5e7eb', backgroundColor: '#f9fafb', maxHeight: '400px', display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ position: 'relative', borderRadius: '1rem', overflowY: 'auto', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', maxHeight: '400px', display: 'flex', flexDirection: 'column' }}>
                             <img
                                 src={viewingImage.base64.startsWith('data:') ? viewingImage.base64 : `data:image/jpeg;base64,${viewingImage.base64}`}
                                 alt="Receipt"
                                 style={{ width: '100%', display: 'block' }}
                             />
-                            <div style={{ position: 'absolute', top: '0.75rem', right: '0.75rem', backgroundColor: 'rgba(255,255,255,0.9)', padding: '4px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, color: '#374151', backdropFilter: 'blur(4px)', border: '1px solid rgba(0,0,0,0.05)' }}>
+                            <div style={{ position: 'absolute', top: '0.75rem', right: '0.75rem', backgroundColor: 'var(--color-card)', padding: '4px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, color: 'var(--color-text)', backdropFilter: 'blur(4px)', border: '1px solid var(--color-border)' }}>
                                 Receipt Image
                             </div>
                         </div>
 
                         {/* OCR Text / Suggestions */}
-                        <div style={{ backgroundColor: '#f8fafc', padding: '15px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                        <div style={{ backgroundColor: 'var(--color-surface)', padding: '15px', borderRadius: '12px', border: '1px solid var(--color-border)' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                <span style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748b', fontWeight: 700, letterSpacing: '0.05em' }}>Detecting UTR from Receipt</span>
-                                {extractUtrSuggestions(viewingImage.ocrText).length > 0 && <span style={{ fontSize: '10px', backgroundColor: '#dcfce7', color: '#166534', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>Found Suggestions</span>}
+                                <span style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--color-text-muted)', fontWeight: 700, letterSpacing: '0.05em' }}>Detecting UTR from Receipt</span>
+                                {extractUtrSuggestions(viewingImage.ocrText).length > 0 && <span style={{ fontSize: '10px', backgroundColor: 'var(--color-success-transparent)', color: 'var(--color-success)', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>Found Suggestions</span>}
                             </div>
 
                             {extractUtrSuggestions(viewingImage.ocrText).length > 0 ? (
@@ -504,19 +504,19 @@ const AdminReview = () => {
                                         <button
                                             key={sug}
                                             onClick={() => setEditingUtrValue(sug)}
-                                            style={{ padding: '6px 12px', backgroundColor: editingUtrValue === sug ? '#dbeafe' : 'white', color: editingUtrValue === sug ? '#1e40af' : '#475569', border: `1px solid ${editingUtrValue === sug ? '#3b82f6' : '#cbd5e1'}`, borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+                                            style={{ padding: '6px 12px', backgroundColor: editingUtrValue === sug ? 'var(--color-primary-transparent)' : 'var(--color-surface)', color: editingUtrValue === sug ? 'var(--color-primary)' : 'var(--color-text)', border: `1px solid ${editingUtrValue === sug ? 'var(--color-primary)' : 'var(--color-border)'}`, borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
                                         >
                                             {sug}
                                         </button>
                                     ))}
                                 </div>
                             ) : (
-                                <div style={{ fontSize: '13px', color: '#94a3b8', fontStyle: 'italic' }}>No UTR-like numbers detected. Please enter manually.</div>
+                                <div style={{ fontSize: '13px', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>No UTR-like numbers detected. Please enter manually.</div>
                             )}
 
-                            <div style={{ marginTop: '12px', borderTop: '1px solid #e2e8f0', paddingTop: '10px' }}>
-                                <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748b', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '4px' }}>Raw OCR Preview</div>
-                                <div style={{ fontSize: '12px', color: '#4b5563', lineHeight: '1.5', maxHeight: '100px', overflowY: 'auto', backgroundColor: 'white', padding: '8px', borderRadius: '6px', border: '1px solid #f1f5f9', whiteSpace: 'pre-wrap' }}>
+                            <div style={{ marginTop: '12px', borderTop: '1px solid var(--color-border)', paddingTop: '10px' }}>
+                                <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--color-text-muted)', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '4px' }}>Raw OCR Preview</div>
+                                <div style={{ fontSize: '12px', color: 'var(--color-text)', lineHeight: '1.5', maxHeight: '100px', overflowY: 'auto', backgroundColor: 'var(--color-card)', padding: '8px', borderRadius: '6px', border: '1px solid var(--color-border)', whiteSpace: 'pre-wrap' }}>
                                     {highlightUTR(viewingImage.ocrText, editingUtrValue)}
                                 </div>
                             </div>
@@ -526,35 +526,35 @@ const AdminReview = () => {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                    <label style={{ fontSize: '12px', fontWeight: 600, color: '#4b5563' }}>Edit UTR</label>
+                                    <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-muted)' }}>Edit UTR</label>
                                     <input
                                         type="text"
                                         value={editingUtrValue}
                                         onChange={(e) => setEditingUtrValue(e.target.value)}
                                         placeholder="UTR..."
-                                        style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '14px', outline: 'none' }}
+                                        style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', fontSize: '14px', outline: 'none' }}
                                     />
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                    <label style={{ fontSize: '12px', fontWeight: 600, color: '#4b5563' }}>Reg. Amount</label>
+                                    <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-muted)' }}>Reg. Amount</label>
                                     <input
                                         type="number"
                                         value={editingAmountValue}
                                         onChange={(e) => setEditingAmountValue(e.target.value)}
                                         placeholder="Reg Amount..."
-                                        style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '14px', outline: 'none' }}
+                                        style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', fontSize: '14px', outline: 'none' }}
                                     />
                                 </div>
                             </div>
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                <label style={{ fontSize: '12px', fontWeight: 600, color: '#4b5563' }}>OCR Amount (Detected from Receipt)</label>
+                                <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-muted)' }}>OCR Amount (Detected from Receipt)</label>
                                 <input
                                     type="number"
                                     value={editingParsedAmountValue}
                                     onChange={(e) => setEditingParsedAmountValue(e.target.value)}
                                     placeholder="OCR Amount..."
-                                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px', outline: 'none', backgroundColor: '#fdf2f2' }}
+                                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', fontSize: '15px', outline: 'none', backgroundColor: 'var(--color-error-transparent)', color: 'var(--color-text)' }}
                                 />
                             </div>
 
@@ -564,7 +564,7 @@ const AdminReview = () => {
                                 style={{
                                     width: '100%',
                                     height: '48px',
-                                    backgroundColor: '#2563eb',
+                                    backgroundColor: 'var(--color-success)',
                                     color: 'white',
                                     border: 'none',
                                     borderRadius: '12px',
@@ -574,7 +574,7 @@ const AdminReview = () => {
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     cursor: savingDetails ? 'wait' : 'pointer',
-                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                                    boxShadow: 'var(--shadow-md)',
                                     marginTop: '4px'
                                 }}
                             >
@@ -589,9 +589,9 @@ const AdminReview = () => {
                                 height: '48px',
                                 minHeight: '48px',
                                 flexShrink: 0,
-                                background: '#f3f4f6',
-                                color: '#4b5563',
-                                border: '1px solid #e5e7eb',
+                                background: 'var(--color-surface)',
+                                color: 'var(--color-text-muted)',
+                                border: '1px solid var(--color-border)',
                                 borderRadius: '12px',
                                 fontWeight: 700,
                                 fontSize: '15px',
@@ -601,7 +601,7 @@ const AdminReview = () => {
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 transition: 'all 0.2s',
-                                boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                                boxShadow: 'var(--shadow-sm)'
                             }}
                         >
                             Dismiss
@@ -615,30 +615,31 @@ const AdminReview = () => {
                 <div className="modal-overlay" onClick={() => setViewingReg(null)}>
                     <div className="modal-content" onClick={e => e.stopPropagation()} style={{
                         flexDirection: 'column',
-                        background: 'white',
+                        background: 'var(--color-card)',
                         padding: '20px',
                         maxWidth: '90%',
                         maxHeight: '85vh',
                         overflowY: 'auto',
-                        borderRadius: '12px'
+                        borderRadius: '12px',
+                        border: '1px solid var(--color-border)'
                     }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                            <h2 style={{ margin: 0, fontSize: '18px' }}>Registration Info</h2>
+                            <h2 style={{ margin: 0, fontSize: '18px', color: 'var(--color-text)' }}>Registration Info</h2>
                             <button onClick={() => setViewingReg(null)} style={{ border: 'none', background: 'none', padding: '5px' }}>
-                                <X size={24} />
+                                <X size={24} color="var(--color-text-muted)" />
                             </button>
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                             <div>
-                                <h3 style={{ margin: '0 0 4px 0', fontSize: '14px', color: '#666' }}>Program</h3>
-                                <div style={{ fontWeight: 600 }}>
+                                <h3 style={{ margin: '0 0 4px 0', fontSize: '14px', color: 'var(--color-text-muted)' }}>Program</h3>
+                                <div style={{ fontWeight: 600, color: 'var(--color-text)' }}>
                                     {viewingReg.itemName}
                                     {(() => {
                                         const details = getProgramDetails(viewingReg);
                                         if (details.date) {
                                             return (
-                                                <span style={{ fontSize: '14px', fontWeight: 'normal', color: '#666', marginLeft: '6px' }}>
+                                                <span style={{ fontSize: '14px', fontWeight: 'normal', color: 'var(--color-text-muted)', marginLeft: '6px' }}>
                                                     ({new Date(details.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                                                     {details.city ? ` - ${details.city}` : ''})
                                                 </span>
@@ -651,73 +652,73 @@ const AdminReview = () => {
 
                             <div style={{ display: 'flex', gap: '20px' }}>
                                 <div>
-                                    <h3 style={{ margin: '0 0 4px 0', fontSize: '14px', color: '#666' }}>Amount Paid</h3>
-                                    <div style={{ fontWeight: 600, color: '#006400' }}>₹{viewingReg.amount}</div>
+                                    <h3 style={{ margin: '0 0 4px 0', fontSize: '14px', color: 'var(--color-text-muted)' }}>Amount Paid</h3>
+                                    <div style={{ fontWeight: 600, color: 'var(--color-success)' }}>₹{viewingReg.amount}</div>
                                 </div>
                                 <div>
-                                    <h3 style={{ margin: '0 0 4px 0', fontSize: '14px', color: '#666' }}>Coming From</h3>
-                                    <div style={{ fontWeight: 600 }}>{viewingReg.place || 'Not Specified'}</div>
+                                    <h3 style={{ margin: '0 0 4px 0', fontSize: '14px', color: 'var(--color-text-muted)' }}>Coming From</h3>
+                                    <div style={{ fontWeight: 600, color: 'var(--color-text)' }}>{viewingReg.place || 'Not Specified'}</div>
                                 </div>
                             </div>
 
-                            <hr style={{ border: 'none', borderTop: '1px solid #eee', margin: '8px 0' }} />
+                            <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: '8px 0' }} />
 
-                            <h3 style={{ margin: 0, fontSize: '16px', color: '#111' }}>Participants ({viewingReg.participants?.length || 0})</h3>
+                            <h3 style={{ margin: 0, fontSize: '16px', color: 'var(--color-text)' }}>Participants ({viewingReg.participants?.length || 0})</h3>
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                 {viewingReg.participants?.map((p, i) => (
                                     <div key={i} style={{
-                                        background: '#f9fafb',
+                                        background: 'var(--color-surface)',
                                         padding: '10px',
                                         borderRadius: '8px',
-                                        border: '1px solid #f3f4f6'
+                                        border: '1px solid var(--color-border)'
                                     }}>
-                                        <div style={{ fontWeight: 600, fontSize: '15px', color: '#111' }}>{i + 1}. {p.name}</div>
-                                        <div style={{ fontSize: '13px', color: '#4b5563', marginTop: '4px' }}>
+                                        <div style={{ fontWeight: 600, fontSize: '15px', color: 'var(--color-text)' }}>{i + 1}. {p.name}</div>
+                                        <div style={{ fontSize: '13px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
                                             {p.gender}, {p.age} yrs
                                         </div>
-                                        <div style={{ fontSize: '13px', color: '#4b5563' }}>Mobile: {p.mobile}</div>
+                                        <div style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>Mobile: {p.mobile}</div>
                                     </div>
                                 ))}
                             </div>
 
                             {viewingReg.selectedOptions && viewingReg.selectedOptions.length > 0 && (
                                 <>
-                                    <hr style={{ border: 'none', borderTop: '1px solid #eee', margin: '8px 0' }} />
-                                    <h3 style={{ margin: 0, fontSize: '16px', color: '#111' }}>Additional Options</h3>
+                                    <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: '8px 0' }} />
+                                    <h3 style={{ margin: 0, fontSize: '16px', color: 'var(--color-text)' }}>Additional Options</h3>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                         {viewingReg.selectedOptions.map((opt, i) => (
                                             <div key={i} style={{
                                                 display: 'flex',
                                                 justifyContent: 'space-between',
-                                                background: '#eff6ff',
+                                                background: 'var(--color-primary-transparent)',
                                                 padding: '8px 12px',
                                                 borderRadius: '8px',
-                                                border: '1px solid #dbeafe',
+                                                border: '1px solid var(--color-primary-light)',
                                                 fontSize: '14px'
                                             }}>
-                                                <span style={{ fontWeight: 500, color: '#1e40af' }}>{opt.name}</span>
-                                                <span style={{ fontWeight: 600, color: '#1e40af' }}>₹{opt.fee}</span>
+                                                <span style={{ fontWeight: 500, color: 'var(--color-primary)' }}>{opt.name}</span>
+                                                <span style={{ fontWeight: 600, color: 'var(--color-primary)' }}>₹{opt.fee}</span>
                                             </div>
                                         ))}
                                     </div>
                                 </>
                             )}
 
-                            <hr style={{ border: 'none', borderTop: '1px solid #eee', margin: '8px 0' }} />
+                            <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: '8px 0' }} />
 
                             <div>
-                                <h3 style={{ margin: '0 0 4px 0', fontSize: '14px', color: '#666' }}>Primary Contact</h3>
-                                <div style={{ fontWeight: 600 }}>{viewingReg.primaryApplicant?.name}</div>
-                                <div style={{ fontSize: '14px' }}>{viewingReg.primaryApplicant?.mobile}</div>
+                                <h3 style={{ margin: '0 0 4px 0', fontSize: '14px', color: 'var(--color-text-muted)' }}>Primary Contact</h3>
+                                <div style={{ fontWeight: 600, color: 'var(--color-text)' }}>{viewingReg.primaryApplicant?.name}</div>
+                                <div style={{ fontSize: '14px', color: 'var(--color-text)' }}>{viewingReg.primaryApplicant?.mobile}</div>
                             </div>
 
-                            <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '10px' }}>
+                            <div style={{ fontSize: '12px', color: 'var(--color-text-light)', marginTop: '10px' }}>
                                 Transaction ID: {viewingReg.id}
                             </div>
                         </div>
 
-                        <button className="btn-primary" onClick={() => setViewingReg(null)} style={{ marginTop: '20px', width: '100%', background: '#2563eb' }}>
+                        <button className="btn-primary" onClick={() => setViewingReg(null)} style={{ marginTop: '20px', width: '100%', background: 'var(--color-primary)' }}>
                             Close
                         </button>
                     </div>
@@ -734,7 +735,7 @@ const AdminReview = () => {
             />
 
             {/* Sub-Header / Filters Wrapper */}
-            <div style={{ backgroundColor: 'white', padding: '10px 16px', borderBottom: '1px solid #eee' }}>
+            <div style={{ backgroundColor: 'var(--color-card)', padding: '10px 16px', borderBottom: '1px solid var(--color-border)' }}>
                 {/* Filter Row */}
                 <div className="filter-row" style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
                     <select
@@ -767,13 +768,15 @@ const AdminReview = () => {
                         flexDirection: 'column', // Stack vertically
                         gap: '8px',
                         fontSize: '13px',
-                        background: '#f3f4f6',
+                        background: 'var(--color-surface)',
+                        color: 'var(--color-text)',
                         padding: '8px',
                         borderRadius: '6px',
+                        border: '1px solid var(--color-border)'
                     }}>
                         {/* Line 1: Main Counts */}
-                        <div style={{ fontWeight: 'bold', borderBottom: '1px solid #e5e7eb', paddingBottom: '4px', marginBottom: '0px' }}>
-                            Registrations: {filteredByProduct.length} <span style={{ color: '#ccc', margin: '0 8px' }}>|</span> Participants: {filteredByProduct.reduce((acc, r) => acc + (r.participantCount || 1), 0)}
+                        <div style={{ fontWeight: 'bold', borderBottom: '1px solid var(--color-border)', paddingBottom: '4px', marginBottom: '0px' }}>
+                            Registrations: {filteredByProduct.length} <span style={{ color: 'var(--color-text-light)', margin: '0 8px' }}>|</span> Participants: {filteredByProduct.reduce((acc, r) => acc + (r.participantCount || 1), 0)}
                         </div>
 
                         {/* Line 2: Details */}
@@ -818,7 +821,7 @@ const AdminReview = () => {
                 {/* Specific Tab Action: Archive/Delete */}
                 {activeTab === 'COMPLETED' && getCount('COMPLETED') > 0 && (
                     <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-                        <button className="btn-approve" style={{ flex: 1, backgroundColor: '#4f46e5', color: 'white' }} onClick={handleArchiveAll}>
+                        <button className="btn-approve" style={{ flex: 1, backgroundColor: 'var(--color-primary)', color: 'white' }} onClick={handleArchiveAll}>
                             <Package size={16} /> Move All to Storage ({getCount('COMPLETED')} Participants)
                         </button>
                         <button className="btn-danger" style={{ padding: '10px' }} onClick={handleDeleteAllVerified}>
@@ -836,7 +839,7 @@ const AdminReview = () => {
                     const parsed = tx.parsedAmount ? parseFloat(tx.parsedAmount) : null;
                     const standardPrice = tx.amount || 0;
                     const isMatch = parsed !== null && Math.abs(parsed - standardPrice) < 1.0;
-                    const amountColor = (parsed !== null) ? (isMatch ? '#006400' : 'red') : 'inherit';
+                    const amountColor = (parsed !== null) ? (isMatch ? 'var(--color-success)' : 'var(--color-error)') : 'inherit';
 
                     // Fallback details
                     const details = getProgramDetails(tx);
@@ -848,8 +851,8 @@ const AdminReview = () => {
                                     {tx.itemName}
                                     {tx.reconciled && (
                                         <span style={{
-                                            backgroundColor: '#dbeafe',
-                                            color: '#1e40af',
+                                            backgroundColor: 'var(--color-primary-transparent)',
+                                            color: 'var(--color-primary)',
                                             fontSize: '10px',
                                             padding: '2px 6px',
                                             borderRadius: '4px',
@@ -861,13 +864,13 @@ const AdminReview = () => {
                                         </span>
                                     )}
                                     {details.date && (
-                                        <span style={{ fontSize: '14px', fontWeight: 'normal', color: '#555' }}>
+                                        <span style={{ fontSize: '14px', fontWeight: 'normal', color: 'var(--color-text-muted)' }}>
                                             ({new Date(details.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                                             {details.city ? ` - ${details.city}` : ''})
                                         </span>
                                     )}
                                 </h3>
-                                <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>
+                                <span style={{ fontSize: '16px', fontWeight: 'bold', color: 'var(--color-text)' }}>
                                     ₹{tx.amount}
                                 </span>
                             </div>
@@ -876,8 +879,8 @@ const AdminReview = () => {
                             {tx.isOffline && (
                                 <div style={{
                                     display: 'inline-block',
-                                    backgroundColor: '#e0f2fe',
-                                    color: '#0284c7',
+                                    backgroundColor: 'var(--color-primary-transparent)',
+                                    color: 'var(--color-primary)',
                                     fontSize: '11px',
                                     fontWeight: 'bold',
                                     padding: '2px 6px',
@@ -890,11 +893,11 @@ const AdminReview = () => {
 
                             <div className="meta-row" style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '8px' }}>
                                 {tx.participantCount > 1 && (
-                                    <div style={{ fontSize: '14px', color: '#333' }}>
+                                    <div style={{ fontSize: '14px', color: 'var(--color-text)' }}>
                                         <strong>Participants:</strong> {tx.participantCount}
                                     </div>
                                 )}
-                                <div style={{ fontSize: '14px', color: '#333' }}>
+                                <div style={{ fontSize: '14px', color: 'var(--color-text)' }}>
                                     <strong>Applied By:</strong> {(() => {
                                         const text = tx.ocrText || "";
                                         const lines = text.split('\n');
@@ -902,15 +905,15 @@ const AdminReview = () => {
                                         return fromLine ? fromLine.replace(/from[:\s]*/i, "").trim() : 'OCR Unknown';
                                     })()}
                                 </div>
-                                <div style={{ fontSize: '14px', color: '#555' }}>
+                                <div style={{ fontSize: '14px', color: 'var(--color-text-muted)' }}>
                                     <strong>Date Time:</strong> {new Date(tx.timestamp?.seconds * 1000 || Date.now()).toLocaleString()}
                                 </div>
                                 <div style={{ fontSize: '14px', fontWeight: 'bold', color: amountColor, display: 'flex', alignItems: 'center', gap: '4px' }}>
                                     <strong>Detected Amount:</strong> ₹{tx.parsedAmount || '0'}
-                                    {isMatch ? <Check size={16} color="green" /> : <X size={16} color="red" />}
+                                    {isMatch ? <Check size={16} color="var(--color-success)" /> : <X size={16} color="var(--color-error)" />}
                                 </div>
                                 {tx.utr && (
-                                    <div style={{ fontSize: '14px', color: '#1e40af', fontWeight: 600 }}>
+                                    <div style={{ fontSize: '14px', color: 'var(--color-primary)', fontWeight: 600 }}>
                                         <strong>UTR:</strong> {tx.utr}
                                     </div>
                                 )}
@@ -918,7 +921,7 @@ const AdminReview = () => {
 
                             {/* Participants List */}
                             {tx.participants && tx.participants.length > 0 && (
-                                <div style={{ marginTop: '8px', fontSize: '13px', background: '#f5f5f5', padding: '8px', borderRadius: '4px' }}>
+                                <div style={{ marginTop: '8px', fontSize: '13px', background: 'var(--color-surface)', color: 'var(--color-text)', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}>
                                     <strong>Details:</strong>
                                     {tx.participants.map((p, idx) => (
                                         <div key={idx} style={{ marginLeft: '8px' }}>
@@ -930,7 +933,7 @@ const AdminReview = () => {
                             )}
 
                             {tx.place && (
-                                <div style={{ fontSize: '14px', color: '#333', marginTop: '8px' }}>
+                                <div style={{ fontSize: '14px', color: 'var(--color-text)', marginTop: '8px' }}>
                                     <strong>Coming From:</strong> {tx.place}
                                 </div>
                             )}
@@ -941,9 +944,9 @@ const AdminReview = () => {
                                         onClick={() => handleViewImage(tx)}
                                         style={{
                                             flex: 1,
-                                            background: 'white',
-                                            color: '#1e40af',
-                                            border: '1px solid #ddd',
+                                            background: 'var(--color-card)',
+                                            color: 'var(--color-primary)',
+                                            border: '1px solid var(--color-border)',
                                             padding: '8px 16px',
                                             borderRadius: '10px',
                                             fontSize: '13px',
@@ -966,9 +969,9 @@ const AdminReview = () => {
                                                 width: '100%',
                                                 padding: '8px 16px',
                                                 borderRadius: '10px',
-                                                border: '1px solid #2563eb',
-                                                backgroundColor: '#eff6ff',
-                                                color: '#2563eb',
+                                                border: '1px solid var(--color-primary)',
+                                                backgroundColor: 'var(--color-primary-transparent)',
+                                                color: 'var(--color-primary)',
                                                 fontSize: '13px',
                                                 fontWeight: 600,
                                                 cursor: uploadingReceipt === tx.id ? 'wait' : 'pointer',
@@ -991,9 +994,9 @@ const AdminReview = () => {
                                 <button
                                     onClick={() => setViewingReg(tx)}
                                     style={{
-                                        background: '#f8fafc',
-                                        color: '#475569',
-                                        border: '1px solid #e2e8f0',
+                                        background: 'var(--color-surface)',
+                                        color: 'var(--color-text-muted)',
+                                        border: '1px solid var(--color-border)',
                                         padding: '8px 16px',
                                         borderRadius: '10px',
                                         fontSize: '13px',
@@ -1041,7 +1044,7 @@ const AdminReview = () => {
                                         <button className="btn-approve" onClick={() => handleUpdate(tx.id, 'REGISTERED')}><Rewind size={16} /> Revert</button>
                                         <button
                                             onClick={() => handleArchive(tx.id)}
-                                            style={{ backgroundColor: '#4f46e5', color: 'white', border: 'none', borderRadius: '4px', padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', fontWeight: 600 }}
+                                            style={{ backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: '4px', padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', fontWeight: 600 }}
                                         >
                                             <Package size={16} /> Storage
                                         </button>

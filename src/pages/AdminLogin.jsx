@@ -128,18 +128,19 @@ const AdminLogin = () => {
     }
 
     return (
-        <div className="payment-container" style={{ justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-            <div className="card" style={{ width: '100%', maxWidth: '400px' }}>
-                <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Admin Login</h2>
+        <div className="payment-container" style={{ justifyContent: 'center', alignItems: 'center', minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>
+            <div className="card" style={{ width: '100%', maxWidth: '400px', backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)' }}>
+                <h2 style={{ textAlign: 'center', marginBottom: '20px', color: 'var(--color-text)' }}>Admin Login</h2>
 
                 {error && (
                     <div style={{
-                        backgroundColor: '#fef2f2',
-                        color: '#dc2626',
+                        backgroundColor: 'var(--color-error-transparent)',
+                        color: 'var(--color-error)',
                         padding: '10px',
                         borderRadius: '6px',
                         marginBottom: '15px',
-                        fontSize: '14px'
+                        fontSize: '14px',
+                        border: '1px solid var(--color-error)'
                     }}>
                         {error}
                     </div>
@@ -150,28 +151,28 @@ const AdminLogin = () => {
                     {(!user || user.isAnonymous) ? (
                         <>
                             <div className="form-group">
-                                <label>Email</label>
-                                <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #ddd', borderRadius: '8px', padding: '0 10px', background: 'white' }}>
-                                    <Mail size={20} color="#6b7280" />
+                                <label style={{ color: 'var(--color-text)' }}>Email</label>
+                                <div style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '0 10px', background: 'var(--color-surface)' }}>
+                                    <Mail size={20} color="var(--color-text-muted)" />
                                     <input
                                         type="email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        style={{ border: 'none', boxShadow: 'none' }}
+                                        style={{ border: 'none', boxShadow: 'none', background: 'none', color: 'var(--color-text)' }}
                                         required
                                     />
                                 </div>
                             </div>
 
                             <div className="form-group">
-                                <label>Password</label>
-                                <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #ddd', borderRadius: '8px', padding: '0 10px', background: 'white' }}>
-                                    <Lock size={20} color="#6b7280" />
+                                <label style={{ color: 'var(--color-text)' }}>Password</label>
+                                <div style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '0 10px', background: 'var(--color-surface)' }}>
+                                    <Lock size={20} color="var(--color-text-muted)" />
                                     <input
                                         type="password"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        style={{ border: 'none', boxShadow: 'none' }}
+                                        style={{ border: 'none', boxShadow: 'none', background: 'none', color: 'var(--color-text)' }}
                                         required
                                     />
                                 </div>
@@ -187,13 +188,13 @@ const AdminLogin = () => {
                             </button>
 
                             <div style={{ margin: '1rem 0', display: 'flex', alignItems: 'center', flexDirection: 'column', gap: '8px' }}>
-                                <div style={{ fontSize: '11px', color: '#9ca3af', fontWeight: 500 }}>
+                                <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: 500 }}>
                                     Build v{appInfo.version} ({appInfo.id})
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                                    <hr style={{ flex: 1, border: 'none', borderTop: '1px solid #e5e7eb' }} />
-                                    <span style={{ padding: '0 10px', color: '#6b7280', fontSize: '13px' }}>OR</span>
-                                    <hr style={{ flex: 1, border: 'none', borderTop: '1px solid #e5e7eb' }} />
+                                    <hr style={{ flex: 1, border: 'none', borderTop: '1px solid var(--color-border)' }} />
+                                    <span style={{ padding: '0 10px', color: 'var(--color-text-muted)', fontSize: '13px' }}>OR</span>
+                                    <hr style={{ flex: 1, border: 'none', borderTop: '1px solid var(--color-border)' }} />
                                 </div>
                             </div>
 
@@ -201,7 +202,7 @@ const AdminLogin = () => {
                                 type="button"
                                 onClick={handleGoogleLogin}
                                 className="btn-secondary full-width"
-                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', backgroundColor: 'white', border: '1px solid #e5e7eb' }}
+                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}
                                 disabled={loading}
                             >
                                 <Chrome size={20} color="#4285F4" />
@@ -210,9 +211,9 @@ const AdminLogin = () => {
                         </>
                     ) : (
                         <div style={{ textAlign: 'center', padding: '1rem' }}>
-                            <div style={{ marginBottom: '1.5rem', color: '#4b5563' }}>
+                            <div style={{ marginBottom: '1.5rem', color: 'var(--color-text)' }}>
                                 <p>Signed in as: <b>{user.email}</b></p>
-                                <div style={{ backgroundColor: isPending ? '#fef3c7' : '#fef2f2', color: isPending ? '#d97706' : '#dc2626', padding: '1rem', borderRadius: '0.75rem', marginTop: '1rem' }}>
+                                <div style={{ backgroundColor: isPending ? 'var(--color-warning-transparent)' : 'var(--color-error-transparent)', color: isPending ? 'var(--color-warning)' : 'var(--color-error)', padding: '1rem', borderRadius: '0.75rem', marginTop: '1rem', border: '1px solid currentColor' }}>
                                     <b>{isPending ? 'Approval Pending' : 'Unauthorized'}</b>
                                     <p style={{ fontSize: '13px', marginTop: '0.5rem' }}>
                                         {isPending
@@ -231,10 +232,10 @@ const AdminLogin = () => {
                                         style={{
                                             marginTop: '1rem',
                                             padding: '0.5rem 1rem',
-                                            backgroundColor: '#f3f4f6',
-                                            border: '1px solid #d1d5db',
+                                            backgroundColor: 'var(--color-surface)',
+                                            border: '1px solid var(--color-border)',
                                             borderRadius: '0.5rem',
-                                            color: '#374151',
+                                            color: 'var(--color-text)',
                                             fontSize: '0.875rem',
                                             cursor: 'pointer',
                                             display: 'flex',
@@ -258,12 +259,12 @@ const AdminLogin = () => {
                                     </button>
                                 )}
                             </div>
-                            <button type="button" onClick={handleSignOut} style={{ color: '#6b7280', background: 'none', border: 'none', textDecoration: 'underline', cursor: 'pointer' }}>Sign out</button>
+                            <button type="button" onClick={handleSignOut} style={{ color: 'var(--color-text-muted)', background: 'none', border: 'none', textDecoration: 'underline', cursor: 'pointer' }}>Sign out</button>
                         </div>
                     )}
 
                     <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
-                        <button type="button" onClick={() => navigate('/')} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer' }}>Back to Home</button>
+                        <button type="button" onClick={() => navigate('/')} style={{ background: 'none', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer' }}>Back to Home</button>
                     </div>
                 </form>
             </div>

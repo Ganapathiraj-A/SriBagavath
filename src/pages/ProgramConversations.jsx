@@ -26,10 +26,10 @@ const ProgramButton = ({ title, delay }) => {
             style={{
                 width: '100%',
                 padding: '1.5rem',
-                backgroundColor: 'white',
+                backgroundColor: 'var(--color-card)',
                 borderRadius: '0.75rem',
-                boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-                border: '1px solid #f3f4f6',
+                boxShadow: 'var(--shadow-sm)',
+                border: '1px solid var(--color-border)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '1rem',
@@ -40,7 +40,7 @@ const ProgramButton = ({ title, delay }) => {
             <div style={{
                 padding: '0.75rem',
                 borderRadius: '9999px',
-                backgroundColor: '#fff7ed',
+                backgroundColor: 'var(--color-primary-transparent)',
                 color: 'var(--color-primary)',
                 display: 'flex',
                 alignItems: 'center',
@@ -48,7 +48,7 @@ const ProgramButton = ({ title, delay }) => {
             }}>
                 <Calendar size={24} />
             </div>
-            <span style={{ fontSize: '1.125rem', fontWeight: 500, color: '#1f2937' }}>{title}</span>
+            <span style={{ fontSize: '1.125rem', fontWeight: 500, color: 'var(--color-text)' }}>{title}</span>
         </motion.button>
     );
 };
@@ -66,13 +66,14 @@ const ProgramConversations = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     style={{
-                        backgroundColor: 'white',
+                        backgroundColor: 'var(--color-card)',
                         borderRadius: '1rem',
                         padding: '2rem',
-                        boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)'
+                        boxShadow: 'var(--shadow-sm)',
+                        border: '1px solid var(--color-border)'
                     }}
                 >
-                    <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#111827', marginBottom: '2rem', textAlign: 'center' }}>
+                    <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: 'var(--color-text)', marginBottom: '2rem', textAlign: 'center' }}>
                         Program Conversations
                     </h1>
 

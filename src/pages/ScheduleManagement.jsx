@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
 import { cleanupOldSchedules } from '@/utils/cleanup';
-import { motion } from 'framer-motion';
-import { Plus, Edit2, Trash2, Calendar as CalendarIcon, MapPin, ChevronLeft, ExternalLink } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Plus, Edit2, Trash2, Calendar as CalendarIcon, MapPin, ChevronLeft, Eye, X, Search } from 'lucide-react';
 import { db, auth } from '@/firebase';
-import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy, where, limit, setDoc, serverTimestamp } from '@/utils/FirestoreProxy';
-import { LogOut } from 'lucide-react';
+import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy, setDoc, serverTimestamp } from '@/utils/FirestoreProxy';
 import { signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '@/components/PageHeader';
@@ -17,29 +16,10 @@ import { bumpServerVersion } from '@/utils/SyncManager';
 const ScheduleManagement = () => {
     const navigate = useNavigate();
     const [schedules, setSchedules] = useState([]);
-
-    const handleLogout = async () => {
-        if (confirm("Logout?")) {
-            if (Capacitor.isNativePlatform()) {
-                try {
-                    await GoogleAuth.signOut();
-                    try {
-                        await GoogleAuth.disconnect();
-                    } catch (dErr) {
-                        console.warn("Disconnect failed:", dErr);
-                    }
-                } catch (_err) {
-                    console.warn("Google SignOut Error", _err);
-                }
-            }
-            await signOut(auth);
-            navigate('/');
-        }
-    };
     const [showForm, setShowForm] = useState(false);
     const [editingSchedule, setEditingSchedule] = useState(null);
     const [loading, setLoading] = useState(true);
-    // Removed activeTab state as we only show upcoming
+    const [searchQuery, setSearchQuery] = useState('');
 
     const [formData, setFormData] = useState({
         fromDate: '',
@@ -47,10 +27,8 @@ const ScheduleManagement = () => {
         place: ''
     });
 
-    // Load schedules and run cleanup on mount
     useEffect(() => {
         const init = async () => {
-            // Run cleanup first to ensure we don't load old data
             await cleanupOldSchedules();
             loadSchedules();
         };
@@ -61,29 +39,18 @@ const ScheduleManagement = () => {
         setLoading(true);
         try {
             const schedulesRef = collection(db, 'schedules');
-            // Since cleanupOldSchedules() deletes everything where toDate < today,
-            // we can simply fetch all remaining schedules sorted by fromDate.
-            // This will include ongoing (started in past, ends in future) and strictly future events.
-            const q = query(
-                schedulesRef,
-                orderBy('fromDate', 'asc')
-            );
-
+            const q = query(schedulesRef, orderBy('fromDate', 'asc'));
             const querySnapshot = await getDocs(q);
             const schedulesList = querySnapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             }));
 
-            // Client-side strict filter to ensure no history is shown
-            // (in case cleanup hasn't finished or failed)
             const today = getLocalDateString();
             const filteredSchedules = schedulesList.filter(s => s.toDate >= today);
-
             setSchedules(filteredSchedules);
         } catch (_err) {
             console.error('Error loading schedules:', _err);
-            alert('Error loading schedules. Please check Firebase configuration.');
         } finally {
             setLoading(false);
         }
@@ -91,37 +58,13 @@ const ScheduleManagement = () => {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        // Basic validation: End date should be >= Start date
         if (formData.toDate < formData.fromDate) {
             alert('To Date cannot be before From Date');
-            return;
-        }
-
-        // Check for overlaps
-        // This allows touching (e.g. EndA === StartB) which represents traveling on the same day.
-        const hasOverlap = schedules.some(schedule => {
-            // Skip current schedule if editing
-            if (editingSchedule && schedule.id === editingSchedule.id) return false;
-
-            const startA = schedule.fromDate;
-            const endA = schedule.toDate;
-            const startB = formData.fromDate;
-            const endB = formData.toDate;
-
-            return (startA < endB) && (endA > startB);
-        });
-
-        if (hasOverlap) {
-            alert('This schedule overlaps with an existing entry. Please check the dates.');
             return;
         }
 
@@ -130,29 +73,29 @@ const ScheduleManagement = () => {
                 fromDate: formData.fromDate,
                 toDate: formData.toDate,
                 place: formData.place,
-                createdAt: new Date().toISOString()
+                updatedAt: serverTimestamp()
             };
 
             if (editingSchedule) {
                 await updateDoc(doc(db, 'schedules', editingSchedule.id), scheduleData);
-                alert('Schedule updated successfully!');
+                alert('Schedule updated!');
             } else {
-                await addDoc(collection(db, 'schedules'), scheduleData);
-                alert('Schedule added successfully!');
+                await addDoc(collection(db, 'schedules'), {
+                    ...scheduleData,
+                    createdAt: serverTimestamp()
+                });
+                alert('Schedule added!');
             }
 
-            // Update Global Metadata for notification badges
             await setDoc(doc(db, 'system', 'metadata'), {
                 lastUpdated_schedule: serverTimestamp()
             }, { merge: true });
 
             await bumpServerVersion('schedules');
-
             resetForm();
             loadSchedules();
         } catch (_err) {
-            console.error('Error saving schedule:', _err);
-            alert('Error saving schedule: ' + _err.message);
+            alert('Error saving: ' + _err.message);
         }
     };
 
@@ -167,395 +110,246 @@ const ScheduleManagement = () => {
     };
 
     const handleDelete = async (scheduleId) => {
-        if (window.confirm('Are you sure you want to delete this schedule entry?')) {
+        if (window.confirm('Delete this schedule?')) {
             try {
                 await deleteDoc(doc(db, 'schedules', scheduleId));
-                alert('Schedule deleted successfully!');
-
-                // Update Global Metadata
-                await setDoc(doc(db, 'system', 'metadata'), {
-                    lastUpdated_schedule: serverTimestamp()
-                }, { merge: true });
-
                 await bumpServerVersion('schedules');
-
                 loadSchedules();
+                resetForm();
             } catch (_err) {
-                console.error('Error deleting schedule:', _err);
-                alert('Error deleting schedule: ' + _err.message);
+                alert('Delete failed: ' + _err.message);
             }
         }
     };
 
     const resetForm = () => {
-        setFormData({
-            fromDate: '',
-            toDate: '',
-            place: ''
-        });
+        setFormData({ fromDate: '', toDate: '', place: '' });
         setEditingSchedule(null);
         setShowForm(false);
     };
 
-    const ScheduleCard = ({ schedule }) => (
-        <div
-            onClick={() => handleEdit(schedule)}
-            style={{
-                padding: '1.25rem',
-                border: '1px solid #f3f4f6',
-                borderRadius: '1rem',
-                backgroundColor: 'white',
-                boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1rem',
-                cursor: 'pointer'
-            }}
-        >
-            {/* Top: City */}
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-                <MapPin size={22} style={{ color: 'var(--color-primary)', marginRight: '0.75rem', flexShrink: 0 }} />
-                <h3 style={{ fontSize: '1.4rem', fontWeight: 700, color: '#000', margin: 0 }}>
-                    {schedule.place}
-                </h3>
-            </div>
-
-            {/* Bottom: Dates Row */}
-            <div style={{ display: 'flex', gap: '1rem' }}>
-                {/* From Date Box */}
-                <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: '#fff7ed',
-                    color: 'var(--color-primary)',
-                    padding: '0.75rem',
-                    borderRadius: '1rem',
-                    minWidth: '5.5rem',
-                }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                        {new Date(schedule.fromDate).toLocaleDateString(undefined, { month: 'short' })}
-                    </span>
-                    <span style={{ fontSize: '1.5rem', fontWeight: 800, lineHeight: 1 }}>
-                        {new Date(schedule.fromDate).getDate()}
-                    </span>
-                    <span style={{ fontSize: '0.7rem', marginTop: '0.25rem', opacity: 0.8, fontWeight: 500 }}>From</span>
-                </div>
-
-                {/* To Date Box */}
-                <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: '#f0fdf4',
-                    color: '#16a34a',
-                    padding: '0.75rem',
-                    borderRadius: '1rem',
-                    minWidth: '5.5rem',
-                }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase' }}>
-                        {new Date(schedule.toDate).toLocaleDateString(undefined, { month: 'short' })}
-                    </span>
-                    <span style={{ fontSize: '1.5rem', fontWeight: 800, lineHeight: 1 }}>
-                        {new Date(schedule.toDate).getDate()}
-                    </span>
-                    <span style={{ fontSize: '0.7rem', marginTop: '0.25rem', opacity: 0.8, fontWeight: 500 }}>To</span>
-                </div>
-            </div>
-        </div>
+    const filteredSchedules = schedules.filter(s =>
+        s.place.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     if (loading) {
         return (
-            <div
-                style={{
-                    minHeight: '100vh',
-                    backgroundColor: 'var(--color-surface)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                }}
-            >
-                <p style={{ fontSize: '1.125rem', color: '#6b7280' }}>Loading schedules...</p>
+            <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--color-background)' }}>
+                <p style={{ color: 'var(--color-text-muted)' }}>Loading schedules...</p>
             </div>
         );
     }
 
     return (
-        <div
-            style={{
-                minHeight: '100vh',
-                backgroundColor: 'var(--color-surface)',
-                // padding: '1.5rem' // Allow header full width
-            }}
-        >
+        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)', paddingBottom: '2rem' }}>
             <PageHeader
                 title="Schedule Management"
-                leftAction={
-                    <button onClick={() => navigate('/configuration')} style={{ background: 'none', border: 'none', padding: '8px', cursor: 'pointer' }}>
-                        <ChevronLeft size={24} />
-                    </button>
-                }
                 rightAction={
                     <button
                         onClick={() => navigate('/schedule')}
                         style={{
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '0.4rem',
-                            padding: '0.5rem 0.8rem',
-                            backgroundColor: '#f3f4f6',
-                            color: '#374151',
-                            border: '1px solid #e5e7eb',
-                            borderRadius: '0.75rem',
+                            gap: '6px',
+                            padding: '8px 12px',
+                            backgroundColor: 'var(--color-surface)',
+                            border: '1px solid var(--color-border)',
+                            borderRadius: '20px',
+                            color: 'var(--color-text-secondary)',
                             fontSize: '0.85rem',
                             fontWeight: 600,
                             cursor: 'pointer'
                         }}
                     >
-                        <ExternalLink size={16} /> View Listing
+                        <Eye size={16} /> View Listing
                     </button>
                 }
             />
-            <div style={{ padding: '1.5rem' }}>
-                <div style={{ maxWidth: '56rem', margin: '0 auto' }}>
 
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
+            <div style={{ maxWidth: '40rem', margin: '0 auto', padding: '1rem' }}>
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '1.5rem' }}>
+                    <div style={{
+                        flex: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '0 0.85rem',
+                        backgroundColor: 'var(--color-surface)',
+                        borderRadius: '12px',
+                        border: '1px solid var(--color-border)',
+                        boxShadow: 'var(--shadow-sm)'
+                    }}>
+                        <Search size={18} color="var(--color-text-muted)" />
+                        <input
+                            type="text"
+                            placeholder="Search city..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            style={{
+                                width: '100%',
+                                padding: '0.65rem 0',
+                                border: 'none',
+                                outline: 'none',
+                                fontSize: '0.9rem',
+                                backgroundColor: 'transparent',
+                                color: 'var(--color-text)'
+                            }}
+                        />
+                    </div>
+                    <button
+                        onClick={() => setShowForm(true)}
                         style={{
-                            backgroundColor: 'white',
-                            borderRadius: '1rem',
-                            padding: '2rem',
-                            boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-                            marginBottom: '1.5rem'
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '0 1rem',
+                            backgroundColor: 'var(--color-primary)',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '12px',
+                            fontWeight: 600,
+                            fontSize: '0.9rem',
+                            cursor: 'pointer'
                         }}
                     >
-                        {/* Header */}
+                        <Plus size={18} /> Add
+                    </button>
+                </div>
+
+                <div style={{ display: 'grid', gap: '1rem' }}>
+                    {filteredSchedules.map((schedule) => (
                         <div
+                            key={schedule.id}
+                            onClick={() => handleEdit(schedule)}
                             style={{
+                                backgroundColor: 'var(--color-surface)',
+                                padding: '1.25rem',
+                                borderRadius: '16px',
+                                border: '1px solid var(--color-border)',
                                 display: 'flex',
                                 flexDirection: 'column',
-                                alignItems: 'stretch',
-                                marginBottom: '2rem',
-                                gap: '0.75rem'
+                                gap: '1rem',
+                                cursor: 'pointer'
                             }}
                         >
-                            {/* Title handled by PageHeader */}
-
-                            {/* Tabs Removed */}
-
-                            {!showForm && (
-                                <button
-                                    onClick={() => setShowForm(true)}
-                                    style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        gap: '0.5rem',
-                                        padding: '0.75rem 1.5rem',
-                                        backgroundColor: 'var(--color-primary)',
-                                        color: 'white',
-                                        borderRadius: '0.5rem',
-                                        fontWeight: 500,
-                                        cursor: 'pointer',
-                                        border: 'none',
-                                        width: '100%'
-                                    }}
-                                >
-                                    <Plus size={20} />
-                                    Add Schedule
-                                </button>
-                            )}
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <MapPin size={20} color="var(--color-primary)" style={{ marginRight: '0.75rem' }} />
+                                <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--color-text)', margin: 0 }}>
+                                    {schedule.place}
+                                </h3>
+                            </div>
+                            <div style={{ display: 'flex', gap: '1rem' }}>
+                                <div style={{ backgroundColor: 'var(--color-background)', padding: '0.5rem 0.75rem', borderRadius: '10px' }}>
+                                    <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>From</span>
+                                    <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-text)' }}>
+                                        {new Date(schedule.fromDate).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
+                                    </span>
+                                </div>
+                                <div style={{ backgroundColor: 'var(--color-background)', padding: '0.5rem 0.75rem', borderRadius: '10px' }}>
+                                    <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>To</span>
+                                    <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-text)' }}>
+                                        {new Date(schedule.toDate).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
+                    ))}
 
-                        {showForm ? (
-                            <form
-                                onSubmit={handleSubmit}
-                                style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
-                            >
-                                <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#111827' }}>
-                                    {editingSchedule ? 'Edit Schedule' : 'Add New Schedule'}
+                    {filteredSchedules.length === 0 && (
+                        <div style={{ textAlign: 'center', padding: '3rem', backgroundColor: 'var(--color-surface)', borderRadius: '16px', border: '1px dashed var(--color-border)', color: 'var(--color-text-muted)' }}>
+                            <CalendarIcon size={40} style={{ margin: '0 auto 1rem', opacity: 0.3 }} />
+                            <p>No schedules found</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <AnimatePresence>
+                {showForm && (
+                    <div className="modal-overlay" onClick={resetForm} style={{ zIndex: 1000 }}>
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            onClick={e => e.stopPropagation()}
+                            style={{
+                                backgroundColor: 'var(--color-surface)',
+                                width: '90%',
+                                maxWidth: '400px',
+                                borderRadius: '24px',
+                                padding: '1.5rem',
+                                position: 'relative'
+                            }}
+                        >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                                <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-text)' }}>
+                                    {editingSchedule ? 'Edit Entry' : 'New Entry'}
                                 </h2>
+                                <button onClick={resetForm} style={{ border: 'none', background: 'none', cursor: 'pointer' }}>
+                                    <X size={24} color="var(--color-text-muted)" />
+                                </button>
+                            </div>
 
-                                {/* From Date */}
+                            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                                 <div>
-                                    <label
-                                        style={{
-                                            display: 'block',
-                                            marginBottom: '0.5rem',
-                                            fontWeight: 500,
-                                            color: '#374151'
-                                        }}
-                                    >
-                                        From Date *
-                                    </label>
-                                    <input
-                                        type="date"
-                                        name="fromDate"
-                                        value={formData.fromDate}
-                                        onChange={handleInputChange}
-                                        required
-                                        style={{
-                                            width: '100%',
-                                            padding: '0.75rem',
-                                            borderRadius: '0.5rem',
-                                            border: '1px solid #d1d5db',
-                                            fontSize: '1rem'
-                                        }}
-                                    />
-                                </div>
-
-                                {/* To Date */}
-                                <div>
-                                    <label
-                                        style={{
-                                            display: 'block',
-                                            marginBottom: '0.5rem',
-                                            fontWeight: 500,
-                                            color: '#374151'
-                                        }}
-                                    >
-                                        To Date *
-                                    </label>
-                                    <input
-                                        type="date"
-                                        name="toDate"
-                                        value={formData.toDate}
-                                        onChange={handleInputChange}
-                                        required
-                                        style={{
-                                            width: '100%',
-                                            padding: '0.75rem',
-                                            borderRadius: '0.5rem',
-                                            border: '1px solid #d1d5db',
-                                            fontSize: '1rem'
-                                        }}
-                                    />
-                                </div>
-
-                                {/* Place */}
-                                <div>
-                                    <label
-                                        style={{
-                                            display: 'block',
-                                            marginBottom: '0.5rem',
-                                            fontWeight: 500,
-                                            color: '#374151'
-                                        }}
-                                    >
-                                        Place *
-                                    </label>
+                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: '0.4rem' }}>Place/City</label>
                                     <input
                                         type="text"
                                         name="place"
+                                        required
                                         value={formData.place}
                                         onChange={handleInputChange}
-                                        placeholder="Enter city or venue"
-                                        required
-                                        style={{
-                                            width: '100%',
-                                            padding: '0.75rem',
-                                            borderRadius: '0.5rem',
-                                            border: '1px solid #d1d5db',
-                                            fontSize: '1rem'
-                                        }}
+                                        placeholder="Enter place..."
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '12px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)', outline: 'none' }}
                                     />
                                 </div>
-
-                                {/* Form Actions */}
-                                <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                                    <button
-                                        type="submit"
-                                        style={{
-                                            flex: 1,
-                                            padding: '0.75rem',
-                                            backgroundColor: 'var(--color-primary)',
-                                            color: 'white',
-                                            borderRadius: '0.5rem',
-                                            fontWeight: 600,
-                                            cursor: 'pointer',
-                                            border: 'none'
-                                        }}
-                                    >
-                                        {editingSchedule ? 'Update Schedule' : 'Add Schedule'}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={resetForm}
-                                        style={{
-                                            flex: 1,
-                                            padding: '0.75rem',
-                                            backgroundColor: '#f3f4f6',
-                                            color: '#4b5563',
-                                            borderRadius: '0.5rem',
-                                            fontWeight: 600,
-                                            cursor: 'pointer',
-                                            border: '1px solid #d1d5db'
-                                        }}
-                                    >
-                                        Cancel
-                                    </button>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: '0.4rem' }}>From Date</label>
+                                        <input
+                                            type="date"
+                                            name="fromDate"
+                                            required
+                                            value={formData.fromDate}
+                                            onChange={handleInputChange}
+                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '12px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)', outline: 'none' }}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: '0.4rem' }}>To Date</label>
+                                        <input
+                                            type="date"
+                                            name="toDate"
+                                            required
+                                            value={formData.toDate}
+                                            onChange={handleInputChange}
+                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '12px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)', outline: 'none' }}
+                                        />
+                                    </div>
                                 </div>
 
-                                {editingSchedule && (
+                                <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
+                                    {editingSchedule && (
+                                        <button
+                                            type="button"
+                                            onClick={() => handleDelete(editingSchedule.id)}
+                                            style={{ flex: 1, padding: '0.75rem', backgroundColor: 'var(--color-error-transparent)', color: 'var(--color-error)', border: 'none', borderRadius: '12px', fontWeight: 600, cursor: 'pointer' }}
+                                        >
+                                            Delete
+                                        </button>
+                                    )}
                                     <button
-                                        type="button"
-                                        onClick={() => handleDelete(editingSchedule.id)}
-                                        style={{
-                                            padding: '0.75rem',
-                                            marginTop: '0.5rem',
-                                            backgroundColor: '#fef2f2',
-                                            color: '#ef4444',
-                                            borderRadius: '0.5rem',
-                                            fontWeight: 600,
-                                            cursor: 'pointer',
-                                            border: '1px solid #fee2e2',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            gap: '0.5rem'
-                                        }}
+                                        type="submit"
+                                        style={{ flex: 2, padding: '0.75rem', backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 700, cursor: 'pointer' }}
                                     >
-                                        <Trash2 size={18} />
-                                        Delete Schedule
+                                        {editingSchedule ? 'Update' : 'Save'}
                                     </button>
-                                )}
+                                </div>
                             </form>
-                        ) : (
-                            <div>
-                                {schedules.length === 0 ? (
-                                    <div
-                                        style={{
-                                            textAlign: 'center',
-                                            padding: '3rem',
-                                            color: '#6b7280'
-                                        }}
-                                    >
-                                        <CalendarIcon
-                                            size={48}
-                                            style={{ margin: '0 auto 1rem', opacity: 0.5 }}
-                                        />
-                                        <p style={{ fontSize: '1.125rem' }}>No schedules added yet</p>
-                                        <p>Click &quot;Add Schedule&quot; to create the first entry</p>
-                                    </div>
-                                ) : (
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                        <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '-0.5rem', fontWeight: 500 }}>
-                                            Click on the schedule to edit
-                                        </p>
-                                        {schedules.map(schedule => (
-                                            <ScheduleCard key={schedule.id} schedule={schedule} />
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </motion.div>
-                </div>
-            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

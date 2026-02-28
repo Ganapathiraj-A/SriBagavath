@@ -444,11 +444,11 @@ const ProgramManagement = () => {
         <div
             onClick={() => setSearchParams({ action: 'edit', id: program.id })}
             style={{
-                backgroundColor: 'white',
+                backgroundColor: 'var(--color-card)',
                 borderRadius: '1rem',
                 padding: '1.25rem',
-                boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-                border: '1px solid #f3f4f6',
+                boxShadow: 'var(--shadow-sm)',
+                border: '1px solid var(--color-border)',
                 display: 'flex',
                 alignItems: 'flex-start',
                 gap: '1.25rem',
@@ -466,8 +466,8 @@ const ProgramManagement = () => {
                 <div style={{
                     width: '64px',
                     height: '64px',
-                    backgroundColor: '#fff7ed',
-                    border: '1px solid #fed7aa',
+                    backgroundColor: 'var(--color-warning-transparent)',
+                    border: '1px solid var(--color-warning-transparent)',
                     borderRadius: '1rem',
                     display: 'flex',
                     flexDirection: 'column',
@@ -475,10 +475,10 @@ const ProgramManagement = () => {
                     justifyContent: 'center',
                     boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)'
                 }}>
-                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#f97316', textTransform: 'uppercase' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-warning)', textTransform: 'uppercase' }}>
                         {new Date(program.programDate).toLocaleString('default', { month: 'short' })}
                     </span>
-                    <span style={{ fontSize: '1.5rem', fontWeight: 800, color: '#9a3412', lineHeight: 1 }}>
+                    <span style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-warning)', lineHeight: 1 }}>
                         {new Date(program.programDate).getDate()}
                     </span>
                 </div>
@@ -492,11 +492,11 @@ const ProgramManagement = () => {
                 flex: 1,
                 minWidth: 0
             }}>
-                <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#000000', margin: 0 }}>
+                <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>
                     {program.programName}
                 </h3>
 
-                <div style={{ display: 'flex', alignItems: 'center', color: '#6b7280', fontSize: '0.9rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
                     <MapPin size={14} style={{ marginRight: '0.375rem' }} />
                     <span style={{ fontWeight: 500 }}>{program.programCity}</span>
                 </div>
@@ -509,13 +509,13 @@ const ProgramManagement = () => {
             <div
                 style={{
                     minHeight: '100vh',
-                    backgroundColor: 'var(--color-surface)',
+                    backgroundColor: 'var(--color-background)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center'
                 }}
             >
-                <p style={{ fontSize: '1.125rem', color: '#6b7280' }}>Loading programs...</p>
+                <p style={{ fontSize: '1.125rem', color: 'var(--color-text-muted)' }}>Loading programs...</p>
             </div>
         );
     }
@@ -526,14 +526,14 @@ const ProgramManagement = () => {
         <div
             style={{
                 minHeight: '100vh',
-                backgroundColor: 'var(--color-surface)',
+                backgroundColor: 'var(--color-background)',
                 // removed padding: '1.5rem' to allow header full width, restore for content
             }}
         >
             <PageHeader
                 title="Program Management"
                 leftAction={
-                    <button onClick={() => navigate('/configuration')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
+                    <button onClick={() => navigate('/configuration')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', color: 'var(--color-text)' }}>
                         <ChevronLeft size={24} />
                     </button>
                 }
@@ -545,9 +545,9 @@ const ProgramManagement = () => {
                             alignItems: 'center',
                             gap: '0.4rem',
                             padding: '0.5rem 0.8rem',
-                            backgroundColor: '#f3f4f6',
-                            color: '#374151',
-                            border: '1px solid #e5e7eb',
+                            backgroundColor: 'var(--color-surface)',
+                            color: 'var(--color-text)',
+                            border: '1px solid var(--color-border)',
                             borderRadius: '0.75rem',
                             fontSize: '0.85rem',
                             fontWeight: 600,
@@ -565,10 +565,11 @@ const ProgramManagement = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         style={{
-                            backgroundColor: 'white',
+                            backgroundColor: 'var(--color-card)',
                             borderRadius: '1rem',
                             padding: '2rem',
-                            boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+                            boxShadow: 'var(--shadow-sm)',
+                            border: '1px solid var(--color-border)',
                             marginBottom: '1.5rem'
                         }}
                     >
@@ -586,13 +587,13 @@ const ProgramManagement = () => {
 
                             {/* Tabs */}
                             {!showForm && (
-                                <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #e5e7eb' }}>
+                                <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--color-border)' }}>
                                     <button
                                         onClick={() => setActiveTab('upcoming')}
                                         style={{
                                             padding: '0.75rem 1rem',
                                             borderBottom: activeTab === 'upcoming' ? '2px solid var(--color-primary)' : 'none',
-                                            color: activeTab === 'upcoming' ? 'var(--color-primary)' : '#6b7280',
+                                            color: activeTab === 'upcoming' ? 'var(--color-primary)' : 'var(--color-text-muted)',
                                             fontWeight: activeTab === 'upcoming' ? 600 : 500,
                                             background: 'none',
                                             borderTop: 'none',
@@ -608,7 +609,7 @@ const ProgramManagement = () => {
                                         style={{
                                             padding: '0.75rem 1rem',
                                             borderBottom: activeTab === 'history' ? '2px solid var(--color-primary)' : 'none',
-                                            color: activeTab === 'history' ? 'var(--color-primary)' : '#6b7280',
+                                            color: activeTab === 'history' ? 'var(--color-primary)' : 'var(--color-text-muted)',
                                             fontWeight: activeTab === 'history' ? 600 : 500,
                                             background: 'none',
                                             borderTop: 'none',
@@ -650,7 +651,7 @@ const ProgramManagement = () => {
                                 onSubmit={handleSubmit}
                                 style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
                             >
-                                <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#111827' }}>
+                                <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--color-text)' }}>
                                     {editingProgram ? 'Edit Program' : 'Add New Program'}
                                 </h2>
 
@@ -661,7 +662,7 @@ const ProgramManagement = () => {
                                             display: 'block',
                                             marginBottom: '0.5rem',
                                             fontWeight: 500,
-                                            color: '#374151'
+                                            color: 'var(--color-text-muted)'
                                         }}
                                     >
                                         Program Name *
@@ -676,7 +677,9 @@ const ProgramManagement = () => {
                                             width: '100%',
                                             padding: '0.75rem',
                                             borderRadius: '0.5rem',
-                                            border: '1px solid #d1d5db',
+                                            border: '1px solid var(--color-border)',
+                                            backgroundColor: 'var(--color-surface)',
+                                            color: 'var(--color-text)',
                                             fontSize: '1rem',
                                             position: 'relative',
                                             zIndex: 1
@@ -700,7 +703,7 @@ const ProgramManagement = () => {
                                                 display: 'block',
                                                 marginBottom: '0.5rem',
                                                 fontWeight: 500,
-                                                color: '#374151'
+                                                color: 'var(--color-text-muted)'
                                             }}
                                         >
                                             Enter Program Name *
@@ -808,7 +811,9 @@ const ProgramManagement = () => {
                                             width: '100%',
                                             padding: '0.75rem',
                                             borderRadius: '0.5rem',
-                                            border: '1px solid #d1d5db',
+                                            border: '1px solid var(--color-border)',
+                                            backgroundColor: 'var(--color-surface)',
+                                            color: 'var(--color-text)',
                                             fontSize: '1rem',
                                             position: 'relative',
                                             zIndex: 1
@@ -831,7 +836,7 @@ const ProgramManagement = () => {
                                                 display: 'block',
                                                 marginBottom: '0.5rem',
                                                 fontWeight: 500,
-                                                color: '#374151'
+                                                color: 'var(--color-text-muted)'
                                             }}
                                         >
                                             Enter City Name *
@@ -862,14 +867,14 @@ const ProgramManagement = () => {
                                                     top: '100%',
                                                     left: 0,
                                                     right: 0,
-                                                    backgroundColor: 'white',
-                                                    border: '1px solid #e5e7eb',
+                                                    backgroundColor: 'var(--color-card)',
+                                                    border: '1px solid var(--color-border)',
                                                     borderRadius: '0.5rem',
                                                     marginTop: '0.25rem',
                                                     maxHeight: '200px',
                                                     overflowY: 'auto',
                                                     zIndex: 10,
-                                                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                                                    boxShadow: 'var(--shadow-md)'
                                                 }}
                                             >
                                                 {filteredCities.map((city, index) => (
@@ -918,7 +923,8 @@ const ProgramManagement = () => {
                                             fontSize: '1rem',
                                             position: 'relative',
                                             zIndex: 1,
-                                            backgroundColor: formData.programCity === 'Salem' ? '#f3f4f6' : 'white'
+                                            backgroundColor: formData.programCity === 'Salem' ? 'var(--color-background)' : 'var(--color-surface)',
+                                            color: 'var(--color-text)'
                                         }}
                                     />
                                 </div>
@@ -935,9 +941,10 @@ const ProgramManagement = () => {
                                         style={{
                                             width: '100%',
                                             padding: '0.5rem',
-                                            border: '1px solid #d1d5db',
+                                            border: '1px solid var(--color-border)',
                                             borderRadius: '0.5rem',
-                                            background: 'white'
+                                            background: 'var(--color-surface)',
+                                            color: 'var(--color-text)'
                                         }}
                                     />
                                     {(bannerImage || formData.programBanner) && (
@@ -953,7 +960,7 @@ const ProgramManagement = () => {
                                                     maxHeight: '200px',
                                                     objectFit: 'contain',
                                                     borderRadius: '0.5rem',
-                                                    border: '1px solid #e5e7eb'
+                                                    border: '1px solid var(--color-border)'
                                                 }}
                                             />
                                         </div>
@@ -982,7 +989,9 @@ const ProgramManagement = () => {
                                             width: '100%',
                                             padding: '0.75rem',
                                             borderRadius: '0.5rem',
-                                            border: '1px solid #d1d5db',
+                                            border: '1px solid var(--color-border)',
+                                            backgroundColor: 'var(--color-surface)',
+                                            color: 'var(--color-text)',
                                             fontSize: '1rem',
                                             position: 'relative',
                                             zIndex: 1
@@ -1011,7 +1020,9 @@ const ProgramManagement = () => {
                                             width: '100%',
                                             padding: '0.75rem',
                                             borderRadius: '0.5rem',
-                                            border: '1px solid #d1d5db',
+                                            border: '1px solid var(--color-border)',
+                                            backgroundColor: 'var(--color-surface)',
+                                            color: 'var(--color-text)',
                                             fontSize: '1rem',
                                             position: 'relative',
                                             zIndex: 1
@@ -1046,7 +1057,9 @@ const ProgramManagement = () => {
                                             width: '100%',
                                             padding: '0.75rem',
                                             borderRadius: '0.5rem',
-                                            border: '1px solid #d1d5db',
+                                            border: '1px solid var(--color-border)',
+                                            backgroundColor: 'var(--color-surface)',
+                                            color: 'var(--color-text)',
                                             fontSize: '1rem',
                                             position: 'relative',
                                             zIndex: 1
@@ -1057,7 +1070,7 @@ const ProgramManagement = () => {
                                 {/* Participant Counts & Fees */}
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                     <div>
-                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: 'var(--color-text-muted)' }}>
                                             Max Participants
                                         </label>
                                         <input
@@ -1069,7 +1082,7 @@ const ProgramManagement = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: 'var(--color-text-muted)' }}>
                                             Program Fee (₹)
                                         </label>
                                         <input
@@ -1077,19 +1090,19 @@ const ProgramManagement = () => {
                                             name="programFee"
                                             value={formData.programFee}
                                             onChange={handleInputChange}
-                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
+                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
                                         />
                                     </div>
                                 </div>
 
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
                                     <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                        <label style={{ fontWeight: 500, color: '#374151' }}>Is Consent Needed?</label>
+                                        <label style={{ fontWeight: 500, color: 'var(--color-text-muted)' }}>Is Consent Needed?</label>
                                         <select
                                             name="isConsentNeeded"
                                             value={formData.isConsentNeeded}
                                             onChange={handleInputChange}
-                                            style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%', backgroundColor: 'white' }}
+                                            style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', width: '100%', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
                                         >
                                             <option value="N">No</option>
                                             <option value="Y">Yes</option>
@@ -1100,7 +1113,7 @@ const ProgramManagement = () => {
                                 {formData.isConsentNeeded === 'Y' && (
                                     <>
                                         <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                            <label style={{ fontWeight: 500, color: '#374151' }}>Consent Screen Text</label>
+                                            <label style={{ fontWeight: 500, color: 'var(--color-text-muted)' }}>Consent Screen Text</label>
                                             <textarea
                                                 name="consentText"
                                                 className="consent-text-container"
@@ -1108,32 +1121,32 @@ const ProgramManagement = () => {
                                                 onChange={handleInputChange}
                                                 placeholder="Detailed consent information..."
                                                 rows={4}
-                                                style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%', fontFamily: 'inherit' }}
+                                                style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', width: '100%', fontFamily: 'inherit', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
                                             />
                                         </div>
                                         <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                            <label style={{ fontWeight: 500, color: '#374151' }}>Consent Question</label>
+                                            <label style={{ fontWeight: 500, color: 'var(--color-text-muted)' }}>Consent Question</label>
                                             <input
                                                 type="text"
                                                 name="consentQuestion"
                                                 value={formData.consentQuestion}
                                                 onChange={handleInputChange}
                                                 placeholder="e.g., Do you agree to the above terms?"
-                                                style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%' }}
+                                                style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', width: '100%', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
                                             />
                                         </div>
                                     </>
                                 )}
 
-                                <div style={{ display: 'grid', gap: '1rem', marginTop: '1rem', borderTop: '1px solid #e5e7eb', paddingTop: '1rem' }}>
-                                    <label style={{ fontWeight: 500, color: '#374151' }}>Additional Options (e.g., Special Accommodation, Food)</label>
-                                    <p style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '-0.5rem' }}>
+                                <div style={{ display: 'grid', gap: '1rem', marginTop: '1rem', borderTop: '1px solid var(--color-border)', paddingTop: '1rem' }}>
+                                    <label style={{ fontWeight: 500, color: 'var(--color-text-muted)' }}>Additional Options (e.g., Special Accommodation, Food)</label>
+                                    <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginTop: '-0.5rem' }}>
                                         These options will be available for selection during registration.
                                     </p>
                                     {formData.additionalOptions.map((option, index) => (
                                         <div key={index} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr auto', gap: '0.5rem', alignItems: 'end' }}>
                                             <div>
-                                                <label style={{ fontSize: '0.75rem', color: '#6b7280' }}>Option Name</label>
+                                                <label style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Option Name</label>
                                                 <input
                                                     type="text"
                                                     value={option.name}
@@ -1143,11 +1156,11 @@ const ProgramManagement = () => {
                                                         setFormData(prev => ({ ...prev, additionalOptions: updated }));
                                                     }}
                                                     placeholder="e.g. Special Accommodation"
-                                                    style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%' }}
+                                                    style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', width: '100%' }}
                                                 />
                                             </div>
                                             <div>
-                                                <label style={{ fontSize: '0.75rem', color: '#6b7280' }}>Fee (₹)</label>
+                                                <label style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Fee (₹)</label>
                                                 <input
                                                     type="number"
                                                     value={option.fee}
@@ -1157,11 +1170,11 @@ const ProgramManagement = () => {
                                                         setFormData(prev => ({ ...prev, additionalOptions: updated }));
                                                     }}
                                                     placeholder="0"
-                                                    style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%' }}
+                                                    style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', width: '100%' }}
                                                 />
                                             </div>
                                             <div>
-                                                <label style={{ fontSize: '0.75rem', color: '#6b7280' }}>Max Count</label>
+                                                <label style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Max Count</label>
                                                 <input
                                                     type="number"
                                                     value={option.maxCount}
@@ -1171,7 +1184,7 @@ const ProgramManagement = () => {
                                                         setFormData(prev => ({ ...prev, additionalOptions: updated }));
                                                     }}
                                                     placeholder="Optional"
-                                                    style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', width: '100%' }}
+                                                    style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', width: '100%' }}
                                                 />
                                             </div>
                                             <button
@@ -1231,12 +1244,13 @@ const ProgramManagement = () => {
                                         style={{
                                             flex: 1,
                                             padding: '0.75rem',
-                                            backgroundColor: 'white',
-                                            color: '#374151',
-                                            border: '1px solid #d1d5db',
+                                            backgroundColor: 'var(--color-surface)',
+                                            color: 'var(--color-text)',
+                                            border: '1px solid var(--color-border)',
                                             borderRadius: '0.5rem',
                                             fontWeight: 600,
-                                            cursor: 'pointer'
+                                            cursor: 'pointer',
+                                            boxShadow: 'var(--shadow-sm)'
                                         }}
                                     >
                                         Cancel
@@ -1252,12 +1266,12 @@ const ProgramManagement = () => {
                                                 style={{
                                                     flex: 1,
                                                     padding: '0.75rem',
-                                                    backgroundColor: '#fee2e2',
-                                                    color: '#dc2626',
+                                                    backgroundColor: 'var(--color-error-transparent)',
+                                                    color: 'var(--color-error)',
                                                     borderRadius: '0.5rem',
                                                     fontWeight: 600,
                                                     cursor: 'pointer',
-                                                    border: '1px solid #fecaca',
+                                                    border: '1px solid var(--color-error-transparent)',
                                                     display: 'flex',
                                                     alignItems: 'center',
                                                     justifyContent: 'center',
@@ -1292,12 +1306,12 @@ const ProgramManagement = () => {
                                                     style={{
                                                         flex: 1,
                                                         padding: '0.75rem',
-                                                        backgroundColor: '#eef2ff',
-                                                        color: '#4f46e5',
+                                                        backgroundColor: 'var(--color-surface)',
+                                                        color: 'var(--color-primary)',
                                                         borderRadius: '0.5rem',
                                                         fontWeight: 600,
                                                         cursor: 'pointer',
-                                                        border: '1px solid #e0e7ff',
+                                                        border: '1px solid var(--color-border)',
                                                         display: 'flex',
                                                         alignItems: 'center',
                                                         justifyContent: 'center',
@@ -1314,7 +1328,7 @@ const ProgramManagement = () => {
                             </form>
                         ) : (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '-0.5rem', fontWeight: 500 }}>
+                                <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '-0.5rem', fontWeight: 500 }}>
                                     Click program card to edit
                                 </p>
                                 {programs.length === 0 ? (
@@ -1322,10 +1336,10 @@ const ProgramManagement = () => {
                                         style={{
                                             textAlign: 'center',
                                             padding: '3rem',
-                                            color: '#6b7280',
-                                            backgroundColor: '#f9fafb',
+                                            color: 'var(--color-text-muted)',
+                                            backgroundColor: 'var(--color-background)',
                                             borderRadius: '0.75rem',
-                                            border: '1px dashed #d1d5db'
+                                            border: '1px dashed var(--color-border)'
                                         }}
                                     >
                                         <p>No {activeTab} programs found.</p>

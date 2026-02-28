@@ -15,11 +15,11 @@ const SystemHealthCard = ({ health, onClick }) => (
     <div
         onClick={onClick}
         style={{
-            background: health?.status === 'good' ? '#f0fdf4' : '#fffbeb',
+            background: health?.status === 'good' ? 'var(--color-success-transparent)' : 'var(--color-warning-transparent)',
             padding: '24px',
             borderRadius: '16px',
             border: '1px solid',
-            borderColor: health?.status === 'good' ? '#bbf7d0' : '#fef3c7',
+            borderColor: health?.status === 'good' ? 'var(--color-success)' : 'var(--color-warning)',
             display: 'flex',
             alignItems: 'center',
             gap: '20px',
@@ -28,29 +28,29 @@ const SystemHealthCard = ({ health, onClick }) => (
         }}
     >
         <div style={{
-            background: health?.status === 'good' ? '#dcfce7' : '#fef3c7',
+            background: health?.status === 'good' ? 'var(--color-success-transparent)' : 'var(--color-warning-transparent)',
             padding: '12px',
             borderRadius: '12px',
-            color: health?.status === 'good' ? '#16a34a' : '#d97706'
+            color: health?.status === 'good' ? 'var(--color-success)' : 'var(--color-warning)'
         }}>
             <Database size={28} />
         </div>
         <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#111827' }}>System Health</h3>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: 'var(--color-text)' }}>System Health</h3>
                 <span style={{
                     padding: '2px 10px',
                     borderRadius: '20px',
                     fontSize: '12px',
                     fontWeight: '700',
                     textTransform: 'uppercase',
-                    background: health?.status === 'good' ? '#16a34a' : '#d97706',
-                    color: 'white'
+                    background: health?.status === 'good' ? 'var(--color-success)' : 'var(--color-warning)',
+                    color: 'var(--color-text-on-primary)'
                 }}>
                     {health?.status || 'Good'}
                 </span>
             </div>
-            <p style={{ margin: 0, fontSize: '14px', color: '#4b5563', lineHeight: 1.4 }}>
+            <p style={{ margin: 0, fontSize: '14px', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
                 {health?.reason}
             </p>
         </div>
@@ -242,18 +242,19 @@ Otherwise, it stays 'Good'.`;
     }, [fetchStats]);
 
     // eslint-disable-next-line no-unused-vars
-    const StatCard = ({ title, value, unit = "", icon: IconComponent, color }) => (
+    const StatCard = ({ title, value, unit = "", icon: IconComponent, color, bgColor }) => (
         <div style={{
-            background: 'white',
+            background: 'var(--color-card)',
             padding: '20px',
             borderRadius: '16px',
-            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+            boxShadow: 'var(--shadow-sm)',
+            border: '1px solid var(--color-border)',
             display: 'flex',
             alignItems: 'center',
             gap: '16px'
         }}>
             <div style={{
-                background: `${color}15`,
+                background: bgColor || `${color}15`,
                 padding: '12px',
                 borderRadius: '12px',
                 color: color
@@ -261,8 +262,8 @@ Otherwise, it stays 'Good'.`;
                 <IconComponent size={24} />
             </div>
             <div>
-                <div style={{ fontSize: '14px', color: '#6b7280', fontWeight: '500' }}>{title}</div>
-                <div style={{ fontSize: '24px', fontWeight: '700', color: '#111827' }}>
+                <div style={{ fontSize: '14px', color: 'var(--color-text-muted)', fontWeight: '500' }}>{title}</div>
+                <div style={{ fontSize: '24px', fontWeight: '700', color: 'var(--color-text)' }}>
                     {value || 0}{unit}
                 </div>
             </div>
@@ -279,7 +280,7 @@ Otherwise, it stays 'Good'.`;
                 animate={{ opacity: 1, scale: 1 }}
                 onClick={() => navigate('/admin-review')}
                 style={{
-                    background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                    background: 'var(--color-error)',
                     padding: '16px',
                     borderRadius: '16px',
                     color: 'white',
@@ -304,7 +305,7 @@ Otherwise, it stays 'Good'.`;
                         </div>
                     </div>
                 </div>
-                <div style={{ background: 'white', color: '#ef4444', padding: '4px 12px', borderRadius: '20px', fontWeight: '700', fontSize: '14px' }}>
+                <div style={{ background: 'var(--color-background)', color: 'var(--color-error)', padding: '4px 12px', borderRadius: '20px', fontWeight: '700', fontSize: '14px' }}>
                     Review
                 </div>
             </motion.div>
@@ -312,7 +313,7 @@ Otherwise, it stays 'Good'.`;
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-20">
+        <div className="min-h-screen pb-20" style={{ backgroundColor: 'var(--color-background)' }}>
             {loading && (
                 <div style={{
                     position: 'fixed',
@@ -320,13 +321,14 @@ Otherwise, it stays 'Good'.`;
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    background: 'rgba(255,255,255,0.7)',
+                    background: 'var(--color-background)',
+                    opacity: 0.7,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     zIndex: 1000
                 }}>
-                    <RefreshCcw className="animate-spin" size={40} color="#3b82f6" />
+                    <RefreshCcw className="animate-spin" size={40} color="var(--color-primary)" />
                 </div>
             )}
             <PageHeader
@@ -353,19 +355,22 @@ Otherwise, it stays 'Good'.`;
                         title="Active Progs"
                         value={stats?.activePrograms}
                         icon={Calendar}
-                        color="#f59e0b"
+                        color="var(--color-warning)"
+                        bgColor="var(--color-warning-transparent)"
                     />
                     <StatCard
                         title="Active Participants"
                         value={stats?.activeParticipants}
                         icon={Users}
-                        color="#ef4444"
+                        color="var(--color-error)"
+                        bgColor="var(--color-error-transparent)"
                     />
                     <StatCard
                         title="Users Today"
                         value={stats?.todayUsers}
                         icon={Users}
-                        color="#06b6d4"
+                        color="var(--color-info)"
+                        bgColor="var(--color-info-transparent)"
                     />
                     <StatCard
                         title="Users Month"
@@ -373,96 +378,109 @@ Otherwise, it stays 'Good'.`;
                             Object.values(geoStats.monthly[new Date().toISOString().substring(0, 7)]).reduce((a, b) => a + b, 0) : 0
                         }
                         icon={Users}
-                        color="#6366f1"
+                        color="var(--color-accent)"
+                        bgColor="var(--color-accent-transparent)"
                     />
                     <StatCard
                         title="Overall Progs"
                         value={stats?.totalPrograms}
                         icon={LayoutDashboard}
-                        color="#3b82f6"
+                        color="var(--color-info)"
+                        bgColor="var(--color-info-transparent)"
                     />
                     <StatCard
                         title="Overall Participants"
                         value={stats?.totalParticipants}
                         icon={Users}
-                        color="#10b981"
+                        color="var(--color-success)"
+                        bgColor="var(--color-success-transparent)"
                     />
                     <StatCard
                         title="Book Orders"
                         value={stats?.totalBookOrders}
                         icon={LayoutDashboard}
-                        color="#10b981"
+                        color="var(--color-success)"
+                        bgColor="var(--color-success-transparent)"
                     />
                     <StatCard
                         title="Book Revenue"
                         value={stats?.totalBookRevenue}
                         unit=" ₹"
                         icon={RefreshCcw}
-                        color="#059669"
+                        color="var(--color-success)"
+                        bgColor="var(--color-success-transparent)"
                     />
                     <StatCard
                         title="Program Banners"
                         value={stats?.totalBanners}
                         icon={Image}
-                        color="#8b5cf6"
+                        color="var(--color-accent)"
+                        bgColor="var(--color-accent-transparent)"
                     />
                     <StatCard
                         title="Online Banners"
                         value={stats?.totalOnlineBanners}
                         icon={Image}
-                        color="#3b82f6"
+                        color="var(--color-info)"
+                        bgColor="var(--color-info-transparent)"
                     />
                     <StatCard
                         title="Satsang Banners"
                         value={stats?.totalSatsangBanners}
                         icon={Image}
-                        color="#f97316"
+                        color="var(--color-warning)"
+                        bgColor="var(--color-warning-transparent)"
                     />
                     <StatCard
                         title="Receipt Images"
                         value={stats?.totalReceipts}
                         icon={Image}
-                        color="#ec4899"
+                        color="var(--color-accent)"
+                        bgColor="var(--color-accent-transparent)"
                     />
                     <StatCard
                         title="Book Covers"
                         value={stats?.totalBookCovers}
                         icon={Image}
-                        color="#10b981"
+                        color="var(--color-success)"
+                        bgColor="var(--color-success-transparent)"
                     />
                     <StatCard
                         title="Storage Size"
                         value={stats?.totalImageSizeMB?.toFixed(2)}
                         unit="MB"
                         icon={RefreshCcw}
-                        color="#6b7280"
+                        color="var(--color-text-muted)"
+                        bgColor="var(--color-surface-alt)"
                     />
                 </div>
 
                 {/* Geographic Distribution */}
                 <div style={{
-                    background: 'white',
+                    background: 'var(--color-card)',
                     padding: '24px',
                     borderRadius: '16px',
-                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                    boxShadow: 'var(--shadow-sm)',
+                    border: '1px solid var(--color-border)'
                 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <MapIcon size={20} color="#3b82f6" />
-                            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600' }}>{geoView === 'overall' ? 'Overall' : 'Monthly'} Distribution</h3>
+                            <MapIcon size={20} color="var(--color-primary)" />
+                            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: 'var(--color-text)' }}>{geoView === 'overall' ? 'Overall' : 'Monthly'} Distribution</h3>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
-                            <div style={{ display: 'flex', gap: '4px', background: '#f3f4f6', padding: '4px', borderRadius: '8px' }}>
+                            <div style={{ display: 'flex', gap: '4px', background: 'var(--color-surface-alt)', padding: '4px', borderRadius: '8px' }}>
                                 <button
                                     onClick={() => setGeoView('overall')}
                                     style={{
                                         padding: '4px 12px',
                                         fontSize: '12px',
                                         borderRadius: '6px',
-                                        background: geoView === 'overall' ? 'white' : 'transparent',
-                                        boxShadow: geoView === 'overall' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                                        background: geoView === 'overall' ? 'var(--color-background)' : 'transparent',
+                                        boxShadow: geoView === 'overall' ? 'var(--shadow-sm)' : 'none',
                                         border: 'none',
-                                        fontWeight: '500'
+                                        fontWeight: '500',
+                                        color: 'var(--color-text)'
                                     }}
                                 >Overall</button>
                                 <button
@@ -471,10 +489,11 @@ Otherwise, it stays 'Good'.`;
                                         padding: '4px 12px',
                                         fontSize: '12px',
                                         borderRadius: '6px',
-                                        background: geoView === 'monthly' ? 'white' : 'transparent',
-                                        boxShadow: geoView === 'monthly' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                                        background: geoView === 'monthly' ? 'var(--color-background)' : 'transparent',
+                                        boxShadow: geoView === 'monthly' ? 'var(--shadow-sm)' : 'none',
                                         border: 'none',
-                                        fontWeight: '500'
+                                        fontWeight: '500',
+                                        color: 'var(--color-text)'
                                     }}
                                 >Month</button>
                             </div>
@@ -501,9 +520,9 @@ Otherwise, it stays 'Good'.`;
                                                     fontSize: '11px',
                                                     borderRadius: '8px',
                                                     border: '1px solid',
-                                                    borderColor: isActive ? '#3b82f6' : '#e5e7eb',
-                                                    background: isActive ? '#3b82f6' : 'white',
-                                                    color: isActive ? 'white' : '#6b7280',
+                                                    borderColor: isActive ? 'var(--color-primary)' : 'var(--color-border)',
+                                                    background: isActive ? 'var(--color-primary)' : 'var(--color-surface)',
+                                                    color: isActive ? 'var(--color-text-on-primary)' : 'var(--color-text-muted)',
                                                     fontWeight: '600',
                                                     whiteSpace: 'nowrap'
                                                 }}
@@ -525,7 +544,7 @@ Otherwise, it stays 'Good'.`;
 
                             if (entries.length === 0) {
                                 return (
-                                    <div style={{ textAlign: 'center', color: '#9ca3af', padding: '20px' }}>
+                                    <div style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: '20px' }}>
                                         No data for this view.
                                     </div>
                                 );
@@ -535,13 +554,13 @@ Otherwise, it stays 'Good'.`;
                                 const percentage = ((count / total) * 100).toFixed(1);
                                 return (
                                     <div key={loc}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '14px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '14px', color: 'var(--color-text)' }}>
                                             <span style={{ fontWeight: '500' }}>{loc}</span>
-                                            <span style={{ color: '#6b7280' }}>{count} users ({percentage}%)</span>
+                                            <span style={{ color: 'var(--color-text-muted)' }}>{count} users ({percentage}%)</span>
                                         </div>
-                                        <div style={{ background: '#f3f4f6', height: '8px', borderRadius: '4px' }}>
+                                        <div style={{ background: 'var(--color-surface)', height: '8px', borderRadius: '4px' }}>
                                             <div style={{
-                                                background: '#3b82f6',
+                                                background: 'var(--color-info-dark)',
                                                 height: '100%',
                                                 width: `${percentage}%`,
                                                 borderRadius: '4px',
@@ -558,23 +577,23 @@ Otherwise, it stays 'Good'.`;
                 {/* Diagnostics (Debug Only) */}
                 <div style={{
                     padding: '20px',
-                    backgroundColor: '#fffbeb',
+                    backgroundColor: 'var(--color-warning-transparent)',
                     borderRadius: '16px',
-                    border: '1px solid #fde68a',
+                    border: '1px solid var(--color-warning)',
                     fontSize: '13px'
                 }}>
-                    <h4 style={{ margin: '0 0 10px 0', color: '#92400e' }}>📊 Diagnostics</h4>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', color: '#b45309' }}>
+                    <h4 style={{ margin: '0 0 10px 0', color: 'var(--color-warning)' }}>📊 Diagnostics</h4>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', color: 'var(--color-warning)' }}>
                         <div>Last Data Sync: {stats?.updatedAt?.toDate?.()?.toLocaleString() || "Never"}</div>
                         <div>Total Unique Devices: {stats?.totalUniqueDevices || 0}</div>
                         <button
                             onClick={handleForceVisit}
                             style={{
                                 padding: '8px 12px',
-                                background: '#fef3c7',
-                                border: '1px solid #fcd34d',
+                                background: 'var(--color-warning-transparent)',
+                                border: '1px solid var(--color-warning)',
                                 borderRadius: '8px',
-                                color: '#92400e',
+                                color: 'var(--color-warning)',
                                 fontWeight: '600',
                                 width: 'fit-content'
                             }}
@@ -589,8 +608,8 @@ Otherwise, it stays 'Good'.`;
                     display: 'flex',
                     gap: '12px',
                     padding: '16px 20px 32px 20px',
-                    backgroundColor: 'white',
-                    borderTop: '1px solid #e5e7eb',
+                    backgroundColor: 'var(--color-card)',
+                    borderTop: '1px solid var(--color-border)',
                     position: 'sticky',
                     bottom: 0,
                     zIndex: 10,
@@ -604,13 +623,13 @@ Otherwise, it stays 'Good'.`;
                             flex: 1,
                             padding: '12px',
                             borderRadius: '12px',
-                            backgroundColor: '#f3f4f6',
+                            backgroundColor: 'var(--color-surface-alt)',
                             border: 'none',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             gap: '8px',
-                            color: '#4b5563',
+                            color: 'var(--color-text-muted)',
                             fontWeight: '600'
                         }}
                     >
@@ -622,13 +641,13 @@ Otherwise, it stays 'Good'.`;
                             flex: 1,
                             padding: '12px',
                             borderRadius: '12px',
-                            backgroundColor: '#e0f2fe',
+                            backgroundColor: 'var(--color-primary-transparent)',
                             border: 'none',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             gap: '8px',
-                            color: '#0369a1',
+                            color: 'var(--color-primary-dark)',
                             fontWeight: '600'
                         }}
                     >
@@ -640,7 +659,7 @@ Otherwise, it stays 'Good'.`;
                     textAlign: 'center',
                     marginTop: '20px',
                     paddingBottom: '20px',
-                    color: '#9ca3af',
+                    color: 'var(--color-text-muted)',
                     fontSize: '12px',
                     fontWeight: '500'
                 }}>

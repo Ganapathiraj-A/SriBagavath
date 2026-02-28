@@ -396,7 +396,7 @@ function AppContent() {
   }
 
   return (
-    <div style={{ position: 'relative', minHeight: '100vh', width: '100%' }}>
+    <div style={{ position: 'relative', minHeight: '100vh', width: '100%', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}>
       <ApiCounterOverlay />
       <DiagnosticLogOverlay />
       {/* Global Force Update Modal */}

@@ -221,11 +221,11 @@ const BackOfficeOfflineBooks = () => {
     const totalCount = Object.values(cart).reduce((a, b) => a + b, 0);
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', paddingBottom: '100px' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)', paddingBottom: '100px' }}>
             <PageHeader
                 title="Offline Book Order"
                 leftAction={
-                    <button onClick={() => navigate('/admin/back-office')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
+                    <button onClick={() => navigate('/admin/back-office')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', color: 'var(--color-text)' }}>
                         <ChevronLeft size={24} />
                     </button>
                 }
@@ -244,9 +244,9 @@ const BackOfficeOfflineBooks = () => {
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 gap: '8px',
-                                background: '#e0f2fe',
-                                color: '#0284c7',
-                                border: '1px solid #bae6fd',
+                                background: 'var(--color-primary-transparent)',
+                                color: 'var(--color-primary)',
+                                border: '1px solid var(--color-primary)',
                                 padding: '10px',
                                 borderRadius: '8px',
                                 fontWeight: 600,
@@ -260,7 +260,7 @@ const BackOfficeOfflineBooks = () => {
                     )}
 
                     {/* Tabs */}
-                    <div style={{ display: 'flex', gap: '16px', borderBottom: '1px solid #e5e7eb', marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', gap: '16px', borderBottom: '1px solid var(--color-border)', marginBottom: '16px' }}>
                         {['Tamil Books', 'English Books'].map(tab => (
                             <button
                                 key={tab}
@@ -270,7 +270,7 @@ const BackOfficeOfflineBooks = () => {
                                     border: 'none',
                                     borderBottom: activeTab === tab ? '2px solid var(--color-primary)' : '2px solid transparent',
                                     backgroundColor: 'transparent',
-                                    color: activeTab === tab ? 'var(--color-primary)' : '#6b7280',
+                                    color: activeTab === tab ? 'var(--color-primary)' : 'var(--color-text-muted)',
                                     fontWeight: activeTab === tab ? '600' : '500',
                                     fontSize: '0.95rem',
                                     cursor: 'pointer'
@@ -283,12 +283,12 @@ const BackOfficeOfflineBooks = () => {
 
                     {/* Search */}
                     <div style={{ position: 'relative' }}>
-                        <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
+                        <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
                         <input
                             placeholder="Search Books..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            style={{ width: '100%', padding: '10px 10px 10px 40px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }}
+                            style={{ width: '100%', padding: '10px 10px 10px 40px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', outline: 'none' }}
                         />
                     </div>
                 </div>
@@ -298,7 +298,7 @@ const BackOfficeOfflineBooks = () => {
                     {pageLoading ? (
                         <div style={{ textAlign: 'center', padding: '20px' }}>Loading books...</div>
                     ) : filteredBooks.length === 0 ? (
-                        <div style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>No books found</div>
+                        <div style={{ textAlign: 'center', padding: '20px', color: 'var(--color-text-muted)' }}>No books found</div>
                     ) : (
                         filteredBooks.map(book => (
                             <motion.div
@@ -313,31 +313,31 @@ const BackOfficeOfflineBooks = () => {
                                     alignItems: 'center',
                                     padding: '12px',
                                     borderRadius: '12px',
-                                    backgroundColor: 'white',
-                                    border: '1px solid #e5e7eb',
-                                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                                    backgroundColor: 'var(--color-surface)',
+                                    border: '1px solid var(--color-border)',
+                                    boxShadow: 'var(--shadow-sm)'
                                 }}
                             >
-                                <div style={{ width: '50px', height: '70px', backgroundColor: '#f3f4f6', borderRadius: '6px', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <div style={{ width: '50px', height: '70px', backgroundColor: 'var(--color-surface-alt)', borderRadius: '6px', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                     {covers[book.id] ? (
                                         <img src={covers[book.id]} alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                     ) : (
-                                        <div style={{ fontSize: '9px', color: '#9ca3af' }}>No Cover</div>
+                                        <div style={{ fontSize: '9px', color: 'var(--color-text-muted)' }}>No Cover</div>
                                     )}
                                 </div>
                                 <div style={{ flex: 1 }}>
-                                    <h4 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 600, color: '#1f2937' }}>{book.title}</h4>
+                                    <h4 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 600, color: 'var(--color-text)' }}>{book.title}</h4>
                                     <div style={{ fontWeight: 700, color: 'var(--color-primary)' }}>₹{book.price}</div>
                                 </div>
                                 <div>
                                     {cart[book.id] ? (
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#eff6ff', borderRadius: '6px', padding: '4px' }}>
-                                            <button onClick={() => removeFromCart(book.id)} style={{ width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '4px', backgroundColor: '#fff', color: '#2563eb', border: 'none', cursor: 'pointer' }}><Minus size={14} /></button>
-                                            <span style={{ fontWeight: 600, fontSize: '14px', minWidth: '16px', textAlign: 'center' }}>{cart[book.id]}</span>
-                                            <button onClick={() => addToCart(book.id)} style={{ width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '4px', backgroundColor: '#2563eb', color: '#fff', border: 'none', cursor: 'pointer' }}><Plus size={14} /></button>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: 'var(--color-primary-transparent)', borderRadius: '6px', padding: '4px' }}>
+                                            <button onClick={() => removeFromCart(book.id)} style={{ width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '4px', backgroundColor: 'var(--color-surface)', color: 'var(--color-primary)', border: 'none', cursor: 'pointer' }}><Minus size={14} /></button>
+                                            <span style={{ fontWeight: 600, fontSize: '14px', minWidth: '16px', textAlign: 'center', color: 'var(--color-text)' }}>{cart[book.id]}</span>
+                                            <button onClick={() => addToCart(book.id)} style={{ width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '4px', backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', cursor: 'pointer' }}><Plus size={14} /></button>
                                         </div>
                                     ) : (
-                                        <button onClick={() => addToCart(book.id)} style={{ padding: '6px 16px', borderRadius: '6px', backgroundColor: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
+                                        <button onClick={() => addToCart(book.id)} style={{ padding: '6px 16px', borderRadius: '6px', backgroundColor: 'var(--color-primary-transparent)', color: 'var(--color-primary)', border: '1px solid var(--color-primary)', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
                                             Add
                                         </button>
                                     )}
@@ -348,20 +348,20 @@ const BackOfficeOfflineBooks = () => {
                 </div>
 
                 {/* Customer & Payment Form */}
-                <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '24px', paddingBottom: '24px' }}>
+                <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '24px', paddingBottom: '24px' }}>
 
                     {/* Order Summary */}
                     {totalCount > 0 && (
-                        <div style={{ marginBottom: '24px', backgroundColor: '#f9fafb', padding: '16px', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
-                            <h3 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '12px', color: '#374151' }}>Selected Books ({totalCount})</h3>
+                        <div style={{ marginBottom: '24px', backgroundColor: 'var(--color-surface)', padding: '16px', borderRadius: '12px', border: '1px solid var(--color-border)' }}>
+                            <h3 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '12px', color: 'var(--color-text)' }}>Selected Books ({totalCount})</h3>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                 {getOrderItems().map(item => (
                                     <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
-                                        <span style={{ color: '#4b5563', flex: 1, paddingRight: '12px' }}>{item.title} <span style={{ fontWeight: 600, color: '#111827' }}>x{item.quantity}</span></span>
-                                        <span style={{ fontWeight: 600, color: '#111827' }}>₹{item.price * item.quantity}</span>
+                                        <span style={{ color: 'var(--color-text-muted)', flex: 1, paddingRight: '12px' }}>{item.title} <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>x{item.quantity}</span></span>
+                                        <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>₹{item.price * item.quantity}</span>
                                     </div>
                                 ))}
-                                <div style={{ borderTop: '1px solid #e5e7eb', marginTop: '8px', paddingTop: '8px', display: 'flex', justifyContent: 'space-between', fontWeight: 700 }}>
+                                <div style={{ borderTop: '1px solid var(--color-border)', marginTop: '8px', paddingTop: '8px', display: 'flex', justifyContent: 'space-between', fontWeight: 700, color: 'var(--color-text)' }}>
                                     <span>Total</span>
                                     <span>₹{getCartTotal()}</span>
                                 </div>
@@ -369,21 +369,21 @@ const BackOfficeOfflineBooks = () => {
                         </div>
                     )}
 
-                    <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>Shipping Details</h3>
+                    <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px', color: 'var(--color-text)' }}>Shipping Details</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
-                        <input placeholder="Customer Name *" value={customerName} onChange={(e) => setCustomerName(e.target.value)} style={{ padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db', boxSizing: 'border-box', width: '100%' }} />
-                        <input placeholder="Mobile Number *" type="tel" value={mobile} onChange={(e) => setMobile(e.target.value)} style={{ padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db', boxSizing: 'border-box', width: '100%' }} />
-                        <textarea placeholder="Address *" value={address} onChange={(e) => setAddress(e.target.value)} style={{ padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db', minHeight: '80px', boxSizing: 'border-box', width: '100%' }} />
+                        <input placeholder="Customer Name *" value={customerName} onChange={(e) => setCustomerName(e.target.value)} style={{ padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)', boxSizing: 'border-box', width: '100%' }} />
+                        <input placeholder="Mobile Number *" type="tel" value={mobile} onChange={(e) => setMobile(e.target.value)} style={{ padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)', boxSizing: 'border-box', width: '100%' }} />
+                        <textarea placeholder="Address *" value={address} onChange={(e) => setAddress(e.target.value)} style={{ padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)', minHeight: '80px', boxSizing: 'border-box', width: '100%' }} />
                         <div style={{ display: 'flex', gap: '12px' }}>
-                            <input placeholder="City" value={city} onChange={(e) => setCity(e.target.value)} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db', minWidth: 0, boxSizing: 'border-box' }} />
-                            <input placeholder="Pincode" type="tel" value={pincode} onChange={(e) => setPincode(e.target.value)} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db', minWidth: 0, boxSizing: 'border-box' }} />
+                            <input placeholder="City" value={city} onChange={(e) => setCity(e.target.value)} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)', minWidth: 0, boxSizing: 'border-box' }} />
+                            <input placeholder="Pincode" type="tel" value={pincode} onChange={(e) => setPincode(e.target.value)} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)', minWidth: 0, boxSizing: 'border-box' }} />
                         </div>
                     </div>
 
-                    <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>Payment Info</h3>
+                    <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px', color: 'var(--color-text)' }}>Payment Info</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         <div style={{ position: 'relative' }}>
-                            <span style={{ position: 'absolute', left: '12px', top: '12px', color: '#6b7280', fontWeight: 600 }}>Total ₹</span>
+                            <span style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--color-text-muted)', fontWeight: 600 }}>Total ₹</span>
                             <div style={{ display: 'flex', gap: '8px' }}>
                                 <input
                                     type="number"
@@ -392,10 +392,10 @@ const BackOfficeOfflineBooks = () => {
                                         setAmount(e.target.value);
                                         setIsManualAmount(true);
                                     }}
-                                    style={{ flex: 1, padding: '12px 12px 12px 70px', borderRadius: '8px', border: '1px solid #d1d5db', fontWeight: 'bold', fontSize: '16px' }}
+                                    style={{ flex: 1, padding: '12px 12px 12px 70px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)', fontWeight: 'bold', fontSize: '16px' }}
                                 />
                                 {!isManualAmount && (
-                                    <div style={{ display: 'flex', alignItems: 'center', padding: '0 12px', backgroundColor: '#f3f4f6', borderRadius: '8px', fontSize: '12px', color: '#6b7280' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', padding: '0 12px', backgroundColor: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', borderRadius: '8px', fontSize: '12px', color: 'var(--color-text-muted)' }}>
                                         Auto
                                     </div>
                                 )}
@@ -406,20 +406,20 @@ const BackOfficeOfflineBooks = () => {
                             placeholder="Payment Reference No (Optional)"
                             value={refNo}
                             onChange={(e) => setRefNo(e.target.value)}
-                            style={{ padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db' }}
+                            style={{ padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}
                         />
                         <div
                             onClick={captureImage}
                             style={{
                                 padding: '16px',
-                                border: '2px dashed #d1d5db',
+                                border: '2px dashed var(--color-border)',
                                 borderRadius: '8px',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 gap: '8px',
-                                color: image ? '#166534' : '#6b7280',
-                                backgroundColor: image ? '#f0fdf4' : 'white',
+                                color: image ? 'var(--color-success)' : 'var(--color-text-muted)',
+                                backgroundColor: image ? 'var(--color-success-transparent)' : 'var(--color-surface)',
                                 cursor: 'pointer'
                             }}
                         >
@@ -438,9 +438,10 @@ const BackOfficeOfflineBooks = () => {
                     bottom: '0',
                     left: '0',
                     right: '0',
-                    backgroundColor: 'white',
+                    backgroundColor: 'var(--color-card)',
                     padding: '16px',
-                    borderTop: '1px solid #e5e7eb',
+                    borderTop: '1px solid var(--color-border)',
+                    boxShadow: '0 -4px 6px -1px var(--color-shadow)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
@@ -448,7 +449,7 @@ const BackOfficeOfflineBooks = () => {
                     zIndex: 50
                 }}>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ fontSize: '12px', color: '#6b7280' }}>{totalCount} Items</span>
+                        <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{totalCount} Items</span>
                         <span style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-primary)' }}>₹{amount}</span>
                     </div>
                     <button

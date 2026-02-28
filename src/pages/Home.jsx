@@ -61,7 +61,7 @@ const MenuButton = ({ title, icon: Icon, path, delay, badgeCount, skipAnimation 
             <div style={{
                 padding: '0.75rem',
                 borderRadius: '9999px',
-                backgroundColor: '#fff7ed',
+                backgroundColor: 'var(--color-primary-transparent)',
                 color: 'var(--color-primary)',
                 display: 'flex',
                 alignItems: 'center',
@@ -76,13 +76,13 @@ const MenuButton = ({ title, icon: Icon, path, delay, badgeCount, skipAnimation 
                     position: 'absolute',
                     top: '12px',
                     right: '12px',
-                    backgroundColor: '#ef4444',
+                    backgroundColor: 'var(--color-error)',
                     color: 'white',
                     fontSize: '0.75rem',
                     fontWeight: 'bold',
                     padding: '2px 8px',
                     borderRadius: '20px',
-                    boxShadow: '0 2px 4px rgba(239, 68, 68, 0.3)'
+                    boxShadow: '0 2px 4px var(--color-error-transparent)'
                 }}>
                     NEW
                 </div>
@@ -434,7 +434,7 @@ const Home = () => {
                                 style={{
                                     background: 'none',
                                     border: 'none',
-                                    color: '#dc2626',
+                                    color: 'var(--color-error)',
                                     fontSize: '0.9rem',
                                     fontWeight: 500,
                                     cursor: 'pointer',

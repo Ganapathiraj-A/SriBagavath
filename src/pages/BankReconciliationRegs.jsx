@@ -314,7 +314,7 @@ const BankReconciliationRegs = () => {
             <span>
                 {parts.map((part, i) =>
                     part.toLowerCase() === utr.toLowerCase()
-                        ? <span key={i} style={{ backgroundColor: '#fef08a', color: '#854d0e', fontWeight: 600, padding: '0 2px', borderRadius: '2px' }}>{part}</span>
+                        ? <span key={i} style={{ backgroundColor: 'var(--color-warning-transparent)', color: 'var(--color-warning)', fontWeight: 600, padding: '0 2px', borderRadius: '2px' }}>{part}</span>
                         : part
                 )}
             </span>
@@ -383,12 +383,12 @@ const BankReconciliationRegs = () => {
     const pastPrograms = sortedPrograms.filter(p => (p.programDate || '') < today);
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>
             <PageHeader
                 title="Registrations & Orders"
                 subtitle={`v${appVersion}`}
                 leftAction={
-                    <button onClick={() => navigate('/admin/back-office/reconciliation')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
+                    <button onClick={() => navigate('/admin/back-office/reconciliation')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', color: 'var(--color-text)' }}>
                         <ChevronLeft size={24} />
                     </button>
                 }
@@ -432,17 +432,18 @@ const BankReconciliationRegs = () => {
                                 flexDirection: 'column',
                                 alignItems: 'center',
                                 gap: '15px',
-                                background: 'white',
+                                background: 'var(--color-surface)',
                                 padding: '15px',
                                 borderRadius: '16px',
                                 maxWidth: '30rem',
                                 width: '100%',
-                                boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)'
+                                boxShadow: 'var(--shadow-lg)',
+                                border: '1px solid var(--color-border)'
                             }}>
                                 <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                                     <div>
-                                        <h2 style={{ margin: 0, fontSize: '18px' }}>Payment Receipt</h2>
-                                        {viewingImage.utr && <div style={{ fontSize: '12px', color: '#1e40af', fontWeight: 600 }}>UTR: {viewingImage.utr}</div>}
+                                        <h2 style={{ margin: 0, fontSize: '18px', color: 'var(--color-text)' }}>Payment Receipt</h2>
+                                        {viewingImage.utr && <div style={{ fontSize: '12px', color: 'var(--color-primary)', fontWeight: 600 }}>UTR: {viewingImage.utr}</div>}
                                     </div>
                                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                                         <button
@@ -450,11 +451,11 @@ const BankReconciliationRegs = () => {
                                             disabled={savingUtr}
                                             style={{
                                                 border: 'none',
-                                                background: '#eff6ff',
+                                                background: 'var(--color-primary-transparent)',
                                                 padding: '6px 10px',
                                                 borderRadius: '8px',
                                                 cursor: 'pointer',
-                                                color: '#2563eb',
+                                                color: 'var(--color-primary)',
                                                 fontSize: '12px',
                                                 fontWeight: 600,
                                                 display: 'flex',
@@ -472,11 +473,11 @@ const BankReconciliationRegs = () => {
                                             onChange={handleUpdateReceiptInModal}
                                         />
                                         <button onClick={() => setViewingImage(null)} style={{ border: 'none', background: 'none', padding: '5px', cursor: 'pointer' }}>
-                                            <X size={24} color="#666" />
+                                            <X size={24} color="var(--color-text-muted)" />
                                         </button>
                                     </div>
                                 </div>
-                                <div style={{ width: '100%', overflowY: 'auto', maxHeight: '50vh', border: '1px solid #eee', borderRadius: '8px' }}>
+                                <div style={{ width: '100%', overflowY: 'auto', maxHeight: '50vh', border: '1px solid var(--color-border)', borderRadius: '8px' }}>
                                     <img
                                         src={viewingImage.base64.startsWith('data:') ? viewingImage.base64 : `data:image/jpeg;base64,${viewingImage.base64}`}
                                         alt="Receipt"
@@ -486,7 +487,7 @@ const BankReconciliationRegs = () => {
 
                                 <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                     <div>
-                                        <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748b', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
+                                        <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--color-text-muted)', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
                                             Detected 12-Digit Numbers
                                         </div>
                                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -497,9 +498,9 @@ const BankReconciliationRegs = () => {
                                                         onClick={() => setEditingUtrValue(num)}
                                                         style={{
                                                             padding: '4px 10px',
-                                                            backgroundColor: editingUtrValue === num ? '#dbeafe' : '#f1f5f9',
-                                                            color: editingUtrValue === num ? '#1e40af' : '#475569',
-                                                            border: editingUtrValue === num ? '1px solid #3b82f6' : '1px solid #e2e8f0',
+                                                            backgroundColor: editingUtrValue === num ? 'var(--color-primary-transparent)' : 'var(--color-background)',
+                                                            color: editingUtrValue === num ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                                            border: editingUtrValue === num ? '1px solid var(--color-primary)' : '1px solid var(--color-border)',
                                                             borderRadius: '6px',
                                                             fontSize: '12px',
                                                             fontWeight: 600,
@@ -510,42 +511,42 @@ const BankReconciliationRegs = () => {
                                                     </button>
                                                 ))
                                             ) : (
-                                                <div style={{ fontSize: '12px', color: '#94a3b8', fontStyle: 'italic' }}>No 12-digit numbers found</div>
+                                                <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>No 12-digit numbers found</div>
                                             )}
                                         </div>
                                     </div>
 
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                            <label style={{ fontSize: '12px', fontWeight: 600, color: '#4b5563' }}>Edit UTR</label>
+                                            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-muted)' }}>Edit UTR</label>
                                             <input
                                                 type="text"
                                                 value={editingUtrValue}
                                                 onChange={(e) => setEditingUtrValue(e.target.value)}
                                                 placeholder="UTR..."
-                                                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '14px', outline: 'none' }}
+                                                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)', fontSize: '14px', outline: 'none' }}
                                             />
                                         </div>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                            <label style={{ fontSize: '12px', fontWeight: 600, color: '#4b5563' }}>Reg. Amount</label>
+                                            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-muted)' }}>Reg. Amount</label>
                                             <input
                                                 type="number"
                                                 value={editingAmountValue}
                                                 onChange={(e) => setEditingAmountValue(e.target.value)}
                                                 placeholder="Reg Amount..."
-                                                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '14px', outline: 'none' }}
+                                                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)', fontSize: '14px', outline: 'none' }}
                                             />
                                         </div>
                                     </div>
 
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                        <label style={{ fontSize: '12px', fontWeight: 600, color: '#4b5563' }}>OCR Amount (Detected from Receipt)</label>
+                                        <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-muted)' }}>OCR Amount (Detected from Receipt)</label>
                                         <input
                                             type="number"
                                             value={editingParsedAmountValue}
                                             onChange={(e) => setEditingParsedAmountValue(e.target.value)}
                                             placeholder="OCR Amount..."
-                                            style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px', outline: 'none', backgroundColor: '#fdf2f2' }}
+                                            style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-error-transparent)', color: 'var(--color-text)', fontSize: '15px', outline: 'none' }}
                                         />
                                     </div>
 
@@ -580,9 +581,9 @@ const BankReconciliationRegs = () => {
                                         height: '48px',
                                         minHeight: '48px',
                                         flexShrink: 0,
-                                        background: '#f3f4f6',
-                                        color: '#4b5563',
-                                        border: '1px solid #e5e7eb',
+                                        background: 'var(--color-surface)',
+                                        color: 'var(--color-text-muted)',
+                                        border: '1px solid var(--color-border)',
                                         borderRadius: '12px',
                                         fontWeight: 700,
                                         fontSize: '15px',
@@ -592,7 +593,7 @@ const BankReconciliationRegs = () => {
                                         alignItems: 'center',
                                         justifyContent: 'center',
                                         transition: 'all 0.2s',
-                                        boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                                        boxShadow: 'var(--shadow-sm)'
                                     }}
                                 >
                                     Dismiss
@@ -605,44 +606,45 @@ const BankReconciliationRegs = () => {
                     {viewingMatch && (
                         <div className="modal-overlay" onClick={() => setViewingMatch(null)} style={{ zIndex: 1100 }}>
                             <div className="modal-content" onClick={e => e.stopPropagation()} style={{
-                                background: 'white',
+                                background: 'var(--color-surface)',
                                 padding: '20px',
                                 borderRadius: '16px',
                                 maxWidth: '30rem',
                                 width: '100%',
-                                boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)'
+                                boxShadow: 'var(--shadow-lg)',
+                                border: '1px solid var(--color-border)'
                             }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
                                     <div>
-                                        <h2 style={{ margin: 0, fontSize: '20px', color: '#111827' }}>Match Verification</h2>
-                                        <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '4px' }}>Technical double-check for the match</div>
+                                        <h2 style={{ margin: 0, fontSize: '20px', color: 'var(--color-text)' }}>Match Verification</h2>
+                                        <div style={{ fontSize: '13px', color: 'var(--color-text-muted)', marginTop: '4px' }}>Technical double-check for the match</div>
                                     </div>
                                     <button onClick={() => setViewingMatch(null)} style={{ border: 'none', background: 'none', padding: '8px', cursor: 'pointer' }}>
-                                        <X size={20} color="#9ca3af" />
+                                        <X size={20} color="var(--color-text-muted)" />
                                     </button>
                                 </div>
 
-                                <div style={{ backgroundColor: '#f8fafc', padding: '15px', borderRadius: '12px', marginBottom: '15px', border: '1px solid #e2e8f0' }}>
-                                    <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748b', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
+                                <div style={{ backgroundColor: 'var(--color-surface-alt)', padding: '15px', borderRadius: '12px', marginBottom: '15px', border: '1px solid var(--color-border)' }}>
+                                    <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--color-text-muted)', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
                                         From Receipt (OCR)
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                        <div style={{ fontSize: '15px', fontWeight: 600, color: '#1e40af' }}>UTR: {viewingMatch.utr || 'Not Found'}</div>
-                                        <div style={{ fontSize: '13px', color: '#334155' }}>Amount: ₹{viewingMatch.amount}</div>
-                                        <div style={{ fontSize: '13px', color: '#334155' }}>User: {viewingMatch.userName}</div>
+                                        <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-primary)' }}>UTR: {viewingMatch.utr || 'Not Found'}</div>
+                                        <div style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>Amount: ₹{viewingMatch.amount}</div>
+                                        <div style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>User: {viewingMatch.userName}</div>
                                     </div>
                                 </div>
 
-                                <div style={{ backgroundColor: '#fff7ed', padding: '15px', borderRadius: '12px', marginBottom: '1.5rem', border: '1px solid #ffedd5' }}>
-                                    <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#9a3412', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
+                                <div style={{ backgroundColor: 'var(--color-warning-transparent)', padding: '15px', borderRadius: '12px', marginBottom: '1.5rem', border: '1px solid var(--color-warning-transparent)' }}>
+                                    <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--color-warning)', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
                                         From Bank Statement
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                        <div style={{ fontSize: '13px', color: '#431407', lineHeight: '1.5' }}>
+                                        <div style={{ fontSize: '13px', color: 'var(--color-text)', lineHeight: '1.5' }}>
                                             <strong>Description:</strong><br />
                                             {viewingMatch.bankDescription ? highlightUTR(viewingMatch.bankDescription, viewingMatch.utr) : 'Bank description not captured for this match.'}
                                         </div>
-                                        <div style={{ fontSize: '13px', color: '#431407' }}>
+                                        <div style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
                                             <strong>Date:</strong> {viewingMatch.bankDate || 'N/A'}
                                         </div>
                                     </div>
@@ -659,8 +661,8 @@ const BankReconciliationRegs = () => {
                     )}
 
                     {/* Program Filter */}
-                    <div style={{ backgroundColor: 'white', padding: '12px', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
-                        <label style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', marginBottom: '8px', display: 'block' }}>Filter by Program</label>
+                    <div style={{ backgroundColor: 'var(--color-surface)', padding: '12px', borderRadius: '12px', border: '1px solid var(--color-border)' }}>
+                        <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '8px', display: 'block' }}>Filter by Program</label>
                         <select
                             value={selectedProgramId}
                             onChange={(e) => setSelectedProgramId(e.target.value)}
@@ -668,10 +670,11 @@ const BankReconciliationRegs = () => {
                                 width: '100%',
                                 padding: '10px',
                                 borderRadius: '8px',
-                                border: '1px solid #d1d5db',
+                                border: '1px solid var(--color-border)',
                                 fontSize: '14px',
                                 outline: 'none',
-                                backgroundColor: '#f9fafb'
+                                backgroundColor: 'var(--color-background)',
+                                color: 'var(--color-text)'
                             }}
                         >
                             <option value="ALL">All Programs</option>
@@ -697,7 +700,7 @@ const BankReconciliationRegs = () => {
                     </div>
 
                     <div style={{ position: 'relative' }}>
-                        <Search size={18} color="#9ca3af" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)' }} />
+                        <Search size={18} color="var(--color-text-muted)" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)' }} />
                         <input
                             type="text"
                             placeholder="Search registrations/orders..."
@@ -707,7 +710,9 @@ const BankReconciliationRegs = () => {
                                 width: '100%',
                                 padding: '0.75rem 1rem 0.75rem 2.75rem',
                                 borderRadius: '0.75rem',
-                                border: '1px solid #e5e7eb',
+                                border: '1px solid var(--color-border)',
+                                backgroundColor: 'var(--color-surface)',
+                                color: 'var(--color-text)',
                                 outline: 'none',
                                 fontSize: '0.95rem'
                             }}
@@ -726,14 +731,14 @@ const BankReconciliationRegs = () => {
                                     padding: '4px'
                                 }}
                             >
-                                <X size={16} color="#9ca3af" />
+                                <X size={16} color="var(--color-text-muted)" />
                             </button>
                         )}
                     </div>
 
                     <div style={{
                         display: 'flex',
-                        borderBottom: '1px solid #e5e7eb',
+                        borderBottom: '1px solid var(--color-border)',
                         gap: '24px',
                         marginBottom: '0.5rem',
                         overflowX: 'auto',
@@ -750,7 +755,7 @@ const BankReconciliationRegs = () => {
                                         border: 'none',
                                         borderBottom: isActive ? '2px solid var(--color-primary)' : '2px solid transparent',
                                         backgroundColor: 'transparent',
-                                        color: isActive ? 'var(--color-primary)' : '#6b7280',
+                                        color: isActive ? 'var(--color-primary)' : 'var(--color-text-muted)',
                                         fontWeight: isActive ? 700 : 500,
                                         fontSize: '0.9rem',
                                         cursor: 'pointer',
@@ -763,8 +768,8 @@ const BankReconciliationRegs = () => {
                                 >
                                     {tab}
                                     <span style={{
-                                        backgroundColor: isActive ? 'var(--color-secondary)' : '#f3f4f6',
-                                        color: isActive ? 'var(--color-primary)' : '#6b7280',
+                                        backgroundColor: isActive ? 'var(--color-secondary)' : 'var(--color-surface-alt)',
+                                        color: isActive ? 'var(--color-primary)' : 'var(--color-text-muted)',
                                         padding: '2px 8px',
                                         borderRadius: '10px',
                                         fontSize: '0.75rem',
@@ -779,24 +784,24 @@ const BankReconciliationRegs = () => {
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                         {loading ? (
-                            <div style={{ padding: '3rem', textAlign: 'center' }}>Loading transactions...</div>
+                            <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>Loading transactions...</div>
                         ) : filteredTransactions.length === 0 ? (
-                            <div style={{ padding: '2rem', textAlign: 'center', backgroundColor: 'white', borderRadius: '1rem', color: '#6b7280' }}>
+                            <div style={{ padding: '2rem', textAlign: 'center', backgroundColor: 'var(--color-surface)', borderRadius: '1rem', color: 'var(--color-text-muted)' }}>
                                 No {activeTab !== 'All' ? activeTab.toLowerCase() : ''} transactions found.
                             </div>
                         ) : (
                             filteredTransactions.map(tx => (
-                                <div key={tx.id} style={{ backgroundColor: 'white', padding: '1rem', borderRadius: '0.75rem', border: '1px solid #e5e7eb' }}>
+                                <div key={tx.id} style={{ backgroundColor: 'var(--color-surface)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                         <div>
-                                            <div style={{ fontWeight: 600, color: '#111827', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                            <div style={{ fontWeight: 600, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                                                 {(() => {
                                                     const details = getProgramDetails(tx);
                                                     return (
                                                         <>
                                                             {tx.itemName}
                                                             {details.date && (
-                                                                <span style={{ fontSize: '13px', fontWeight: 'normal', color: '#64748b', marginLeft: '4px' }}>
+                                                                <span style={{ fontSize: '13px', fontWeight: 'normal', color: 'var(--color-text-muted)', marginLeft: '4px' }}>
                                                                     ({formatProgramDate(details.date)}{details.city ? ` - ${details.city}` : ''})
                                                                 </span>
                                                             )}
@@ -805,14 +810,14 @@ const BankReconciliationRegs = () => {
                                                 })()}
                                                 {tx.reconciled && (
                                                     <span style={{
-                                                        backgroundColor: '#dbeafe', color: '#1e40af', fontSize: '10px', padding: '2px 6px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '4px'
+                                                        backgroundColor: 'var(--color-primary-transparent)', color: 'var(--color-primary)', fontSize: '10px', padding: '2px 6px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '4px'
                                                     }}>
                                                         <Check size={10} /> Bank Verified
                                                     </span>
                                                 )}
                                                 {tx.amountMismatch && (
                                                     <span style={{
-                                                        backgroundColor: '#fee2e2', color: '#dc2626', fontSize: '10px', padding: '2px 6px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '4px', border: '1px solid #fecaca'
+                                                        backgroundColor: 'var(--color-error-transparent)', color: 'var(--color-error)', fontSize: '10px', padding: '2px 6px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '4px', border: '1px solid var(--color-error-light)'
                                                     }}>
                                                         <X size={10} /> Amount Mismatch
                                                     </span>
@@ -820,13 +825,13 @@ const BankReconciliationRegs = () => {
                                             </div>
                                             {tx.amountMismatch && (
                                                 <div style={{
-                                                    fontSize: '0.75rem', backgroundColor: '#fdf2f2', color: '#991b1b', padding: '6px 10px', borderRadius: '6px', marginTop: '6px', borderLeft: '3px solid #dc2626'
+                                                    fontSize: '0.75rem', backgroundColor: 'var(--color-error-transparent)', color: 'var(--color-error)', padding: '6px 10px', borderRadius: '6px', marginTop: '6px', borderLeft: '3px solid var(--color-error)'
                                                 }}>
                                                     <strong>Bank Entry:</strong> ₹{tx.mismatchedBankAmount} <br />
                                                     <span style={{ fontSize: '11px' }}>{tx.mismatchedBankDesc}</span>
                                                 </div>
                                             )}
-                                            <div style={{ fontSize: '0.8125rem', color: '#6b7280', display: 'flex', gap: '0.5rem', marginTop: '2px', alignItems: 'center' }}>
+                                            <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', display: 'flex', gap: '0.5rem', marginTop: '2px', alignItems: 'center' }}>
                                                 <span>{tx.itemType}</span>
                                                 {tx.participantCount > 0 && (
                                                     <>
@@ -837,14 +842,14 @@ const BankReconciliationRegs = () => {
                                                 <span>•</span>
                                                 <span>{new Date(tx.timestamp?.seconds * 1000 || Date.now()).toLocaleDateString()}</span>
                                             </div>
-                                            {tx.utr && <div style={{ fontSize: '0.8125rem', color: '#1e40af', fontWeight: 600, marginTop: '2px' }}>UTR: {tx.utr}</div>}
-                                            {tx.userName && <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '1px' }}>{tx.userName}</div>}
+                                            {tx.utr && <div style={{ fontSize: '0.8125rem', color: 'var(--color-primary)', fontWeight: 600, marginTop: '2px' }}>UTR: {tx.utr}</div>}
+                                            {tx.userName && <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '1px' }}>{tx.userName}</div>}
                                         </div>
                                         <div style={{ textAlign: 'right' }}>
-                                            <div style={{ fontWeight: 700, color: '#111827' }}>₹{tx.amount}</div>
+                                            <div style={{ fontWeight: 700, color: 'var(--color-text)' }}>₹{tx.amount}</div>
                                             <div style={{
                                                 fontSize: '0.75rem',
-                                                color: tx.status === 'COMPLETED' ? '#10b981' : '#f59e0b',
+                                                color: tx.status === 'COMPLETED' ? 'var(--color-success)' : 'var(--color-warning)',
                                                 fontWeight: 700,
                                                 textTransform: 'uppercase'
                                             }}>
@@ -860,12 +865,12 @@ const BankReconciliationRegs = () => {
                                                 style={{
                                                     flex: 1,
                                                     padding: '0.5rem',
-                                                    backgroundColor: 'white',
-                                                    border: '1px solid #ddd',
+                                                    backgroundColor: 'var(--color-surface)',
+                                                    border: '1px solid var(--color-border)',
                                                     borderRadius: '0.5rem',
                                                     fontSize: '0.8125rem',
                                                     fontWeight: 600,
-                                                    color: '#1e40af',
+                                                    color: 'var(--color-primary)',
                                                     display: 'flex',
                                                     alignItems: 'center',
                                                     justifyContent: 'center',
@@ -884,9 +889,9 @@ const BankReconciliationRegs = () => {
                                                         width: '100%',
                                                         padding: '0.5rem',
                                                         borderRadius: '0.5rem',
-                                                        border: '1px solid #2563eb',
-                                                        backgroundColor: '#eff6ff',
-                                                        color: '#2563eb',
+                                                        border: '1px solid var(--color-primary)',
+                                                        backgroundColor: 'var(--color-primary-transparent)',
+                                                        color: 'var(--color-primary)',
                                                         fontSize: '0.8125rem',
                                                         fontWeight: 600,
                                                         cursor: uploadingReceipt === tx.id ? 'wait' : 'pointer',
@@ -912,12 +917,12 @@ const BankReconciliationRegs = () => {
                                                 style={{
                                                     flex: 1,
                                                     padding: '0.5rem',
-                                                    backgroundColor: 'white',
-                                                    border: '1px solid #ddd',
+                                                    backgroundColor: 'var(--color-surface)',
+                                                    border: '1px solid var(--color-border)',
                                                     borderRadius: '0.5rem',
                                                     fontSize: '0.8125rem',
                                                     fontWeight: 600,
-                                                    color: '#1e40af',
+                                                    color: 'var(--color-primary)',
                                                     display: 'flex',
                                                     alignItems: 'center',
                                                     justifyContent: 'center',
@@ -940,7 +945,7 @@ const BankReconciliationRegs = () => {
                                     disabled={loadingMore}
                                     style={{
                                         padding: '0.75rem 1.5rem',
-                                        backgroundColor: 'white',
+                                        backgroundColor: 'var(--color-surface)',
                                         color: 'var(--color-primary)',
                                         border: '1px solid var(--color-primary)',
                                         borderRadius: '0.75rem',
@@ -955,7 +960,7 @@ const BankReconciliationRegs = () => {
                                 </button>
                             )}
                             {!hasMore && transactions.length > 0 && (
-                                <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>No more transactions to load</span>
+                                <span style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>No more transactions to load</span>
                             )}
                         </div>
                     </div>

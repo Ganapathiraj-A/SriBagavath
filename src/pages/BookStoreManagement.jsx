@@ -156,7 +156,7 @@ const BookStoreManagement = () => {
                         flexDirection: 'column',
                         alignItems: 'center',
                         gap: '15px',
-                        background: 'white',
+                        background: 'var(--color-card)',
                         padding: '15px',
                         borderRadius: '16px',
                         maxWidth: '30rem',
@@ -166,11 +166,11 @@ const BookStoreManagement = () => {
                         <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                             <h2 style={{ margin: 0, fontSize: '18px' }}>Verify Receipt</h2>
                             <button onClick={() => setViewingImage(null)} style={{ border: 'none', background: 'none', padding: '5px', cursor: 'pointer' }}>
-                                <X size={24} color="#666" />
+                                <X size={24} color="var(--color-text-muted)" />
                             </button>
                         </div>
 
-                        <div style={{ width: '100%', overflowY: 'auto', maxHeight: '40vh', border: '1px solid #eee', borderRadius: '8px' }}>
+                        <div style={{ width: '100%', overflowY: 'auto', maxHeight: '40vh', border: '1px solid var(--color-border)', borderRadius: '8px' }}>
                             <img
                                 src={viewingImage.base64.startsWith('data:') ? viewingImage.base64 : `data:image/jpeg;base64,${viewingImage.base64}`}
                                 alt="Receipt"
@@ -180,7 +180,7 @@ const BookStoreManagement = () => {
 
                         <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                             <div>
-                                <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748b', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
+                                <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--color-text-muted)', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
                                     Detected 12-Digit Numbers
                                 </div>
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -191,9 +191,9 @@ const BookStoreManagement = () => {
                                                 onClick={() => setEditingUtrValue(num)}
                                                 style={{
                                                     padding: '4px 10px',
-                                                    backgroundColor: editingUtrValue === num ? '#dbeafe' : '#f1f5f9',
-                                                    color: editingUtrValue === num ? '#1e40af' : '#475569',
-                                                    border: editingUtrValue === num ? '1px solid #3b82f6' : '1px solid #e2e8f0',
+                                                    backgroundColor: editingUtrValue === num ? 'var(--color-primary-light)' : 'var(--color-background)',
+                                                    color: editingUtrValue === num ? 'var(--color-primary-dark)' : 'var(--color-text-secondary)',
+                                                    border: editingUtrValue === num ? '1px solid var(--color-primary)' : '1px solid var(--color-border)',
                                                     borderRadius: '6px',
                                                     fontSize: '12px',
                                                     fontWeight: 600,
@@ -204,42 +204,42 @@ const BookStoreManagement = () => {
                                             </button>
                                         ))
                                     ) : (
-                                        <div style={{ fontSize: '12px', color: '#94a3b8', fontStyle: 'italic' }}>No 12-digit numbers found</div>
+                                        <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>No 12-digit numbers found</div>
                                     )}
                                 </div>
                             </div>
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                    <label style={{ fontSize: '12px', fontWeight: 600, color: '#4b5563' }}>Edit UTR</label>
+                                    <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Edit UTR</label>
                                     <input
                                         type="text"
                                         value={editingUtrValue}
                                         onChange={(e) => setEditingUtrValue(e.target.value)}
                                         placeholder="UTR..."
-                                        style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '14px', outline: 'none' }}
+                                        style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', fontSize: '14px', outline: 'none', backgroundColor: 'var(--color-input-background)', color: 'var(--color-text)' }}
                                     />
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                    <label style={{ fontSize: '12px', fontWeight: 600, color: '#4b5563' }}>Amount</label>
+                                    <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Amount</label>
                                     <input
                                         type="number"
                                         value={editingAmountValue}
                                         onChange={(e) => setEditingAmountValue(e.target.value)}
                                         placeholder="Amount..."
-                                        style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '14px', outline: 'none' }}
+                                        style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', fontSize: '14px', outline: 'none', backgroundColor: 'var(--color-input-background)', color: 'var(--color-text)' }}
                                     />
                                 </div>
                             </div>
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                <label style={{ fontSize: '12px', fontWeight: 600, color: '#4b5563' }}>OCR Amount (Detected)</label>
+                                <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>OCR Amount (Detected)</label>
                                 <input
                                     type="number"
                                     value={editingParsedAmountValue}
                                     onChange={(e) => setEditingParsedAmountValue(e.target.value)}
                                     placeholder="OCR Amount..."
-                                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px', outline: 'none', backgroundColor: '#fdf2f2' }}
+                                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', fontSize: '15px', outline: 'none', backgroundColor: 'var(--color-input-background)', color: 'var(--color-text)' }}
                                 />
                             </div>
 
@@ -249,7 +249,7 @@ const BookStoreManagement = () => {
                                 style={{
                                     width: '100%',
                                     height: '48px',
-                                    backgroundColor: '#2563eb',
+                                    backgroundColor: 'var(--color-primary)',
                                     color: 'white',
                                     border: 'none',
                                     borderRadius: '12px',
@@ -262,7 +262,7 @@ const BookStoreManagement = () => {
                             </button>
                             <button
                                 onClick={() => setViewingImage(null)}
-                                style={{ width: '100%', height: '48px', background: '#f3f4f6', color: '#4b5563', border: '1px solid #e5e7eb', borderRadius: '12px', fontWeight: 600, cursor: 'pointer' }}
+                                style={{ width: '100%', height: '48px', background: 'var(--color-background)', color: 'var(--color-text-secondary)', border: '1px solid var(--color-border)', borderRadius: '12px', fontWeight: 600, cursor: 'pointer' }}
                             >
                                 Close
                             </button>
@@ -275,24 +275,43 @@ const BookStoreManagement = () => {
                 title="Purchases"
                 leftAction={
                     <button onClick={() => navigate('/configuration')} style={{ background: 'none', border: 'none', padding: '8px' }}>
-                        <ChevronLeft size={24} />
+                        <ChevronLeft size={24} color="var(--color-text)" />
                     </button>
                 }
             />
 
             {/* Filter & Tabs */}
-            <div style={{ backgroundColor: 'white', padding: '10px 16px', borderBottom: '1px solid #eee' }}>
+            <div style={{ backgroundColor: 'var(--color-background)', padding: '10px 16px', borderBottom: '1px solid var(--color-border)' }}>
                 <div style={{ marginBottom: '10px' }}>
                     <select
                         value={filterSource}
                         onChange={e => setFilterSource(e.target.value)}
                         className="styled-select"
-                        style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #d1d5db' }}
+                        style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-input-background)', color: 'var(--color-text)' }}
                     >
                         <option value="All">All Sources</option>
                         <option value="Online">Online Orders</option>
                         <option value="Offline">Offline Orders</option>
                     </select>
+                </div>
+
+                <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px', padding: '0.5rem 1rem', borderRadius: '1.25rem', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+                    <Search size={18} color="var(--color-text-muted)" />
+                    <input
+                        type="text"
+                        placeholder="Search by name, ID or city..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        style={{
+                            width: '100%',
+                            padding: '0.75rem 0',
+                            border: 'none',
+                            outline: 'none',
+                            fontSize: '0.95rem',
+                            backgroundColor: 'transparent',
+                            color: 'var(--color-text)'
+                        }}
+                    />
                 </div>
 
                 <div className="tabs-row" style={{ justifyContent: 'center' }}>
@@ -303,6 +322,17 @@ const BookStoreManagement = () => {
                                 key={tab}
                                 className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
                                 onClick={() => setActiveTab(tab)}
+                                style={{
+                                    padding: '0.5rem 1rem',
+                                    borderRadius: '1rem',
+                                    fontSize: '0.875rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    border: '1px solid var(--color-border)',
+                                    backgroundColor: activeTab === tab ? 'var(--color-primary)' : 'var(--color-surface)',
+                                    color: activeTab === tab ? 'white' : 'var(--color-text-secondary)',
+                                    transition: 'all 0.2s'
+                                }}
                             >
                                 {TAB_LABELS[tab]}
                                 {count > 0 && <span className="badge">{count}</span>}
@@ -328,7 +358,7 @@ const BookStoreManagement = () => {
                                 setLoading(false);
                             }
                         }}
-                        style={{ width: '100%', padding: '10px', borderRadius: '8px', border: 'none', backgroundColor: '#4f46e5', color: 'white', fontSize: '14px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                        style={{ width: '100%', padding: '10px', borderRadius: '8px', border: 'none', backgroundColor: 'var(--color-accent)', color: 'white', fontSize: '14px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                     >
                         <Package size={18} /> Move All to Storage ({getCount('COMPLETED')})
                     </button>
@@ -336,22 +366,22 @@ const BookStoreManagement = () => {
             )}
 
             <div className="product-list" style={{ marginTop: '16px', padding: '0 16px' }}>
-                {loading && <p style={{ textAlign: 'center' }}>Loading Orders...</p>}
+                {loading && <p style={{ textAlign: 'center', color: 'var(--color-text-muted)' }}>Loading Orders...</p>}
                 {!loading && displayedOrders.length === 0 && (
-                    <p style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+                    <p style={{ textAlign: 'center', padding: '40px', color: 'var(--color-text-muted)' }}>
                         No {TAB_LABELS[activeTab].toLowerCase()} purchases found.
                     </p>
                 )}
 
                 {displayedOrders.map(order => (
-                    <div key={order.id} className="card" style={{ marginBottom: '16px', borderLeft: order.status === 'PENDING' ? '4px solid #f59e0b' : '4px solid #10b981' }}>
+                    <div key={order.id} className="card" style={{ marginBottom: '16px', borderLeft: order.status === 'PENDING' ? '4px solid var(--color-warning)' : '4px solid var(--color-success)', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                            <span style={{ fontSize: '13px', fontWeight: 600, color: '#111827', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 Order #{order.id.substring(0, 8)}
                                 {order.reconciled && (
                                     <span style={{
-                                        backgroundColor: '#dbeafe',
-                                        color: '#1e40af',
+                                        backgroundColor: 'var(--color-primary-light)',
+                                        color: 'var(--color-primary-dark)',
                                         fontSize: '10px',
                                         padding: '2px 6px',
                                         borderRadius: '4px',
@@ -363,7 +393,7 @@ const BookStoreManagement = () => {
                                     </span>
                                 )}
                             </span>
-                            <span style={{ fontSize: '12px', color: '#6b7280' }}>
+                            <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
                                 {new Date(order.timestamp?.seconds * 1000 || Date.now()).toLocaleDateString()}
                             </span>
                         </div>
@@ -372,8 +402,8 @@ const BookStoreManagement = () => {
                         {order.isOffline && (
                             <div style={{
                                 display: 'inline-block',
-                                backgroundColor: '#e0f2fe',
-                                color: '#0284c7',
+                                backgroundColor: 'var(--color-info-light)',
+                                color: 'var(--color-info-dark)',
                                 fontSize: '11px',
                                 fontWeight: 'bold',
                                 padding: '2px 6px',
@@ -385,22 +415,22 @@ const BookStoreManagement = () => {
                         )}
 
                         {/* Items summary */}
-                        <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '8px', marginBottom: '12px' }}>
-                            <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <Package size={14} /> ORDER ITEMS
+                        <div style={{ background: 'var(--color-background)', padding: '10px', borderRadius: '8px', marginBottom: '12px' }}>
+                            <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', fontWeight: 600, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <Package size={14} color="var(--color-text-secondary)" /> ORDER ITEMS
                             </div>
                             {order.orderItems?.map((item, idx) => (
-                                <div key={idx} style={{ fontSize: '14px', color: '#111827', display: 'flex', justifyContent: 'space-between' }}>
+                                <div key={idx} style={{ fontSize: '14px', color: 'var(--color-text)', display: 'flex', justifyContent: 'space-between' }}>
                                     <span>{item.title}</span>
                                     <span style={{ fontWeight: 600 }}>x {item.quantity}</span>
                                 </div>
                             ))}
-                            <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed #cbd5e1', display: 'flex', justifyContent: 'space-between', fontWeight: 700, color: '#1e293b' }}>
+                            <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed var(--color-border)', display: 'flex', justifyContent: 'space-between', fontWeight: 700, color: 'var(--color-text)' }}>
                                 <span>Total Paid</span>
                                 <span>₹{order.amount}</span>
                             </div>
                             {order.utr && (
-                                <div style={{ fontSize: '12px', fontWeight: 600, color: '#2563eb', marginTop: '4px', textAlign: 'right' }}>
+                                <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-primary)', marginTop: '4px', textAlign: 'right' }}>
                                     UTR: {order.utr}
                                 </div>
                             )}
@@ -408,13 +438,13 @@ const BookStoreManagement = () => {
 
                         {/* Shipping details */}
                         {order.shippingAddress && (
-                            <div style={{ background: '#fff7ed', padding: '10px', borderRadius: '8px', marginBottom: '12px' }}>
-                                <div style={{ fontSize: '12px', color: '#9a3412', fontWeight: 600, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <div style={{ background: 'var(--color-primary-bg)', padding: '10px', borderRadius: '8px', marginBottom: '12px', border: '1px solid var(--color-primary-light)' }}>
+                                <div style={{ fontSize: '12px', color: 'var(--color-primary-dark)', fontWeight: 600, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                     <User size={14} /> SHIPPING ADDRESS
                                 </div>
-                                <div style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>{order.shippingAddress.name}</div>
-                                <div style={{ fontSize: '14px', color: '#4b5563' }}>{order.shippingAddress.mobile}</div>
-                                <div style={{ fontSize: '13px', color: '#4b5563', marginTop: '4px', lineHeight: 1.4 }}>
+                                <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-text)' }}>{order.shippingAddress.name}</div>
+                                <div style={{ fontSize: '14px', color: 'var(--color-text-secondary)' }}>{order.shippingAddress.mobile}</div>
+                                <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginTop: '4px', lineHeight: 1.4 }}>
                                     {order.shippingAddress.address},<br />
                                     {order.shippingAddress.city} - {order.shippingAddress.pincode}
                                 </div>
@@ -425,7 +455,7 @@ const BookStoreManagement = () => {
                             {order.hasImage ? (
                                 <button
                                     onClick={() => handleViewImage(order)}
-                                    style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid #ddd', backgroundColor: 'white', fontSize: '13px', fontWeight: 500 }}
+                                    style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-card)', color: 'var(--color-text)', fontSize: '13px', fontWeights: 500 }}
                                 >
                                     Verify Receipt
                                 </button>
@@ -438,9 +468,9 @@ const BookStoreManagement = () => {
                                             width: '100%',
                                             padding: '8px',
                                             borderRadius: '8px',
-                                            border: '1px solid #2563eb',
-                                            backgroundColor: '#eff6ff',
-                                            color: '#2563eb',
+                                            border: '1px solid var(--color-primary)',
+                                            backgroundColor: 'var(--color-primary-transparent)',
+                                            color: 'var(--color-primary)',
                                             fontSize: '13px',
                                             fontWeight: 600,
                                             cursor: uploadingReceipt === order.id ? 'wait' : 'pointer'
@@ -460,7 +490,7 @@ const BookStoreManagement = () => {
                             {order.status === 'PENDING' && (
                                 <button
                                     onClick={() => handleUpdateStatus(order.id, 'PROCESSING')}
-                                    style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', backgroundColor: '#2563eb', color: 'white', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                                    style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', backgroundColor: 'var(--color-primary)', color: 'white', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                                 >
                                     <Package size={16} /> Mark Processing
                                 </button>
@@ -469,13 +499,13 @@ const BookStoreManagement = () => {
                                 <>
                                     <button
                                         onClick={() => handleUpdateStatus(order.id, 'PENDING')}
-                                        style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid #6b7280', backgroundColor: 'white', color: '#4b5563', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                                        style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text-muted)', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                                     >
                                         <Rewind size={16} /> Revert
                                     </button>
                                     <button
                                         onClick={() => handleUpdateStatus(order.id, 'SHIPPED')}
-                                        style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', backgroundColor: '#f59e0b', color: 'white', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                                        style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', backgroundColor: 'var(--color-warning)', color: 'white', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                                     >
                                         <Truck size={16} />
                                         Mark Shipped
@@ -486,13 +516,13 @@ const BookStoreManagement = () => {
                                 <>
                                     <button
                                         onClick={() => handleUpdateStatus(order.id, 'PROCESSING')}
-                                        style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid #6b7280', backgroundColor: 'white', color: '#4b5563', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                                        style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text-muted)', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                                     >
                                         <Rewind size={16} /> Revert
                                     </button>
                                     <button
                                         onClick={() => handleUpdateStatus(order.id, 'COMPLETED')}
-                                        style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', backgroundColor: '#10b981', color: 'white', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                                        style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', backgroundColor: 'var(--color-success)', color: 'white', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                                     >
                                         <Check size={16} /> Mark Completed
                                     </button>
@@ -502,7 +532,7 @@ const BookStoreManagement = () => {
                                 <>
                                     <button
                                         onClick={() => handleUpdateStatus(order.id, 'SHIPPED')}
-                                        style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid #10b981', backgroundColor: 'white', color: '#10b981', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                                        style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid var(--color-success)', backgroundColor: 'var(--color-surface)', color: 'var(--color-success)', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                                     >
                                         <Rewind size={16} /> Revert
                                     </button>
@@ -512,7 +542,7 @@ const BookStoreManagement = () => {
                                                 await TransactionService.archiveTransaction(order.id);
                                             } catch (_err) { alert("Archive Failed"); }
                                         }}
-                                        style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', backgroundColor: '#4f46e5', color: 'white', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                                        style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', backgroundColor: 'var(--color-primary-dark)', color: 'white', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                                     >
                                         <Package size={16} /> Storage
                                     </button>
@@ -520,7 +550,7 @@ const BookStoreManagement = () => {
                             ) : null}
                             <button
                                 onClick={() => handleDelete(order.id)}
-                                style={{ padding: '8px', borderRadius: '8px', border: 'none', backgroundColor: '#fee2e2', color: '#ef4444' }}
+                                style={{ padding: '8px', borderRadius: '8px', border: 'none', backgroundColor: 'var(--color-error-transparent)', color: 'var(--color-error)' }}
                             >
                                 <Trash2 size={18} />
                             </button>

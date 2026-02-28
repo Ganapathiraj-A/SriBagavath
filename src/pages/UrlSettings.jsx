@@ -18,7 +18,7 @@ const CopyableInput = ({ label, value, onChange, placeholder, type = "text", sty
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, ...style }}>
-            {label && <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#4b5563', display: 'block' }}>{label}</label>}
+            {label && <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-muted)', display: 'block' }}>{label}</label>}
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                 <input
                     type={type}
@@ -31,8 +31,9 @@ const CopyableInput = ({ label, value, onChange, placeholder, type = "text", sty
                         paddingRight: '2.5rem',
                         fontSize: '0.875rem',
                         borderRadius: '0.5rem',
-                        border: '1px solid #e5e7eb',
-                        color: '#111827',
+                        border: '1px solid var(--color-border)',
+                        color: 'var(--color-text)',
+                        backgroundColor: 'var(--color-card)',
                         outline: 'none',
                         transition: 'border-color 0.2s'
                     }}
@@ -46,7 +47,7 @@ const CopyableInput = ({ label, value, onChange, placeholder, type = "text", sty
                         background: 'none',
                         border: 'none',
                         cursor: 'pointer',
-                        color: copied ? '#10b981' : '#9ca3af',
+                        color: copied ? 'var(--color-success)' : 'var(--color-text-muted)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center'
@@ -108,7 +109,7 @@ const UrlSettings = () => {
     };
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', paddingBottom: '3rem' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)', paddingBottom: '3rem' }}>
             <PageHeader
                 title="URL Configurations"
                 leftAction={
@@ -121,7 +122,7 @@ const UrlSettings = () => {
             <div style={{ padding: '1.5rem', maxWidth: '42rem', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
 
                 {/* Core Services */}
-                <div style={{ backgroundColor: 'white', borderRadius: '1rem', padding: '1.5rem', border: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '1.5rem', border: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.25rem' }}>
                         <LinkIcon size={18} color="var(--color-primary)" />
                         <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>Core Services</h3>
@@ -143,7 +144,7 @@ const UrlSettings = () => {
                 </div>
 
                 {/* Google Drive Folder IDs */}
-                <div style={{ backgroundColor: 'white', borderRadius: '1rem', padding: '1.5rem', border: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '1.5rem', border: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.25rem' }}>
                         <Cloud size={18} color="var(--color-primary)" />
                         <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>Google Drive Folders</h3>
@@ -200,7 +201,7 @@ const UrlSettings = () => {
                     </div>
                 </div>
 
-                <div style={{ backgroundColor: 'white', borderRadius: '1rem', padding: '1.5rem', border: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '1.5rem', border: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.25rem' }}>
                         <Info size={18} color="var(--color-primary)" />
                         <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>Public Information</h3>
@@ -228,7 +229,7 @@ const UrlSettings = () => {
                 </div>
 
                 {/* Spreadsheet Tab Names */}
-                <div style={{ backgroundColor: 'white', borderRadius: '1rem', padding: '1.5rem', border: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <div style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '1.5rem', border: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.25rem' }}>
                         <ExternalLink size={18} color="var(--color-primary)" />
                         <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>Spreadsheet Tab Mappings</h3>
@@ -237,7 +238,7 @@ const UrlSettings = () => {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                         {/* Programs */}
                         <div>
-                            <h4 style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.75rem' }}>Programs Management</h4>
+                            <h4 style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: '0.75rem' }}>Programs Management</h4>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
                                 <CopyableInput label="Import Tab" value={programImportUrl} onChange={(e) => setProgramImportUrl(e.target.value)} />
                                 <CopyableInput label="Export Tab" value={programExportUrl} onChange={(e) => setProgramExportUrl(e.target.value)} />
@@ -247,7 +248,7 @@ const UrlSettings = () => {
 
                         {/* Books */}
                         <div>
-                            <h4 style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.75rem' }}>Books Management</h4>
+                            <h4 style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: '0.75rem' }}>Books Management</h4>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
                                 <CopyableInput label="Import Tab" value={bookImportUrl} onChange={(e) => setBookImportUrl(e.target.value)} />
                                 <CopyableInput label="Export Tab" value={bookExportUrl} onChange={(e) => setBookExportUrl(e.target.value)} />
@@ -257,7 +258,7 @@ const UrlSettings = () => {
 
                         {/* Donations */}
                         <div>
-                            <h4 style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', marginBottom: '0.75rem' }}>Donations Management</h4>
+                            <h4 style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: '0.75rem' }}>Donations Management</h4>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
                                 <CopyableInput label="Import Tab" value={donationImportUrl} onChange={(e) => setDonationImportUrl(e.target.value)} />
                                 <CopyableInput label="Export Tab" value={donationExportUrl} onChange={(e) => setDonationExportUrl(e.target.value)} />
@@ -268,7 +269,7 @@ const UrlSettings = () => {
                 </div>
 
                 <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-                    <p style={{ fontSize: '0.75rem', color: '#9ca3af', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                         <Cloud size={14} /> Settings are synchronized across all devices
                     </p>
                 </div>

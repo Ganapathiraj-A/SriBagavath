@@ -266,11 +266,11 @@ const BankStatementView = () => {
     };
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>
             <PageHeader
                 title="Bank Statement"
                 leftAction={
-                    <button onClick={() => navigate('/admin/back-office/reconciliation')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
+                    <button onClick={() => navigate('/admin/back-office/reconciliation')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', color: 'var(--color-text)' }}>
                         <ChevronLeft size={24} />
                     </button>
                 }
@@ -288,7 +288,7 @@ const BankStatementView = () => {
                             onClick={handleRunMatch}
                             disabled={loading}
                             style={{
-                                background: 'white',
+                                background: 'var(--color-surface)',
                                 color: 'var(--color-primary)',
                                 border: '1px solid var(--color-primary)',
                                 borderRadius: '0.75rem',
@@ -298,7 +298,8 @@ const BankStatementView = () => {
                                 cursor: loading ? 'wait' : 'pointer',
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '8px'
+                                gap: '8px',
+                                boxShadow: 'var(--shadow-sm)'
                             }}
                         >
                             <CalendarDays size={18} />
@@ -335,26 +336,27 @@ const BankStatementView = () => {
                                 flexDirection: 'column',
                                 alignItems: 'center',
                                 gap: '15px',
-                                background: 'white',
+                                background: 'var(--color-surface)',
                                 padding: '15px',
                                 borderRadius: '16px',
                                 maxWidth: '30rem',
                                 width: '100%',
-                                boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)'
+                                boxShadow: 'var(--shadow-lg)',
+                                border: '1px solid var(--color-border)'
                             }}>
                                 <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                                     <div>
-                                        <h2 style={{ margin: 0, fontSize: '18px' }}>Payment Receipt</h2>
-                                        {viewingImage.utr && <div style={{ fontSize: '12px', color: '#1e40af', fontWeight: 600 }}>UTR: {viewingImage.utr}</div>}
+                                        <h2 style={{ margin: 0, fontSize: '18px', color: 'var(--color-text)' }}>Payment Receipt</h2>
+                                        {viewingImage.utr && <div style={{ fontSize: '12px', color: 'var(--color-primary)', fontWeight: 600 }}>UTR: {viewingImage.utr}</div>}
                                     </div>
                                     <button onClick={() => setViewingImage(null)} style={{ border: 'none', background: 'none', padding: '5px', cursor: 'pointer' }}>
-                                        <X size={24} color="#666" />
+                                        <X size={24} color="var(--color-text-muted)" />
                                     </button>
                                 </div>
                                 <img
                                     src={`data:image/jpeg;base64,${viewingImage.base64}`}
                                     alt="Receipt"
-                                    style={{ width: '100%', borderRadius: '8px', maxHeight: '65vh', objectFit: 'contain', border: '1px solid #eee' }}
+                                    style={{ width: '100%', borderRadius: '8px', maxHeight: '65vh', objectFit: 'contain', border: '1px solid var(--color-border)' }}
                                 />
                                 <button
                                     onClick={() => setViewingImage(null)}
@@ -368,7 +370,7 @@ const BankStatementView = () => {
 
                     <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
                         <div style={{ position: 'relative', flex: 1 }}>
-                            <Search size={18} color="#9ca3af" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)' }} />
+                            <Search size={18} color="var(--color-text-muted)" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)' }} />
                             <input
                                 type="text"
                                 placeholder="Search UPI or description..."
@@ -378,7 +380,9 @@ const BankStatementView = () => {
                                     width: '100%',
                                     padding: '0.75rem 1rem 0.75rem 2.75rem',
                                     borderRadius: '0.75rem',
-                                    border: '1px solid #e5e7eb',
+                                    border: '1px solid var(--color-border)',
+                                    backgroundColor: 'var(--color-surface)',
+                                    color: 'var(--color-text)',
                                     outline: 'none',
                                     fontSize: '0.95rem'
                                 }}
@@ -397,7 +401,7 @@ const BankStatementView = () => {
                                         padding: '4px'
                                     }}
                                 >
-                                    <X size={16} color="#9ca3af" />
+                                    <X size={16} color="var(--color-text-muted)" />
                                 </button>
                             )}
                         </div>
@@ -406,9 +410,9 @@ const BankStatementView = () => {
                             style={{
                                 padding: '0.75rem',
                                 borderRadius: '0.75rem',
-                                border: '1px solid #e5e7eb',
-                                backgroundColor: showFilters ? 'var(--color-primary)' : 'white',
-                                color: showFilters ? 'white' : '#6b7280',
+                                border: '1px solid var(--color-border)',
+                                backgroundColor: showFilters ? 'var(--color-primary)' : 'var(--color-surface)',
+                                color: showFilters ? 'white' : 'var(--color-text-muted)',
                                 cursor: 'pointer',
                                 display: 'flex',
                                 alignItems: 'center',
@@ -424,10 +428,10 @@ const BankStatementView = () => {
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: 'auto', opacity: 1 }}
                             style={{
-                                backgroundColor: 'white',
+                                backgroundColor: 'var(--color-surface)',
                                 padding: '1rem',
                                 borderRadius: '1rem',
-                                border: '1px solid #e5e7eb',
+                                border: '1px solid var(--color-border)',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 gap: '1rem',
@@ -436,28 +440,28 @@ const BankStatementView = () => {
                         >
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                                 <div>
-                                    <label style={{ fontSize: '11px', fontWeight: 600, color: '#6b7280', display: 'block', marginBottom: '4px' }}>From Date</label>
+                                    <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-text-muted)', display: 'block', marginBottom: '4px' }}>From Date</label>
                                     <input
                                         type="date"
                                         value={startDate}
                                         onChange={(e) => setStartDate(e.target.value)}
-                                        style={{ width: '100%', padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', fontSize: '0.875rem' }}
+                                        style={{ width: '100%', padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', fontSize: '0.875rem' }}
                                     />
                                 </div>
                                 <div>
-                                    <label style={{ fontSize: '11px', fontWeight: 600, color: '#6b7280', display: 'block', marginBottom: '4px' }}>To Date</label>
+                                    <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-text-muted)', display: 'block', marginBottom: '4px' }}>To Date</label>
                                     <input
                                         type="date"
                                         value={endDate}
                                         onChange={(e) => setEndDate(e.target.value)}
-                                        style={{ width: '100%', padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', fontSize: '0.875rem' }}
+                                        style={{ width: '100%', padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', fontSize: '0.875rem' }}
                                     />
                                 </div>
                             </div>
                             {(startDate || endDate) && (
                                 <button
                                     onClick={() => { setStartDate(''); setEndDate(''); }}
-                                    style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '12px', fontWeight: 600, cursor: 'pointer', textAlign: 'left' }}
+                                    style={{ background: 'none', border: 'none', color: 'var(--color-error)', fontSize: '12px', fontWeight: 600, cursor: 'pointer', textAlign: 'left' }}
                                 >
                                     Clear Date Filters
                                 </button>
@@ -467,7 +471,7 @@ const BankStatementView = () => {
 
                     <div style={{
                         display: 'flex',
-                        borderBottom: '1px solid #e5e7eb',
+                        borderBottom: '1px solid var(--color-border)',
                         gap: '24px',
                         marginBottom: '0.5rem',
                         overflowX: 'auto',
@@ -484,7 +488,7 @@ const BankStatementView = () => {
                                         border: 'none',
                                         borderBottom: isActive ? '2px solid var(--color-primary)' : '2px solid transparent',
                                         backgroundColor: 'transparent',
-                                        color: isActive ? 'var(--color-primary)' : '#6b7280',
+                                        color: isActive ? 'var(--color-primary)' : 'var(--color-text-muted)',
                                         fontWeight: isActive ? 700 : 500,
                                         fontSize: '0.9rem',
                                         cursor: 'pointer',
@@ -497,8 +501,8 @@ const BankStatementView = () => {
                                 >
                                     {filter}
                                     <span style={{
-                                        backgroundColor: isActive ? 'var(--color-secondary)' : '#f3f4f6',
-                                        color: isActive ? 'var(--color-primary)' : '#6b7280',
+                                        backgroundColor: isActive ? 'var(--color-secondary)' : 'var(--color-surface-alt)',
+                                        color: isActive ? 'var(--color-primary)' : 'var(--color-text-muted)',
                                         padding: '2px 8px',
                                         borderRadius: '10px',
                                         fontSize: '0.75rem',
@@ -515,24 +519,24 @@ const BankStatementView = () => {
                         {loading ? (
                             <div style={{ padding: '3rem', textAlign: 'center' }}>Loading bank entries...</div>
                         ) : filteredEntries.length === 0 ? (
-                            <div style={{ padding: '2rem', textAlign: 'center', backgroundColor: 'white', borderRadius: '1rem', color: '#6b7280' }}>
+                            <div style={{ padding: '2rem', textAlign: 'center', backgroundColor: 'var(--color-surface)', borderRadius: '1rem', color: 'var(--color-text-muted)', border: '1px solid var(--color-border)' }}>
                                 {activeTab === 'All Entries'
                                     ? 'No bank entries found. Upload a statement to get started.'
                                     : `No ${activeTab.toLowerCase()} entries found.`}
                             </div>
                         ) : (
                             filteredEntries.map(entry => (
-                                <div key={entry.id} style={{ backgroundColor: 'white', padding: '1rem', borderRadius: '0.75rem', border: '1px solid #e5e7eb' }}>
+                                <div key={entry.id} style={{ backgroundColor: 'var(--color-surface)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                                        <div style={{ fontSize: '0.8125rem', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                        <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                                             <Calendar size={14} />
                                             {entry.date}
                                         </div>
-                                        <div style={{ fontWeight: 700, color: entry.amount >= 0 ? '#10b981' : '#ef4444' }}>
+                                        <div style={{ fontWeight: 700, color: entry.amount >= 0 ? 'var(--color-success)' : 'var(--color-error)' }}>
                                             {entry.amount >= 0 ? '+' : ''} ₹{entry.amount?.toLocaleString()}
                                         </div>
                                     </div>
-                                    <div style={{ fontSize: '0.875rem', fontWeight: 500, color: '#374151', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                    <div style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                         {entry.desc}
                                     </div>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.75rem' }}>
@@ -542,7 +546,7 @@ const BankStatementView = () => {
                                             display: 'flex',
                                             alignItems: 'center',
                                             gap: '4px',
-                                            color: entry.status === 'MATCHED' ? '#10b981' : entry.status === 'UNMATCHED' ? '#ef4444' : '#f59e0b'
+                                            color: entry.status === 'MATCHED' ? 'var(--color-success)' : entry.status === 'UNMATCHED' ? 'var(--color-error)' : 'var(--color-warning)'
                                         }}>
                                             {entry.status === 'MATCHED' && <CheckCircle2 size={14} />}
                                             {entry.status === 'UNMATCHED' && <XCircle size={14} />}
@@ -554,9 +558,9 @@ const BankStatementView = () => {
                                                 onClick={() => setSelectedEntry(entry)}
                                                 style={{
                                                     fontSize: '0.75rem',
-                                                    color: '#4b5563',
-                                                    background: 'white',
-                                                    border: '1px solid #d1d5db',
+                                                    color: 'var(--color-text)',
+                                                    background: 'var(--color-surface)',
+                                                    border: '1px solid var(--color-border)',
                                                     borderRadius: '0.375rem',
                                                     padding: '4px 8px',
                                                     fontWeight: 600,
@@ -591,7 +595,7 @@ const BankStatementView = () => {
                                     disabled={loadingMore}
                                     style={{
                                         padding: '0.75rem 1.5rem',
-                                        backgroundColor: 'white',
+                                        backgroundColor: 'var(--color-surface)',
                                         color: 'var(--color-primary)',
                                         border: '1px solid var(--color-primary)',
                                         borderRadius: '0.75rem',
@@ -606,7 +610,7 @@ const BankStatementView = () => {
                                 </button>
                             )}
                             {!hasMore && bankEntries.length > 0 && (
-                                <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>No more entries to load</span>
+                                <span style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>No more entries to load</span>
                             )}
                         </div>
                     </div>
@@ -633,12 +637,13 @@ const BankStatementView = () => {
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             style={{
-                                backgroundColor: 'white',
+                                backgroundColor: 'var(--color-surface)',
                                 padding: '1.5rem',
                                 borderRadius: '1rem',
                                 maxWidth: '28rem',
                                 width: '100%',
-                                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
+                                boxShadow: 'var(--shadow-lg)',
+                                border: '1px solid var(--color-border)'
                             }}
                             onClick={e => e.stopPropagation()}
                         >
@@ -646,49 +651,49 @@ const BankStatementView = () => {
                                 <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>Transaction Details</h3>
                                 <button
                                     onClick={() => setSelectedEntry(null)}
-                                    style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#6b7280' }}
+                                    style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: 'var(--color-text-muted)' }}
                                 >
                                     ×
                                 </button>
                             </div>
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                <div style={{ backgroundColor: '#f9fafb', padding: '1rem', borderRadius: '0.75rem' }}>
-                                    <div style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.025em', fontWeight: 600, marginBottom: '0.25rem' }}>
+                                <div style={{ backgroundColor: 'var(--color-surface-alt)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)' }}>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.025em', fontWeight: 600, marginBottom: '0.25rem' }}>
                                         Full Description / Narration
                                     </div>
-                                    <div style={{ fontSize: '1rem', color: '#111827', lineHeight: 1.5, wordBreak: 'break-word' }}>
+                                    <div style={{ fontSize: '1rem', color: 'var(--color-text)', lineHeight: 1.5, wordBreak: 'break-word' }}>
                                         {selectedEntry.desc}
                                     </div>
                                 </div>
 
                                 {selectedEntry.upiId && (
-                                    <div style={{ backgroundColor: '#eff6ff', padding: '1rem', borderRadius: '0.75rem', border: '1px solid #dbeafe' }}>
-                                        <div style={{ fontSize: '0.75rem', color: '#1e40af', textTransform: 'uppercase', letterSpacing: '0.025em', fontWeight: 600, marginBottom: '0.25rem' }}>
+                                    <div style={{ backgroundColor: 'var(--color-primary-transparent)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid var(--color-primary-transparent)' }}>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.025em', fontWeight: 600, marginBottom: '0.25rem' }}>
                                             UPI ID Detected
                                         </div>
-                                        <div style={{ fontSize: '1rem', color: '#1e3a8a', fontWeight: 600, fontFamily: 'monospace' }}>
+                                        <div style={{ fontSize: '1rem', color: 'var(--color-primary)', fontWeight: 600, fontFamily: 'monospace' }}>
                                             {selectedEntry.upiId}
                                         </div>
                                     </div>
                                 )}
 
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                    <div style={{ backgroundColor: '#f9fafb', padding: '0.75rem', borderRadius: '0.75rem' }}>
-                                        <div style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 600 }}>Date</div>
-                                        <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>{selectedEntry.date}</div>
+                                    <div style={{ backgroundColor: 'var(--color-surface-alt)', padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)' }}>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>Date</div>
+                                        <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text)' }}>{selectedEntry.date}</div>
                                     </div>
-                                    <div style={{ backgroundColor: '#f9fafb', padding: '0.75rem', borderRadius: '0.75rem' }}>
-                                        <div style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 600 }}>Amount</div>
-                                        <div style={{ fontSize: '0.875rem', fontWeight: 700, color: selectedEntry.amount >= 0 ? '#10b981' : '#ef4444' }}>
+                                    <div style={{ backgroundColor: 'var(--color-surface-alt)', padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)' }}>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>Amount</div>
+                                        <div style={{ fontSize: '0.875rem', fontWeight: 700, color: selectedEntry.amount >= 0 ? 'var(--color-success)' : 'var(--color-error)' }}>
                                             {selectedEntry.amount >= 0 ? '+' : ''} ₹{selectedEntry.amount?.toLocaleString()}
                                         </div>
                                     </div>
                                 </div>
 
-                                <div style={{ backgroundColor: '#f9fafb', padding: '0.75rem', borderRadius: '0.75rem' }}>
-                                    <div style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 600 }}>Fingerprint (Deduplication ID)</div>
-                                    <div style={{ fontSize: '0.7rem', color: '#6b7280', fontFamily: 'monospace' }}>{selectedEntry.fingerprint}</div>
+                                <div style={{ backgroundColor: 'var(--color-surface-alt)', padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)' }}>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>Fingerprint (Deduplication ID)</div>
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', fontFamily: 'monospace' }}>{selectedEntry.fingerprint}</div>
                                 </div>
                             </div>
 
@@ -699,9 +704,9 @@ const BankStatementView = () => {
                                         width: '100%',
                                         marginTop: '0.5rem',
                                         padding: '0.75rem',
-                                        backgroundColor: 'white',
-                                        color: '#1e40af',
-                                        border: '1px solid #ddd',
+                                        backgroundColor: 'var(--color-surface)',
+                                        color: 'var(--color-primary)',
+                                        border: '1px solid var(--color-border)',
                                         borderRadius: '0.5rem',
                                         fontWeight: 600,
                                         cursor: 'pointer',

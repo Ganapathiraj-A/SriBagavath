@@ -1,6 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
 :root {
+  color-scheme: light dark;
   --color-primary: #FF9933;
   --color-primary-dark: #CC7A00;
   --color-primary-transparent: rgba(255, 153, 51, 0.1);
@@ -19,6 +20,8 @@
   --color-error: #EF4444;
   --color-error-transparent: rgba(239, 68, 68, 0.1);
   --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-warning-transparent: rgba(245, 158, 11, 0.1);
 
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
@@ -26,6 +29,25 @@
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
   --focus-ring: 0 0 0 3px rgba(255, 153, 51, 0.4);
+
+  /* New Theme Tokens */
+  --color-text-secondary: #4B5563;
+  --color-surface-alt: #F1F5F9;
+  --color-success-transparent: rgba(16, 185, 129, 0.1);
+  --color-primary-bg: #FFF7ED;
+  --color-primary-light: #FFEDD5;
+  --color-error-light: #FEE2E2;
+  --color-input-bg: #FFFFFF;
+  --color-input-background: #FFFFFF;
+  --color-border-danger: #FCA5A5;
+  --color-danger-bg: #FEF2F2;
+  --color-accent: #8B5CF6;
+  --color-accent-transparent: rgba(139, 92, 246, 0.1);
+  --color-info: #0EA5E9;
+  --color-info-light: #E0F2FE;
+  --color-info-dark: #0369A1;
+  --color-info-transparent: rgba(14, 165, 233, 0.1);
+  --color-shadow: rgba(0, 0, 0, 0.1);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -43,10 +65,35 @@
     --color-error: #F87171;
     --color-error-transparent: rgba(248, 113, 113, 0.1);
     --color-success: #34D399;
+    --color-warning: #FBBF24;
+    --color-warning-transparent: rgba(251, 191, 36, 0.1);
+    --color-accent: #A78BFA;
+    --color-accent-transparent: rgba(167, 139, 250, 0.1);
+    --color-info: #38BDF8;
+    --color-info-light: rgba(14, 165, 233, 0.1);
+    --color-info-dark: #38BDF8;
+    --color-info-transparent: rgba(56, 189, 248, 0.1);
+    --color-shadow: rgba(0, 0, 0, 0.5);
 
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5);
+
+    /* New Theme Tokens (Dark Mode) */
+    --color-text-secondary: #94A3B8;
+    --color-surface-alt: #334155;
+    --color-success-transparent: rgba(52, 211, 153, 0.1);
+    --color-primary-bg: rgba(255, 153, 51, 0.1);
+    --color-primary-light: rgba(255, 153, 51, 0.2);
+    --color-error-light: rgba(248, 113, 113, 0.2);
+    --color-input-bg: #1E293B;
+    --color-input-background: #1E293B;
+    --color-border-danger: #7F1D1D;
+    --color-danger-bg: rgba(127, 29, 29, 0.2);
+    --color-accent: #FB923C;
+    --color-info-light: rgba(14, 165, 233, 0.1);
+    --color-info-dark: #38BDF8;
+    --color-shadow: rgba(0, 0, 0, 0.5);
   }
 }
 

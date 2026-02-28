@@ -92,7 +92,7 @@ const RelatedVideosManagement = () => {
                 }
             />
 
-            <div style={{ maxWidth: '600px', margin: '0 auto', padding: '1.5rem' }}>
+            <div style={{ maxWidth: '600px', margin: '0 auto', padding: '1.5rem', paddingBottom: '2rem' }}>
 
                 {/* Add/Edit Button */}
                 {!isAdding && (
@@ -128,7 +128,7 @@ const RelatedVideosManagement = () => {
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
                             style={{
-                                backgroundColor: 'white',
+                                backgroundColor: 'var(--color-surface)',
                                 padding: '1.5rem',
                                 borderRadius: '1rem',
                                 boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
@@ -137,32 +137,32 @@ const RelatedVideosManagement = () => {
                             }}
                         >
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                                <h3 style={{ margin: 0, color: '#111827' }}>{editingId ? 'Edit Playlist' : 'New Playlist'}</h3>
-                                <button onClick={resetForm} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer' }}>
+                                <h3 style={{ margin: 0, color: 'var(--color-text)' }}>{editingId ? 'Edit Playlist' : 'New Playlist'}</h3>
+                                <button onClick={resetForm} style={{ background: 'none', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer' }}>
                                     <X size={20} />
                                 </button>
                             </div>
 
                             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#374151', marginBottom: '0.25rem' }}>Title</label>
+                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: '0.25rem' }}>Title</label>
                                     <input
                                         type="text"
                                         value={formData.title}
                                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                                         placeholder="e.g., Monthly Satsang Playlists"
-                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', outline: 'none' }}
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', outline: 'none', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}
                                         required
                                     />
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#374151', marginBottom: '0.25rem' }}>YouTube URL</label>
+                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: '0.25rem' }}>YouTube URL</label>
                                     <input
                                         type="url"
                                         value={formData.url}
                                         onChange={(e) => setFormData({ ...formData, url: e.target.value })}
                                         placeholder="https://youtube.com/playlist?list=..."
-                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', outline: 'none' }}
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', outline: 'none', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}
                                         required
                                     />
                                 </div>
@@ -192,12 +192,20 @@ const RelatedVideosManagement = () => {
 
                 {/* List Section */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.5rem' }}>Existing Entries</h3>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: '0.5rem' }}>Existing Entries</h3>
                     {loading ? (
-                        <div style={{ textAlign: 'center', padding: '2rem', color: '#9ca3af' }}>Loading entries...</div>
+                        <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)' }}>Loading entries...</div>
                     ) : videos.length === 0 ? (
-                        <div style={{ textAlign: 'center', padding: '3rem', backgroundColor: 'white', borderRadius: '1rem', color: '#9ca3af', border: '2px dashed #e5e7eb' }}>
-                            No playlists configured yet.
+                        <div style={{
+                            textAlign: 'center',
+                            padding: '4rem 2rem',
+                            backgroundColor: 'var(--color-surface)',
+                            borderRadius: '16px',
+                            border: '1px dashed var(--color-border)',
+                            color: 'var(--color-text-muted)'
+                        }}>
+                            <Video size={48} style={{ margin: '0 auto 1rem', opacity: 0.3 }} />
+                            <p>No playlists configured yet.</p>
                         </div>
                     ) : (
                         videos.map((video) => (
@@ -207,43 +215,43 @@ const RelatedVideosManagement = () => {
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 style={{
-                                    backgroundColor: 'white',
+                                    backgroundColor: 'var(--color-surface)',
                                     padding: '1rem',
                                     borderRadius: '0.75rem',
                                     boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                                     display: 'flex',
                                     justifyContent: 'space-between',
                                     alignItems: 'center',
-                                    border: '1px solid #f3f4f6'
+                                    border: '1px solid var(--color-border)'
                                 }}
                             >
                                 <div style={{ overflow: 'hidden', marginRight: '1rem' }}>
-                                    <div style={{ fontWeight: 600, color: '#111827', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <div style={{ fontWeight: 600, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                         <Video size={16} color="#ef4444" />
                                         {video.title}
                                     </div>
-                                    <div style={{ fontSize: '0.75rem', color: '#6b7280', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', marginTop: '0.25rem' }}>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', marginTop: '0.25rem' }}>
                                         {video.url}
                                     </div>
                                 </div>
                                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                                     <button
                                         onClick={() => window.open(video.url, '_blank')}
-                                        style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb', background: 'white', color: '#3b82f6', cursor: 'pointer' }}
+                                        style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', background: 'var(--color-background)', color: 'var(--color-primary)', cursor: 'pointer' }}
                                         title="View Link"
                                     >
                                         <ExternalLink size={18} />
                                     </button>
                                     <button
                                         onClick={() => handleEdit(video)}
-                                        style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb', background: 'white', color: '#6366f1', cursor: 'pointer' }}
+                                        style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', background: 'var(--color-card)', color: '#6366f1', cursor: 'pointer' }}
                                         title="Edit"
                                     >
                                         <Edit size={18} />
                                     </button>
                                     <button
                                         onClick={() => handleDelete(video.id)}
-                                        style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb', background: 'white', color: '#ef4444', cursor: 'pointer' }}
+                                        style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', background: 'var(--color-card)', color: '#ef4444', cursor: 'pointer' }}
                                         title="Delete"
                                     >
                                         <Trash2 size={18} />

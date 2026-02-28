@@ -48,7 +48,7 @@ const CopyableInput = ({ label, value, onChange, placeholder, type = "text", sty
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, ...style }}>
-            {label && <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#4b5563', display: 'block' }}>{label}</label>}
+            {label && <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-muted)', display: 'block' }}>{label}</label>}
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                 <input
                     type={type}
@@ -61,8 +61,9 @@ const CopyableInput = ({ label, value, onChange, placeholder, type = "text", sty
                         paddingRight: '2.5rem',
                         fontSize: '0.875rem',
                         borderRadius: '0.5rem',
-                        border: '1px solid #e5e7eb',
-                        color: '#111827',
+                        border: '1px solid var(--color-border)',
+                        backgroundColor: 'var(--color-surface)',
+                        color: 'var(--color-text)',
                         outline: 'none',
                         transition: 'border-color 0.2s'
                     }}
@@ -76,7 +77,7 @@ const CopyableInput = ({ label, value, onChange, placeholder, type = "text", sty
                         background: 'none',
                         border: 'none',
                         cursor: 'pointer',
-                        color: copied ? '#10b981' : '#9ca3af',
+                        color: copied ? 'var(--color-success)' : 'var(--color-text-muted)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center'
@@ -90,7 +91,7 @@ const CopyableInput = ({ label, value, onChange, placeholder, type = "text", sty
     );
 };
 
-const SettingItem = ({ title, subtitle, icon: Icon, delay, onClick, color = '#2563eb', bgColor = '#eff6ff' }) => { // eslint-disable-line no-unused-vars
+const SettingItem = ({ title, subtitle, icon: Icon, delay, onClick, color = 'var(--color-primary)', bgColor = 'var(--color-primary-transparent)' }) => { // eslint-disable-line no-unused-vars
     return (
         <motion.button
             initial={{ opacity: 0, x: -20 }}
@@ -103,8 +104,8 @@ const SettingItem = ({ title, subtitle, icon: Icon, delay, onClick, color = '#25
                 alignItems: 'center',
                 gap: '1rem',
                 padding: '1rem',
-                backgroundColor: 'white',
-                border: '1px solid #e5e7eb',
+                backgroundColor: 'var(--color-card)',
+                border: '1px solid var(--color-border)',
                 borderRadius: '0.75rem',
                 cursor: 'pointer',
                 textAlign: 'left'
@@ -122,10 +123,10 @@ const SettingItem = ({ title, subtitle, icon: Icon, delay, onClick, color = '#25
                 <Icon size={20} />
             </div>
             <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '1rem', fontWeight: 600, color: '#111827' }}>{title}</div>
-                {subtitle && <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>{subtitle}</div>}
+                <div style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-text)' }}>{title}</div>
+                {subtitle && <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{subtitle}</div>}
             </div>
-            <ChevronRight size={18} color="#9ca3af" />
+            <ChevronRight size={18} color="var(--color-text-muted)" />
         </motion.button>
     );
 };
@@ -192,8 +193,8 @@ const AdminSettings = () => {
                     icon: Layers,
                     path: '/admin/program-management',
                     permission: ['PROGRAM_MANAGEMENT', 'CONSULTATION_MANAGEMENT', 'DAILY_ZOOM_MANAGEMENT'],
-                    color: '#f97316',
-                    bgColor: '#fff7ed'
+                    color: 'var(--color-primary)',
+                    bgColor: 'var(--color-primary-transparent)'
                 },
                 {
                     id: 'BOOK_MANAGEMENT',
@@ -202,8 +203,8 @@ const AdminSettings = () => {
                     icon: BookOpen,
                     path: '/admin/books',
                     permission: 'BANKING',
-                    color: '#8b5cf6',
-                    bgColor: '#f5f3ff'
+                    color: 'var(--color-accent)',
+                    bgColor: 'var(--color-accent-transparent)'
                 },
                 {
                     id: 'MANAGE_USERS',
@@ -212,8 +213,8 @@ const AdminSettings = () => {
                     icon: Users,
                     path: '/manage-users',
                     permission: 'MANAGE_USERS',
-                    color: '#ec4899',
-                    bgColor: '#fdf2f8'
+                    color: 'var(--color-error)',
+                    bgColor: 'var(--color-error-transparent)'
                 },
                 {
                     id: 'RELATED_VIDEO_MANAGEMENT',
@@ -222,8 +223,8 @@ const AdminSettings = () => {
                     icon: Video,
                     path: '/admin/related-videos',
                     permission: 'RELATED_VIDEO_MANAGEMENT',
-                    color: '#ef4444',
-                    bgColor: '#fef2f2'
+                    color: 'var(--color-error)',
+                    bgColor: 'var(--color-error-transparent)'
                 }
             ]
         },
@@ -237,8 +238,8 @@ const AdminSettings = () => {
                     icon: LayoutDashboard,
                     path: '/admin-dashboard',
                     permission: 'REPORTING',
-                    color: '#06b6d4',
-                    bgColor: '#ecfeff'
+                    color: 'var(--color-info)',
+                    bgColor: 'var(--color-info-transparent)'
                 },
                 {
                     id: 'SYSTEM_MAINTENANCE',
@@ -247,8 +248,8 @@ const AdminSettings = () => {
                     icon: RefreshCw,
                     action: 'CLEAR_CACHE',
                     permission: 'REPORTING',
-                    color: '#ef4444',
-                    bgColor: '#fef2f2'
+                    color: 'var(--color-error)',
+                    bgColor: 'var(--color-error-transparent)'
                 }
             ]
         }
@@ -266,7 +267,7 @@ const AdminSettings = () => {
     };
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>
             <PageHeader
                 title="Settings"
                 leftAction={
@@ -290,7 +291,7 @@ const AdminSettings = () => {
 
                     return (
                         <div key={sIdx} style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
-                            <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0.5rem' }}>
+                            <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0.5rem' }}>
                                 {section.title}
                             </h3>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -311,8 +312,8 @@ const AdminSettings = () => {
                 {role !== 'POWER_USER' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0.5rem' }}>
-                            <User size={16} color="#6b7280" />
-                            <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
+                            <User size={16} color="var(--color-text-muted)" />
+                            <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
                                 Personal Profile
                             </h3>
                         </div>
@@ -321,10 +322,10 @@ const AdminSettings = () => {
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             style={{
-                                backgroundColor: 'white',
+                                backgroundColor: 'var(--color-card)',
                                 borderRadius: '1rem',
                                 padding: '1.5rem',
-                                border: '1px solid #e5e7eb',
+                                border: '1px solid var(--color-border)',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 gap: '1.25rem'
@@ -333,15 +334,15 @@ const AdminSettings = () => {
                             {/* Landing Page */}
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                    <div style={{ padding: '0.5rem', borderRadius: '8px', backgroundColor: '#f3f4f6', color: '#374151' }}>
+                                    <div style={{ padding: '0.5rem', borderRadius: '8px', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}>
                                         <Settings size={18} />
                                     </div>
-                                    <div style={{ fontSize: '0.9375rem', fontWeight: 600, color: '#111827' }}>Landing Page</div>
+                                    <div style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--color-text)' }}>Landing Page</div>
                                 </div>
                                 <select
                                     value={landingPage}
                                     onChange={handleLandingPageChange}
-                                    style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb', backgroundColor: 'white', fontSize: '0.875rem', outline: 'none' }}
+                                    style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', fontSize: '0.875rem', outline: 'none' }}
                                 >
                                     <option value="/">Default Home</option>
                                     <option value="/configuration">Admin Home</option>
@@ -352,12 +353,12 @@ const AdminSettings = () => {
                             {/* Dev Mode Toggle */}
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                    <div style={{ padding: '0.5rem', borderRadius: '8px', backgroundColor: '#f3f4f6', color: '#374151' }}>
+                                    <div style={{ padding: '0.5rem', borderRadius: '8px', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}>
                                         <Layers size={18} />
                                     </div>
                                     <div>
-                                        <div style={{ fontSize: '0.9375rem', fontWeight: 600, color: '#111827' }}>Developer Mode</div>
-                                        <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>Show debug tools</div>
+                                        <div style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--color-text)' }}>Developer Mode</div>
+                                        <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>Show debug tools</div>
                                     </div>
                                 </div>
                                 <label style={{ position: 'relative', display: 'inline-block', width: '40px', height: '22px' }}>
@@ -367,32 +368,32 @@ const AdminSettings = () => {
                                         checked={devMode}
                                         onChange={(e) => setDevMode(e.target.checked)}
                                     />
-                                    <span style={{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: devMode ? '#2563eb' : '#ccc', borderRadius: '34px', transition: '.4s' }}></span>
+                                    <span style={{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: devMode ? 'var(--color-primary)' : 'var(--color-border)', borderRadius: '34px', transition: '.4s' }}></span>
                                     <span style={{ position: 'absolute', height: '16px', width: '16px', left: '3px', bottom: '3px', backgroundColor: 'white', borderRadius: '50%', transition: '.4s', transform: devMode ? 'translateX(18px)' : 'translateX(0)' }}></span>
                                 </label>
                             </div>
 
                             {/* Dev Sub-options */}
                             {devMode && (
-                                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', paddingTop: '0.5rem', borderTop: '1px dashed #e5e7eb' }}>
+                                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', paddingTop: '0.5rem', borderTop: '1px dashed var(--color-border)' }}>
                                     <div>
-                                        <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.5rem' }}>Update Source</div>
+                                        <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Update Source</div>
                                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                                             {['auto', 'laptop', 'github'].map(source => (
-                                                <button key={source} onClick={() => setUpdateSource(source)} style={{ flex: 1, padding: '0.4rem', fontSize: '0.75rem', borderRadius: '0.375rem', border: '1px solid', borderColor: updateSource === source ? '#2563eb' : '#d1d5db', backgroundColor: updateSource === source ? '#eff6ff' : 'white', color: updateSource === source ? '#1d4ed8' : '#374151', textTransform: 'capitalize' }}>
+                                                <button key={source} onClick={() => setUpdateSource(source)} style={{ flex: 1, padding: '0.4rem', fontSize: '0.75rem', borderRadius: '0.375rem', border: '1px solid', borderColor: updateSource === source ? 'var(--color-primary)' : 'var(--color-border)', backgroundColor: updateSource === source ? 'var(--color-primary-transparent)' : 'var(--color-surface)', color: updateSource === source ? 'var(--color-primary)' : 'var(--color-text)', textTransform: 'capitalize' }}>
                                                     {source}
                                                 </button>
                                             ))}
                                         </div>
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                                        <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#4b5563' }}>Local Server IP</div>
-                                        <input type="text" value={serverUrl} onChange={(e) => setServerUrl(e.target.value)} placeholder="http://192.168.1.X:8080" style={{ padding: '0.625rem', fontSize: '0.875rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', color: '#111827' }} />
+                                        <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Local Server IP</div>
+                                        <input type="text" value={serverUrl} onChange={(e) => setServerUrl(e.target.value)} placeholder="http://192.168.1.X:8080" style={{ padding: '0.625rem', fontSize: '0.875rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }} />
                                     </div>
 
                                     {/* API Counter Toggle */}
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f9fafb', padding: '0.5rem', borderRadius: '0.5rem' }}>
-                                        <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#4b5563' }}>Show API Counter</div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--color-background)', padding: '0.5rem', borderRadius: '0.5rem' }}>
+                                        <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Show API Counter</div>
                                         <label style={{ position: 'relative', display: 'inline-block', width: '36px', height: '20px' }}>
                                             <input
                                                 type="checkbox"
@@ -400,14 +401,14 @@ const AdminSettings = () => {
                                                 checked={showApiCounter}
                                                 onChange={(e) => setShowApiCounter(e.target.checked)}
                                             />
-                                            <span style={{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: showApiCounter ? '#f97316' : '#ccc', borderRadius: '34px', transition: '.4s' }}></span>
+                                            <span style={{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: showApiCounter ? 'var(--color-warning)' : 'var(--color-border)', borderRadius: '34px', transition: '.4s' }}></span>
                                             <span style={{ position: 'absolute', height: '14px', width: '14px', left: '3px', bottom: '3px', backgroundColor: 'white', borderRadius: '50%', transition: '.4s', transform: showApiCounter ? 'translateX(16px)' : 'translateX(0)' }}></span>
                                         </label>
                                     </div>
 
                                     {/* Diagnostic Logs Toggle */}
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f9fafb', padding: '0.5rem', borderRadius: '0.5rem' }}>
-                                        <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#4b5563' }}>Show Diagnostic Logs</div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--color-background)', padding: '0.5rem', borderRadius: '0.5rem' }}>
+                                        <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Show Diagnostic Logs</div>
                                         <label style={{ position: 'relative', display: 'inline-block', width: '36px', height: '20px' }}>
                                             <input
                                                 type="checkbox"
@@ -415,7 +416,7 @@ const AdminSettings = () => {
                                                 checked={showDiagnosticLogs}
                                                 onChange={(e) => setShowDiagnosticLogs(e.target.checked)}
                                             />
-                                            <span style={{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: showDiagnosticLogs ? '#10b981' : '#ccc', borderRadius: '34px', transition: '.4s' }}></span>
+                                            <span style={{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: showDiagnosticLogs ? 'var(--color-success)' : 'var(--color-border)', borderRadius: '34px', transition: '.4s' }}></span>
                                             <span style={{ position: 'absolute', height: '14px', width: '14px', left: '3px', bottom: '3px', backgroundColor: 'white', borderRadius: '50%', transition: '.4s', transform: showDiagnosticLogs ? 'translateX(16px)' : 'translateX(0)' }}></span>
                                         </label>
                                     </div>
@@ -428,10 +429,10 @@ const AdminSettings = () => {
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             style={{
-                                backgroundColor: 'white',
+                                backgroundColor: 'var(--color-card)',
                                 borderRadius: '1rem',
                                 padding: '1.25rem',
-                                border: '1px solid #e5e7eb',
+                                border: '1px solid var(--color-border)',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 gap: '1rem',
@@ -439,13 +440,13 @@ const AdminSettings = () => {
                             }}
                         >
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <Cpu size={16} color="#6b7280" />
-                                <h4 style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
+                                <Cpu size={16} color="var(--color-text-muted)" />
+                                <h4 style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
                                     This Device Authorization
                                 </h4>
                             </div>
 
-                            <div style={{ fontSize: '0.75rem', color: '#6b7280', backgroundColor: '#f9fafb', padding: '0.75rem', borderRadius: '0.5rem', wordBreak: 'break-all', fontFamily: 'monospace', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', backgroundColor: 'var(--color-background)', padding: '0.75rem', borderRadius: '0.5rem', wordBreak: 'break-all', fontFamily: 'monospace', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
                                 <span style={{ flex: 1 }}>ID: {deviceId}</span>
                                 <button
                                     onClick={() => {
@@ -460,8 +461,8 @@ const AdminSettings = () => {
 
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div>
-                                    <div style={{ fontSize: '0.9375rem', fontWeight: 600, color: '#111827' }}>Anonymous Debugging</div>
-                                    <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>Keep debug tools visible after logout</div>
+                                    <div style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--color-text)' }}>Anonymous Debugging</div>
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>Keep debug tools visible after logout</div>
                                 </div>
                                 <label style={{ position: 'relative', display: 'inline-block', width: '40px', height: '22px' }}>
                                     <input
@@ -470,7 +471,7 @@ const AdminSettings = () => {
                                         checked={isDeviceAuthorized}
                                         onChange={(e) => toggleDeviceAuthorization(e.target.checked)}
                                     />
-                                    <span style={{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: isDeviceAuthorized ? '#2563eb' : '#ccc', borderRadius: '34px', transition: '.4s' }}></span>
+                                    <span style={{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: isDeviceAuthorized ? 'var(--color-primary)' : 'var(--color-border)', borderRadius: '34px', transition: '.4s' }}></span>
                                     <span style={{ position: 'absolute', height: '16px', width: '16px', left: '3px', bottom: '3px', backgroundColor: 'white', borderRadius: '50%', transition: '.4s', transform: isDeviceAuthorized ? 'translateX(18px)' : 'translateX(0)' }}></span>
                                 </label>
                             </div>
@@ -482,15 +483,15 @@ const AdminSettings = () => {
                 {role === 'SUPER_ADMIN' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0.5rem' }}>
-                            <Cloud size={16} color="#2563eb" />
-                            <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: '#2563eb', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
+                            <Cloud size={16} color="var(--color-primary)" />
+                            <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
                                 Cloud Global Settings
                             </h3>
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                             {/* Minimum App Version */}
-                            <div style={{ backgroundColor: 'white', borderRadius: '1rem', padding: '1.25rem', border: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            <div style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '1.25rem', border: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                 <CopyableInput
                                     label="Force Update Version"
                                     value={minAppVersion}
@@ -500,17 +501,17 @@ const AdminSettings = () => {
                             </div>
 
                             {/* Online Transactions */}
-                            <div style={{ backgroundColor: 'white', borderRadius: '1rem', padding: '1.25rem', border: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '1.25rem', border: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                    <div style={{ padding: '0.5rem', borderRadius: '8px', backgroundColor: onlineTransactionsEnabled ? '#dcfce7' : '#fee2e2', color: onlineTransactionsEnabled ? '#166534' : '#991b1b' }}>
+                                    <div style={{ padding: '0.5rem', borderRadius: '8px', backgroundColor: onlineTransactionsEnabled ? 'var(--color-success-transparent)' : 'var(--color-error-transparent)', color: onlineTransactionsEnabled ? 'var(--color-success)' : 'var(--color-error)' }}>
                                         <Landmark size={18} />
                                     </div>
                                     <div>
-                                        <div style={{ fontSize: '0.9375rem', fontWeight: 600, color: '#111827' }}>Online Payments</div>
-                                        <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>{onlineTransactionsEnabled ? 'Enabled for all users' : 'Disabled / Offline mode'}</div>
+                                        <div style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--color-text)' }}>Online Payments</div>
+                                        <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>{onlineTransactionsEnabled ? 'Enabled for all users' : 'Disabled / Offline mode'}</div>
                                     </div>
                                 </div>
-                                <div onClick={() => toggleOnlineTransactions(!onlineTransactionsEnabled)} style={{ width: '40px', height: '22px', backgroundColor: onlineTransactionsEnabled ? '#2563eb' : '#e5e7eb', borderRadius: '12px', position: 'relative', cursor: 'pointer' }}>
+                                <div onClick={() => toggleOnlineTransactions(!onlineTransactionsEnabled)} style={{ width: '40px', height: '22px', backgroundColor: onlineTransactionsEnabled ? 'var(--color-primary)' : 'var(--color-border)', borderRadius: '12px', position: 'relative', cursor: 'pointer' }}>
                                     <div style={{ width: '18px', height: '18px', backgroundColor: 'white', borderRadius: '50%', position: 'absolute', top: '2px', left: onlineTransactionsEnabled ? '20px' : '2px', transition: 'left 0.2s' }} />
                                 </div>
                             </div>
@@ -522,20 +523,20 @@ const AdminSettings = () => {
                                 icon={LinkIcon}
                                 delay={0.1}
                                 onClick={() => navigate('/admin/url-settings')}
-                                color="#2563eb"
-                                bgColor="#eff6ff"
+                                color="var(--color-info)"
+                                bgColor="var(--color-info-transparent)"
                             />
 
                             {/* Bank Password */}
-                            <div style={{ backgroundColor: 'white', borderRadius: '1rem', padding: '1.25rem', border: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            <div style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '1.25rem', border: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                    <div style={{ padding: '0.5rem', borderRadius: '8px', backgroundColor: '#f3f4f6', color: '#374151' }}>
+                                    <div style={{ padding: '0.5rem', borderRadius: '8px', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}>
                                         <LayoutDashboard size={18} />
                                     </div>
-                                    <div style={{ flex: 1, fontSize: '0.9375rem', fontWeight: 600, color: '#111827' }}>Bank PDF Password</div>
+                                    <div style={{ flex: 1, fontSize: '0.9375rem', fontWeight: 600, color: 'var(--color-text)' }}>Bank PDF Password</div>
                                     <button
                                         onClick={() => setShowBankPassword(!showBankPassword)}
-                                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', display: 'flex', alignItems: 'center' }}
+                                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center' }}
                                     >
                                         {showBankPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                     </button>
@@ -545,7 +546,7 @@ const AdminSettings = () => {
                                     value={bankPassword}
                                     onChange={(e) => setBankPassword(e.target.value)}
                                     placeholder="Statement decryption key"
-                                    style={{ padding: '0.625rem', fontSize: '0.875rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb', color: '#111827' }}
+                                    style={{ padding: '0.625rem', fontSize: '0.875rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
                                 />
                             </div>
 
@@ -555,7 +556,7 @@ const AdminSettings = () => {
                 )}
 
                 <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-                    <p style={{ fontSize: '0.7rem', color: '#9ca3af', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                    <p style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
                         <Cloud size={12} /> Cloud Synchronized Settings & Profile
                     </p>
                 </div>

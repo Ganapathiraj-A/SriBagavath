@@ -115,12 +115,12 @@ const AyyasSchedule = () => {
         return (
             <div style={{
                 minHeight: '100vh',
-                backgroundColor: 'var(--color-surface)',
+                backgroundColor: 'var(--color-background)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
             }}>
-                <p style={{ fontSize: '1.125rem', color: '#6b7280' }}>Loading schedules...</p>
+                <p style={{ fontSize: '1.125rem', color: 'var(--color-text-muted)' }}>Loading schedules...</p>
             </div>
         );
     }
@@ -128,7 +128,7 @@ const AyyasSchedule = () => {
     return (
         <div style={{
             minHeight: '100vh',
-            backgroundColor: 'var(--color-surface)',
+            backgroundColor: 'var(--color-background)',
             paddingBottom: '2rem'
         }}>
             <PageHeader
@@ -147,9 +147,9 @@ const AyyasSchedule = () => {
                                 alignItems: 'center',
                                 gap: '0.4rem',
                                 padding: '0.5rem 0.8rem',
-                                backgroundColor: '#fff7ed',
-                                color: '#f97316',
-                                border: '1px solid #fed7aa',
+                                backgroundColor: 'var(--color-primary-transparent)',
+                                color: 'var(--color-primary)',
+                                border: '1px solid var(--color-primary-transparent)',
                                 borderRadius: '0.75rem',
                                 fontSize: '0.85rem',
                                 fontWeight: 600,
@@ -167,13 +167,14 @@ const AyyasSchedule = () => {
 
                     {schedules.length === 0 ? (
                         <div style={{
-                            backgroundColor: 'white',
+                            backgroundColor: 'var(--color-card)',
                             borderRadius: '1rem',
                             padding: '3rem',
                             textAlign: 'center',
-                            boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)'
+                            boxShadow: 'var(--shadow-sm)',
+                            border: '1px solid var(--color-border)'
                         }}>
-                            <p style={{ fontSize: '1.125rem', color: '#6b7280' }}>
+                            <p style={{ fontSize: '1.125rem', color: 'var(--color-text-muted)' }}>
                                 No schedules available at the moment.
                             </p>
                         </div>
@@ -186,11 +187,11 @@ const AyyasSchedule = () => {
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: index * 0.1 }}
                                     style={{
-                                        backgroundColor: 'white',
+                                        backgroundColor: 'var(--color-card)',
                                         borderRadius: '1rem',
                                         padding: '1.5rem',
-                                        boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-                                        border: '1px solid #f3f4f6',
+                                        boxShadow: 'var(--shadow-sm)',
+                                        border: '1px solid var(--color-border)',
                                         display: 'flex',
                                         alignItems: 'center',
                                         gap: '1.5rem'
@@ -202,7 +203,7 @@ const AyyasSchedule = () => {
                                         flexDirection: 'column',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        backgroundColor: '#fff7ed',
+                                        backgroundColor: 'var(--color-primary-transparent)',
                                         color: 'var(--color-primary)',
                                         padding: '1rem',
                                         borderRadius: '0.75rem',
@@ -237,7 +238,7 @@ const AyyasSchedule = () => {
                                             <h2 style={{
                                                 fontSize: '1.25rem',
                                                 fontWeight: 600,
-                                                color: '#111827',
+                                                color: 'var(--color-text)',
                                                 margin: 0
                                             }}>
                                                 {schedule.place}
@@ -248,7 +249,7 @@ const AyyasSchedule = () => {
                                             display: 'flex',
                                             flexWrap: 'wrap',
                                             gap: '0.5rem 1.5rem',
-                                            color: '#4b5563',
+                                            color: 'var(--color-text-muted)',
                                             fontSize: '0.925rem'
                                         }}>
                                             <div style={{ display: 'flex', alignItems: 'center' }}>

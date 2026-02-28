@@ -89,11 +89,11 @@ const BankStatementUpload = () => {
     };
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>
             <PageHeader
                 title="Upload Statement"
                 leftAction={
-                    <button onClick={() => navigate('/admin/back-office/reconciliation')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
+                    <button onClick={() => navigate('/admin/back-office/reconciliation')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', color: 'var(--color-text)' }}>
                         <ChevronLeft size={24} />
                     </button>
                 }
@@ -106,10 +106,10 @@ const BankStatementUpload = () => {
                     style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
                 >
                     <label style={{
-                        backgroundColor: 'white',
+                        backgroundColor: 'var(--color-surface)',
                         padding: '2rem',
                         borderRadius: '1rem',
-                        border: '2px dashed #d1d5db',
+                        border: '2px dashed var(--color-border)',
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
@@ -120,7 +120,7 @@ const BankStatementUpload = () => {
                         pointerEvents: (isParsing || isSaving) ? 'none' : 'auto'
                     }}
                         onMouseOver={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
-                        onMouseOut={e => e.currentTarget.style.borderColor = '#d1d5db'}
+                        onMouseOut={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
                     >
                         <input
                             type="file"
@@ -131,43 +131,43 @@ const BankStatementUpload = () => {
                         <div style={{
                             padding: '1rem',
                             borderRadius: '50%',
-                            backgroundColor: '#eff6ff',
+                            backgroundColor: 'var(--color-primary-transparent)',
                             color: 'var(--color-primary)'
                         }}>
                             {isParsing ? (
-                                <div style={{ width: '32px', height: '32px', border: '3px solid #eff6ff', borderTopColor: 'var(--color-primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                                <div style={{ width: '32px', height: '32px', border: '3px solid var(--color-primary-transparent)', borderTopColor: 'var(--color-primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
                             ) : (
                                 <Upload size={32} />
                             )}
                         </div>
                         <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: '1.125rem', fontWeight: 600, color: '#111827' }}>
+                            <div style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--color-text)' }}>
                                 {isParsing ? 'Parsing statement...' : 'Click to upload bank statement'}
                             </div>
-                            <div style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '4px' }}>Supports PDF format (HDFC)</div>
+                            <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginTop: '4px' }}>Supports PDF format (HDFC)</div>
                         </div>
                         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
                     </label>
 
                     {error && (
-                        <div style={{ padding: '1rem', backgroundColor: '#fee2e2', color: '#b91c1c', borderRadius: '0.75rem', fontSize: '0.875rem', fontWeight: 500 }}>
+                        <div style={{ padding: '1rem', backgroundColor: 'var(--color-error-transparent)', color: 'var(--color-error)', borderRadius: '0.75rem', fontSize: '0.875rem', fontWeight: 500, border: '1px solid var(--color-error-transparent)' }}>
                             {error}
                         </div>
                     )}
 
                     {saveResult && (
-                        <div style={{ padding: '1rem', backgroundColor: '#d1fae5', color: '#065f46', borderRadius: '0.75rem', fontSize: '0.875rem', fontWeight: 600, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ padding: '1rem', backgroundColor: 'var(--color-success-transparent)', color: 'var(--color-success)', borderRadius: '0.75rem', fontSize: '0.875rem', fontWeight: 600, display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid var(--color-success-transparent)' }}>
                             <span>Success: Processed {parsedEntries.length} entries</span>
                             <div style={{ fontSize: '0.75rem', fontWeight: 500 }}>
-                                <span style={{ color: '#059669' }}>{saveResult.saved} New</span>
-                                <span style={{ margin: '0 0.5rem', color: '#6b7280' }}>|</span>
-                                <span style={{ color: '#6b7280' }}>{saveResult.skipped} Existing</span>
+                                <span style={{ color: 'var(--color-success)' }}>{saveResult.saved} New</span>
+                                <span style={{ margin: '0 0.5rem', color: 'var(--color-text-muted)' }}>|</span>
+                                <span style={{ color: 'var(--color-text-muted)' }}>{saveResult.skipped} Existing</span>
                             </div>
                         </div>
                     )}
 
                     {parsedEntries.length > 0 && (
-                        <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #e5e7eb' }}>
+                        <div style={{ backgroundColor: 'var(--color-surface)', padding: '1.5rem', borderRadius: '1rem', border: '1px solid var(--color-border)' }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <h3 style={{ fontSize: '1.125rem', fontWeight: 600, margin: 0 }}>Parsed Entries ({parsedEntries.length})</h3>
@@ -176,9 +176,9 @@ const BankStatementUpload = () => {
                                             onClick={copyAllTransactions}
                                             style={{
                                                 padding: '0.5rem 1rem',
-                                                backgroundColor: copied ? '#059669' : '#f3f4f6',
-                                                color: copied ? 'white' : '#374151',
-                                                border: '1px solid #e5e7eb',
+                                                backgroundColor: copied ? 'var(--color-success)' : 'var(--color-surface-alt)',
+                                                color: copied ? 'white' : 'var(--color-text)',
+                                                border: '1px solid var(--color-border)',
                                                 borderRadius: '0.5rem',
                                                 fontSize: '0.8125rem',
                                                 fontWeight: 600,
@@ -193,9 +193,9 @@ const BankStatementUpload = () => {
                                                 onClick={() => navigate('/admin/back-office/reconciliation/view')}
                                                 style={{
                                                     padding: '0.5rem 1rem',
-                                                    backgroundColor: '#f3f4f6',
-                                                    color: '#374151',
-                                                    border: '1px solid #e5e7eb',
+                                                    backgroundColor: 'var(--color-surface-alt)',
+                                                    color: 'var(--color-text)',
+                                                    border: '1px solid var(--color-border)',
                                                     borderRadius: '0.5rem',
                                                     fontSize: '0.8125rem',
                                                     fontWeight: 600,
@@ -227,12 +227,12 @@ const BankStatementUpload = () => {
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '400px', overflowY: 'auto' }}>
                                     {parsedEntries.map((tx, idx) => (
-                                        <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', padding: '0.75rem', backgroundColor: '#f9fafb', borderRadius: '0.5rem', border: '1px solid #f3f4f6' }}>
+                                        <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', padding: '0.75rem', backgroundColor: 'var(--color-surface-alt)', borderRadius: '0.5rem', border: '1px solid var(--color-border)' }}>
                                             <div style={{ flex: 1 }}>
-                                                <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>{tx.desc}</div>
-                                                <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '2px' }}>{tx.date}</div>
+                                                <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-text)' }}>{tx.desc}</div>
+                                                <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>{tx.date}</div>
                                             </div>
-                                            <div style={{ fontWeight: 700, color: '#10b981', flexShrink: 0 }}>₹{tx.amount?.toLocaleString()}</div>
+                                            <div style={{ fontWeight: 700, color: 'var(--color-success)', flexShrink: 0 }}>₹{tx.amount?.toLocaleString()}</div>
                                         </div>
                                     ))}
                                 </div>

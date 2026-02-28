@@ -106,11 +106,11 @@ const BackOfficeOfflineDonation = () => {
     };
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', paddingBottom: '20px' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)', paddingBottom: '20px' }}>
             <PageHeader
                 title="Offline Donation"
                 leftAction={
-                    <button onClick={() => navigate('/admin/back-office')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
+                    <button onClick={() => navigate('/admin/back-office')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', color: 'var(--color-text)' }}>
                         <ChevronLeft size={24} />
                     </button>
                 }
@@ -128,9 +128,9 @@ const BackOfficeOfflineDonation = () => {
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 gap: '8px',
-                                background: '#e0f2fe',
-                                color: '#0284c7',
-                                border: '1px solid #bae6fd',
+                                background: 'var(--color-primary-transparent)',
+                                color: 'var(--color-primary)',
+                                border: '1px solid var(--color-primary)',
                                 padding: '10px',
                                 borderRadius: '8px',
                                 fontWeight: 600,
@@ -143,43 +143,43 @@ const BackOfficeOfflineDonation = () => {
                     </div>
                 )}
 
-                <div className="card" style={{ padding: '16px', borderRadius: '12px', backgroundColor: 'white', marginBottom: '16px', border: '1px solid #e5e7eb' }}>
-                    <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>Donor Details</h3>
+                <div className="card" style={{ padding: '16px', borderRadius: '12px', backgroundColor: 'var(--color-surface)', marginBottom: '16px', border: '1px solid var(--color-border)' }}>
+                    <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px', color: 'var(--color-text)' }}>Donor Details</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         <input
                             placeholder="Donor Name"
                             value={donorName}
                             onChange={(e) => setDonorName(e.target.value)}
-                            style={{ padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db' }}
+                            style={{ padding: '10px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}
                         />
                         <input
                             placeholder="Mobile Number"
                             type="tel"
                             value={mobile}
                             onChange={(e) => setMobile(e.target.value)}
-                            style={{ padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db' }}
+                            style={{ padding: '10px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}
                         />
                         <input
                             placeholder="PAN Number (Optional)"
                             value={pan}
                             onChange={(e) => setPan(e.target.value?.toUpperCase())}
-                            style={{ padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db' }}
+                            style={{ padding: '10px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}
                         />
                     </div>
                 </div>
 
-                <div className="card" style={{ padding: '16px', borderRadius: '12px', backgroundColor: 'white', marginBottom: '20px', border: '1px solid #e5e7eb' }}>
-                    <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>Donation & Payment</h3>
+                <div className="card" style={{ padding: '16px', borderRadius: '12px', backgroundColor: 'var(--color-surface)', marginBottom: '20px', border: '1px solid var(--color-border)' }}>
+                    <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px', color: 'var(--color-text)' }}>Donation & Payment</h3>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         <div style={{ position: 'relative' }}>
-                            <span style={{ position: 'absolute', left: '10px', top: '10px', fontWeight: 600 }}>₹</span>
+                            <span style={{ position: 'absolute', left: '10px', top: '10px', fontWeight: 600, color: 'var(--color-text-muted)' }}>₹</span>
                             <input
                                 placeholder="Amount"
                                 type="number"
                                 value={amount}
                                 onChange={(e) => setAmount(e.target.value)}
-                                style={{ width: '100%', padding: '10px 10px 10px 25px', borderRadius: '8px', border: '1px solid #d1d5db', fontWeight: 'bold' }}
+                                style={{ width: '100%', padding: '10px 10px 10px 25px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)', fontWeight: 'bold' }}
                             />
                         </div>
 
@@ -187,21 +187,21 @@ const BackOfficeOfflineDonation = () => {
                             placeholder="Payment Reference No (Optional)"
                             value={refNo}
                             onChange={(e) => setRefNo(e.target.value)}
-                            style={{ padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db' }}
+                            style={{ padding: '10px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}
                         />
 
                         <div
                             onClick={captureImage}
                             style={{
                                 padding: '12px',
-                                border: '2px dashed #d1d5db',
+                                border: '2px dashed var(--color-border)',
                                 borderRadius: '8px',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 gap: '8px',
-                                color: image ? '#166534' : '#6b7280',
-                                backgroundColor: image ? '#f0fdf4' : 'transparent',
+                                color: image ? 'var(--color-success)' : 'var(--color-text-muted)',
+                                backgroundColor: image ? 'var(--color-success-transparent)' : 'transparent',
                                 cursor: 'pointer'
                             }}
                         >
@@ -217,13 +217,14 @@ const BackOfficeOfflineDonation = () => {
                     style={{
                         width: '100%',
                         padding: '16px',
-                        backgroundColor: '#2563eb',
+                        backgroundColor: 'var(--color-primary)',
                         color: 'white',
                         border: 'none',
                         borderRadius: '12px',
                         fontSize: '16px',
                         fontWeight: 600,
-                        opacity: loading ? 0.7 : 1
+                        opacity: loading ? 0.7 : 1,
+                        cursor: loading ? 'wait' : 'pointer'
                     }}
                 >
                     {loading ? "Registering..." : "Record Donation"}

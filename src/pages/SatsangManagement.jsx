@@ -103,7 +103,7 @@ const SatsangManagement = () => {
         recurringEndDate: ''
     });
 
-    const ORANGE = '#f97316';
+    const ORANGE = 'var(--color-primary)';
 
     const loadMeetings = useCallback(async () => {
         setLoading(true);
@@ -277,7 +277,7 @@ const SatsangManagement = () => {
     };
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', paddingBottom: '3rem' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)', paddingBottom: '3rem' }}>
             <PageHeader
                 title="Satsang Management"
                 rightAction={
@@ -288,9 +288,9 @@ const SatsangManagement = () => {
                             alignItems: 'center',
                             gap: '0.4rem',
                             padding: '0.5rem 0.8rem',
-                            backgroundColor: '#f3f4f6',
-                            color: '#374151',
-                            border: '1px solid #e5e7eb',
+                            backgroundColor: 'var(--color-surface)',
+                            color: 'var(--color-text)',
+                            border: '1px solid var(--color-border)',
                             borderRadius: '0.75rem',
                             fontSize: '0.85rem',
                             fontWeight: 600,
@@ -310,10 +310,10 @@ const SatsangManagement = () => {
                                 onClick={() => setIsAdding(true)}
                                 style={{
                                     display: 'flex', alignItems: 'center', gap: '0.5rem',
-                                    padding: '1rem 2rem', backgroundColor: ORANGE,
+                                    padding: '1rem 2rem', backgroundColor: 'var(--color-primary)',
                                     color: 'white', border: 'none', borderRadius: '1rem',
                                     fontWeight: 600, cursor: 'pointer',
-                                    boxShadow: '0 4px 6px -1px rgba(249, 115, 22, 0.2)',
+                                    boxShadow: '0 4px 6px -1px var(--color-primary-transparent)',
                                     fontSize: '1rem'
                                 }}
                             >
@@ -321,7 +321,7 @@ const SatsangManagement = () => {
                             </button>
 
                             <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start' }}>
-                                <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#111827' }}>Scheduled Satsangs</h2>
+                                <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--color-text)' }}>Scheduled Satsangs</h2>
                             </div>
                         </div>
 
@@ -331,42 +331,42 @@ const SatsangManagement = () => {
                                     key={meeting.id}
                                     layout
                                     style={{
-                                        backgroundColor: 'white', borderRadius: '1rem', padding: '1.5rem',
-                                        boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)', border: '1px solid #f3f4f6'
+                                        backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '1.5rem',
+                                        boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)'
                                     }}
                                 >
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                         <div>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-                                                <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#111827', margin: 0 }}>
+                                                <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>
                                                     {meeting.conductedBy}
                                                 </h3>
                                                 {meeting.isRecurring && (
                                                     <span style={{
-                                                        fontSize: '0.7rem', fontWeight: 700, backgroundColor: '#fff7ed',
-                                                        color: ORANGE, padding: '2px 8px', borderRadius: '999px',
-                                                        border: '1px solid #ffedd5', display: 'flex', alignItems: 'center', gap: '4px'
+                                                        fontSize: '0.7rem', fontWeight: 700, backgroundColor: 'var(--color-warning-transparent)',
+                                                        color: 'var(--color-warning)', padding: '2px 8px', borderRadius: '999px',
+                                                        border: '1px solid var(--color-warning-transparent)', display: 'flex', alignItems: 'center', gap: '4px'
                                                     }}>
                                                         <RefreshCw size={10} /> RECURRING
                                                     </span>
                                                 )}
                                             </div>
-                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', color: '#4b5563', fontSize: '0.875rem' }}>
+                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                                                    <Calendar size={16} color={ORANGE} />
+                                                    <Calendar size={16} color="var(--color-primary)" />
                                                     {meeting.isRecurring ? 'Next: ' : ''}
                                                     {new Date(meeting.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', weekday: 'short' })}
                                                 </div>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                                                    <Clock size={16} color={ORANGE} /> {meeting.startTime}
+                                                    <Clock size={16} color="var(--color-primary)" /> {meeting.startTime}
                                                 </div>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                                                    <MapPin size={16} color={ORANGE} /> {meeting.city}
+                                                    <MapPin size={16} color="var(--color-primary)" /> {meeting.city}
                                                 </div>
                                             </div>
 
                                             {meeting.isRecurring && (
-                                                <div style={{ marginTop: '0.75rem', padding: '0.5rem 0.75rem', backgroundColor: '#f9fafb', borderRadius: '0.5rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: '#6b7280' }}>
+                                                <div style={{ marginTop: '0.75rem', padding: '0.5rem 0.75rem', backgroundColor: 'var(--color-surface-alt)', borderRadius: '0.5rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
                                                     <Info size={14} />
                                                     Series Rule: {formatRecurrenceRule(meeting)}
                                                 </div>
@@ -375,13 +375,13 @@ const SatsangManagement = () => {
                                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                                             <button
                                                 onClick={() => handleEdit(meeting)}
-                                                style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb', color: '#4b5563', cursor: 'pointer' }}
+                                                style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', color: 'var(--color-text-muted)', cursor: 'pointer', background: 'var(--color-surface)' }}
                                             >
                                                 <Edit2 size={18} />
                                             </button>
                                             <button
                                                 onClick={() => confirmDelete(meeting)}
-                                                style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #fee2e2', color: '#ef4444', cursor: 'pointer' }}
+                                                style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid var(--color-error-transparent)', color: 'var(--color-error)', cursor: 'pointer', background: 'var(--color-error-transparent)' }}
                                             >
                                                 <Trash2 size={18} />
                                             </button>
@@ -395,11 +395,11 @@ const SatsangManagement = () => {
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        style={{ backgroundColor: 'white', borderRadius: '1rem', padding: '2rem', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                        style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '2rem', boxShadow: 'var(--shadow-lg)', border: '1px solid var(--color-border)' }}
                     >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                            <h2 style={{ fontSize: '1.5rem', fontWeight: 600 }}>{editingId ? 'Edit Satsang' : 'Add New Satsang'}</h2>
-                            <button onClick={() => { setIsAdding(false); setEditingId(null); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}>
+                            <h2 style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--color-text)' }}>{editingId ? 'Edit Satsang' : 'Add New Satsang'}</h2>
+                            <button onClick={() => { setIsAdding(false); setEditingId(null); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)' }}>
                                 <X size={24} />
                             </button>
                         </div>
@@ -407,47 +407,47 @@ const SatsangManagement = () => {
                         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem' }}>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#374151', marginBottom: '0.5rem' }}>Conducted By</label>
+                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Conducted By</label>
                                     <input
                                         required
                                         type="text"
                                         value={formData.conductedBy}
                                         onChange={(e) => setFormData({ ...formData, conductedBy: e.target.value })}
                                         placeholder="Teacher Name"
-                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', outline: 'none' }}
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', outline: 'none', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
                                     />
                                 </div>
 
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                        <label style={{ fontSize: '0.875rem', fontWeight: 500, color: '#374151' }}>Date</label>
+                                        <label style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-muted)' }}>Date</label>
                                         <input
                                             required
                                             type="date"
                                             value={formData.date}
                                             onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                                            style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', outline: 'none' }}
+                                            style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', outline: 'none', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
                                         />
                                     </div>
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                            <label style={{ fontSize: '0.875rem', fontWeight: 500, color: '#374151' }}>Start Time</label>
+                                            <label style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-muted)' }}>Start Time</label>
                                             <input
                                                 required
                                                 type="time"
                                                 value={formData.startTime}
                                                 onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                                                style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', outline: 'none' }}
+                                                style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', outline: 'none', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
                                             />
                                         </div>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                            <label style={{ fontSize: '0.875rem', fontWeight: 500, color: '#374151' }}>End Time</label>
+                                            <label style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-muted)' }}>End Time</label>
                                             <input
                                                 required
                                                 type="time"
                                                 value={formData.endTime}
                                                 onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                                                style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', outline: 'none' }}
+                                                style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', outline: 'none', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
                                             />
                                         </div>
                                     </div>
@@ -455,42 +455,42 @@ const SatsangManagement = () => {
 
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
                                     <div>
-                                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#374151', marginBottom: '0.5rem' }}>City</label>
+                                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>City</label>
                                         <input
                                             required
                                             type="text"
                                             value={formData.city}
                                             onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                                             placeholder="e.g. Chennai"
-                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', outline: 'none' }}
+                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', outline: 'none', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
                                         />
                                     </div>
                                     <div>
-                                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#374151', marginBottom: '0.5rem' }}>Venue</label>
+                                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Venue</label>
                                         <input
                                             required
                                             type="text"
                                             value={formData.venue}
                                             onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
                                             placeholder="Full Address"
-                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', outline: 'none' }}
+                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', outline: 'none', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
                                         />
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#374151', marginBottom: '0.5rem' }}>Description</label>
+                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Description</label>
                                     <textarea
                                         value={formData.description}
                                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                         placeholder="Satsang details, topics, etc."
                                         rows={4}
-                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', outline: 'none', resize: 'vertical' }}
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', outline: 'none', resize: 'vertical', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
                                     />
                                 </div>
 
                                 {/* Recurring Section */}
-                                <div style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1.25rem', backgroundColor: '#f9fafb' }}>
+                                <div style={{ border: '1px solid var(--color-border)', borderRadius: '0.75rem', padding: '1.25rem', backgroundColor: 'var(--color-surface)' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
                                         <input
                                             type="checkbox"
@@ -499,13 +499,13 @@ const SatsangManagement = () => {
                                             onChange={(e) => setFormData({ ...formData, isRecurring: e.target.checked })}
                                             style={{ width: '1.125rem', height: '1.125rem', cursor: 'pointer' }}
                                         />
-                                        <label htmlFor="isRecurring" style={{ fontWeight: 600, color: '#111827', cursor: 'pointer' }}>Make this a Recurring Event</label>
+                                        <label htmlFor="isRecurring" style={{ fontWeight: 600, color: 'var(--color-text)', cursor: 'pointer' }}>Make this a Recurring Event</label>
                                     </div>
 
                                     {formData.isRecurring && (
                                         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                                             <div>
-                                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#374151', marginBottom: '0.5rem' }}>Frequency</label>
+                                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Frequency</label>
                                                 <div style={{ display: 'flex', gap: '0.75rem' }}>
                                                     {['daily', 'weekly', 'monthly'].map(f => (
                                                         <button
@@ -514,9 +514,9 @@ const SatsangManagement = () => {
                                                             onClick={() => setFormData({ ...formData, frequency: f })}
                                                             style={{
                                                                 flex: 1, padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid',
-                                                                borderColor: formData.frequency === f ? ORANGE : '#d1d5db',
-                                                                backgroundColor: formData.frequency === f ? '#fff7ed' : 'white',
-                                                                color: formData.frequency === f ? ORANGE : '#4b5563',
+                                                                borderColor: formData.frequency === f ? 'var(--color-primary)' : 'var(--color-border)',
+                                                                backgroundColor: formData.frequency === f ? 'var(--color-primary-transparent)' : 'var(--color-card)',
+                                                                color: formData.frequency === f ? 'var(--color-primary)' : 'var(--color-text-muted)',
                                                                 textTransform: 'capitalize', fontWeight: 500, cursor: 'pointer'
                                                             }}
                                                         >
@@ -528,7 +528,7 @@ const SatsangManagement = () => {
 
                                             {formData.frequency === 'weekly' && (
                                                 <div>
-                                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#374151', marginBottom: '0.5rem' }}>Select Days</label>
+                                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Select Days</label>
                                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                                                         {[
                                                             { label: 'Sun', value: '0' }, { label: 'Mon', value: '1' },
@@ -548,9 +548,9 @@ const SatsangManagement = () => {
                                                                 }}
                                                                 style={{
                                                                     width: '2.75rem', height: '2.75rem', borderRadius: '0.5rem', border: '1px solid',
-                                                                    borderColor: formData.recurringDays?.includes(d.value) ? ORANGE : '#d1d5db',
-                                                                    backgroundColor: formData.recurringDays?.includes(d.value) ? '#fff7ed' : 'white',
-                                                                    color: formData.recurringDays?.includes(d.value) ? ORANGE : '#4b5563',
+                                                                    borderColor: formData.recurringDays?.includes(d.value) ? 'var(--color-primary)' : 'var(--color-border)',
+                                                                    backgroundColor: formData.recurringDays?.includes(d.value) ? 'var(--color-primary-transparent)' : 'var(--color-card)',
+                                                                    color: formData.recurringDays?.includes(d.value) ? 'var(--color-primary)' : 'var(--color-text-muted)',
                                                                     fontWeight: 500, cursor: 'pointer'
                                                                 }}
                                                             >
@@ -563,11 +563,11 @@ const SatsangManagement = () => {
 
                                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                                 <div>
-                                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#374151', marginBottom: '0.5rem' }}>End Condition</label>
+                                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>End Condition</label>
                                                     <select
                                                         value={formData.recurringEndDateType}
                                                         onChange={(e) => setFormData({ ...formData, recurringEndDateType: e.target.value })}
-                                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', outline: 'none' }}
+                                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', outline: 'none', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
                                                     >
                                                         <option value="indefinite">Good till cancellation</option>
                                                         <option value="date">Fixed End Date</option>
@@ -575,12 +575,12 @@ const SatsangManagement = () => {
                                                 </div>
                                                 {formData.recurringEndDateType === 'date' && (
                                                     <div>
-                                                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#374151', marginBottom: '0.5rem' }}>Ends On</label>
+                                                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Ends On</label>
                                                         <input
                                                             type="date"
                                                             value={formData.recurringEndDate}
                                                             onChange={(e) => setFormData({ ...formData, recurringEndDate: e.target.value })}
-                                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', outline: 'none' }}
+                                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', outline: 'none', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
                                                         />
                                                     </div>
                                                 )}
@@ -604,7 +604,7 @@ const SatsangManagement = () => {
                                                 <button
                                                     type="button"
                                                     onClick={() => setFormData({ ...formData, banner: null, hasBanner: false })}
-                                                    style={{ position: 'absolute', top: '-0.5rem', right: '-0.5rem', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '50%', width: '1.5rem', height: '1.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                                    style={{ position: 'absolute', top: '-0.5rem', right: '-0.5rem', backgroundColor: 'var(--color-error)', color: 'white', border: 'none', borderRadius: '50%', width: '1.5rem', height: '1.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                                 >
                                                     <X size={14} />
                                                 </button>
@@ -631,8 +631,8 @@ const SatsangManagement = () => {
                                     type="button"
                                     onClick={() => { setIsAdding(false); setEditingId(null); }}
                                     style={{
-                                        flex: 1, padding: '1rem', backgroundColor: 'white', color: '#374151',
-                                        border: '1px solid #d1d5db', borderRadius: '0.75rem', fontWeight: 600, cursor: 'pointer'
+                                        flex: 1, padding: '1rem', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)',
+                                        border: '1px solid var(--color-border)', borderRadius: '0.75rem', fontWeight: 600, cursor: 'pointer'
                                     }}
                                 >
                                     Cancel
@@ -655,14 +655,14 @@ const SatsangManagement = () => {
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            style={{ backgroundColor: 'white', borderRadius: '1rem', padding: '2rem', maxWidth: '32rem', width: '100%' }}
+                            style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '2rem', maxWidth: '32rem', width: '100%', border: '1px solid var(--color-border)' }}
                         >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: '#ef4444', marginBottom: '1.5rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: 'var(--color-error)', marginBottom: '1.5rem' }}>
                                 <AlertCircle size={32} />
                                 <h3 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0 }}>Delete Satsang</h3>
                             </div>
 
-                            <p style={{ color: '#4b5563', lineHeight: 1.6, marginBottom: '2rem' }}>
+                            <p style={{ color: 'var(--color-text-muted)', lineHeight: 1.6, marginBottom: '2rem' }}>
                                 Are you sure you want to delete this {deleteTarget?.isRecurring ? 'recurring ' : ''}satsang with <strong>{deleteTarget?.conductedBy}</strong>?
                             </p>
 
@@ -671,13 +671,13 @@ const SatsangManagement = () => {
                                     <>
                                         <button
                                             onClick={() => handleDelete('series')}
-                                            style={{ width: '100%', padding: '1rem', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
+                                            style={{ width: '100%', padding: '1rem', backgroundColor: 'var(--color-error)', color: 'white', border: 'none', borderRadius: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
                                         >
                                             Delete Entire Series
                                         </button>
                                         <button
                                             onClick={() => handleDelete('instance')}
-                                            style={{ width: '100%', padding: '1rem', backgroundColor: 'white', color: '#ef4444', border: '1px solid #ef4444', borderRadius: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
+                                            style={{ width: '100%', padding: '1rem', backgroundColor: 'var(--color-surface)', color: 'var(--color-error)', border: '1px solid var(--color-error)', borderRadius: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
                                         >
                                             Delete Only This Instance ({deleteTarget.date})
                                         </button>
@@ -685,14 +685,14 @@ const SatsangManagement = () => {
                                 ) : (
                                     <button
                                         onClick={() => handleDelete('series')}
-                                        style={{ width: '100%', padding: '1rem', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
+                                        style={{ width: '100%', padding: '1rem', backgroundColor: 'var(--color-error)', color: 'white', border: 'none', borderRadius: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
                                     >
                                         Confirm Delete
                                     </button>
                                 )}
                                 <button
                                     onClick={() => setShowDeleteModal(false)}
-                                    style={{ width: '100%', padding: '1rem', backgroundColor: 'white', color: '#374151', border: '1px solid #d1d5db', borderRadius: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
+                                    style={{ width: '100%', padding: '1rem', backgroundColor: 'var(--color-surface)', color: 'var(--color-text-muted)', border: '1px solid var(--color-border)', borderRadius: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
                                 >
                                     Cancel
                                 </button>

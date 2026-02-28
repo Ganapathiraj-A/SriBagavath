@@ -10,7 +10,7 @@ import '../components/RegistrationStyles.css';
 
 import { useUnseenCounts } from '@/hooks/useUnseenCounts';
 
-const ManagementButton = ({ title, subtitle, icon: Icon, path, delay, color = '#f97316', bgColor = '#fff7ed', badgeCount = 0 }) => {
+const ManagementButton = ({ title, subtitle, icon: Icon, path, delay, color = 'var(--color-primary)', bgColor = 'var(--color-primary-transparent)', badgeCount = 0 }) => {
     const navigate = useNavigate();
 
     return (
@@ -24,10 +24,10 @@ const ManagementButton = ({ title, subtitle, icon: Icon, path, delay, color = '#
             style={{
                 width: '100%',
                 padding: '1.25rem',
-                backgroundColor: 'white',
+                backgroundColor: 'var(--color-card)',
                 borderRadius: '1rem',
-                boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)',
-                border: '1px solid #e5e7eb',
+                boxShadow: 'var(--shadow-sm)',
+                border: '1px solid var(--color-border)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '1.25rem',
@@ -52,8 +52,8 @@ const ManagementButton = ({ title, subtitle, icon: Icon, path, delay, color = '#
                     position: 'absolute',
                     top: '-5px',
                     right: '-5px',
-                    backgroundColor: '#ef4444',
-                    color: 'white',
+                    backgroundColor: 'var(--color-error)',
+                    color: 'var(--color-text-on-primary)',
                     fontSize: '0.75rem',
                     fontWeight: 'bold',
                     minWidth: '20px',
@@ -63,16 +63,16 @@ const ManagementButton = ({ title, subtitle, icon: Icon, path, delay, color = '#
                     justifyContent: 'center',
                     borderRadius: '9999px',
                     padding: '0 6px',
-                    boxShadow: '0 2px 4px rgba(239, 68, 68, 0.4)',
-                    border: '2px solid white',
+                    boxShadow: 'var(--shadow-sm)',
+                    border: '2px solid var(--color-card)',
                     zIndex: 10
                 }}>
                     {badgeCount > 99 ? '99+' : badgeCount}
                 </div>
             )}
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '1.125rem', fontWeight: 500, color: '#000000' }}>{title}</span>
-                {subtitle && <span style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '2px' }}>{subtitle}</span>}
+                <span style={{ fontSize: '1.125rem', fontWeight: 500, color: 'var(--color-text)' }}>{title}</span>
+                {subtitle && <span style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>{subtitle}</span>}
             </div>
         </motion.button>
     );
@@ -137,11 +137,11 @@ const AdminProgramManagement = () => {
     ].filter(section => hasAccess(section.permission));
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>
             <PageHeader
                 title="Program Management"
                 leftAction={
-                    <button onClick={() => navigate('/configuration')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
+                    <button onClick={() => navigate('/configuration')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', color: 'var(--color-text)' }}>
                         <ChevronLeft size={24} />
                     </button>
                 }
@@ -149,7 +149,7 @@ const AdminProgramManagement = () => {
 
             <div style={{ padding: '1.5rem', maxWidth: '32rem', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {sections.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>
+                    <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)' }}>
                         <p>You don&apos;t have permission to access any management screens.</p>
                     </div>
                 ) : (

@@ -40,11 +40,11 @@ const BackOfficePrograms = () => {
     );
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-surface)' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>
             <div style={{
                 padding: '1rem 1.5rem',
-                backgroundColor: 'white',
-                borderBottom: '1px solid #f3f4f6',
+                backgroundColor: 'var(--color-surface)',
+                borderBottom: '1px solid var(--color-border)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '1rem',
@@ -52,17 +52,17 @@ const BackOfficePrograms = () => {
                 top: 0,
                 zIndex: 10
             }}>
-                <button onClick={() => navigate('/admin/back-office')} style={{ padding: '8px', background: 'none', border: 'none', cursor: 'pointer' }}>
+                <button onClick={() => navigate('/admin/back-office')} style={{ padding: '8px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text)' }}>
                     <ChevronLeft size={24} />
                 </button>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Attendance Tracking</h2>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-text)' }}>Attendance Tracking</h2>
             </div>
 
             <main style={{ padding: '1.5rem', maxWidth: '42rem', margin: '0 auto' }}>
                 <div style={{ position: 'relative', marginBottom: '2rem' }}>
                     <Search
                         size={20}
-                        color="#9ca3af"
+                        color="var(--color-text-muted)"
                         style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)' }}
                     />
                     <input
@@ -74,10 +74,12 @@ const BackOfficePrograms = () => {
                             width: '100%',
                             padding: '0.75rem 1rem 0.75rem 3rem',
                             borderRadius: '0.5rem',
-                            border: '1px solid #d1d5db',
+                            border: '1px solid var(--color-border)',
+                            backgroundColor: 'var(--color-surface)',
+                            color: 'var(--color-text)',
                             fontSize: '1rem',
                             outline: 'none',
-                            boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)'
+                            boxShadow: 'var(--shadow-sm)'
                         }}
                     />
                 </div>
@@ -90,7 +92,7 @@ const BackOfficePrograms = () => {
                 ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         {filteredPrograms.length === 0 ? (
-                            <div style={{ textAlign: 'center', padding: '4rem', color: '#6b7280' }}>
+                            <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--color-text-muted)' }}>
                                 No programs found.
                             </div>
                         ) : (
@@ -102,20 +104,20 @@ const BackOfficePrograms = () => {
                                     transition={{ delay: idx * 0.05 }}
                                     onClick={() => navigate(`/admin/back-office/attendance/${p.id}`)}
                                     style={{
-                                        backgroundColor: 'white',
+                                        backgroundColor: 'var(--color-surface)',
                                         padding: '1.25rem',
                                         borderRadius: '1rem',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'space-between',
                                         cursor: 'pointer',
-                                        border: '1px solid #f3f4f6',
-                                        boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)'
+                                        border: '1px solid var(--color-border)',
+                                        boxShadow: 'var(--shadow-sm)'
                                     }}
                                 >
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                                        <span style={{ fontWeight: 700, fontSize: '1.125rem', color: '#1f2937' }}>{p.programName}</span>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.875rem', color: '#6b7280' }}>
+                                        <span style={{ fontWeight: 700, fontSize: '1.125rem', color: 'var(--color-text)' }}>{p.programName}</span>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
                                             <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                                                 <Calendar size={14} />
                                                 {new Date(p.programDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}

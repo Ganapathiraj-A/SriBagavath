@@ -361,7 +361,7 @@ const AdminBookManagement = () => {
     }
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>
             <PageHeader
                 title="Book Management"
                 rightAction={
@@ -372,10 +372,10 @@ const AdminBookManagement = () => {
                             alignItems: 'center',
                             gap: '6px',
                             padding: '8px 12px',
-                            backgroundColor: '#f3f4f6',
-                            border: '1px solid #d1d5db',
+                            backgroundColor: 'var(--color-surface)',
+                            border: '1px solid var(--color-border)',
                             borderRadius: '20px',
-                            color: '#4b5563',
+                            color: 'var(--color-text-secondary)',
                             fontSize: '0.85rem',
                             fontWeight: 600,
                             cursor: 'pointer'
@@ -405,7 +405,7 @@ const AdminBookManagement = () => {
                                     cursor: 'pointer',
                                     border: 'none',
                                     width: '100%',
-                                    boxShadow: '0 4px 6px -1px rgba(249, 115, 22, 0.2)'
+                                    boxShadow: '0 4px 6px -1px var(--color-primary-transparent)'
                                 }}
                             >
                                 <Plus size={20} /> Add New {NATIVE_LABELS[activeTab] || activeTab} Book
@@ -416,10 +416,10 @@ const AdminBookManagement = () => {
                         <div style={{
                             display: 'flex',
                             margin: '0 16px',
-                            borderBottom: '1px solid #e5e7eb',
+                            borderBottom: '1px solid var(--color-border)',
                             gap: '20px',
                             alignItems: 'center',
-                            backgroundColor: 'white',
+                            backgroundColor: 'var(--color-surface)',
                             paddingTop: '8px'
                         }}>
                             {tabs.map(tab => (
@@ -431,7 +431,7 @@ const AdminBookManagement = () => {
                                         border: 'none',
                                         borderBottom: activeTab === tab ? '2px solid var(--color-primary)' : '2px solid transparent',
                                         backgroundColor: 'transparent',
-                                        color: activeTab === tab ? 'var(--color-primary)' : '#6b7280',
+                                        color: activeTab === tab ? 'var(--color-primary)' : 'var(--color-text-muted)',
                                         fontWeight: activeTab === tab ? '600' : '500',
                                         fontSize: '0.95rem',
                                         cursor: 'pointer',
@@ -445,14 +445,14 @@ const AdminBookManagement = () => {
 
                         <div style={{ padding: '1.5rem 1rem' }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '-0.5rem', fontWeight: 500 }}>
+                                <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '-0.5rem', fontWeight: 500 }}>
                                     Click book to edit
                                 </p>
                                 {filteredBooks.map((book, idx) => (
                                     <div
                                         key={book.id}
                                         onClick={() => setSearchParams({ action: 'edit', id: book.id })}
-                                        style={{ padding: '0.75rem 1rem', backgroundColor: 'white', borderRadius: '1.25rem', boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)', display: 'flex', alignItems: 'center', gap: '1rem', border: '1px solid #e5e7eb', cursor: 'pointer' }}
+                                        style={{ padding: '0.75rem 1rem', backgroundColor: 'var(--color-surface)', borderRadius: '1.25rem', boxShadow: 'var(--shadow-sm)', display: 'flex', alignItems: 'center', gap: '1rem', border: '1px solid var(--color-border)', cursor: 'pointer' }}
                                     >
                                         <LazyImage
                                             firestorePath={`book_covers/${book.id}`}
@@ -460,12 +460,12 @@ const AdminBookManagement = () => {
                                             width="48px"
                                             height="64px"
                                             borderRadius="8px"
-                                            placeholder={() => <BookOpen size={20} color="#9ca3af" />}
+                                            placeholder={() => <BookOpen size={20} color="var(--color-text-light)" />}
                                         />
 
                                         <div style={{ flex: 1, minWidth: 0 }}>
-                                            <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: '#111827', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{book.title}</h3>
-                                            <p style={{ fontSize: '0.8rem', color: '#6b7280', margin: '2px 0 0 0' }}>₹{book.price} • {book.weight}g</p>
+                                            <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--color-text)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{book.title}</h3>
+                                            <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', margin: '2px 0 0 0' }}>₹{book.price} • {book.weight}g</p>
                                         </div>
 
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
@@ -473,14 +473,14 @@ const AdminBookManagement = () => {
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); handleReorder(book.id, -1); }}
                                                     disabled={idx === 0}
-                                                    style={{ border: 'none', background: 'none', cursor: idx === 0 ? 'default' : 'pointer', opacity: idx === 0 ? 0.2 : 1, color: '#f97316', padding: '2px' }}
+                                                    style={{ border: 'none', background: 'none', cursor: idx === 0 ? 'default' : 'pointer', opacity: idx === 0 ? 0.2 : 1, color: 'var(--color-primary)', padding: '2px' }}
                                                 >
                                                     <ChevronUp size={20} />
                                                 </button>
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); handleReorder(book.id, 1); }}
                                                     disabled={idx === filteredBooks.length - 1}
-                                                    style={{ border: 'none', background: 'none', cursor: idx === filteredBooks.length - 1 ? 'default' : 'pointer', opacity: idx === filteredBooks.length - 1 ? 0.2 : 1, color: '#f97316', padding: '2px' }}
+                                                    style={{ border: 'none', background: 'none', cursor: idx === filteredBooks.length - 1 ? 'default' : 'pointer', opacity: idx === filteredBooks.length - 1 ? 0.2 : 1, color: 'var(--color-warning)', padding: '2px' }}
                                                 >
                                                     <ChevronDown size={20} />
                                                 </button>
@@ -489,22 +489,22 @@ const AdminBookManagement = () => {
                                     </div>
                                 ))}
                                 {filteredBooks.length === 0 && (
-                                    <div style={{ textAlign: 'center', padding: '3rem 1rem', backgroundColor: 'white', borderRadius: '1rem', border: '1px dashed #d1d5db' }}>
-                                        <BookOpen size={40} color="#d1d5db" style={{ marginBottom: '1rem' }} />
-                                        <p style={{ color: '#6b7280', fontWeight: 500 }}>No {activeTab.toLowerCase()} found.</p>
+                                    <div style={{ textAlign: 'center', padding: '3rem 1rem', backgroundColor: 'var(--color-surface)', borderRadius: '1rem', border: '1px dashed var(--color-border)' }}>
+                                        <BookOpen size={40} color="var(--color-text-muted)" style={{ marginBottom: '1rem' }} />
+                                        <p style={{ color: 'var(--color-text-muted)', fontWeight: 500 }}>No {activeTab.toLowerCase()} found.</p>
                                     </div>
                                 )}
                             </div>
                         </div>
                     </motion.div>
                 ) : (
-                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '1.5rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', margin: '0 16px' }}>
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ backgroundColor: 'var(--color-surface)', padding: '1.5rem', borderRadius: '1.5rem', boxShadow: 'var(--shadow-lg)', margin: '0 16px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827', margin: 0 }}>{editingBook ? 'Edit Book' : 'Add New Book'}</h2>
+                            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-text)', margin: 0 }}>{editingBook ? 'Edit Book' : 'Add New Book'}</h2>
                             {editingBook && (
                                 <button
                                     onClick={() => handleDelete(editingBook.id)}
-                                    style={{ padding: '0.5rem', backgroundColor: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', fontWeight: 600 }}
+                                    style={{ padding: '0.5rem', backgroundColor: 'var(--color-error-transparent)', color: 'var(--color-error)', border: '1px solid var(--color-error-light)', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', fontWeight: 600 }}
                                 >
                                     <Trash2 size={16} /> Delete
                                 </button>
@@ -512,13 +512,13 @@ const AdminBookManagement = () => {
                         </div>
                         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                             <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                <label style={{ fontWeight: 600, color: '#4b5563', fontSize: '0.9rem' }}>Book Title *</label>
-                                <input type="text" name="title" value={formData.title} onChange={handleInputChange} required placeholder="Enter book title" style={{ width: '100%', padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid #fed7aa', backgroundColor: '#fff7ed' }} />
+                                <label style={{ fontWeight: 600, color: 'var(--color-text-secondary)', fontSize: '0.9rem' }}>Book Title *</label>
+                                <input type="text" name="title" value={formData.title} onChange={handleInputChange} required placeholder="Enter book title" style={{ width: '100%', padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }} />
                             </div>
 
                             <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                <label style={{ fontWeight: 600, color: '#4b5563', fontSize: '0.9rem' }}>Category *</label>
-                                <select name="category" value={formData.category} onChange={handleInputChange} required style={{ width: '100%', padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid #fed7aa', backgroundColor: '#fff7ed' }}>
+                                <label style={{ fontWeight: 600, color: 'var(--color-text-secondary)', fontSize: '0.9rem' }}>Category *</label>
+                                <select name="category" value={formData.category} onChange={handleInputChange} required style={{ width: '100%', padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}>
                                     {CATEGORIES.map(cat => (
                                         <option key={cat} value={cat}>{NATIVE_LABELS[cat] || cat}</option>
                                     ))}
@@ -527,41 +527,41 @@ const AdminBookManagement = () => {
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                    <label style={{ fontWeight: 600, color: '#4b5563', fontSize: '0.9rem' }}>Price (₹) *</label>
-                                    <input type="number" name="price" value={formData.price} onChange={handleInputChange} required placeholder="0" style={{ width: '100%', padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid #fed7aa', backgroundColor: '#fff7ed' }} />
+                                    <label style={{ fontWeight: 600, color: 'var(--color-text-secondary)', fontSize: '0.9rem' }}>Price (₹) *</label>
+                                    <input type="number" name="price" value={formData.price} onChange={handleInputChange} required placeholder="0" style={{ width: '100%', padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }} />
                                 </div>
                                 <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                    <label style={{ fontWeight: 600, color: '#4b5563', fontSize: '0.9rem' }}>Weight (g) *</label>
-                                    <input type="number" name="weight" value={formData.weight} onChange={handleInputChange} required placeholder="0" style={{ width: '100%', padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid #fed7aa', backgroundColor: '#fff7ed' }} />
+                                    <label style={{ fontWeight: 600, color: 'var(--color-text-secondary)', fontSize: '0.9rem' }}>Weight (g) *</label>
+                                    <input type="number" name="weight" value={formData.weight} onChange={handleInputChange} required placeholder="0" style={{ width: '100%', padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }} />
                                 </div>
                             </div>
 
                             <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                <label style={{ fontWeight: 600, color: '#4b5563', fontSize: '0.9rem' }}>Description</label>
-                                <textarea name="description" value={formData.description} onChange={handleInputChange} rows={4} placeholder="Enter book description/preface" style={{ width: '100%', padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid #fed7aa', backgroundColor: '#fff7ed' }} />
+                                <label style={{ fontWeight: 600, color: 'var(--color-text-secondary)', fontSize: '0.9rem' }}>Description</label>
+                                <textarea name="description" value={formData.description} onChange={handleInputChange} rows={4} placeholder="Enter book description/preface" style={{ width: '100%', padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }} />
                             </div>
 
                             <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                <label style={{ fontWeight: 600, color: '#4b5563', fontSize: '0.9rem' }}>Cover Image</label>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1rem', border: '2px dashed #fed7aa', borderRadius: '1rem', backgroundColor: '#fff7ed', alignItems: 'center', justifyContent: 'center' }}>
+                                <label style={{ fontWeight: 600, color: 'var(--color-text-secondary)', fontSize: '0.9rem' }}>Cover Image</label>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1rem', border: '2px dashed var(--color-border)', borderRadius: '1rem', backgroundColor: 'var(--color-background)', alignItems: 'center', justifyContent: 'center' }}>
                                     <input type="file" onChange={handleImageChange} accept="image/*" id="cover-upload" style={{ display: 'none' }} />
                                     <label htmlFor="cover-upload" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-                                        <ImageIcon size={32} color="#f97316" />
-                                        <span style={{ color: '#f97316', fontWeight: 600, fontSize: '0.9rem' }}>{coverImage ? 'Change Image' : 'Click to Upload Cover'}</span>
+                                        <ImageIcon size={32} color="var(--color-primary)" />
+                                        <span style={{ color: 'var(--color-primary)', fontWeight: 600, fontSize: '0.9rem' }}>{coverImage ? 'Change Image' : 'Click to Upload Cover'}</span>
                                     </label>
 
                                     {(coverImage || formData.coverUrl) && (
                                         <div style={{ position: 'relative', width: '100px', marginTop: '0.5rem' }}>
-                                            <img src={coverImage ? URL.createObjectURL(coverImage) : formData.coverUrl} alt="Cover Preview" style={{ width: '100%', borderRadius: '0.75rem', border: '1px solid #fed7aa', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
-                                            <button type="button" onClick={() => { setCoverImage(null); setFormData(p => ({ ...p, coverUrl: '' })); }} style={{ position: 'absolute', top: '-8px', right: '-8px', backgroundColor: '#ef4444', color: 'white', borderRadius: '50%', width: '24px', height: '24px', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}><X size={14} /></button>
+                                            <img src={coverImage ? URL.createObjectURL(coverImage) : formData.coverUrl} alt="Cover Preview" style={{ width: '100%', borderRadius: '0.75rem', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }} />
+                                            <button type="button" onClick={() => { setCoverImage(null); setFormData(p => ({ ...p, coverUrl: '' })); }} style={{ position: 'absolute', top: '-8px', right: '-8px', backgroundColor: 'var(--color-error)', color: 'white', borderRadius: '50%', width: '24px', height: '24px', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}><X size={14} /></button>
                                         </div>
                                     )}
                                 </div>
                             </div>
 
                             <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                                <button type="button" onClick={() => setSearchParams({}, { replace: true })} style={{ flex: 1, padding: '1rem', borderRadius: '1rem', border: '1px solid #d1d5db', backgroundColor: 'white', color: '#4b5563', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
-                                <button type="submit" disabled={uploading} style={{ flex: 2, padding: '1rem', borderRadius: '1rem', border: 'none', backgroundColor: 'var(--color-primary)', color: 'white', fontWeight: 700, cursor: uploading ? 'not-allowed' : 'pointer', opacity: uploading ? 0.7 : 1, boxShadow: '0 4px 6px -1px rgba(249, 115, 22, 0.2)' }}>
+                                <button type="button" onClick={() => setSearchParams({}, { replace: true })} style={{ flex: 1, padding: '1rem', borderRadius: '1rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text-secondary)', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
+                                <button type="submit" disabled={uploading} style={{ flex: 2, padding: '1rem', borderRadius: '1rem', border: 'none', backgroundColor: 'var(--color-primary)', color: 'white', fontWeight: 700, cursor: uploading ? 'not-allowed' : 'pointer', opacity: uploading ? 0.7 : 1, boxShadow: '0 4px 6px -1px var(--color-primary-transparent)' }}>
                                     {uploading ? 'Saving...' : (editingBook ? 'Update Book' : 'Add Book')}
                                 </button>
                             </div>

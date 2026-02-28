@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 
-const BackOfficeItem = ({ title, subtitle, icon: Icon, path, delay, color = '#2563eb', bgColor = '#eff6ff' }) => {
+const BackOfficeItem = ({ title, subtitle, icon: Icon, path, delay, color = 'var(--color-primary)', bgColor = 'var(--color-primary-transparent)' }) => {
     const navigate = useNavigate();
     return (
         <motion.button
@@ -29,8 +29,8 @@ const BackOfficeItem = ({ title, subtitle, icon: Icon, path, delay, color = '#25
                 alignItems: 'center',
                 gap: '1rem',
                 padding: '1.25rem',
-                backgroundColor: 'white',
-                border: '1px solid #e5e7eb',
+                backgroundColor: 'var(--color-card)',
+                border: '1px solid var(--color-border)',
                 borderRadius: '0.75rem',
                 cursor: 'pointer',
                 textAlign: 'left'
@@ -48,10 +48,10 @@ const BackOfficeItem = ({ title, subtitle, icon: Icon, path, delay, color = '#25
                 <Icon size={24} />
             </div>
             <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '1.125rem', fontWeight: 600, color: '#111827' }}>{title}</div>
-                {subtitle && <div style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '2px' }}>{subtitle}</div>}
+                <div style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--color-text)' }}>{title}</div>
+                {subtitle && <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>{subtitle}</div>}
             </div>
-            <ChevronRight size={20} color="#9ca3af" />
+            <ChevronRight size={20} color="var(--color-text-muted)" />
         </motion.button>
     );
 };
@@ -65,8 +65,8 @@ const BackOffice = () => {
             subtitle: 'Register user for a program',
             icon: CreditCard,
             path: '/admin/back-office/offline-registration',
-            color: '#0ea5e9',
-            bgColor: '#e0f2fe'
+            color: 'var(--color-primary)',
+            bgColor: 'var(--color-primary-transparent)'
         },
         {
             title: 'Book Purchase',
@@ -74,7 +74,7 @@ const BackOffice = () => {
             icon: BookOpen,
             path: '/admin/back-office/offline-books',
             color: '#8b5cf6',
-            bgColor: '#f5f3ff'
+            bgColor: 'rgba(139, 92, 246, 0.1)'
         },
         {
             title: 'Donation Entry',
@@ -82,7 +82,7 @@ const BackOffice = () => {
             icon: Heart,
             path: '/admin/back-office/offline-donation',
             color: '#ec4899',
-            bgColor: '#fdf2f8'
+            bgColor: 'rgba(236, 72, 153, 0.1)'
         },
         {
             title: 'Attendance Tracking',
@@ -90,23 +90,23 @@ const BackOffice = () => {
             icon: Layers,
             path: '/admin/back-office/programs',
             color: '#f97316',
-            bgColor: '#fff7ed'
+            bgColor: 'rgba(249, 115, 22, 0.1)'
         },
         {
             title: 'Import / Export Data',
             subtitle: 'Manage offline records',
             icon: ArrowRightLeft,
             path: '/admin/back-office/import-export',
-            color: '#10b981', // Green
-            bgColor: '#d1fae5'
+            color: 'var(--color-success)',
+            bgColor: 'var(--color-success-transparent)'
         },
         {
             title: 'Bank Reconciliation',
             subtitle: 'Statement matching & reconciliation',
             icon: Landmark,
             path: '/admin/back-office/reconciliation',
-            color: '#10b981',
-            bgColor: '#f0fdf4'
+            color: 'var(--color-success)',
+            bgColor: 'var(--color-success-transparent)'
         },
         {
             title: 'Reporting & Analytics',
@@ -114,16 +114,16 @@ const BackOffice = () => {
             icon: BarChart3,
             path: '/admin/back-office/reporting',
             color: '#8b5cf6',
-            bgColor: '#f5f3ff'
+            bgColor: 'rgba(139, 92, 246, 0.1)'
         },
     ];
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>
             <PageHeader
                 title="Back Office"
                 leftAction={
-                    <button onClick={() => navigate('/configuration')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
+                    <button onClick={() => navigate('/configuration')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', color: 'var(--color-text)' }}>
                         <ChevronLeft size={24} />
                     </button>
                 }

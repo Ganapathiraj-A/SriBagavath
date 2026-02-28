@@ -148,7 +148,7 @@ const DonationManagement = () => {
                         flexDirection: 'column',
                         alignItems: 'center',
                         gap: '15px',
-                        background: 'white',
+                        background: 'var(--color-card)',
                         padding: '15px',
                         borderRadius: '16px',
                         maxWidth: '30rem',
@@ -158,11 +158,11 @@ const DonationManagement = () => {
                         <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                             <h2 style={{ margin: 0, fontSize: '18px' }}>Verify Receipt</h2>
                             <button onClick={() => setViewingImage(null)} style={{ border: 'none', background: 'none', padding: '5px', cursor: 'pointer' }}>
-                                <X size={24} color="#666" />
+                                <X size={24} color="var(--color-text-muted)" />
                             </button>
                         </div>
 
-                        <div style={{ width: '100%', overflowY: 'auto', maxHeight: '40vh', border: '1px solid #eee', borderRadius: '8px' }}>
+                        <div style={{ width: '100%', overflowY: 'auto', maxHeight: '40vh', border: '1px solid var(--color-border)', borderRadius: '8px' }}>
                             <img
                                 src={viewingImage.base64.startsWith('data:') ? viewingImage.base64 : `data:image/jpeg;base64,${viewingImage.base64}`}
                                 alt="Receipt"
@@ -172,7 +172,7 @@ const DonationManagement = () => {
 
                         <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                             <div>
-                                <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748b', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
+                                <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--color-text-muted)', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
                                     Detected 12-Digit Numbers
                                 </div>
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -183,9 +183,9 @@ const DonationManagement = () => {
                                                 onClick={() => setEditingUtrValue(num)}
                                                 style={{
                                                     padding: '4px 10px',
-                                                    backgroundColor: editingUtrValue === num ? '#dbeafe' : '#f1f5f9',
-                                                    color: editingUtrValue === num ? '#1e40af' : '#475569',
-                                                    border: editingUtrValue === num ? '1px solid #3b82f6' : '1px solid #e2e8f0',
+                                                    backgroundColor: editingUtrValue === num ? 'var(--color-primary-bg)' : 'var(--color-surface-alt)',
+                                                    color: editingUtrValue === num ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+                                                    border: editingUtrValue === num ? '1px solid var(--color-primary-light)' : '1px solid var(--color-border)',
                                                     borderRadius: '6px',
                                                     fontSize: '12px',
                                                     fontWeight: 600,
@@ -196,42 +196,42 @@ const DonationManagement = () => {
                                             </button>
                                         ))
                                     ) : (
-                                        <div style={{ fontSize: '12px', color: '#94a3b8', fontStyle: 'italic' }}>No 12-digit numbers found</div>
+                                        <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>No 12-digit numbers found</div>
                                     )}
                                 </div>
                             </div>
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                    <label style={{ fontSize: '12px', fontWeight: 600, color: '#4b5563' }}>Edit UTR</label>
+                                    <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Edit UTR</label>
                                     <input
                                         type="text"
                                         value={editingUtrValue}
                                         onChange={(e) => setEditingUtrValue(e.target.value)}
                                         placeholder="UTR..."
-                                        style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '14px', outline: 'none' }}
+                                        style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', fontSize: '14px', outline: 'none', backgroundColor: 'var(--color-input-bg)', color: 'var(--color-text)' }}
                                     />
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                    <label style={{ fontSize: '12px', fontWeight: 600, color: '#4b5563' }}>Amount</label>
+                                    <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Amount</label>
                                     <input
                                         type="number"
                                         value={editingAmountValue}
                                         onChange={(e) => setEditingAmountValue(e.target.value)}
                                         placeholder="Amount..."
-                                        style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '14px', outline: 'none' }}
+                                        style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', fontSize: '14px', outline: 'none', backgroundColor: 'var(--color-input-bg)', color: 'var(--color-text)' }}
                                     />
                                 </div>
                             </div>
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                <label style={{ fontSize: '12px', fontWeight: 600, color: '#4b5563' }}>OCR Amount (Detected)</label>
+                                <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>OCR Amount (Detected)</label>
                                 <input
                                     type="number"
                                     value={editingParsedAmountValue}
                                     onChange={(e) => setEditingParsedAmountValue(e.target.value)}
                                     placeholder="OCR Amount..."
-                                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px', outline: 'none', backgroundColor: '#fdf2f2' }}
+                                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--color-border-danger)', fontSize: '15px', outline: 'none', backgroundColor: 'var(--color-danger-bg)', color: 'var(--color-text)' }}
                                 />
                             </div>
 
@@ -241,7 +241,7 @@ const DonationManagement = () => {
                                 style={{
                                     width: '100%',
                                     height: '48px',
-                                    backgroundColor: '#2563eb',
+                                    backgroundColor: 'var(--color-primary)',
                                     color: 'white',
                                     border: 'none',
                                     borderRadius: '12px',
@@ -254,7 +254,7 @@ const DonationManagement = () => {
                             </button>
                             <button
                                 onClick={() => setViewingImage(null)}
-                                style={{ width: '100%', height: '48px', background: '#f3f4f6', color: '#4b5563', border: '1px solid #e5e7eb', borderRadius: '12px', fontWeight: 600, cursor: 'pointer' }}
+                                style={{ width: '100%', height: '48px', background: 'var(--color-surface-alt)', color: 'var(--color-text-secondary)', border: '1px solid var(--color-border)', borderRadius: '12px', fontWeight: 600, cursor: 'pointer' }}
                             >
                                 Close
                             </button>
@@ -268,13 +268,13 @@ const DonationManagement = () => {
                 subtitle={`v${appVersion}`}
                 leftAction={
                     <button onClick={() => navigate('/configuration')} style={{ background: 'none', border: 'none', padding: '8px' }}>
-                        <ChevronLeft size={24} />
+                        <ChevronLeft size={24} color="var(--color-text)" />
                     </button>
                 }
             />
 
             {/* Tabs */}
-            <div style={{ backgroundColor: 'white', padding: '10px 16px', borderBottom: '1px solid #eee' }}>
+            <div style={{ backgroundColor: 'var(--color-background)', padding: '10px 16px', borderBottom: '1px solid var(--color-border)' }}>
                 <div className="tabs-row" style={{ justifyContent: 'center' }}>
                     {TABS.map(tab => {
                         const count = getCount(tab);
@@ -282,13 +282,72 @@ const DonationManagement = () => {
                             <button
                                 key={tab}
                                 className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
-                                onClick={() => setActiveTab(tab)}
+                                onClick={() => { setActiveTab(tab); setActiveStatus('ALL'); }}
+                                style={{
+                                    backgroundColor: activeTab === tab ? 'var(--color-primary)' : 'var(--color-surface-alt)',
+                                    color: activeTab === tab ? 'white' : 'var(--color-text-secondary)',
+                                    border: activeTab === tab ? '1px solid var(--color-primary)' : '1px solid var(--color-border)'
+                                }}
                             >
                                 {TAB_LABELS[tab]}
-                                {count > 0 && <span className="badge">{count}</span>}
+                                {count > 0 && <span className="badge" style={{ backgroundColor: activeTab === tab ? 'white' : 'var(--color-primary)', color: activeTab === tab ? 'var(--color-primary)' : 'white' }}>{count}</span>}
                             </button>
                         );
                     })}
+                </div>
+            </div>
+
+            {/* Search and Filters */}
+            <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '0.5rem 1rem',
+                    borderRadius: '1.25rem',
+                    backgroundColor: 'var(--color-surface)',
+                    border: '1px solid var(--color-border)',
+                    boxShadow: 'var(--shadow-sm)'
+                }}>
+                    <Search size={18} color="var(--color-text-muted)" />
+                    <input
+                        type="text"
+                        placeholder="Search by name, ID or city..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        style={{
+                            width: '100%',
+                            padding: '0.75rem 0',
+                            border: 'none',
+                            outline: 'none',
+                            fontSize: '0.95rem',
+                            backgroundColor: 'transparent',
+                            color: 'var(--color-text)'
+                        }}
+                    />
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+                    {getStatusFilterOptions().map(({ id, label }) => (
+                        <button
+                            key={id}
+                            onClick={() => setActiveStatus(id)}
+                            style={{
+                                padding: '0.5rem 1rem',
+                                borderRadius: '1rem',
+                                fontSize: '0.875rem',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                border: '1px solid var(--color-border)',
+                                backgroundColor: activeStatus === id ? 'var(--color-primary)' : 'var(--color-surface)',
+                                color: activeStatus === id ? 'white' : 'var(--color-text-secondary)',
+                                transition: 'all 0.2s',
+                                flexShrink: 0
+                            }}
+                        >
+                            {label}
+                        </button>
+                    ))}
                 </div>
             </div>
 
@@ -308,7 +367,7 @@ const DonationManagement = () => {
                                 setLoading(false);
                             }
                         }}
-                        style={{ width: '100%', padding: '10px', borderRadius: '8px', border: 'none', backgroundColor: '#4f46e5', color: 'white', fontSize: '14px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                        style={{ width: '100%', padding: '10px', borderRadius: '8px', border: 'none', backgroundColor: 'var(--color-primary)', color: 'white', fontSize: '14px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                     >
                         <Package size={18} /> Move All to Storage ({getCount('ACCEPTED')})
                     </button>
@@ -316,72 +375,77 @@ const DonationManagement = () => {
             )}
 
             <div className="product-list" style={{ marginTop: '16px', padding: '0 16px' }}>
-                {loading && <p style={{ textAlign: 'center' }}>Loading Donations...</p>}
+                {loading && <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)' }}>Loading donations...</div>}
                 {!loading && displayedDonations.length === 0 && (
-                    <p style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
-                        No {TAB_LABELS[activeTab].toLowerCase()} donations found.
-                    </p>
+                    <div style={{ textAlign: 'center', padding: '4rem 2rem', backgroundColor: 'var(--color-surface)', borderRadius: '1.5rem', border: '1px dashed var(--color-border)', color: 'var(--color-text-muted)' }}>
+                        <Heart size={48} style={{ margin: '0 auto 1rem', opacity: 0.3 }} />
+                        <p>No donations found for this status</p>
+                    </div>
                 )}
 
-                {displayedDonations.map(donation => (
-                    <div key={donation.id} className="card" style={{ marginBottom: '16px', borderLeft: donation.status === 'PENDING' ? '4px solid #f59e0b' : '4px solid #10b981' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                            <span style={{ fontSize: '13px', fontWeight: 600, color: '#111827' }}>
-                                Donation #{donation.id.substring(0, 8)}
-                            </span>
-                            <span style={{ fontSize: '12px', color: '#6b7280' }}>
-                                {new Date(donation.timestamp?.seconds * 1000 || Date.now()).toLocaleDateString()}
-                            </span>
+                {displayedDonations.map((donation) => (
+                    <motion.div
+                        key={donation.id}
+                        layout
+                        onClick={() => navigate(`/donation-management/${donation.id}`)}
+                        style={{
+                            backgroundColor: 'var(--color-surface)',
+                            padding: '1.25rem',
+                            borderRadius: '1.5rem',
+                            border: '1px solid var(--color-border)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '1rem',
+                            cursor: 'pointer',
+                            boxShadow: 'var(--shadow-sm)'
+                        }}
+                    >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div>
+                                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--color-text)' }}>{donation.name}</h3>
+                                <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>ID: {donation.donationId}</p>
+                            </div>
+                            <div style={{
+                                padding: '0.4rem 0.75rem',
+                                borderRadius: '0.75rem',
+                                fontSize: '0.75rem',
+                                fontWeight: 700,
+                                textTransform: 'uppercase',
+                                ...getDonationStatusStyles(donation.status)
+                            }}>
+                                {STATUS_LABELS[donation.status]}
+                            </div>
                         </div>
 
-                        {/* Amount */}
-                        <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '8px', marginBottom: '12px' }}>
-                            <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <Heart size={14} className="text-red-500" /> DONATION AMOUNT
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', backgroundColor: 'var(--color-background)', borderRadius: '1rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <Calendar size={16} color="var(--color-text-muted)" />
+                                <span style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', fontWeight: 500 }}>
+                                    {formatDate(donation.timestamp)}
+                                </span>
                             </div>
-                            <div style={{ fontSize: '18px', fontWeight: 700, color: '#1e293b' }}>
+                            <div style={{ fontWeight: 700, color: 'var(--color-text)', fontSize: '1.1rem' }}>
                                 ₹{donation.amount}
                             </div>
-                            {donation.utr && (
-                                <div style={{ fontSize: '12px', fontWeight: 600, color: '#2563eb', marginTop: '4px' }}>
-                                    UTR: {donation.utr}
-                                </div>
-                            )}
                         </div>
 
-                        {/* Donor details */}
-                        {(donation.shippingAddress || donation.primaryApplicant) && (
-                            <div style={{ background: '#f0fdf4', padding: '10px', borderRadius: '8px', marginBottom: '12px' }}>
-                                <div style={{ fontSize: '12px', color: '#166534', fontWeight: 600, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    <User size={14} /> DONOR DETAILS {donation.isOffline && <span style={{ color: '#059669', fontSize: '10px' }}>(OFFLINE)</span>}
-                                </div>
-                                <div style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>
-                                    {(donation.shippingAddress || donation.primaryApplicant).name}
-                                </div>
-                                <div style={{ fontSize: '14px', color: '#4b5563' }}>
-                                    {(donation.shippingAddress || donation.primaryApplicant).mobile}
-                                </div>
-                                {(donation.shippingAddress || donation.primaryApplicant).pan && (
-                                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
-                                        PAN: {(donation.shippingAddress || donation.primaryApplicant).pan}
-                                    </div>
-                                )}
-                                <div style={{ fontSize: '13px', color: '#4b5563', marginTop: '4px' }}>
-                                    {(donation.shippingAddress || donation.primaryApplicant).city || donation.place}
-                                </div>
-                                {donation.userEmail && (
-                                    <div style={{ fontSize: '12px', color: '#2563eb', marginTop: '6px', fontStyle: 'italic' }}>
-                                        Gmail: {donation.userEmail}
-                                    </div>
-                                )}
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                            <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <MapPin size={14} color="var(--color-text-muted)" />
+                                <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    {donation.city}, {donation.state}
+                                </span>
                             </div>
-                        )}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--color-primary)', fontWeight: 600, fontSize: '0.85rem' }}>
+                                Details <ChevronRight size={16} />
+                            </div>
+                        </div>
 
                         <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
                             {donation.hasImage ? (
                                 <button
                                     onClick={() => handleViewImage(donation)}
-                                    style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid #ddd', backgroundColor: 'white', fontSize: '13px', fontWeight: 500 }}
+                                    style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface-alt)', fontSize: '13px', fontWeight: 500, color: 'var(--color-text-secondary)' }}
                                 >
                                     Verify Receipt
                                 </button>
@@ -394,9 +458,9 @@ const DonationManagement = () => {
                                             width: '100%',
                                             padding: '8px',
                                             borderRadius: '8px',
-                                            border: '1px solid #2563eb',
-                                            backgroundColor: '#eff6ff',
-                                            color: '#2563eb',
+                                            border: '1px solid var(--color-primary-light)',
+                                            backgroundColor: 'var(--color-primary-bg)',
+                                            color: 'var(--color-primary)',
                                             fontSize: '13px',
                                             fontWeight: 600,
                                             cursor: uploadingReceipt === donation.id ? 'wait' : 'pointer'
@@ -416,7 +480,7 @@ const DonationManagement = () => {
                             {(donation.status === 'PENDING' || (donation.isOffline && donation.status === 'REGISTERED' && activeTab === 'RECEIVED')) && (
                                 <button
                                     onClick={() => handleUpdateStatus(donation.id, 'COMPLETED')}
-                                    style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', backgroundColor: '#16a34a', color: 'white', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                                    style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', backgroundColor: 'var(--color-success)', color: 'white', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                                 >
                                     <Check size={16} /> Accept Donation
                                 </button>
@@ -425,7 +489,7 @@ const DonationManagement = () => {
                                 <>
                                     <button
                                         onClick={() => handleUpdateStatus(donation.id, 'PENDING')}
-                                        style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid #6b7280', backgroundColor: 'white', color: '#4b5563', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                                        style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text-secondary)', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                                     >
                                         <Rewind size={16} /> Revert
                                     </button>
@@ -435,7 +499,7 @@ const DonationManagement = () => {
                                                 await TransactionService.archiveTransaction(donation.id);
                                             } catch (_err) { alert("Archive Failed"); }
                                         }}
-                                        style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', backgroundColor: '#4f46e5', color: 'white', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                                        style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', backgroundColor: 'var(--color-accent)', color: 'white', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                                     >
                                         <Package size={16} /> Storage
                                     </button>
@@ -443,12 +507,12 @@ const DonationManagement = () => {
                             )}
                             <button
                                 onClick={() => handleDelete(donation.id)}
-                                style={{ padding: '8px', borderRadius: '8px', border: 'none', backgroundColor: '#fee2e2', color: '#ef4444' }}
+                                style={{ padding: '8px', borderRadius: '8px', border: 'none', backgroundColor: 'var(--color-error-transparent)', color: 'var(--color-error)', cursor: 'pointer' }}
                             >
                                 <Trash2 size={18} />
                             </button>
                         </div>
-                    </div>
+                    </motion.div>
                 ))}
             </div>
         </div>

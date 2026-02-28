@@ -69,7 +69,6 @@ const SatsangListing = () => {
     const [loading, setLoading] = useState(true);
     const { loading: authGlobalLoading, isAdmin, hasAccess } = useAdminAuth();
 
-    const ORANGE = '#f97316';
 
     useEffect(() => {
         localStorage.setItem('lastVisited_satsangs', new Date().toISOString());

@@ -122,11 +122,11 @@ const DailyZoomLinkManagement = () => {
     };
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>
             <PageHeader
                 title="Manage Meeting Links"
                 leftAction={
-                    <button onClick={() => navigate('/admin/daily-zoom')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
+                    <button onClick={() => navigate('/admin/daily-zoom')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', color: 'var(--color-text)' }}>
                         <ChevronLeft size={24} />
                     </button>
                 }
@@ -134,10 +134,10 @@ const DailyZoomLinkManagement = () => {
 
             <div style={{ maxWidth: '42rem', margin: '0 auto', padding: '1.5rem' }}>
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                    <div style={{ backgroundColor: 'white', borderRadius: '1rem', padding: '1.5rem', boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)', marginBottom: '2rem' }}>
+                    <div style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '1.5rem', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)', marginBottom: '2rem' }}>
                         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                             <div style={{ display: 'grid', gap: '0.4rem' }}>
-                                <label style={{ fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>Link Label</label>
+                                <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Link Label</label>
                                 <input
                                     type="text"
                                     name="name"
@@ -145,12 +145,12 @@ const DailyZoomLinkManagement = () => {
                                     onChange={handleInputChange}
                                     required
                                     placeholder="e.g. Main Zoom Room, Secondary Link"
-                                    style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
+                                    style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
                                 />
                             </div>
 
                             <div style={{ display: 'grid', gap: '0.4rem' }}>
-                                <label style={{ fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>Meeting URL</label>
+                                <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Meeting URL</label>
                                 <input
                                     type="url"
                                     name="url"
@@ -158,7 +158,7 @@ const DailyZoomLinkManagement = () => {
                                     onChange={handleInputChange}
                                     required
                                     placeholder="https://zoom.us/j/..."
-                                    style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db' }}
+                                    style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
                                 />
                             </div>
 
@@ -171,7 +171,7 @@ const DailyZoomLinkManagement = () => {
                                     onChange={handleInputChange}
                                     style={{ width: '1rem', height: '1rem' }}
                                 />
-                                <label htmlFor="isDefault" style={{ fontSize: '0.875rem', color: '#374151', cursor: 'pointer' }}>Set as default link for new meetings</label>
+                                <label htmlFor="isDefault" style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', cursor: 'pointer' }}>Set as default link for new meetings</label>
                             </div>
 
                             <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
@@ -179,25 +179,25 @@ const DailyZoomLinkManagement = () => {
                                     <Save size={18} /> {isEditing ? 'Update Link' : 'Add Link'}
                                 </button>
                                 {isEditing && (
-                                    <button type="button" onClick={resetForm} style={{ padding: '0.75rem 1.5rem', backgroundColor: '#f3f4f6', borderRadius: '0.5rem', border: 'none', fontWeight: 500, cursor: 'pointer' }}>Cancel</button>
+                                    <button type="button" onClick={resetForm} style={{ padding: '0.75rem 1.5rem', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', borderRadius: '0.5rem', border: '1px solid var(--color-border)', fontWeight: 500, cursor: 'pointer' }}>Cancel</button>
                                 )}
                             </div>
                         </form>
                     </div>
 
                     <div style={{ display: 'grid', gap: '1rem' }}>
-                        <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#111827' }}>Stored Meeting Links</h2>
-                        {loading ? <p>Loading links...</p> : links.length === 0 ? <p style={{ color: '#6b7280' }}>No links stored yet.</p> : (
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--color-text)' }}>Stored Meeting Links</h2>
+                        {loading ? <p style={{ color: 'var(--color-text-muted)' }}>Loading links...</p> : links.length === 0 ? <p style={{ color: 'var(--color-text-muted)' }}>No links stored yet.</p> : (
                             links.map(l => (
-                                <div key={l.id} style={{ backgroundColor: 'white', padding: '1rem', borderRadius: '0.75rem', display: 'flex', alignItems: 'center', gap: '1rem', boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)', border: l.isDefault ? '2px solid #f97316' : '1px solid #e5e7eb' }}>
+                                <div key={l.id} style={{ backgroundColor: 'var(--color-card)', padding: '1rem', borderRadius: '0.75rem', display: 'flex', alignItems: 'center', gap: '1rem', boxShadow: 'var(--shadow-sm)', border: l.isDefault ? '2px solid var(--color-primary)' : '1px solid var(--color-border)' }}>
                                     <div style={{ flex: 1, minWidth: 0 }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                            <span style={{ fontWeight: 600, color: '#111827' }}>{l.name}</span>
-                                            {l.isDefault && <span style={{ fontSize: '0.65rem', backgroundColor: '#fff7ed', color: '#f97316', padding: '2px 6px', borderRadius: '4px', fontWeight: 700, textTransform: 'uppercase' }}>Default</span>}
+                                            <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>{l.name}</span>
+                                            {l.isDefault && <span style={{ fontSize: '0.65rem', backgroundColor: 'var(--color-primary-transparent)', color: 'var(--color-primary)', padding: '2px 6px', borderRadius: '4px', fontWeight: 700, textTransform: 'uppercase' }}>Default</span>}
                                         </div>
                                         <div style={{
                                             fontSize: '0.8rem',
-                                            color: '#6b7280',
+                                            color: 'var(--color-text-muted)',
                                             overflow: 'hidden',
                                             wordBreak: 'break-all',
                                             overflowWrap: 'anywhere',
@@ -206,12 +206,12 @@ const DailyZoomLinkManagement = () => {
                                     </div>
                                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                                         {!l.isDefault && (
-                                            <button onClick={() => toggleDefault(l)} title="Set as Default" style={{ padding: '0.5rem', borderRadius: '0.4rem', border: '1px solid #e5e7eb', background: 'none', cursor: 'pointer' }}>
-                                                <Circle size={16} color="#9ca3af" />
+                                            <button onClick={() => toggleDefault(l)} title="Set as Default" style={{ padding: '0.5rem', borderRadius: '0.4rem', border: '1px solid var(--color-border)', background: 'var(--color-surface)', cursor: 'pointer' }}>
+                                                <Circle size={16} color="var(--color-text-light)" />
                                             </button>
                                         )}
-                                        <button onClick={() => handleEdit(l)} style={{ padding: '0.5rem', borderRadius: '0.4rem', border: '1px solid #e5e7eb', background: 'none', cursor: 'pointer' }}><Edit2 size={16} color="#4b5563" /></button>
-                                        <button onClick={() => handleDelete(l.id)} style={{ padding: '0.5rem', borderRadius: '0.4rem', border: '1px solid #fee2e2', backgroundColor: '#fff1f1', cursor: 'pointer' }}><Trash2 size={16} color="#ef4444" /></button>
+                                        <button onClick={() => handleEdit(l)} style={{ padding: '0.5rem', borderRadius: '0.4rem', border: '1px solid var(--color-border)', background: 'var(--color-surface)', cursor: 'pointer' }}><Edit2 size={16} color="var(--color-text-muted)" /></button>
+                                        <button onClick={() => handleDelete(l.id)} style={{ padding: '0.5rem', borderRadius: '0.4rem', border: '1px solid var(--color-error-transparent)', backgroundColor: 'var(--color-error-transparent)', cursor: 'pointer' }}><Trash2 size={16} color="var(--color-error)" /></button>
                                     </div>
                                 </div>
                             ))

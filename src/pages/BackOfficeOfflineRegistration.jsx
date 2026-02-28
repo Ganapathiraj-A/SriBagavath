@@ -186,11 +186,11 @@ const BackOfficeOfflineRegistration = () => {
     };
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', paddingBottom: '20px' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)', paddingBottom: '20px' }}>
             <PageHeader
                 title="Offline Registration"
                 leftAction={
-                    <button onClick={() => navigate('/admin/back-office')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
+                    <button onClick={() => navigate('/admin/back-office')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', color: 'var(--color-text)' }}>
                         <ChevronLeft size={24} />
                     </button>
                 }
@@ -207,9 +207,9 @@ const BackOfficeOfflineRegistration = () => {
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 gap: '8px',
-                                background: '#e0f2fe',
-                                color: '#0284c7',
-                                border: '1px solid #bae6fd',
+                                background: 'var(--color-primary-transparent)',
+                                color: 'var(--color-primary)',
+                                border: '1px solid var(--color-primary)',
                                 padding: '10px',
                                 borderRadius: '8px',
                                 fontWeight: 600,
@@ -223,12 +223,12 @@ const BackOfficeOfflineRegistration = () => {
                 )}
 
                 {/* Program Selection */}
-                <div className="card" style={{ padding: '16px', borderRadius: '12px', backgroundColor: 'white', marginBottom: '16px', border: '1px solid #e5e7eb' }}>
+                <div className="card" style={{ padding: '16px', borderRadius: '12px', backgroundColor: 'var(--color-surface)', marginBottom: '16px', border: '1px solid var(--color-border)' }}>
                     <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, marginBottom: '8px' }}>Select Program</label>
                     <select
                         value={selectedProgramId}
                         onChange={(e) => setSelectedProgramId(e.target.value)}
-                        style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db' }}
+                        style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}
                     >
                         <option value="">-- Select Program --</option>
                         {programs.map(p => (
@@ -240,39 +240,39 @@ const BackOfficeOfflineRegistration = () => {
                 </div>
 
                 {/* Primary Applicant */}
-                <div className="card" style={{ padding: '16px', borderRadius: '12px', backgroundColor: 'white', marginBottom: '16px', border: '1px solid #e5e7eb' }}>
-                    <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>Primary Applicant</h3>
+                <div className="card" style={{ padding: '16px', borderRadius: '12px', backgroundColor: 'var(--color-surface)', marginBottom: '16px', border: '1px solid var(--color-border)' }}>
+                    <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px', color: 'var(--color-text)' }}>Primary Applicant</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         <input
                             placeholder="Full Name"
                             value={primaryName}
                             onChange={(e) => setPrimaryName(e.target.value)}
-                            style={{ padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db' }}
+                            style={{ padding: '10px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}
                         />
                         <input
                             placeholder="Mobile Number"
                             type="tel"
                             value={mobile}
                             onChange={(e) => setMobile(e.target.value)}
-                            style={{ padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db' }}
+                            style={{ padding: '10px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}
                         />
                         <input
                             placeholder="City / Place Details"
                             value={city}
                             onChange={(e) => setCity(e.target.value)}
-                            style={{ padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db' }}
+                            style={{ padding: '10px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}
                         />
                     </div>
                 </div>
 
                 {/* Additional Participants */}
-                <div className="card" style={{ padding: '16px', borderRadius: '12px', backgroundColor: 'white', marginBottom: '16px', border: '1px solid #e5e7eb' }}>
-                    <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>Additional Participants</h3>
+                <div className="card" style={{ padding: '16px', borderRadius: '12px', backgroundColor: 'var(--color-surface)', marginBottom: '16px', border: '1px solid var(--color-border)' }}>
+                    <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px', color: 'var(--color-text)' }}>Additional Participants</h3>
 
                     {participants.map((p, idx) => (
-                        <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f3f4f6', padding: '8px', borderRadius: '6px', marginBottom: '8px' }}>
-                            <span style={{ fontSize: '14px' }}>{p.name} ({p.gender}, {p.age})</span>
-                            <button onClick={() => handleRemoveParticipant(idx)} style={{ border: 'none', background: 'none', color: '#ef4444' }}>
+                        <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--color-surface-alt)', padding: '8px', borderRadius: '6px', marginBottom: '8px', border: '1px solid var(--color-border)' }}>
+                            <span style={{ fontSize: '14px', color: 'var(--color-text)' }}>{p.name} ({p.gender}, {p.age})</span>
+                            <button onClick={() => handleRemoveParticipant(idx)} style={{ border: 'none', background: 'none', color: 'var(--color-error)' }}>
                                 <Trash2 size={16} />
                             </button>
                         </div>
@@ -283,13 +283,13 @@ const BackOfficeOfflineRegistration = () => {
                             placeholder="Name"
                             value={newParticipant.name}
                             onChange={(e) => setNewParticipant({ ...newParticipant, name: e.target.value })}
-                            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px' }}
+                            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--color-border)', fontSize: '14px', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}
                         />
                         <div style={{ display: 'flex', gap: '8px' }}>
                             <select
                                 value={newParticipant.gender}
                                 onChange={(e) => setNewParticipant({ ...newParticipant, gender: e.target.value })}
-                                style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px', backgroundColor: 'white' }}
+                                style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid var(--color-border)', fontSize: '14px', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}
                             >
                                 <option value="">Gender</option>
                                 <option value="M">Male</option>
@@ -300,11 +300,11 @@ const BackOfficeOfflineRegistration = () => {
                                 type="number"
                                 value={newParticipant.age}
                                 onChange={(e) => setNewParticipant({ ...newParticipant, age: e.target.value })}
-                                style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px' }}
+                                style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid var(--color-border)', fontSize: '14px', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}
                             />
                             <button
                                 onClick={handleAddParticipant}
-                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '42px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '6px' }}
+                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '42px', backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
                             >
                                 <Plus size={20} />
                             </button>
@@ -313,11 +313,11 @@ const BackOfficeOfflineRegistration = () => {
                 </div>
 
                 {/* Payment Details */}
-                <div className="card" style={{ padding: '16px', borderRadius: '12px', backgroundColor: 'white', marginBottom: '20px', border: '1px solid #e5e7eb' }}>
-                    <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>Payment Reference</h3>
+                <div className="card" style={{ padding: '16px', borderRadius: '12px', backgroundColor: 'var(--color-surface)', marginBottom: '20px', border: '1px solid var(--color-border)' }}>
+                    <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px', color: 'var(--color-text)' }}>Payment Reference</h3>
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', alignItems: 'center' }}>
-                        <span style={{ color: '#6b7280' }}>Total Amount</span>
+                        <span style={{ color: 'var(--color-text-muted)' }}>Total Amount</span>
                         <input
                             type="number"
                             value={amount}
@@ -326,10 +326,12 @@ const BackOfficeOfflineRegistration = () => {
                                 fontWeight: 700,
                                 fontSize: '18px',
                                 textAlign: 'right',
-                                border: '1px solid #d1d5db',
+                                border: '1px solid var(--color-border)',
                                 borderRadius: '6px',
                                 padding: '4px 8px',
-                                width: '120px'
+                                width: '120px',
+                                backgroundColor: 'var(--color-background)',
+                                color: 'var(--color-text)'
                             }}
                         />
                     </div>
@@ -339,21 +341,21 @@ const BackOfficeOfflineRegistration = () => {
                             placeholder="Payment Reference No / Order ID"
                             value={refNo}
                             onChange={(e) => setRefNo(e.target.value)}
-                            style={{ padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db' }}
+                            style={{ padding: '10px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}
                         />
 
                         <div
                             onClick={captureImage}
                             style={{
                                 padding: '12px',
-                                border: '2px dashed #d1d5db',
+                                border: '2px dashed var(--color-border)',
                                 borderRadius: '8px',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 gap: '8px',
-                                color: image ? '#166534' : '#6b7280',
-                                backgroundColor: image ? '#f0fdf4' : 'transparent',
+                                color: image ? 'var(--color-success)' : 'var(--color-text-muted)',
+                                backgroundColor: image ? 'var(--color-success-transparent)' : 'transparent',
                                 cursor: 'pointer'
                             }}
                         >
@@ -369,13 +371,14 @@ const BackOfficeOfflineRegistration = () => {
                     style={{
                         width: '100%',
                         padding: '16px',
-                        backgroundColor: '#2563eb',
+                        backgroundColor: 'var(--color-primary)',
                         color: 'white',
                         border: 'none',
                         borderRadius: '12px',
                         fontSize: '16px',
                         fontWeight: 600,
-                        opacity: loading ? 0.7 : 1
+                        opacity: loading ? 0.7 : 1,
+                        cursor: loading ? 'wait' : 'pointer'
                     }}
                 >
                     {loading ? "Registering..." : "Complete Registration"}

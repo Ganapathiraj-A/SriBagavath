@@ -197,10 +197,10 @@ const BackOfficeAttendance = () => {
 
     if (loading) {
         return (
-            <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--color-surface)' }}>
+            <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--color-background)' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-                    <div style={{ width: '2rem', height: '2rem', border: '3px solid #e5e7eb', borderTopColor: 'var(--color-primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-                    <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>Loading participants...</span>
+                    <div style={{ width: '2rem', height: '2rem', border: '3px solid var(--color-border)', borderTopColor: 'var(--color-primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                    <span style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Loading participants...</span>
                 </div>
                 <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
             </div>
@@ -208,41 +208,41 @@ const BackOfficeAttendance = () => {
     }
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-surface)', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)', display: 'flex', flexDirection: 'column' }}>
             <div style={{
                 padding: '1rem 1.5rem',
-                backgroundColor: 'white',
-                borderBottom: '1px solid #f3f4f6',
+                backgroundColor: 'var(--color-surface)',
+                borderBottom: '1px solid var(--color-border)',
                 position: 'sticky',
                 top: 0,
                 zIndex: 10
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <button onClick={() => navigate('/admin/back-office/programs')} style={{ padding: '8px', background: 'none', border: 'none', cursor: 'pointer' }}>
+                        <button onClick={() => navigate('/admin/back-office/programs')} style={{ padding: '8px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text)' }}>
                             <ChevronLeft size={24} />
                         </button>
                         <div>
-                            <h2 style={{ fontSize: '1.125rem', fontWeight: 700 }}>
+                            <h2 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--color-text)' }}>
                                 {program?.programName}
                                 {program?.programDate && (
-                                    <span style={{ fontSize: '0.85rem', fontWeight: 'normal', color: '#4b5563', marginLeft: '0.5rem' }}>
+                                    <span style={{ fontSize: '0.85rem', fontWeight: 'normal', color: 'var(--color-text-muted)', marginLeft: '0.5rem' }}>
                                         ({new Date(program.programDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                                         {program.programCity ? ` - ${program.programCity}` : ''})
                                     </span>
                                 )}
                             </h2>
-                            <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>Attendance Tracking</span>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Attendance Tracking</span>
                         </div>
                     </div>
                     <button
                         onClick={handleExport}
                         style={{
-                            padding: '0.5rem',
+                            padding: '0.5rem 0.75rem',
                             borderRadius: '0.75rem',
-                            backgroundColor: '#f1f5f9',
+                            backgroundColor: 'var(--color-primary-transparent)',
                             color: 'var(--color-primary)',
-                            border: 'none',
+                            border: '1px solid var(--color-primary)',
                             display: 'flex',
                             alignItems: 'center',
                             gap: '0.5rem',
@@ -259,19 +259,20 @@ const BackOfficeAttendance = () => {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     padding: '0.75rem 1rem',
-                    backgroundColor: '#f8fafc',
+                    backgroundColor: 'var(--color-surface-alt)',
+                    border: '1px solid var(--color-border)',
                     borderRadius: '0.75rem',
                     marginTop: '0.5rem'
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
                         <div>
-                            <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>REGISTERED</div>
-                            <div style={{ fontSize: '1.125rem', fontWeight: 800 }}>{participants.length}</div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>REGISTERED</div>
+                            <div style={{ fontSize: '1.125rem', fontWeight: 800, color: 'var(--color-text)' }}>{participants.length}</div>
                         </div>
-                        <div style={{ width: '1px', height: '1.5rem', backgroundColor: '#e2e8f0' }} />
+                        <div style={{ width: '1px', height: '1.5rem', backgroundColor: 'var(--color-border)' }} />
                         <div>
-                            <div style={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: 600 }}>PRESENT</div>
-                            <div style={{ fontSize: '1.125rem', fontWeight: 800, color: '#16a34a' }}>{presentCount}</div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--color-success)', fontWeight: 600 }}>PRESENT</div>
+                            <div style={{ fontSize: '1.125rem', fontWeight: 800, color: 'var(--color-success)' }}>{presentCount}</div>
                         </div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
@@ -293,7 +294,7 @@ const BackOfficeAttendance = () => {
                 <div style={{ position: 'relative', marginBottom: '1.5rem' }}>
                     <Search
                         size={18}
-                        color="#9ca3af"
+                        color="var(--color-text-muted)"
                         style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)' }}
                     />
                     <input
@@ -305,17 +306,19 @@ const BackOfficeAttendance = () => {
                             width: '100%',
                             padding: '0.625rem 1rem 0.625rem 2.75rem',
                             borderRadius: '2rem',
-                            border: '1px solid #e2e8f0',
+                            border: '1px solid var(--color-border)',
+                            backgroundColor: 'var(--color-surface)',
+                            color: 'var(--color-text)',
                             fontSize: '0.9375rem',
                             outline: 'none',
-                            boxShadow: '0 1px 2px rgba(0,0,0,0.03)'
+                            boxShadow: 'var(--shadow-sm)'
                         }}
                     />
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                     {filteredParticipants.length === 0 ? (
-                        <div style={{ textAlign: 'center', padding: '4rem', color: '#6b7280' }}>
+                        <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--color-text-muted)' }}>
                             {searchTerm ? "No participants match your search." : "No active registrations found."}
                         </div>
                     ) : (
@@ -335,14 +338,14 @@ const BackOfficeAttendance = () => {
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'space-between',
-                                        border: isPresent ? '1px solid #bbf7d0' : '1px solid #f3f4f6',
+                                        border: isPresent ? '1px solid var(--color-success)' : '1px solid var(--color-border)',
                                         transition: 'all 0.2s ease',
-                                        backgroundColor: isPresent ? '#f0fdf4' : 'white'
+                                        backgroundColor: isPresent ? 'var(--color-success-transparent)' : 'var(--color-surface)'
                                     }}
                                 >
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.125rem', flex: 1 }}>
-                                        <span style={{ fontWeight: 700, color: '#1f2937' }}>{p.name}</span>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.75rem', color: '#6b7280' }}>
+                                        <span style={{ fontWeight: 700, color: 'var(--color-text)' }}>{p.name}</span>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
                                             <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                                                 {p.gender}, Age: {p.age}
                                             </span>
@@ -364,10 +367,10 @@ const BackOfficeAttendance = () => {
                                             alignItems: 'center',
                                             justifyContent: 'center',
                                             cursor: isSyncing ? 'not-allowed' : 'pointer',
-                                            backgroundColor: isPresent ? '#16a34a' : '#f1f5f9',
-                                            color: isPresent ? 'white' : '#64748b',
-                                            border: 'none',
-                                            minWidth: '4rem',
+                                            backgroundColor: isPresent ? 'var(--color-success)' : 'var(--color-surface-alt)',
+                                            color: isPresent ? 'white' : 'var(--color-text-muted)',
+                                            border: isPresent ? 'none' : '1px solid var(--color-border)',
+                                            minWidth: '4.5rem',
                                             transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
                                         }}
                                     >
