@@ -77,7 +77,7 @@ const ContactCard = ({ name, number, delay }) => {
                         cursor: 'pointer'
                     }}
                 >
-                    {copied ? <Check size={18} color="var(--color-error)" /> : <Copy size={18} />}
+                    {copied ? <Check size={18} color="var(--color-success)" /> : <Copy size={18} />}
                     {copied ? 'Copied' : 'Copy'}
                 </button>
             </div>

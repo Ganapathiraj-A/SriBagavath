@@ -147,7 +147,7 @@ const PdfBooks = () => {
 
     if (loading) {
       return (
-        <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
+        <div style={{ padding: '40px', textAlign: 'center', color: 'var(--color-text-muted)' }}>
           <p>Loading books...</p>
         </div>
       );
@@ -155,7 +155,7 @@ const PdfBooks = () => {
 
     if (error) {
       return (
-        <div style={{ padding: '20px', textAlign: 'center', color: '#ef4444' }}>
+        <div style={{ padding: '20px', textAlign: 'center', color: 'var(--color-error)' }}>
           <p>{error}</p>
         </div>
       );
@@ -163,7 +163,7 @@ const PdfBooks = () => {
 
     if (files.length === 0) {
       return (
-        <div style={{ padding: '60px 20px', textAlign: 'center', color: '#6b7280' }}>
+        <div style={{ padding: '60px 20px', textAlign: 'center', color: 'var(--color-text-muted)' }}>
           <p>No books available in this category.</p>
         </div>
       );
@@ -198,8 +198,9 @@ const PdfBooks = () => {
                   cursor: 'pointer',
                   flex: 1,
                   minWidth: 0,
-                  border: editMode ? '1px dashed var(--color-primary)' : '1px solid #f3f4f6',
-                  position: 'relative'
+                  border: editMode ? '1px dashed var(--color-primary)' : '1px solid var(--color-border)',
+                  position: 'relative',
+                  backgroundColor: 'var(--color-card)'
                 }}
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
@@ -208,14 +209,14 @@ const PdfBooks = () => {
                   width: '50px',
                   height: '65px',
                   borderRadius: '6px',
-                  backgroundColor: '#fef2f2',
+                  backgroundColor: 'var(--color-primary-transparent)',
                   color: 'var(--color-primary)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0,
                   overflow: 'hidden',
-                  border: '1px solid #f3f4f6'
+                  border: '1px solid var(--color-border)'
                 }}>
                   {cover ? (
                     <img src={cover} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -224,7 +225,7 @@ const PdfBooks = () => {
                   )}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <span style={{ fontSize: '1rem', fontWeight: 500, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <span style={{ color: 'var(--color-text)', fontSize: '1rem', fontWeight: 500, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {file.name}
                   </span>
                 </div>
@@ -239,7 +240,7 @@ const PdfBooks = () => {
                       alignItems: 'center',
                       justifyContent: 'center',
                       borderRadius: '50%',
-                      backgroundColor: '#f3f4f6'
+                      backgroundColor: 'var(--color-surface)'
                     }}
                   >
                     <Share2 size={18} color="var(--color-primary)" />
@@ -254,14 +255,14 @@ const PdfBooks = () => {
   };
 
   return (
-    <div style={{ backgroundColor: '#f9fafb', minHeight: '100vh', paddingBottom: '30px' }}>
+    <div style={{ backgroundColor: 'var(--color-background)', minHeight: '100vh', paddingBottom: '30px' }}>
       <PageHeader title="Digital Books" />
 
       {/* Tabs & Edit Toggle */}
       <div style={{
         display: 'flex',
         margin: '0 16px',
-        borderBottom: '1px solid #e5e7eb',
+        borderBottom: '1px solid var(--color-border)',
         gap: '20px',
         justifyContent: 'space-between',
         alignItems: 'center'
@@ -276,7 +277,7 @@ const PdfBooks = () => {
                 border: 'none',
                 borderBottom: activeTab === tab ? '2px solid var(--color-primary)' : '2px solid transparent',
                 backgroundColor: 'transparent',
-                color: activeTab === tab ? 'var(--color-primary)' : '#6b7280',
+                color: activeTab === tab ? 'var(--color-primary)' : 'var(--color-text-muted)',
                 fontWeight: activeTab === tab ? '600' : '500',
                 fontSize: '0.95rem',
                 cursor: 'pointer',
@@ -298,9 +299,9 @@ const PdfBooks = () => {
               padding: '6px 12px',
               borderRadius: '20px',
               border: '1px solid',
-              borderColor: editMode ? 'var(--color-primary)' : '#d1d5db',
-              backgroundColor: editMode ? '#fff7ed' : 'white',
-              color: editMode ? 'var(--color-primary)' : '#6b7280',
+              borderColor: editMode ? 'var(--color-primary)' : 'var(--color-border)',
+              backgroundColor: editMode ? 'var(--color-primary-transparent)' : 'var(--color-card)',
+              color: editMode ? 'var(--color-primary)' : 'var(--color-text-muted)',
               fontSize: '0.85rem',
               fontWeight: 600,
               cursor: 'pointer',
@@ -343,7 +344,7 @@ const PdfBooks = () => {
               className="modal-content"
               onClick={e => e.stopPropagation()}
               style={{
-                backgroundColor: 'white',
+                backgroundColor: 'var(--color-card)',
                 maxWidth: '90%',
                 width: '400px',
                 maxHeight: '85vh',
@@ -355,11 +356,11 @@ const PdfBooks = () => {
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>Configure Cover</h2>
-                <button onClick={() => setIsModalOpen(false)} style={{ border: 'none', background: 'none' }}><X size={24} color="#666" /></button>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: 'var(--color-text)' }}>Configure Cover</h2>
+                <button onClick={() => setIsModalOpen(false)} style={{ border: 'none', background: 'none' }}><X size={24} color="var(--color-text-muted)" /></button>
               </div>
 
-              <p style={{ fontSize: '0.9rem', color: '#666', margin: 0 }}>{editingFile?.name}</p>
+              <p style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)', margin: 0 }}>{editingFile?.name}</p>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <label style={{
@@ -368,10 +369,11 @@ const PdfBooks = () => {
                   alignItems: 'center',
                   gap: '8px',
                   padding: '15px',
-                  border: '2px dashed #e5e7eb',
+                  border: '2px dashed var(--color-border)',
                   borderRadius: '12px',
                   cursor: 'pointer',
-                  backgroundColor: '#f9fafb'
+                  backgroundColor: 'var(--color-surface)',
+                  color: 'var(--color-text)'
                 }}>
                   <Upload size={24} color="var(--color-primary)" />
                   <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>Upload Phone</span>
@@ -386,11 +388,11 @@ const PdfBooks = () => {
                     alignItems: 'center',
                     gap: '8px',
                     padding: '15px',
-                    border: '1px solid #fee2e2',
+                    border: '1px solid var(--color-error-transparent)',
                     borderRadius: '12px',
                     cursor: 'pointer',
-                    backgroundColor: '#fff1f1',
-                    color: '#ef4444'
+                    backgroundColor: 'var(--color-error-transparent)',
+                    color: 'var(--color-error)'
                   }}
                 >
                   <Trash2 size={24} />
@@ -398,20 +400,20 @@ const PdfBooks = () => {
                 </button>
               </div>
 
-              <div style={{ borderTop: '1px solid #eee', paddingTop: '15px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', backgroundColor: '#f3f4f6', padding: '8px 12px', borderRadius: '10px' }}>
-                  <Search size={16} color="#6b7280" />
+              <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '15px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', backgroundColor: 'var(--color-surface)', padding: '8px 12px', borderRadius: '10px' }}>
+                  <Search size={16} color="var(--color-text-muted)" />
                   <input
                     type="text"
                     placeholder="Search printed books..."
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
-                    style={{ border: 'none', background: 'none', width: '100%', fontSize: '0.9rem', outline: 'none' }}
+                    style={{ border: 'none', background: 'none', width: '100%', fontSize: '0.9rem', outline: 'none', color: 'var(--color-text)' }}
                   />
                 </div>
 
                 <div style={{ maxHeight: '30vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {booksLoading && <p style={{ textAlign: 'center', fontSize: '0.9rem', color: '#666' }}>Loading printed books...</p>}
+                  {booksLoading && <p style={{ textAlign: 'center', fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>Loading printed books...</p>}
                   {printedBooks
                     .filter(b => b.title.toLowerCase().includes(searchQuery.toLowerCase()))
                     .map(book => (
@@ -423,22 +425,23 @@ const PdfBooks = () => {
                           alignItems: 'center',
                           gap: '12px',
                           padding: '8px',
-                          border: '1px solid #eee',
+                          border: '1px solid var(--color-border)',
                           borderRadius: '10px',
-                          backgroundColor: 'white',
+                          backgroundColor: 'var(--color-card)',
                           textAlign: 'left',
-                          cursor: 'pointer'
+                          cursor: 'pointer',
+                          color: 'var(--color-text)'
                         }}
                       >
-                        <div style={{ width: '35px', height: '45px', borderRadius: '4px', overflow: 'hidden', flexShrink: 0, border: '1px solid #eee' }}>
+                        <div style={{ width: '35px', height: '45px', borderRadius: '4px', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--color-border)' }}>
                           {book.cover ? (
                             <img src={book.cover} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           ) : (
-                            <div style={{ width: '100%', height: '100%', backgroundColor: '#f3f4f6' }} />
+                            <div style={{ width: '100%', height: '100%', backgroundColor: 'var(--color-surface)' }} />
                           )}
                         </div>
                         <span style={{ fontSize: '0.85rem', fontWeight: 500, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{book.title}</span>
-                        <LinkIcon size={14} color="#3b82f6" />
+                        <LinkIcon size={14} color="var(--color-primary)" />
                       </button>
                     ))
                   }

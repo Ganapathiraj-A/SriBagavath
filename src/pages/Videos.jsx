@@ -101,7 +101,7 @@ const Videos = () => {
                                     <div style={{
                                         padding: '0.5rem',
                                         borderRadius: '9999px',
-                                        backgroundColor: '#fff7ed', // Theme from Conversations
+                                        backgroundColor: 'var(--color-primary-transparent)', // Theme from Conversations
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center'
@@ -138,7 +138,7 @@ const Videos = () => {
                                     <div style={{
                                         padding: '0.5rem',
                                         borderRadius: '9999px',
-                                        backgroundColor: '#fff7ed', // Theme from Conversations
+                                        backgroundColor: 'var(--color-primary-transparent)', // Theme from Conversations
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center'
@@ -178,7 +178,7 @@ const Videos = () => {
                                         <div style={{
                                             padding: '0.5rem',
                                             borderRadius: '9999px',
-                                            backgroundColor: 'var(--color-background-secondary)',
+                                            backgroundColor: 'var(--color-error-transparent)',
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center'
