@@ -4,6 +4,7 @@ import { AnimatePresence } from 'framer-motion';
 import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
 import { GET_GOOGLE_CLIENT_ID, ensureGoogleAuthInitialized } from './utils/GoogleAuthUtils';
+import { initializeSyncManager } from './utils/SyncManager';
 
 import Home from './pages/Home'; // Home stays static for immediate visible paint
 

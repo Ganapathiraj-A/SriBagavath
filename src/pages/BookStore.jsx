@@ -88,7 +88,8 @@ const BookStore = () => {
 
         try {
             const { collection, query, orderBy, getDocs, where, getDocsFromCache, getDocsFromServer } = await import('@/utils/FirestoreProxy');
-            const { needsServerSync, markSyncedLocally } = await import('../utils/SyncManager');
+            const { needsServerSync, markSyncedLocally, ensureInitialized } = await import('../utils/SyncManager');
+            await ensureInitialized();
 
             const ref = collection(db, 'books');
             const q = query(
@@ -109,6 +110,12 @@ const BookStore = () => {
                     setProducts(cachedData);
                     setLoading(false);
                     console.log(`[BookStore] Loaded ${cachedData.length} items from cache`);
+                } else if (cacheSnap.metadata.fromCache) {
+                    // Cache is explicitly empty but valid
+                    cachedData = [];
+                    setProducts([]);
+                    setLoading(false);
+                    console.log(`[BookStore] Category ${activeTab} is empty (from cache)`);
                 }
             } catch (_err) {
                 console.warn("[BookStore] Cache read failed", _err);
