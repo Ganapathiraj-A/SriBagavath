@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Plus, Minus, Search, Camera, RotateCcw } from 'lucide-react';
+import { ChevronLeft, Plus, Minus, Search, Camera, RotateCcw, ChevronDown } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { db } from '@/firebase';
 import { collection, getDocs, query, orderBy, getDoc, doc } from '@/utils/FirestoreProxy';
@@ -28,6 +28,10 @@ const BackOfficeOfflineBooks = () => {
     const [pincode, setPincode] = useState('');
     const [refNo, setRefNo] = useState('');
     const [image, setImage] = useState(null);
+    const NATIVE_LABELS = {
+        'Tamil Books': 'Tamil',
+        'English Books': 'English'
+    };
 
     // Amount State
     const [amount, setAmount] = useState('');
@@ -260,25 +264,35 @@ const BackOfficeOfflineBooks = () => {
                     )}
 
                     {/* Tabs */}
-                    <div style={{ display: 'flex', gap: '16px', borderBottom: '1px solid var(--color-border)', marginBottom: '16px' }}>
-                        {['Tamil Books', 'English Books'].map(tab => (
-                            <button
-                                key={tab}
-                                onClick={() => setActiveTab(tab)}
-                                style={{
-                                    padding: '8px 0',
-                                    border: 'none',
-                                    borderBottom: activeTab === tab ? '2px solid var(--color-primary)' : '2px solid transparent',
-                                    backgroundColor: 'transparent',
-                                    color: activeTab === tab ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                                    fontWeight: activeTab === tab ? '600' : '500',
-                                    fontSize: '0.95rem',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                {tab}
-                            </button>
-                        ))}
+                    <div style={{
+                        display: 'flex',
+                        borderBottom: '1px solid var(--color-border)',
+                        marginBottom: '16px',
+                        gap: '20px',
+                        alignItems: 'center',
+                        position: 'relative'
+                    }}>
+                        <div style={{ display: 'flex', gap: '20px' }}>
+                            {['Tamil Books', 'English Books'].map(tab => (
+                                <button
+                                    key={tab}
+                                    onClick={() => setActiveTab(tab)}
+                                    style={{
+                                        padding: '8px 0',
+                                        border: 'none',
+                                        borderBottom: activeTab === tab ? '2px solid var(--color-primary)' : '2px solid transparent',
+                                        backgroundColor: 'transparent',
+                                        color: activeTab === tab ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                        fontWeight: activeTab === tab ? '600' : '500',
+                                        fontSize: '0.95rem',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    {NATIVE_LABELS[tab] || tab}
+                                </button>
+                            ))}
+
+                        </div>
                     </div>
 
                     {/* Search */}

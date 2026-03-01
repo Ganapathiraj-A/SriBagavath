@@ -82,6 +82,13 @@ const UrlSettings = () => {
         driveTeluguBooksId,
         driveMagazineId,
         driveAudioBooksId,
+        driveMalayalamBooksId,
+        driveKannadaBooksId,
+        driveRussianBooksId,
+        driveHebrewBooksId,
+        driveSpanishBooksId,
+        driveGermanBooksId,
+        driveItalianBooksId,
         onlineRegistrationContact,
         offlineRegistrationContact,
         setPublicSettings
@@ -196,6 +203,62 @@ const UrlSettings = () => {
                             onChange={(e) => {
                                 setPublicSettings(prev => ({ ...prev, driveAudioBooksId: e.target.value }));
                                 savePublicSetting('driveAudioBooksId', e.target.value);
+                            }}
+                        />
+                        <CopyableInput
+                            label="Malayalam Books Folder"
+                            value={driveMalayalamBooksId}
+                            onChange={(e) => {
+                                setPublicSettings(prev => ({ ...prev, driveMalayalamBooksId: e.target.value }));
+                                savePublicSetting('driveMalayalamBooksId', e.target.value);
+                            }}
+                        />
+                        <CopyableInput
+                            label="Kannada Books Folder"
+                            value={driveKannadaBooksId}
+                            onChange={(e) => {
+                                setPublicSettings(prev => ({ ...prev, driveKannadaBooksId: e.target.value }));
+                                savePublicSetting('driveKannadaBooksId', e.target.value);
+                            }}
+                        />
+                        <CopyableInput
+                            label="Russian Books Folder"
+                            value={driveRussianBooksId}
+                            onChange={(e) => {
+                                setPublicSettings(prev => ({ ...prev, driveRussianBooksId: e.target.value }));
+                                savePublicSetting('driveRussianBooksId', e.target.value);
+                            }}
+                        />
+                        <CopyableInput
+                            label="Hebrew Books Folder"
+                            value={driveHebrewBooksId}
+                            onChange={(e) => {
+                                setPublicSettings(prev => ({ ...prev, driveHebrewBooksId: e.target.value }));
+                                savePublicSetting('driveHebrewBooksId', e.target.value);
+                            }}
+                        />
+                        <CopyableInput
+                            label="Spanish Books Folder"
+                            value={driveSpanishBooksId}
+                            onChange={(e) => {
+                                setPublicSettings(prev => ({ ...prev, driveSpanishBooksId: e.target.value }));
+                                savePublicSetting('driveSpanishBooksId', e.target.value);
+                            }}
+                        />
+                        <CopyableInput
+                            label="German Books Folder"
+                            value={driveGermanBooksId}
+                            onChange={(e) => {
+                                setPublicSettings(prev => ({ ...prev, driveGermanBooksId: e.target.value }));
+                                savePublicSetting('driveGermanBooksId', e.target.value);
+                            }}
+                        />
+                        <CopyableInput
+                            label="Italian Books Folder"
+                            value={driveItalianBooksId}
+                            onChange={(e) => {
+                                setPublicSettings(prev => ({ ...prev, driveItalianBooksId: e.target.value }));
+                                savePublicSetting('driveItalianBooksId', e.target.value);
                             }}
                         />
                     </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { IndianRupee, ShoppingCart, ChevronLeft, Plus, Minus, Info, RefreshCw } from 'lucide-react';
+import { IndianRupee, ShoppingCart, ChevronLeft, Plus, Minus, Info, RefreshCw, ChevronDown } from 'lucide-react';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
 import { ensureGoogleAuthInitialized } from '@/utils/GoogleAuthUtils';
@@ -149,13 +149,20 @@ const BookStore = () => {
     const totalCount = Object.values(cart).reduce((a, b) => a + b, 0);
     const totalPrice = products.reduce((acc, p) => acc + (p.price * (cart[p.id] || 0)), 0);
 
-    const tabs = ['Tamil Books', 'English Books', 'Hindi Books', 'Telugu Books'];
+    const mainTabs = ['Tamil Books', 'English Books'];
 
     const NATIVE_LABELS = {
-        'Tamil Books': 'தமிழ்',
+        'Tamil Books': 'Tamil',
         'English Books': 'English',
-        'Hindi Books': 'हिन्दी',
-        'Telugu Books': 'తెలుగు'
+        'Hindi Books': 'Hindi',
+        'Telugu Books': 'Telugu',
+        'Malayalam Books': 'Malayalam',
+        'Kannada Books': 'Kannada',
+        'Russian Books': 'Russian',
+        'Hebrew Books': 'Hebrew',
+        'Spanish Books': 'Spanish',
+        'German Books': 'German',
+        'Italian Books': 'Italian'
     };
 
     const filteredProducts = products.filter(p => p.category === activeTab);
@@ -201,10 +208,11 @@ const BookStore = () => {
                 borderBottom: '1px solid var(--color-border)',
                 gap: '20px',
                 justifyContent: 'space-between',
-                alignItems: 'center'
+                alignItems: 'center',
+                position: 'relative'
             }}>
-                <div style={{ display: 'flex', gap: '20px' }}>
-                    {tabs.map(tab => (
+                <div style={{ display: 'flex', gap: '20px', overflowX: 'auto', scrollbarWidth: 'none' }}>
+                    {mainTabs.map(tab => (
                         <button
                             key={tab}
                             onClick={() => setActiveTab(tab)}
@@ -217,12 +225,14 @@ const BookStore = () => {
                                 fontWeight: activeTab === tab ? '600' : '500',
                                 fontSize: '0.95rem',
                                 cursor: 'pointer',
-                                transition: 'all 0.2s ease'
+                                transition: 'all 0.2s ease',
+                                whiteSpace: 'nowrap'
                             }}
                         >
                             {NATIVE_LABELS[tab] || tab}
                         </button>
                     ))}
+
                 </div>
 
                 <button

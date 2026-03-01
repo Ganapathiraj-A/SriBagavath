@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Share } from '@capacitor/share';
 import { Capacitor } from '@capacitor/core';
-import { BookOpen, FileText, Edit2, Image as ImageIcon, Upload, Link as LinkIcon, Trash2, X, Search, Share2 } from 'lucide-react';
+import { BookOpen, FileText, Edit2, Image as ImageIcon, Upload, Link as LinkIcon, Trash2, X, Search, Share2, ChevronDown } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { useAdminAuth } from '@/context/AdminAuthContext';
 import { useGlobalSettings } from '@/context/GlobalSettingsContext';
@@ -12,11 +12,24 @@ import { compressImage } from '@/utils/imageUtils';
 import { useDriveFiles } from '@/hooks/useDriveFiles';
 
 const PdfBooks = () => {
-  const { driveTamilBooksId, driveEnglishBooksId, driveHindiBooksId, driveTeluguBooksId } = useGlobalSettings();
+  const {
+    driveTamilBooksId,
+    driveEnglishBooksId,
+    driveHindiBooksId,
+    driveTeluguBooksId,
+    driveMalayalamBooksId,
+    driveKannadaBooksId,
+    driveRussianBooksId,
+    driveHebrewBooksId,
+    driveSpanishBooksId,
+    driveGermanBooksId,
+    driveItalianBooksId
+  } = useGlobalSettings();
   const { isAdmin, hasAccess } = useAdminAuth();
   const canEdit = hasAccess('DIGITAL_BOOKS_MANAGEMENT');
   const tabs = ['Tamil Books', 'English Books', 'Hindi Books', 'Telugu Books'];
   const [activeTab, setActiveTab] = useState('Tamil Books');
+  const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [configs, setConfigs] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -29,16 +42,43 @@ const PdfBooks = () => {
   const tamilData = useDriveFiles(driveTamilBooksId, 'digital_books_tamil');
   const hindiData = useDriveFiles(driveHindiBooksId, 'digital_books_hindi');
   const teluguData = useDriveFiles(driveTeluguBooksId, 'digital_books_telugu');
+  const malayalamData = useDriveFiles(driveMalayalamBooksId, 'digital_books_malayalam');
+  const kannadaData = useDriveFiles(driveKannadaBooksId, 'digital_books_kannada');
+  const russianData = useDriveFiles(driveRussianBooksId, 'digital_books_russian');
+  const hebrewData = useDriveFiles(driveHebrewBooksId, 'digital_books_hebrew');
+  const spanishData = useDriveFiles(driveSpanishBooksId, 'digital_books_spanish');
+  const germanData = useDriveFiles(driveGermanBooksId, 'digital_books_german');
+  const italianData = useDriveFiles(driveItalianBooksId, 'digital_books_italian');
 
   const current = activeTab === 'English Books' ? englishData :
     activeTab === 'Hindi Books' ? hindiData :
-      activeTab === 'Telugu Books' ? teluguData : tamilData;
+      activeTab === 'Telugu Books' ? teluguData :
+        activeTab === 'Malayalam Books' ? malayalamData :
+          activeTab === 'Kannada Books' ? kannadaData :
+            activeTab === 'Russian Books' ? russianData :
+              activeTab === 'Hebrew Books' ? hebrewData :
+                activeTab === 'Spanish Books' ? spanishData :
+                  activeTab === 'German Books' ? germanData :
+                    activeTab === 'Italian Books' ? italianData : tamilData;
+
+  const mainTabs = ['Tamil Books', 'English Books', 'Hindi Books'];
+  const otherLanguages = [
+    'Telugu Books', 'Malayalam Books', 'Kannada Books',
+    'Russian Books', 'Hebrew Books', 'Spanish Books', 'German Books', 'Italian Books'
+  ];
 
   const NATIVE_LABELS = {
-    'Tamil Books': 'தமிழ்',
+    'Tamil Books': 'Tamil',
     'English Books': 'English',
-    'Hindi Books': 'हिन्दी',
-    'Telugu Books': 'తెలుగు'
+    'Hindi Books': 'Hindi',
+    'Telugu Books': 'Telugu',
+    'Malayalam Books': 'Malayalam',
+    'Kannada Books': 'Kannada',
+    'Russian Books': 'Russian',
+    'Hebrew Books': 'Hebrew',
+    'Spanish Books': 'Spanish',
+    'German Books': 'German',
+    'Italian Books': 'Italian'
   };
 
   // Listen to configs
@@ -265,13 +305,17 @@ const PdfBooks = () => {
         borderBottom: '1px solid var(--color-border)',
         gap: '20px',
         justifyContent: 'space-between',
-        alignItems: 'center'
+        alignItems: 'center',
+        position: 'relative'
       }}>
-        <div style={{ display: 'flex', gap: '20px' }}>
-          {tabs.map(tab => (
+        <div style={{ display: 'flex', gap: '20px', overflowX: 'auto', scrollbarWidth: 'none' }}>
+          {mainTabs.map(tab => (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => {
+                setActiveTab(tab);
+                setIsLangDropdownOpen(false);
+              }}
               style={{
                 padding: '12px 4px',
                 border: 'none',
@@ -281,12 +325,76 @@ const PdfBooks = () => {
                 fontWeight: activeTab === tab ? '600' : '500',
                 fontSize: '0.95rem',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease'
+                transition: 'all 0.2s ease',
+                whiteSpace: 'nowrap'
               }}
             >
               {NATIVE_LABELS[tab] || tab}
             </button>
           ))}
+
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)}
+              style={{
+                padding: '12px 4px',
+                border: 'none',
+                borderBottom: otherLanguages.includes(activeTab) ? '2px solid var(--color-primary)' : '2px solid transparent',
+                backgroundColor: 'transparent',
+                color: otherLanguages.includes(activeTab) ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                fontWeight: otherLanguages.includes(activeTab) ? '600' : '500',
+                fontSize: '0.95rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                transition: 'all 0.2s ease',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              {otherLanguages.includes(activeTab) ? NATIVE_LABELS[activeTab] : 'Other Languages'}
+              <ChevronDown size={14} style={{ transform: isLangDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+            </button>
+
+            {isLangDropdownOpen && (
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                right: 0,
+                backgroundColor: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                borderRadius: '8px',
+                boxShadow: 'var(--shadow-lg)',
+                zIndex: 1000,
+                minWidth: '160px',
+                marginTop: '4px',
+                overflow: 'hidden'
+              }}>
+                {otherLanguages.map(tab => (
+                  <button
+                    key={tab}
+                    onClick={() => {
+                      setActiveTab(tab);
+                      setIsLangDropdownOpen(false);
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      textAlign: 'left',
+                      border: 'none',
+                      backgroundColor: activeTab === tab ? 'var(--color-primary-transparent)' : 'transparent',
+                      color: activeTab === tab ? 'var(--color-primary)' : 'var(--color-text)',
+                      fontSize: '0.9rem',
+                      fontWeight: activeTab === tab ? 600 : 500,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {NATIVE_LABELS[tab] || tab}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {canEdit && (

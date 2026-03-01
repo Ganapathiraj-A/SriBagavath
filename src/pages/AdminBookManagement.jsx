@@ -85,13 +85,24 @@ const compressImage = (file) => {
     });
 };
 
-const CATEGORIES = ['Tamil Books', 'English Books', 'Hindi Books', 'Telugu Books'];
+const CATEGORIES = [
+    'Tamil Books', 'English Books', 'Hindi Books', 'Telugu Books',
+    'Malayalam Books', 'Kannada Books', 'Russian Books', 'Hebrew Books',
+    'Spanish Books', 'German Books', 'Italian Books'
+];
 
 const NATIVE_LABELS = {
-    'Tamil Books': 'தமிழ்',
+    'Tamil Books': 'Tamil',
     'English Books': 'English',
-    'Hindi Books': 'हिन्दी',
-    'Telugu Books': 'తెలుగు'
+    'Hindi Books': 'Hindi',
+    'Telugu Books': 'Telugu',
+    'Malayalam Books': 'Malayalam',
+    'Kannada Books': 'Kannada',
+    'Russian Books': 'Russian',
+    'Hebrew Books': 'Hebrew',
+    'Spanish Books': 'Spanish',
+    'German Books': 'German',
+    'Italian Books': 'Italian'
 };
 
 const AdminBookManagement = () => {
@@ -105,6 +116,7 @@ const AdminBookManagement = () => {
     const [uploading, setUploading] = useState(false);
     const [coverImage, setCoverImage] = useState(null);
     const [activeTab, setActiveTab] = useState('Tamil Books');
+    const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
 
     const action = searchParams.get('action');
     const editingId = searchParams.get('id');
@@ -350,7 +362,11 @@ const AdminBookManagement = () => {
     };
 
     const filteredBooks = books.filter(b => b.category === activeTab);
-    const tabs = ['Tamil Books', 'English Books'];
+    const mainTabs = ['Tamil Books', 'English Books'];
+    const otherLanguages = [
+        'Hindi Books', 'Telugu Books', 'Malayalam Books', 'Kannada Books',
+        'Russian Books', 'Hebrew Books', 'Spanish Books', 'German Books', 'Italian Books'
+    ];
 
     if (loading && !showForm) {
         return (
@@ -412,7 +428,6 @@ const AdminBookManagement = () => {
                             </button>
                         </div>
 
-                        {/* Tabs Navigation */}
                         <div style={{
                             display: 'flex',
                             margin: '0 16px',
@@ -420,27 +435,96 @@ const AdminBookManagement = () => {
                             gap: '20px',
                             alignItems: 'center',
                             backgroundColor: 'var(--color-surface)',
-                            paddingTop: '8px'
+                            paddingTop: '8px',
+                            position: 'relative'
                         }}>
-                            {tabs.map(tab => (
-                                <button
-                                    key={tab}
-                                    onClick={() => setActiveTab(tab)}
-                                    style={{
-                                        padding: '12px 16px',
-                                        border: 'none',
-                                        borderBottom: activeTab === tab ? '2px solid var(--color-primary)' : '2px solid transparent',
-                                        backgroundColor: 'transparent',
-                                        color: activeTab === tab ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                                        fontWeight: activeTab === tab ? '600' : '500',
-                                        fontSize: '0.95rem',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s ease'
-                                    }}
-                                >
-                                    {NATIVE_LABELS[tab] || tab}
-                                </button>
-                            ))}
+                            <div style={{ display: 'flex', gap: '20px' }}>
+                                {mainTabs.map(tab => (
+                                    <button
+                                        key={tab}
+                                        onClick={() => {
+                                            setActiveTab(tab);
+                                            setIsLangDropdownOpen(false);
+                                        }}
+                                        style={{
+                                            padding: '12px 4px',
+                                            border: 'none',
+                                            borderBottom: activeTab === tab ? '2px solid var(--color-primary)' : '2px solid transparent',
+                                            backgroundColor: 'transparent',
+                                            color: activeTab === tab ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                            fontWeight: activeTab === tab ? '600' : '500',
+                                            fontSize: '0.95rem',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s ease'
+                                        }}
+                                    >
+                                        {NATIVE_LABELS[tab] || tab}
+                                    </button>
+                                ))}
+
+                                <div style={{ position: 'relative' }}>
+                                    <button
+                                        onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)}
+                                        style={{
+                                            padding: '12px 4px',
+                                            border: 'none',
+                                            borderBottom: otherLanguages.includes(activeTab) ? '2px solid var(--color-primary)' : '2px solid transparent',
+                                            backgroundColor: 'transparent',
+                                            color: otherLanguages.includes(activeTab) ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                            fontWeight: otherLanguages.includes(activeTab) ? '600' : '500',
+                                            fontSize: '0.95rem',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '4px',
+                                            transition: 'all 0.2s ease',
+                                            whiteSpace: 'nowrap'
+                                        }}
+                                    >
+                                        {otherLanguages.includes(activeTab) ? NATIVE_LABELS[activeTab] : 'Other Languages'}
+                                        <ChevronDown size={14} style={{ transform: isLangDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+                                    </button>
+
+                                    {isLangDropdownOpen && (
+                                        <div style={{
+                                            position: 'absolute',
+                                            top: '100%',
+                                            right: 0,
+                                            backgroundColor: 'var(--color-surface)',
+                                            border: '1px solid var(--color-border)',
+                                            borderRadius: '8px',
+                                            boxShadow: 'var(--shadow-lg)',
+                                            zIndex: 1000,
+                                            minWidth: '160px',
+                                            marginTop: '4px',
+                                            overflow: 'hidden'
+                                        }}>
+                                            {otherLanguages.map(tab => (
+                                                <button
+                                                    key={tab}
+                                                    onClick={() => {
+                                                        setActiveTab(tab);
+                                                        setIsLangDropdownOpen(false);
+                                                    }}
+                                                    style={{
+                                                        width: '100%',
+                                                        padding: '12px 16px',
+                                                        textAlign: 'left',
+                                                        border: 'none',
+                                                        backgroundColor: activeTab === tab ? 'var(--color-primary-transparent)' : 'transparent',
+                                                        color: activeTab === tab ? 'var(--color-primary)' : 'var(--color-text)',
+                                                        fontSize: '0.9rem',
+                                                        fontWeight: activeTab === tab ? 600 : 500,
+                                                        cursor: 'pointer'
+                                                    }}
+                                                >
+                                                    {NATIVE_LABELS[tab] || tab}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         </div>
 
                         <div style={{ padding: '1.5rem 1rem' }}>
