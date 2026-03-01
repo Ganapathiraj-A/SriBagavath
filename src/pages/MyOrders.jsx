@@ -159,8 +159,16 @@ const MyOrders = () => {
                     <>
                         {loading && <p style={{ textAlign: 'center' }}>Loading Orders...</p>}
                         {!loading && orders.length === 0 && (
-                            <div style={{ textAlign: 'center', marginTop: '40px', color: '#666' }}>
-                                <p>No orders found yet.</p>
+                            <div style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                minHeight: '50vh',
+                                textAlign: 'center',
+                                color: 'var(--color-text-muted)'
+                            }}>
+                                <p style={{ fontSize: '16px' }}>No orders found yet.</p>
                             </div>
                         )}
 

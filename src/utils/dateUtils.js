@@ -21,3 +21,14 @@ export const formatToLocalDateString = (date) => {
     const d = new Date(date);
     return d.toLocaleDateString('en-CA');
 };
+
+/**
+ * Formats a Firestore timestamp or Date object to a local date string.
+ * @param {any} ts 
+ * @returns {string}
+ */
+export const formatDate = (ts) => {
+    if (!ts) return "";
+    const date = ts.toDate ? ts.toDate() : new Date(ts);
+    return date.toLocaleDateString();
+};

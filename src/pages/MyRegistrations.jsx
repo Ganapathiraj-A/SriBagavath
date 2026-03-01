@@ -217,7 +217,19 @@ const MyRegistrations = () => {
                 ) : (
                     <>
                         {loading && <p>Loading...</p>}
-                        {!loading && registrations.length === 0 && <p>You have no program registrations yet.</p>}
+                        {!loading && registrations.length === 0 && (
+                            <div style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                minHeight: '50vh',
+                                textAlign: 'center',
+                                color: 'var(--color-text-muted)'
+                            }}>
+                                <p style={{ fontSize: '16px' }}>You have no program registrations yet.</p>
+                            </div>
+                        )}
 
                         {/* Receipt Modal */}
                         {viewingImage && (

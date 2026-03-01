@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Check, Trash2, Rewind, Package, User, Heart, X } from 'lucide-react';
+import { ChevronLeft, Check, Trash2, Rewind, Package, User, Heart, X, Search, Calendar, MapPin, ChevronRight, Plus } from 'lucide-react';
 import { TransactionService } from '@/services/TransactionService';
 import PageHeader from '@/components/PageHeader';
 import { compressImage } from '@/utils/imageUtils';
+import { formatDate } from '@/utils/dateUtils';
 import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 import '../components/RegistrationStyles.css';
 
@@ -11,6 +12,20 @@ const TABS = ['RECEIVED', 'ACCEPTED'];
 const TAB_LABELS = {
     'RECEIVED': 'Received',
     'ACCEPTED': 'Accepted'
+};
+
+const STATUS_LABELS = {
+    'PENDING': 'Pending Verification',
+    'COMPLETED': 'Verified & Accepted',
+    'REJECTED': 'Rejected',
+    'REGISTERED': 'Offline Success'
+};
+
+const STATUS_STYLES = {
+    'PENDING': { backgroundColor: 'var(--color-warning-transparent)', color: 'var(--color-warning)' },
+    'COMPLETED': { backgroundColor: 'var(--color-success-transparent)', color: 'var(--color-success)' },
+    'REGISTERED': { backgroundColor: 'var(--color-success-transparent)', color: 'var(--color-success)' },
+    'REJECTED': { backgroundColor: 'var(--color-error-transparent)', color: 'var(--color-error)' }
 };
 
 const DonationManagement = () => {
@@ -25,6 +40,8 @@ const DonationManagement = () => {
     const [editingAmountValue, setEditingAmountValue] = useState('');
     const [editingParsedAmountValue, setEditingParsedAmountValue] = useState('');
     const [savingDetails, setSavingDetails] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [activeStatus, setActiveStatus] = useState('ALL');
 
     useEffect(() => {
         // Clear badges (Sharing same logic as Bookstore for now or could have its own)
@@ -39,9 +56,44 @@ const DonationManagement = () => {
         return () => unsubscribe();
     }, []);
 
+    const getDonationStatusStyles = (status) => {
+        return STATUS_STYLES[status] || { backgroundColor: 'var(--color-surface)', color: 'var(--color-text-muted)' };
+    };
+
+    const getStatusFilterOptions = () => {
+        if (activeTab === 'RECEIVED') {
+            return [
+                { id: 'ALL', label: 'All Received' },
+                { id: 'PENDING', label: 'Pending' }
+            ];
+        } else {
+            return [
+                { id: 'ALL', label: 'All Accepted' },
+                { id: 'COMPLETED', label: 'Verified' },
+                { id: 'REGISTERED', label: 'Offline' }
+            ];
+        }
+    };
+
     const displayedDonations = allDonations.filter(donation => {
-        if (activeTab === 'RECEIVED') return donation.status === 'PENDING';
-        return donation.status === 'COMPLETED' || donation.status === 'REGISTERED';
+        // Tab Filter
+        const inActiveTab = activeTab === 'RECEIVED'
+            ? donation.status === 'PENDING'
+            : (donation.status === 'COMPLETED' || donation.status === 'REGISTERED');
+
+        if (!inActiveTab) return false;
+
+        // Status Sub-filter
+        if (activeStatus !== 'ALL' && donation.status !== activeStatus) return false;
+
+        // Search Filter
+        const matchesSearch = !searchTerm.trim() ||
+            donation.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            donation.donationId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            donation.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            donation.utr?.toLowerCase().includes(searchTerm.toLowerCase());
+
+        return matchesSearch;
     });
 
     const getCount = (tab) => {
@@ -284,13 +336,26 @@ const DonationManagement = () => {
                                 className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
                                 onClick={() => { setActiveTab(tab); setActiveStatus('ALL'); }}
                                 style={{
-                                    backgroundColor: activeTab === tab ? 'var(--color-primary)' : 'var(--color-surface-alt)',
-                                    color: activeTab === tab ? 'white' : 'var(--color-text-secondary)',
-                                    border: activeTab === tab ? '1px solid var(--color-primary)' : '1px solid var(--color-border)'
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    transition: 'all 0.2s',
+                                    whiteSpace: 'nowrap'
                                 }}
                             >
                                 {TAB_LABELS[tab]}
-                                {count > 0 && <span className="badge" style={{ backgroundColor: activeTab === tab ? 'white' : 'var(--color-primary)', color: activeTab === tab ? 'var(--color-primary)' : 'white' }}>{count}</span>}
+                                {count > 0 && (
+                                    <span style={{
+                                        backgroundColor: activeTab === tab ? 'var(--color-primary-transparent)' : 'var(--color-surface)',
+                                        color: activeTab === tab ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                        padding: '2px 8px',
+                                        borderRadius: '10px',
+                                        fontSize: '11px',
+                                        border: activeTab === tab ? 'none' : '1px solid var(--color-border)'
+                                    }}>
+                                        {count}
+                                    </span>
+                                )}
                             </button>
                         );
                     })}

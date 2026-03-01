@@ -332,19 +332,26 @@ const BookStoreManagement = () => {
                                 className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
                                 onClick={() => setActiveTab(tab)}
                                 style={{
-                                    padding: '0.5rem 1rem',
-                                    borderRadius: '1rem',
-                                    fontSize: '0.875rem',
-                                    fontWeight: 600,
-                                    cursor: 'pointer',
-                                    border: '1px solid var(--color-border)',
-                                    backgroundColor: activeTab === tab ? 'var(--color-primary)' : 'var(--color-surface)',
-                                    color: activeTab === tab ? 'white' : 'var(--color-text-secondary)',
-                                    transition: 'all 0.2s'
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    transition: 'all 0.2s',
+                                    whiteSpace: 'nowrap'
                                 }}
                             >
                                 {TAB_LABELS[tab]}
-                                {count > 0 && <span className="badge">{count}</span>}
+                                {count > 0 && (
+                                    <span style={{
+                                        backgroundColor: activeTab === tab ? 'var(--color-primary-transparent)' : 'var(--color-surface)',
+                                        color: activeTab === tab ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                        padding: '2px 8px',
+                                        borderRadius: '10px',
+                                        fontSize: '11px',
+                                        border: activeTab === tab ? 'none' : '1px solid var(--color-border)'
+                                    }}>
+                                        {count}
+                                    </span>
+                                )}
                             </button>
                         );
                     })}
