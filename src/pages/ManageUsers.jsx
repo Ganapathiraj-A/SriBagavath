@@ -4,6 +4,7 @@ import { db } from '@/firebase';
 import PageHeader from '@/components/PageHeader';
 import { Check, X, Shield, Mail, Calendar, Trash2, Edit, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
+import '../components/RegistrationStyles.css';
 
 const ALL_PERMISSIONS = [
     { id: 'ADMIN_REVIEW', label: 'Admin Review (Reg, Pur, Don)' },
@@ -272,146 +273,146 @@ const ManageUsers = () => {
                 )}
 
 
-                        <div style={{ padding: '0.25rem 0 1rem 0', display: 'flex', justifyContent: 'center' }}>
-                            <button
-                                onClick={openAddModal}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: '0.5rem',
-                                    padding: '0.75rem 1.5rem',
-                                    backgroundColor: 'var(--color-primary)',
-                                    color: 'white',
-                                    borderRadius: '0.5rem',
-                                    fontWeight: 500,
-                                    cursor: 'pointer',
-                                    border: 'none',
-                                    width: '90%',
-                                    maxWidth: '400px'
-                                }}
-                            >
-                                <Plus size={20} />
-                                Add Admin
-                            </button>
-                        </div>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginBottom: '1.5rem' }}>
-                            <h2 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0, color: 'var(--color-text)', textAlign: 'center' }}>
-                                Authorized Administrators
-                            </h2>
-                        </div>
-
-                        {/* Role Tabs */}
-                        <div className="tabs-row" style={{
+                <div style={{ padding: '0.25rem 0 1rem 0', display: 'flex', justifyContent: 'center' }}>
+                    <button
+                        onClick={openAddModal}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
                             justifyContent: 'center',
-                            marginBottom: '20px',
-                            borderBottom: '1px solid var(--color-border)',
-                            paddingBottom: '0'
-                        }}>
-                            {[
-                                { id: 'SUPER_ADMIN', label: 'S Admin' },
-                                { id: 'ADMIN', label: 'Admin' },
-                                { id: 'POWER_USER', label: 'P user' }
-                            ].map(tab => (
-                                <button
-                                    key={tab.id}
-                                    onClick={() => {
-                                        setActiveTab(tab.id);
-                                        setPermissionFilter('All');
-                                    }}
-                                    className={`tab-btn ${activeTab === tab.id ? 'active' : ''}`}
-                                    style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '6px',
-                                        transition: 'all 0.2s',
-                                        whiteSpace: 'nowrap'
-                                    }}
-                                >
-                                    {tab.label}
-                                    <span style={{
-                                        backgroundColor: activeTab === tab.id ? 'var(--color-primary-transparent)' : 'var(--color-surface)',
-                                        color: activeTab === tab.id ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                                        padding: '2px 8px',
-                                        borderRadius: '10px',
-                                        fontSize: '11px',
-                                        border: activeTab === tab.id ? 'none' : '1px solid var(--color-border)'
-                                    }}>
-                                        {counts[tab.id]}
-                                    </span>
-                                </button>
-                            ))}
-                        </div>
-
-                        {/* Power User Permission Filter */}
-                        {activeTab === 'POWER_USER' && (
-                            <div style={{ marginBottom: '20px' }}>
-                                <select
-                                    value={permissionFilter}
-                                    onChange={(e) => setPermissionFilter(e.target.value)}
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px',
-                                        borderRadius: '8px',
-                                        border: '1px solid var(--color-border)',
-                                        backgroundColor: 'var(--color-surface)',
-                                        color: 'var(--color-text)',
-                                        fontSize: '14px',
-                                        outline: 'none'
-                                    }}
-                                >
-                                    <option value="All">All Power Users ({counts.POWER_USER})</option>
-                                    {ALL_PERMISSIONS.map(p => {
-                                        const count = getPermissionCount(p.id);
-                                        return (
-                                            <option key={p.id} value={p.id}>
-                                                {p.label} ({count})
-                                            </option>
-                                        );
-                                    })}
-                                </select>
-                            </div>
-                        )}
-
-                        {loading ? (
-                            <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)' }}>Loading users...</div>
-                        ) : displayedAdmins.length === 0 ? (
-                            <div style={{ backgroundColor: 'var(--color-card)', padding: '2rem', borderRadius: '1rem', textAlign: 'center', color: 'var(--color-text-muted)', border: '1px solid var(--color-border)' }}>
-                                No users found in this category.
-                            </div>
-                        ) : (
-                            <div style={{ display: 'grid', gap: '1rem' }}>
-                                {displayedAdmins.map(admin => (
-                                    <div
-                                        key={admin.id}
-                                        onClick={() => openEditModal(admin)}
-                                        style={{
-                                            backgroundColor: 'var(--color-card)',
-                                            padding: '1.25rem',
-                                            borderRadius: '0.75rem',
-                                            border: '1px solid var(--color-border)',
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            alignItems: 'center',
-                                            cursor: 'pointer'
-                                        }}
-                                        className="admin-row-hover"
-                                    >
-                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                            <div style={{ fontWeight: 600, fontSize: '1.1rem', color: 'var(--color-text)' }}>{admin.email}</div>
-                                            <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
-                                                {admin.role || 'ADMIN'}
-                                                {admin.role === 'POWER_USER' && ` (${admin.permissions?.length || 0} screens)`}
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
+                            gap: '0.5rem',
+                            padding: '0.75rem 1.5rem',
+                            backgroundColor: 'var(--color-primary)',
+                            color: 'white',
+                            borderRadius: '0.5rem',
+                            fontWeight: 500,
+                            cursor: 'pointer',
+                            border: 'none',
+                            width: '90%',
+                            maxWidth: '400px'
+                        }}
+                    >
+                        <Plus size={20} />
+                        Add Admin
+                    </button>
                 </div>
-            );
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginBottom: '1.5rem' }}>
+                    <h2 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0, color: 'var(--color-text)', textAlign: 'center' }}>
+                        Authorized Administrators
+                    </h2>
+                </div>
+
+                {/* Role Tabs */}
+                <div className="tabs-row" style={{
+                    justifyContent: 'center',
+                    marginBottom: '20px',
+                    borderBottom: '1px solid var(--color-border)',
+                    paddingBottom: '0'
+                }}>
+                    {[
+                        { id: 'SUPER_ADMIN', label: 'S Admin' },
+                        { id: 'ADMIN', label: 'Admin' },
+                        { id: 'POWER_USER', label: 'P user' }
+                    ].map(tab => (
+                        <button
+                            key={tab.id}
+                            onClick={() => {
+                                setActiveTab(tab.id);
+                                setPermissionFilter('All');
+                            }}
+                            className={`tab-btn ${activeTab === tab.id ? 'active' : ''}`}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                transition: 'all 0.2s',
+                                whiteSpace: 'nowrap'
+                            }}
+                        >
+                            {tab.label}
+                            <span style={{
+                                backgroundColor: activeTab === tab.id ? 'var(--color-primary-transparent)' : 'var(--color-surface)',
+                                color: activeTab === tab.id ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                padding: '2px 8px',
+                                borderRadius: '10px',
+                                fontSize: '11px',
+                                border: activeTab === tab.id ? 'none' : '1px solid var(--color-border)'
+                            }}>
+                                {counts[tab.id]}
+                            </span>
+                        </button>
+                    ))}
+                </div>
+
+                {/* Power User Permission Filter */}
+                {activeTab === 'POWER_USER' && (
+                    <div style={{ marginBottom: '20px' }}>
+                        <select
+                            value={permissionFilter}
+                            onChange={(e) => setPermissionFilter(e.target.value)}
+                            style={{
+                                width: '100%',
+                                padding: '10px',
+                                borderRadius: '8px',
+                                border: '1px solid var(--color-border)',
+                                backgroundColor: 'var(--color-surface)',
+                                color: 'var(--color-text)',
+                                fontSize: '14px',
+                                outline: 'none'
+                            }}
+                        >
+                            <option value="All">All Power Users ({counts.POWER_USER})</option>
+                            {ALL_PERMISSIONS.map(p => {
+                                const count = getPermissionCount(p.id);
+                                return (
+                                    <option key={p.id} value={p.id}>
+                                        {p.label} ({count})
+                                    </option>
+                                );
+                            })}
+                        </select>
+                    </div>
+                )}
+
+                {loading ? (
+                    <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)' }}>Loading users...</div>
+                ) : displayedAdmins.length === 0 ? (
+                    <div style={{ backgroundColor: 'var(--color-card)', padding: '2rem', borderRadius: '1rem', textAlign: 'center', color: 'var(--color-text-muted)', border: '1px solid var(--color-border)' }}>
+                        No users found in this category.
+                    </div>
+                ) : (
+                    <div style={{ display: 'grid', gap: '1rem' }}>
+                        {displayedAdmins.map(admin => (
+                            <div
+                                key={admin.id}
+                                onClick={() => openEditModal(admin)}
+                                style={{
+                                    backgroundColor: 'var(--color-card)',
+                                    padding: '1.25rem',
+                                    borderRadius: '0.75rem',
+                                    border: '1px solid var(--color-border)',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    cursor: 'pointer'
+                                }}
+                                className="admin-row-hover"
+                            >
+                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <div style={{ fontWeight: 600, fontSize: '1.1rem', color: 'var(--color-text)' }}>{admin.email}</div>
+                                    <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
+                                        {admin.role || 'ADMIN'}
+                                        {admin.role === 'POWER_USER' && ` (${admin.permissions?.length || 0} screens)`}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
 };
 
-            export default ManageUsers;
+export default ManageUsers;

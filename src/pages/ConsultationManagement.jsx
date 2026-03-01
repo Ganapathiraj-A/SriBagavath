@@ -120,7 +120,7 @@ const ConsultationManagement = () => {
     if (loading) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><p>Loading...</p></div>;
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>
             <PageHeader
                 title="Manage Consultation"
                 leftAction={
@@ -136,9 +136,9 @@ const ConsultationManagement = () => {
                             alignItems: 'center',
                             gap: '0.4rem',
                             padding: '0.5rem 0.8rem',
-                            backgroundColor: '#f3f4f6',
-                            color: '#374151',
-                            border: '1px solid #e5e7eb',
+                            backgroundColor: 'var(--color-surface)',
+                            color: 'var(--color-text)',
+                            border: '1px solid var(--color-border)',
                             borderRadius: '0.75rem',
                             fontSize: '0.85rem',
                             fontWeight: 600,
@@ -152,10 +152,10 @@ const ConsultationManagement = () => {
 
             <div style={{ maxWidth: '42rem', margin: '0 auto', padding: '1.5rem' }}>
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                    <div style={{ backgroundColor: 'white', borderRadius: '1rem', padding: '1.5rem', boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)', marginBottom: '2rem' }}>
-                        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1.25rem', backgroundColor: '#fff7ed', borderRadius: '0.75rem', border: '1px solid #fed7aa' }}>
+                    <div style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '1.5rem', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)', marginBottom: '2rem' }}>
+                        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1.25rem', backgroundColor: 'var(--color-primary-transparent)', borderRadius: '0.75rem', border: '1px solid var(--color-primary-light)' }}>
                             <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 500, color: '#9a3412' }}>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 500, color: 'var(--color-primary)' }}>
                                     <User size={16} /> Name
                                 </label>
                                 <input
@@ -165,12 +165,12 @@ const ConsultationManagement = () => {
                                     onChange={handleInputChange}
                                     required
                                     placeholder="Teacher Name"
-                                    style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #fed7aa', width: '100%' }}
+                                    style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', width: '100%', outline: 'none' }}
                                 />
                             </div>
 
                             <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 500, color: '#9a3412' }}>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 500, color: 'var(--color-primary)' }}>
                                     <Phone size={16} /> Phone Number
                                 </label>
                                 <input
@@ -180,7 +180,7 @@ const ConsultationManagement = () => {
                                     onChange={handleInputChange}
                                     required
                                     placeholder=""
-                                    style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #fed7aa', width: '100%' }}
+                                    style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', width: '100%', outline: 'none' }}
                                 />
                             </div>
 
@@ -196,7 +196,7 @@ const ConsultationManagement = () => {
                                     <button
                                         type="button"
                                         onClick={() => handleDelete(isEditing)}
-                                        style={{ padding: '0.875rem', backgroundColor: '#fef2f2', color: '#ef4444', border: '1px solid #fee2e2', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                                        style={{ padding: '0.875rem', backgroundColor: 'var(--color-error-transparent)', color: 'var(--color-error)', border: '1px solid var(--color-error-transparent)', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
                                     >
                                         <Trash2 size={18} />
                                         Delete Consultant
@@ -206,13 +206,13 @@ const ConsultationManagement = () => {
                         </form>
 
                         <div style={{ marginTop: '2rem' }}>
-                            <h2 style={{ fontSize: '1.25rem', fontWeight: 500, color: '#000000', marginBottom: '1rem' }}>Teacher Contacts</h2>
+                            <h2 style={{ fontSize: '1.25rem', fontWeight: 500, color: 'var(--color-text)', marginBottom: '1rem' }}>Teacher Contacts</h2>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: 500 }}>
+                                <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.25rem', fontWeight: 500 }}>
                                     Click contact to edit
                                 </p>
                                 {consultants.length === 0 ? (
-                                    <p style={{ textAlign: 'center', color: '#9ca3af', padding: '1rem' }}>No teacher contacts added yet.</p>
+                                    <p style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: '1rem' }}>No teacher contacts added yet.</p>
                                 ) : (
                                     consultants.map((c, index) => (
                                         <motion.div
@@ -224,9 +224,9 @@ const ConsultationManagement = () => {
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 padding: '1rem',
-                                                backgroundColor: '#f9fafb',
+                                                backgroundColor: 'var(--color-surface)',
                                                 borderRadius: '0.75rem',
-                                                border: '1px solid #e5e7eb',
+                                                border: '1px solid var(--color-border)',
                                                 gap: '1rem',
                                                 cursor: 'pointer'
                                             }}
@@ -237,8 +237,8 @@ const ConsultationManagement = () => {
                                             </div>
 
                                             <div style={{ flex: 1 }}>
-                                                <div style={{ fontWeight: 500, fontSize: '1.125rem', color: '#000000' }}>{c.name}</div>
-                                                <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>{c.number}</div>
+                                                <div style={{ fontWeight: 500, fontSize: '1.125rem', color: 'var(--color-text)' }}>{c.name}</div>
+                                                <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>{c.number}</div>
                                             </div>
                                         </motion.div>
                                     ))

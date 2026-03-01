@@ -14,6 +14,7 @@ import {
 import { getLocalDateString } from '@/utils/dateUtils';
 import { compressImage } from '@/utils/imageUtils';
 import { bumpServerVersion } from '@/utils/SyncManager';
+import '../components/RegistrationStyles.css';
 
 // Helper to expand a master rule into its next upcoming instance
 const getNextOccurrence = (master, todayStr) => {
@@ -275,7 +276,7 @@ const OnlineMeetingManagement = () => {
     };
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', paddingBottom: '3rem' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)', paddingBottom: '3rem' }}>
             <PageHeader
                 title="Online Meeting Management"
                 rightAction={
@@ -286,9 +287,9 @@ const OnlineMeetingManagement = () => {
                             alignItems: 'center',
                             gap: '0.4rem',
                             padding: '0.5rem 0.8rem',
-                            backgroundColor: '#f3f4f6',
-                            color: '#374151',
-                            border: '1px solid #e5e7eb',
+                            backgroundColor: 'var(--color-surface)',
+                            color: 'var(--color-text)',
+                            border: '1px solid var(--color-border)',
                             borderRadius: '0.75rem',
                             fontSize: '0.85rem',
                             fontWeight: 600,
@@ -319,7 +320,7 @@ const OnlineMeetingManagement = () => {
                             </button>
 
                             <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start' }}>
-                                <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#111827' }}>Scheduled Meetings</h2>
+                                <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--color-text)' }}>Scheduled Meetings</h2>
                             </div>
                         </div>
 
@@ -329,8 +330,8 @@ const OnlineMeetingManagement = () => {
                                     key={meeting.id}
                                     layout
                                     style={{
-                                        backgroundColor: 'white', borderRadius: '1rem', padding: '1.5rem',
-                                        boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)', border: '1px solid #f3f4f6'
+                                        backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '1.5rem',
+                                        boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)'
                                     }}
                                 >
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -339,7 +340,7 @@ const OnlineMeetingManagement = () => {
                                                 <h3 style={{
                                                     fontSize: '1.125rem',
                                                     fontWeight: 600,
-                                                    color: '#111827',
+                                                    color: 'var(--color-text)',
                                                     margin: 0,
                                                     wordBreak: 'break-word',
                                                     overflowWrap: 'anywhere'
@@ -348,15 +349,15 @@ const OnlineMeetingManagement = () => {
                                                 </h3>
                                                 {meeting.isRecurring && (
                                                     <span style={{
-                                                        fontSize: '0.7rem', fontWeight: 700, backgroundColor: '#fff7ed',
+                                                        fontSize: '0.7rem', fontWeight: 700, backgroundColor: 'var(--color-primary-transparent)',
                                                         color: ORANGE, padding: '2px 8px', borderRadius: '999px',
-                                                        border: '1px solid #ffedd5', display: 'flex', alignItems: 'center', gap: '4px'
+                                                        border: '1px solid var(--color-primary-light)', display: 'flex', alignItems: 'center', gap: '4px'
                                                     }}>
                                                         <RefreshCw size={10} /> RECURRING
                                                     </span>
                                                 )}
                                             </div>
-                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', color: '#4b5563', fontSize: '0.875rem' }}>
+                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                                                     <Calendar size={16} color={ORANGE} />
                                                     {meeting.isRecurring ? 'Next: ' : ''}
@@ -371,7 +372,7 @@ const OnlineMeetingManagement = () => {
                                             </div>
 
                                             {meeting.isRecurring && (
-                                                <div style={{ marginTop: '0.75rem', padding: '0.5rem 0.75rem', backgroundColor: '#f9fafb', borderRadius: '0.5rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: '#6b7280' }}>
+                                                <div style={{ marginTop: '0.75rem', padding: '0.5rem 0.75rem', backgroundColor: 'var(--color-surface)', borderRadius: '0.5rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
                                                     <Info size={14} />
                                                     Series Rule: {formatRecurrenceRule(meeting)}
                                                 </div>
@@ -380,13 +381,13 @@ const OnlineMeetingManagement = () => {
                                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                                             <button
                                                 onClick={() => handleEdit(meeting)}
-                                                style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb', color: '#4b5563', cursor: 'pointer' }}
+                                                style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', color: 'var(--color-text-muted)', cursor: 'pointer' }}
                                             >
                                                 <Edit2 size={18} />
                                             </button>
                                             <button
                                                 onClick={() => confirmDelete(meeting)}
-                                                style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #fee2e2', color: '#ef4444', cursor: 'pointer' }}
+                                                style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid var(--color-error-transparent)', color: 'var(--color-error)', cursor: 'pointer' }}
                                             >
                                                 <Trash2 size={18} />
                                             </button>
@@ -400,11 +401,11 @@ const OnlineMeetingManagement = () => {
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        style={{ backgroundColor: 'white', borderRadius: '1rem', padding: '2rem', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                        style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '2rem', boxShadow: 'var(--shadow-md)', border: '1px solid var(--color-border)' }}
                     >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                            <h2 style={{ fontSize: '1.5rem', fontWeight: 600 }}>{editingId ? 'Edit Meeting' : 'Add New Meeting'}</h2>
-                            <button onClick={() => { setIsAdding(false); setEditingId(null); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}>
+                            <h2 style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--color-text)' }}>{editingId ? 'Edit Meeting' : 'Add New Meeting'}</h2>
+                            <button onClick={() => { setIsAdding(false); setEditingId(null); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)' }}>
                                 <X size={24} />
                             </button>
                         </div>
@@ -413,66 +414,66 @@ const OnlineMeetingManagement = () => {
                             {/* Standard Fields */}
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem' }}>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#374151', marginBottom: '0.5rem' }}>Conducted By</label>
+                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Conducted By</label>
                                     <input
                                         required
                                         type="text"
                                         value={formData.conductedBy}
                                         onChange={(e) => setFormData({ ...formData, conductedBy: e.target.value })}
                                         placeholder="Teacher Name"
-                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', outline: 'none' }}
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', outline: 'none' }}
                                     />
                                 </div>
 
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                        <label style={{ fontSize: '0.875rem', fontWeight: 500, color: '#374151' }}>Date</label>
+                                        <label style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-muted)' }}>Date</label>
                                         <input
                                             required
                                             type="date"
                                             value={formData.date}
                                             onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                                            style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', outline: 'none' }}
+                                            style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', outline: 'none' }}
                                         />
                                     </div>
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                            <label style={{ fontSize: '0.875rem', fontWeight: 500, color: '#374151' }}>Start Time</label>
+                                            <label style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-muted)' }}>Start Time</label>
                                             <input
                                                 required
                                                 type="time"
                                                 value={formData.startTime}
                                                 onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                                                style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', outline: 'none' }}
+                                                style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', outline: 'none' }}
                                             />
                                         </div>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                            <label style={{ fontSize: '0.875rem', fontWeight: 500, color: '#374151' }}>End Time</label>
+                                            <label style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-muted)' }}>End Time</label>
                                             <input
                                                 required
                                                 type="time"
                                                 value={formData.endTime}
                                                 onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                                                style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', outline: 'none' }}
+                                                style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', outline: 'none' }}
                                             />
                                         </div>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#374151', marginBottom: '0.5rem' }}>Join Link (Zoom/Google Meet)</label>
+                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Join Link (Zoom/Google Meet)</label>
                                     <input
                                         required
                                         type="url"
                                         value={formData.joinLink}
                                         onChange={(e) => setFormData({ ...formData, joinLink: e.target.value })}
                                         placeholder="https://..."
-                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', outline: 'none' }}
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', outline: 'none' }}
                                     />
                                     {formData.joinLink && (
                                         <div style={{
                                             fontSize: '0.75rem',
-                                            color: '#6b7280',
+                                            color: 'var(--color-text-muted)',
                                             marginTop: '0.4rem',
                                             padding: '0 0.25rem',
                                             overflow: 'hidden',
@@ -487,18 +488,18 @@ const OnlineMeetingManagement = () => {
                                 </div>
 
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#374151', marginBottom: '0.5rem' }}>Description</label>
+                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Description</label>
                                     <textarea
                                         value={formData.description}
                                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                         placeholder="Meeting details, topics, etc."
                                         rows={4}
-                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', outline: 'none', resize: 'vertical' }}
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', outline: 'none', resize: 'vertical' }}
                                     />
                                 </div>
 
                                 {/* Recurring Section */}
-                                <div style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1.25rem', backgroundColor: '#f9fafb' }}>
+                                <div style={{ border: '1px solid var(--color-border)', borderRadius: '0.75rem', padding: '1.25rem', backgroundColor: 'var(--color-surface)' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
                                         <input
                                             type="checkbox"
@@ -507,13 +508,13 @@ const OnlineMeetingManagement = () => {
                                             onChange={(e) => setFormData({ ...formData, isRecurring: e.target.checked })}
                                             style={{ width: '1.125rem', height: '1.125rem', cursor: 'pointer' }}
                                         />
-                                        <label htmlFor="isRecurring" style={{ fontWeight: 600, color: '#111827', cursor: 'pointer' }}>Make this a Recurring Event</label>
+                                        <label htmlFor="isRecurring" style={{ fontWeight: 600, color: 'var(--color-text)', cursor: 'pointer' }}>Make this a Recurring Event</label>
                                     </div>
 
                                     {formData.isRecurring && (
                                         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                                             <div>
-                                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#374151', marginBottom: '0.5rem' }}>Frequency</label>
+                                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Frequency</label>
                                                 <div style={{ display: 'flex', gap: '0.75rem' }}>
                                                     {['daily', 'weekly', 'monthly'].map(f => (
                                                         <button
@@ -522,9 +523,9 @@ const OnlineMeetingManagement = () => {
                                                             onClick={() => setFormData({ ...formData, frequency: f })}
                                                             style={{
                                                                 flex: 1, padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid',
-                                                                borderColor: formData.frequency === f ? ORANGE : '#d1d5db',
-                                                                backgroundColor: formData.frequency === f ? '#fff7ed' : 'white',
-                                                                color: formData.frequency === f ? ORANGE : '#4b5563',
+                                                                borderColor: formData.frequency === f ? ORANGE : 'var(--color-border)',
+                                                                backgroundColor: formData.frequency === f ? 'var(--color-primary-transparent)' : 'var(--color-surface)',
+                                                                color: formData.frequency === f ? ORANGE : 'var(--color-text-muted)',
                                                                 textTransform: 'capitalize', fontWeight: 500, cursor: 'pointer'
                                                             }}
                                                         >
@@ -536,7 +537,7 @@ const OnlineMeetingManagement = () => {
 
                                             {formData.frequency === 'weekly' && (
                                                 <div>
-                                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#374151', marginBottom: '0.5rem' }}>Select Days</label>
+                                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Select Days</label>
                                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                                                         {[
                                                             { label: 'Sun', value: '0' }, { label: 'Mon', value: '1' },
@@ -556,9 +557,9 @@ const OnlineMeetingManagement = () => {
                                                                 }}
                                                                 style={{
                                                                     width: '2.75rem', height: '2.75rem', borderRadius: '0.5rem', border: '1px solid',
-                                                                    borderColor: formData.recurringDays?.includes(d.value) ? ORANGE : '#d1d5db',
-                                                                    backgroundColor: formData.recurringDays?.includes(d.value) ? '#fff7ed' : 'white',
-                                                                    color: formData.recurringDays?.includes(d.value) ? ORANGE : '#4b5563',
+                                                                    borderColor: formData.recurringDays?.includes(d.value) ? ORANGE : 'var(--color-border)',
+                                                                    backgroundColor: formData.recurringDays?.includes(d.value) ? 'var(--color-primary-transparent)' : 'var(--color-surface)',
+                                                                    color: formData.recurringDays?.includes(d.value) ? ORANGE : 'var(--color-text-muted)',
                                                                     fontWeight: 500, cursor: 'pointer'
                                                                 }}
                                                             >
@@ -571,11 +572,11 @@ const OnlineMeetingManagement = () => {
 
                                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                                 <div>
-                                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#374151', marginBottom: '0.5rem' }}>End Condition</label>
+                                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>End Condition</label>
                                                     <select
                                                         value={formData.recurringEndDateType}
                                                         onChange={(e) => setFormData({ ...formData, recurringEndDateType: e.target.value })}
-                                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', outline: 'none' }}
+                                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', outline: 'none' }}
                                                     >
                                                         <option value="indefinite">Good till cancellation</option>
                                                         <option value="date">Fixed End Date</option>
@@ -583,12 +584,12 @@ const OnlineMeetingManagement = () => {
                                                 </div>
                                                 {formData.recurringEndDateType === 'date' && (
                                                     <div>
-                                                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#374151', marginBottom: '0.5rem' }}>Ends On</label>
+                                                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Ends On</label>
                                                         <input
                                                             type="date"
                                                             value={formData.recurringEndDate}
                                                             onChange={(e) => setFormData({ ...formData, recurringEndDate: e.target.value })}
-                                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', outline: 'none' }}
+                                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', outline: 'none' }}
                                                         />
                                                     </div>
                                                 )}
@@ -598,7 +599,7 @@ const OnlineMeetingManagement = () => {
                                 </div>
 
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#374151', marginBottom: '0.5rem' }}>Event Banner</label>
+                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Event Banner</label>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                         <input
                                             type="file"
@@ -639,8 +640,8 @@ const OnlineMeetingManagement = () => {
                                     type="button"
                                     onClick={() => { setIsAdding(false); setEditingId(null); }}
                                     style={{
-                                        flex: 1, padding: '1rem', backgroundColor: 'white', color: '#374151',
-                                        border: '1px solid #d1d5db', borderRadius: '0.75rem', fontWeight: 600, cursor: 'pointer'
+                                        flex: 1, padding: '1rem', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)',
+                                        border: '1px solid var(--color-border)', borderRadius: '0.75rem', fontWeight: 600, cursor: 'pointer'
                                     }}
                                 >
                                     Cancel
@@ -663,7 +664,7 @@ const OnlineMeetingManagement = () => {
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            style={{ backgroundColor: 'white', borderRadius: '1rem', padding: '2rem', maxWidth: '32rem', width: '100%' }}
+                            style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '2rem', maxWidth: '32rem', width: '100%', border: '1px solid var(--color-border)' }}
                         >
                             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: '#ef4444', marginBottom: '1.5rem' }}>
                                 <AlertCircle size={32} />
@@ -685,7 +686,7 @@ const OnlineMeetingManagement = () => {
                                         </button>
                                         <button
                                             onClick={() => handleDelete('instance')}
-                                            style={{ width: '100%', padding: '1rem', backgroundColor: 'white', color: '#ef4444', border: '1px solid #ef4444', borderRadius: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
+                                            style={{ width: '100%', padding: '1rem', backgroundColor: 'var(--color-card)', color: 'var(--color-error)', border: '1px solid var(--color-error)', borderRadius: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
                                         >
                                             Delete Only This Instance ({deleteTarget.date})
                                         </button>
@@ -700,7 +701,7 @@ const OnlineMeetingManagement = () => {
                                 )}
                                 <button
                                     onClick={() => setShowDeleteModal(false)}
-                                    style={{ width: '100%', padding: '1rem', backgroundColor: 'white', color: '#374151', border: '1px solid #d1d5db', borderRadius: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
+                                    style={{ width: '100%', padding: '1rem', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', border: '1px solid var(--color-border)', borderRadius: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
                                 >
                                     Cancel
                                 </button>
