@@ -11,7 +11,7 @@ import { db } from '@/firebase';
  * if the local version is behind the server version.
  */
 
-const APP_VERSION = '3.0.99';
+const APP_VERSION = '3.0.100';
 
 const LOCAL_STORAGE_KEY = 'sbb_sync_registry';
 
@@ -106,7 +106,13 @@ export const needsServerSync = (collectionId) => {
     }
 
     const serverVersion = syncState.serverRegistry[collectionId] || 0;
-    const localVersion = syncState.localRegistry[collectionId] || 0;
+    const localVersion = syncState.localRegistry[collectionId];
+
+    // If we have never synced this collection locally, we MUST sync it at least once.
+    if (typeof localVersion === 'undefined') {
+        console.log(`[SyncManager] Sync REQUIRED for ${collectionId} (Never synced locally)`);
+        return true;
+    }
 
     const result = serverVersion > localVersion;
     if (result) {

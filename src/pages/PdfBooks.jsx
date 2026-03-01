@@ -27,7 +27,6 @@ const PdfBooks = () => {
   } = useGlobalSettings();
   const { isAdmin, hasAccess } = useAdminAuth();
   const canEdit = hasAccess('DIGITAL_BOOKS_MANAGEMENT');
-  const tabs = ['Tamil Books', 'English Books', 'Hindi Books', 'Telugu Books'];
   const [activeTab, setActiveTab] = useState('Tamil Books');
   const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -61,9 +60,9 @@ const PdfBooks = () => {
                   activeTab === 'German Books' ? germanData :
                     activeTab === 'Italian Books' ? italianData : tamilData;
 
-  const mainTabs = ['Tamil Books', 'English Books', 'Hindi Books'];
+  const mainTabs = ['Tamil Books', 'English Books'];
   const otherLanguages = [
-    'Telugu Books', 'Malayalam Books', 'Kannada Books',
+    'Hindi Books', 'Telugu Books', 'Malayalam Books', 'Kannada Books',
     'Russian Books', 'Hebrew Books', 'Spanish Books', 'German Books', 'Italian Books'
   ];
 
@@ -306,9 +305,10 @@ const PdfBooks = () => {
         gap: '20px',
         justifyContent: 'space-between',
         alignItems: 'center',
-        position: 'relative'
+        position: 'relative',
+        flexWrap: 'wrap'
       }}>
-        <div style={{ display: 'flex', gap: '20px', overflowX: 'auto', scrollbarWidth: 'none' }}>
+        <div style={{ display: 'flex', gap: '16px', overflow: 'visible', flexWrap: 'wrap' }}>
           {mainTabs.map(tab => (
             <button
               key={tab}
