@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Check, Trash2, Rewind, Package, User, Heart, X, Search, Calendar, MapPin, ChevronRight, Plus } from 'lucide-react';
 import { TransactionService } from '@/services/TransactionService';

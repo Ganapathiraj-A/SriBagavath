@@ -12,22 +12,10 @@ import { compressImage } from '@/utils/imageUtils';
 import { useDriveFiles } from '@/hooks/useDriveFiles';
 
 const PdfBooks = () => {
-  const {
-    driveTamilBooksId,
-    driveEnglishBooksId,
-    driveHindiBooksId,
-    driveTeluguBooksId,
-    driveMalayalamBooksId,
-    driveKannadaBooksId,
-    driveRussianBooksId,
-    driveHebrewBooksId,
-    driveSpanishBooksId,
-    driveGermanBooksId,
-    driveItalianBooksId
-  } = useGlobalSettings();
+  const { digitalBookLanguages } = useGlobalSettings();
   const { isAdmin, hasAccess } = useAdminAuth();
   const canEdit = hasAccess('DIGITAL_BOOKS_MANAGEMENT');
-  const [activeTab, setActiveTab] = useState('Tamil Books');
+  const [activeTabId, setActiveTabId] = useState('');
   const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [configs, setConfigs] = useState({});
@@ -37,48 +25,20 @@ const PdfBooks = () => {
   const [booksLoading, setBooksLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const englishData = useDriveFiles(driveEnglishBooksId, 'digital_books_english');
-  const tamilData = useDriveFiles(driveTamilBooksId, 'digital_books_tamil');
-  const hindiData = useDriveFiles(driveHindiBooksId, 'digital_books_hindi');
-  const teluguData = useDriveFiles(driveTeluguBooksId, 'digital_books_telugu');
-  const malayalamData = useDriveFiles(driveMalayalamBooksId, 'digital_books_malayalam');
-  const kannadaData = useDriveFiles(driveKannadaBooksId, 'digital_books_kannada');
-  const russianData = useDriveFiles(driveRussianBooksId, 'digital_books_russian');
-  const hebrewData = useDriveFiles(driveHebrewBooksId, 'digital_books_hebrew');
-  const spanishData = useDriveFiles(driveSpanishBooksId, 'digital_books_spanish');
-  const germanData = useDriveFiles(driveGermanBooksId, 'digital_books_german');
-  const italianData = useDriveFiles(driveItalianBooksId, 'digital_books_italian');
+  const mainTabs = digitalBookLanguages ? digitalBookLanguages.slice(0, 2) : [];
+  const otherLanguages = digitalBookLanguages ? digitalBookLanguages.slice(2) : [];
 
-  const current = activeTab === 'English Books' ? englishData :
-    activeTab === 'Hindi Books' ? hindiData :
-      activeTab === 'Telugu Books' ? teluguData :
-        activeTab === 'Malayalam Books' ? malayalamData :
-          activeTab === 'Kannada Books' ? kannadaData :
-            activeTab === 'Russian Books' ? russianData :
-              activeTab === 'Hebrew Books' ? hebrewData :
-                activeTab === 'Spanish Books' ? spanishData :
-                  activeTab === 'German Books' ? germanData :
-                    activeTab === 'Italian Books' ? italianData : tamilData;
+  useEffect(() => {
+    if (!activeTabId && mainTabs.length > 0) {
+      setActiveTabId(mainTabs[0].id);
+    }
+  }, [digitalBookLanguages, activeTabId]);
 
-  const mainTabs = ['Tamil Books', 'English Books'];
-  const otherLanguages = [
-    'Hindi Books', 'Telugu Books', 'Malayalam Books', 'Kannada Books',
-    'Russian Books', 'Hebrew Books', 'Spanish Books', 'German Books', 'Italian Books'
-  ];
+  const activeLang = (digitalBookLanguages || []).find(l => l.id === activeTabId) || mainTabs[0] || {};
 
-  const NATIVE_LABELS = {
-    'Tamil Books': 'Tamil',
-    'English Books': 'English',
-    'Hindi Books': 'Hindi',
-    'Telugu Books': 'Telugu',
-    'Malayalam Books': 'Malayalam',
-    'Kannada Books': 'Kannada',
-    'Russian Books': 'Russian',
-    'Hebrew Books': 'Hebrew',
-    'Spanish Books': 'Spanish',
-    'German Books': 'German',
-    'Italian Books': 'Italian'
-  };
+  const current = useDriveFiles(activeLang?.folderId, `digital_books_${activeLang?.id}`);
+
+  // Digital book configurations fetched separately using hook
 
   // Listen to configs
   useEffect(() => {
@@ -311,90 +271,92 @@ const PdfBooks = () => {
         <div style={{ display: 'flex', gap: '16px', overflow: 'visible', flexWrap: 'wrap' }}>
           {mainTabs.map(tab => (
             <button
-              key={tab}
+              key={tab.id}
               onClick={() => {
-                setActiveTab(tab);
+                setActiveTabId(tab.id);
                 setIsLangDropdownOpen(false);
               }}
               style={{
                 padding: '12px 4px',
                 border: 'none',
-                borderBottom: activeTab === tab ? '2px solid var(--color-primary)' : '2px solid transparent',
+                borderBottom: activeTabId === tab.id ? '2px solid var(--color-primary)' : '2px solid transparent',
                 backgroundColor: 'transparent',
-                color: activeTab === tab ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                fontWeight: activeTab === tab ? '600' : '500',
+                color: activeTabId === tab.id ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                fontWeight: activeTabId === tab.id ? '600' : '500',
                 fontSize: '0.95rem',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
                 whiteSpace: 'nowrap'
               }}
             >
-              {NATIVE_LABELS[tab] || tab}
+              {tab.name}
             </button>
           ))}
 
-          <div style={{ position: 'relative' }}>
-            <button
-              onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)}
-              style={{
-                padding: '12px 4px',
-                border: 'none',
-                borderBottom: otherLanguages.includes(activeTab) ? '2px solid var(--color-primary)' : '2px solid transparent',
-                backgroundColor: 'transparent',
-                color: otherLanguages.includes(activeTab) ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                fontWeight: otherLanguages.includes(activeTab) ? '600' : '500',
-                fontSize: '0.95rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                transition: 'all 0.2s ease',
-                whiteSpace: 'nowrap'
-              }}
-            >
-              {otherLanguages.includes(activeTab) ? NATIVE_LABELS[activeTab] : 'Other Languages'}
-              <ChevronDown size={14} style={{ transform: isLangDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
-            </button>
+          {otherLanguages.length > 0 && (
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)}
+                style={{
+                  padding: '12px 4px',
+                  border: 'none',
+                  borderBottom: otherLanguages.some(l => l.id === activeTabId) ? '2px solid var(--color-primary)' : '2px solid transparent',
+                  backgroundColor: 'transparent',
+                  color: otherLanguages.some(l => l.id === activeTabId) ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                  fontWeight: otherLanguages.some(l => l.id === activeTabId) ? '600' : '500',
+                  fontSize: '0.95rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  transition: 'all 0.2s ease',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                {otherLanguages.some(l => l.id === activeTabId) ? otherLanguages.find(l => l.id === activeTabId)?.name : 'Other Languages'}
+                <ChevronDown size={14} style={{ transform: isLangDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+              </button>
 
-            {isLangDropdownOpen && (
-              <div style={{
-                position: 'absolute',
-                top: '100%',
-                right: 0,
-                backgroundColor: 'var(--color-surface)',
-                border: '1px solid var(--color-border)',
-                borderRadius: '8px',
-                boxShadow: 'var(--shadow-lg)',
-                zIndex: 1000,
-                minWidth: '160px',
-                marginTop: '4px',
-                overflow: 'hidden'
-              }}>
-                {otherLanguages.map(tab => (
-                  <button
-                    key={tab}
-                    onClick={() => {
-                      setActiveTab(tab);
-                      setIsLangDropdownOpen(false);
-                    }}
-                    style={{
-                      width: '100%',
-                      padding: '12px 16px',
-                      textAlign: 'left',
-                      border: 'none',
-                      backgroundColor: activeTab === tab ? 'var(--color-primary-transparent)' : 'transparent',
-                      color: activeTab === tab ? 'var(--color-primary)' : 'var(--color-text)',
-                      fontSize: '0.9rem',
-                      fontWeight: activeTab === tab ? 600 : 500,
-                      cursor: 'pointer'
-                    }}
-                  >
-                    {NATIVE_LABELS[tab] || tab}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+              {isLangDropdownOpen && (
+                <div style={{
+                  position: 'absolute',
+                  top: '100%',
+                  right: 0,
+                  backgroundColor: 'var(--color-surface)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: '8px',
+                  boxShadow: 'var(--shadow-lg)',
+                  zIndex: 1000,
+                  minWidth: '160px',
+                  marginTop: '4px',
+                  overflow: 'hidden'
+                }}>
+                  {otherLanguages.map(tab => (
+                    <button
+                      key={tab.id}
+                      onClick={() => {
+                        setActiveTabId(tab.id);
+                        setIsLangDropdownOpen(false);
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '12px 16px',
+                        textAlign: 'left',
+                        border: 'none',
+                        backgroundColor: activeTabId === tab.id ? 'var(--color-primary-transparent)' : 'transparent',
+                        color: activeTabId === tab.id ? 'var(--color-primary)' : 'var(--color-text)',
+                        fontSize: '0.9rem',
+                        fontWeight: activeTabId === tab.id ? 600 : 500,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {tab.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {canEdit && (

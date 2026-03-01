@@ -153,10 +153,6 @@ const AdminSettings = () => {
         donationImportUrl, setDonationImportUrl,
         donationExportUrl, setDonationExportUrl,
         donationUpdateUrl, setDonationUpdateUrl,
-        driveTamilBooksId,
-        driveEnglishBooksId,
-        driveMagazineId,
-        driveAudioBooksId,
         minAppVersion, setMinAppVersion,
         landingPage, setLandingPage,
         showApiCounter, setShowApiCounter,
@@ -166,17 +162,6 @@ const AdminSettings = () => {
     } = useGlobalSettings();
 
     const [showBankPassword, setShowBankPassword] = React.useState(false);
-
-    const savePublicSetting = async (key, value) => {
-        try {
-            const { db } = await import('../firebase');
-            const { doc, setDoc } = await import('@/utils/FirestoreProxy');
-            const publicDocRef = doc(db, 'settings', 'public');
-            await setDoc(publicDocRef, { [key]: value }, { merge: true });
-        } catch (_err) {
-            console.error("Error saving public setting:", _err);
-        }
-    };
 
     const handleLandingPageChange = (e) => {
         setLandingPage(e.target.value);

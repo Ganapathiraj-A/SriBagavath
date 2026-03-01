@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    ChevronLeft, Cloud, Save, Check, Copy, ExternalLink, Link as LinkIcon, Info
+    ChevronLeft, Cloud, Save, Check, Copy, ExternalLink, Link as LinkIcon, Info, Trash2, ArrowUp, ArrowDown, Plus, Edit2
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { useAdminAuth } from '@/context/AdminAuthContext';
@@ -76,23 +76,17 @@ const UrlSettings = () => {
         donationImportUrl, setDonationImportUrl,
         donationExportUrl, setDonationExportUrl,
         donationUpdateUrl, setDonationUpdateUrl,
-        driveTamilBooksId,
-        driveEnglishBooksId,
-        driveHindiBooksId,
-        driveTeluguBooksId,
+        digitalBookLanguages,
         driveMagazineId,
         driveAudioBooksId,
-        driveMalayalamBooksId,
-        driveKannadaBooksId,
-        driveRussianBooksId,
-        driveHebrewBooksId,
-        driveSpanishBooksId,
-        driveGermanBooksId,
-        driveItalianBooksId,
         onlineRegistrationContact,
         offlineRegistrationContact,
         setPublicSettings
     } = useGlobalSettings();
+
+    const [newLangName, setNewLangName] = React.useState('');
+    const [newLangId, setNewLangId] = React.useState('');
+    const [newLangFolderId, setNewLangFolderId] = React.useState('');
 
     if (role !== 'SUPER_ADMIN') {
         return (
@@ -113,6 +107,44 @@ const UrlSettings = () => {
         } catch (_err) {
             console.error("Error saving public setting:", _err);
         }
+    };
+
+    const handleSaveLanguageArray = (updated) => {
+        setPublicSettings(prev => ({ ...prev, digitalBookLanguages: updated }));
+        savePublicSetting('digitalBookLanguages', updated);
+    };
+
+    const handleAddLanguage = () => {
+        if (!newLangName || !newLangFolderId || !newLangId) {
+            alert("Please fill in all fields (ID, Name, Folder ID)");
+            return;
+        }
+        const updated = [...(digitalBookLanguages || []), { id: newLangId, name: newLangName, folderId: newLangFolderId }];
+        handleSaveLanguageArray(updated);
+        setNewLangName(''); setNewLangId(''); setNewLangFolderId('');
+    };
+
+    const handleRemoveLanguage = (idx) => {
+        if (!window.confirm("Are you sure you want to remove this language?")) return;
+        const updated = [...digitalBookLanguages];
+        updated.splice(idx, 1);
+        handleSaveLanguageArray(updated);
+    };
+
+    const handleLanguageMove = (idx, direction) => {
+        if (direction === -1 && idx === 0) return;
+        if (direction === 1 && idx === digitalBookLanguages.length - 1) return;
+        const updated = [...digitalBookLanguages];
+        const temp = updated[idx];
+        updated[idx] = updated[idx + direction];
+        updated[idx + direction] = temp;
+        handleSaveLanguageArray(updated);
+    };
+
+    const handleLanguageEdit = (idx, field, value) => {
+        const updated = [...digitalBookLanguages];
+        updated[idx][field] = value;
+        handleSaveLanguageArray(updated);
     };
 
     return (
@@ -158,38 +190,6 @@ const UrlSettings = () => {
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
                         <CopyableInput
-                            label="Tamil Books Folder"
-                            value={driveTamilBooksId}
-                            onChange={(e) => {
-                                setPublicSettings(prev => ({ ...prev, driveTamilBooksId: e.target.value }));
-                                savePublicSetting('driveTamilBooksId', e.target.value);
-                            }}
-                        />
-                        <CopyableInput
-                            label="English Books Folder"
-                            value={driveEnglishBooksId}
-                            onChange={(e) => {
-                                setPublicSettings(prev => ({ ...prev, driveEnglishBooksId: e.target.value }));
-                                savePublicSetting('driveEnglishBooksId', e.target.value);
-                            }}
-                        />
-                        <CopyableInput
-                            label="Hindi Books Folder"
-                            value={driveHindiBooksId}
-                            onChange={(e) => {
-                                setPublicSettings(prev => ({ ...prev, driveHindiBooksId: e.target.value }));
-                                savePublicSetting('driveHindiBooksId', e.target.value);
-                            }}
-                        />
-                        <CopyableInput
-                            label="Telugu Books Folder"
-                            value={driveTeluguBooksId}
-                            onChange={(e) => {
-                                setPublicSettings(prev => ({ ...prev, driveTeluguBooksId: e.target.value }));
-                                savePublicSetting('driveTeluguBooksId', e.target.value);
-                            }}
-                        />
-                        <CopyableInput
                             label="Monthly Magazine"
                             value={driveMagazineId}
                             onChange={(e) => {
@@ -205,62 +205,84 @@ const UrlSettings = () => {
                                 savePublicSetting('driveAudioBooksId', e.target.value);
                             }}
                         />
-                        <CopyableInput
-                            label="Malayalam Books Folder"
-                            value={driveMalayalamBooksId}
-                            onChange={(e) => {
-                                setPublicSettings(prev => ({ ...prev, driveMalayalamBooksId: e.target.value }));
-                                savePublicSetting('driveMalayalamBooksId', e.target.value);
-                            }}
-                        />
-                        <CopyableInput
-                            label="Kannada Books Folder"
-                            value={driveKannadaBooksId}
-                            onChange={(e) => {
-                                setPublicSettings(prev => ({ ...prev, driveKannadaBooksId: e.target.value }));
-                                savePublicSetting('driveKannadaBooksId', e.target.value);
-                            }}
-                        />
-                        <CopyableInput
-                            label="Russian Books Folder"
-                            value={driveRussianBooksId}
-                            onChange={(e) => {
-                                setPublicSettings(prev => ({ ...prev, driveRussianBooksId: e.target.value }));
-                                savePublicSetting('driveRussianBooksId', e.target.value);
-                            }}
-                        />
-                        <CopyableInput
-                            label="Hebrew Books Folder"
-                            value={driveHebrewBooksId}
-                            onChange={(e) => {
-                                setPublicSettings(prev => ({ ...prev, driveHebrewBooksId: e.target.value }));
-                                savePublicSetting('driveHebrewBooksId', e.target.value);
-                            }}
-                        />
-                        <CopyableInput
-                            label="Spanish Books Folder"
-                            value={driveSpanishBooksId}
-                            onChange={(e) => {
-                                setPublicSettings(prev => ({ ...prev, driveSpanishBooksId: e.target.value }));
-                                savePublicSetting('driveSpanishBooksId', e.target.value);
-                            }}
-                        />
-                        <CopyableInput
-                            label="German Books Folder"
-                            value={driveGermanBooksId}
-                            onChange={(e) => {
-                                setPublicSettings(prev => ({ ...prev, driveGermanBooksId: e.target.value }));
-                                savePublicSetting('driveGermanBooksId', e.target.value);
-                            }}
-                        />
-                        <CopyableInput
-                            label="Italian Books Folder"
-                            value={driveItalianBooksId}
-                            onChange={(e) => {
-                                setPublicSettings(prev => ({ ...prev, driveItalianBooksId: e.target.value }));
-                                savePublicSetting('driveItalianBooksId', e.target.value);
-                            }}
-                        />
+                    </div>
+
+                    {/* Dynamic Digital Books Configuration */}
+                    <div style={{ marginTop: '1rem', borderTop: '1px solid var(--color-border)', paddingTop: '1rem' }}>
+                        <h4 style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-text)', marginBottom: '1rem' }}>Digital Books Languages</h4>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            {digitalBookLanguages && digitalBookLanguages.map((lang, idx) => (
+                                <div key={lang.id || idx} style={{ display: 'flex', gap: '10px', alignItems: 'center', backgroundColor: 'var(--color-surface)', padding: '10px', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
+
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        <button onClick={() => handleLanguageMove(idx, -1)} disabled={idx === 0} style={{ padding: '2px', background: 'none', border: 'none', cursor: idx === 0 ? 'not-allowed' : 'pointer', color: idx === 0 ? 'transparent' : 'var(--color-text-muted)' }}><ArrowUp size={14} /></button>
+                                        <button onClick={() => handleLanguageMove(idx, 1)} disabled={idx === digitalBookLanguages.length - 1} style={{ padding: '2px', background: 'none', border: 'none', cursor: idx === digitalBookLanguages.length - 1 ? 'not-allowed' : 'pointer', color: idx === digitalBookLanguages.length - 1 ? 'transparent' : 'var(--color-text-muted)' }}><ArrowDown size={14} /></button>
+                                    </div>
+
+                                    <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.5fr) minmax(0, 2fr)', gap: '10px' }}>
+                                        <input
+                                            type="text"
+                                            value={lang.id}
+                                            onChange={(e) => handleLanguageEdit(idx, 'id', e.target.value)}
+                                            placeholder="ID (e.g. tamil)"
+                                            style={{ padding: '6px', fontSize: '0.8rem', borderRadius: '4px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}
+                                        />
+                                        <input
+                                            type="text"
+                                            value={lang.name}
+                                            onChange={(e) => handleLanguageEdit(idx, 'name', e.target.value)}
+                                            placeholder="Label (e.g. Tamil)"
+                                            style={{ padding: '6px', fontSize: '0.8rem', borderRadius: '4px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}
+                                        />
+                                        <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                                            <input
+                                                type="text"
+                                                value={lang.folderId}
+                                                onChange={(e) => handleLanguageEdit(idx, 'folderId', e.target.value)}
+                                                placeholder="Google Drive Folder ID"
+                                                style={{ flex: 1, padding: '6px', fontSize: '0.8rem', borderRadius: '4px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <button onClick={() => handleRemoveLanguage(idx)} style={{ padding: '6px', background: 'var(--color-error-transparent)', color: 'var(--color-error)', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
+                            ))}
+
+                            {/* Add New Language Row */}
+                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', backgroundColor: 'var(--color-surface)', padding: '10px', borderRadius: '8px', border: '1px dashed var(--color-border)', marginTop: '8px' }}>
+                                <div style={{ width: '18px' }}></div> {/* Spacer for alignment */}
+                                <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.5fr) minmax(0, 2fr)', gap: '10px' }}>
+                                    <input
+                                        type="text"
+                                        value={newLangId}
+                                        onChange={(e) => setNewLangId(e.target.value)}
+                                        placeholder="New ID"
+                                        style={{ padding: '6px', fontSize: '0.8rem', borderRadius: '4px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}
+                                    />
+                                    <input
+                                        type="text"
+                                        value={newLangName}
+                                        onChange={(e) => setNewLangName(e.target.value)}
+                                        placeholder="New Label"
+                                        style={{ padding: '6px', fontSize: '0.8rem', borderRadius: '4px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}
+                                    />
+                                    <input
+                                        type="text"
+                                        value={newLangFolderId}
+                                        onChange={(e) => setNewLangFolderId(e.target.value)}
+                                        placeholder="New Folder ID"
+                                        style={{ padding: '6px', fontSize: '0.8rem', borderRadius: '4px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}
+                                    />
+                                </div>
+                                <button onClick={handleAddLanguage} style={{ padding: '6px', background: 'var(--color-success)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <Plus size={16} />
+                                </button>
+                            </div>
+                        </div>
+                        <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>Note: The first two languages will be shown as main tabs. The rest will appear in the &quot;Other Languages&quot; dropdown.</p>
                     </div>
                 </div>
 
