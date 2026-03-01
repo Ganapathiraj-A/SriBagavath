@@ -160,7 +160,7 @@ const MyRegistrations = () => {
     };
 
     return (
-        <div style={{ backgroundColor: '#f9fafb', minHeight: '100vh', paddingBottom: '20px' }}>
+        <div style={{ backgroundColor: 'var(--color-background)', minHeight: '100vh', paddingBottom: '20px' }}>
             <PageHeader title="My Registrations" />
 
             <div className="product-list" style={{ marginTop: '16px', padding: '16px' }}>
@@ -169,14 +169,15 @@ const MyRegistrations = () => {
                         textAlign: 'center',
                         marginTop: '60px',
                         padding: '30px',
-                        backgroundColor: 'white',
+                        backgroundColor: 'var(--color-card)',
                         borderRadius: '20px',
-                        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
+                        boxShadow: 'var(--shadow-md)',
                         maxWidth: '400px',
-                        margin: '60px auto'
+                        margin: '60px auto',
+                        border: '1px solid var(--color-border)'
                     }}>
                         <div style={{
-                            backgroundColor: '#fff7ed',
+                            backgroundColor: 'var(--color-primary-transparent)',
                             width: '64px',
                             height: '64px',
                             borderRadius: '32px',
@@ -185,10 +186,10 @@ const MyRegistrations = () => {
                             justifyContent: 'center',
                             margin: '0 auto 20px'
                         }}>
-                            <LogIn size={32} color="#f97316" />
+                            <LogIn size={32} color="var(--color-primary)" />
                         </div>
-                        <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#111827', marginBottom: '8px' }}>Sign in Required</h2>
-                        <p style={{ color: '#4b5563', marginBottom: '24px', fontSize: '15px' }}>
+                        <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--color-text)', marginBottom: '8px' }}>Sign in Required</h2>
+                        <p style={{ color: 'var(--color-text-muted)', marginBottom: '24px', fontSize: '15px' }}>
                             Please sign in with your Google account to view your program registrations.
                         </p>
                         <button
@@ -196,7 +197,7 @@ const MyRegistrations = () => {
                             disabled={authLoading}
                             style={{
                                 width: '100%',
-                                backgroundColor: '#f97316',
+                                backgroundColor: 'var(--color-primary)',
                                 color: 'white',
                                 border: 'none',
                                 borderRadius: '12px',
@@ -225,25 +226,26 @@ const MyRegistrations = () => {
                                     flexDirection: 'column',
                                     alignItems: 'center',
                                     gap: '15px',
-                                    background: 'white',
+                                    background: 'var(--color-card)',
                                     padding: '15px',
                                     borderRadius: '16px',
                                     maxWidth: '90%',
-                                    boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)'
+                                    boxShadow: 'var(--shadow-lg)',
+                                    border: '1px solid var(--color-border)'
                                 }}>
                                     <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                                         <div>
-                                            <h2 style={{ margin: 0, fontSize: '18px' }}>Payment Receipt</h2>
-                                            {viewingImage.utr && <div style={{ fontSize: '12px', color: '#1e40af', fontWeight: 600 }}>UTR: {viewingImage.utr}</div>}
+                                            <h2 style={{ margin: 0, fontSize: '18px', color: 'var(--color-text)' }}>Payment Receipt</h2>
+                                            {viewingImage.utr && <div style={{ fontSize: '12px', color: 'var(--color-primary)', fontWeight: 600 }}>UTR: {viewingImage.utr}</div>}
                                         </div>
                                         <button onClick={() => setViewingImage(null)} style={{ border: 'none', background: 'none', padding: '5px', cursor: 'pointer' }}>
-                                            <LogIn size={24} color="#666" style={{ transform: 'rotate(90deg)' }} onClick={() => setViewingImage(null)} />
+                                            <LogIn size={24} color="var(--color-text-muted)" style={{ transform: 'rotate(90deg)' }} />
                                         </button>
                                     </div>
                                     <img
                                         src={`data:image/jpeg;base64,${viewingImage.base64}`}
                                         alt="Receipt"
-                                        style={{ width: '100%', borderRadius: '8px', maxHeight: '65vh', objectFit: 'contain', border: '1px solid #eee' }}
+                                        style={{ width: '100%', borderRadius: '8px', maxHeight: '65vh', objectFit: 'contain', border: '1px solid var(--color-border)' }}
                                     />
                                     <button
                                         className="btn-primary"
@@ -275,25 +277,25 @@ const MyRegistrations = () => {
                                             color: getStatusColor(tx.status),
                                             fontWeight: 'bold',
                                             fontSize: '12px',
-                                            background: '#f3f4f6',
+                                            background: 'var(--color-surface)',
                                             padding: '2px 8px',
                                             borderRadius: '12px',
                                             height: 'fit-content',
                                             whiteSpace: 'nowrap',
-                                            marginLeft: '8px'
+                                            marginLeft: '8px',
+                                            border: '1px solid var(--color-border)'
                                         }}>
                                             {tx.status === 'COMPLETED' ? 'COMPLETED' : tx.status}
-
                                         </span>
                                     </div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', color: '#666' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', color: 'var(--color-text-muted)' }}>
                                         <span>{formatDate(tx.timestamp)}</span>
-                                        <span style={{ fontWeight: 'bold' }}>₹{tx.amount}</span>
+                                        <span style={{ fontWeight: 'bold', color: 'var(--color-text)' }}>₹{tx.amount}</span>
                                     </div>
                                     {/* Show Participant count if available */}
                                     {
                                         tx.participantCount && (
-                                            <div style={{ fontSize: '13px', color: '#555', marginTop: '4px' }}>
+                                            <div style={{ fontSize: '13px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
                                                 Participants: {tx.participantCount}
                                             </div>
                                         )
@@ -302,10 +304,10 @@ const MyRegistrations = () => {
                                     {/* Participants List */}
                                     {
                                         tx.participants && tx.participants.length > 0 && (
-                                            <div style={{ marginTop: '8px', fontSize: '13px', background: '#f5f5f5', padding: '8px', borderRadius: '4px' }}>
-                                                <strong>Participant Details:</strong>
+                                            <div style={{ marginTop: '8px', fontSize: '13px', background: 'var(--color-surface)', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}>
+                                                <strong style={{ color: 'var(--color-text)' }}>Participant Details:</strong>
                                                 {tx.participants.map((p, idx) => (
-                                                    <div key={idx} style={{ marginLeft: '8px' }}>
+                                                    <div key={idx} style={{ marginLeft: '8px', color: 'var(--color-text-muted)' }}>
                                                         {idx + 1}. {p.name} ({p.gender}, {p.age})
                                                     </div>
                                                 ))}
@@ -316,10 +318,10 @@ const MyRegistrations = () => {
                                     {/* Additional Options */}
                                     {
                                         tx.selectedOptions && tx.selectedOptions.length > 0 && (
-                                            <div style={{ marginTop: '8px', fontSize: '13px', background: '#eff6ff', padding: '8px', borderRadius: '4px', border: '1px solid #dbeafe' }}>
-                                                <strong style={{ color: '#1e40af' }}>Additional Options:</strong>
+                                            <div style={{ marginTop: '8px', fontSize: '13px', background: 'var(--color-primary-transparent)', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-primary-light)' }}>
+                                                <strong style={{ color: 'var(--color-primary)' }}>Additional Options:</strong>
                                                 {tx.selectedOptions.map((opt, idx) => (
-                                                    <div key={idx} style={{ marginLeft: '8px', display: 'flex', justifyContent: 'space-between', color: '#1e40af' }}>
+                                                    <div key={idx} style={{ marginLeft: '8px', display: 'flex', justifyContent: 'space-between', color: 'var(--color-primary)' }}>
                                                         <span>{opt.name}</span>
                                                         <span>₹{opt.fee}</span>
                                                     </div>
@@ -345,7 +347,7 @@ const MyRegistrations = () => {
                                                     <button
                                                         className="btn-secondary"
                                                         onClick={() => handleViewReceipt(tx.id, tx.utr)}
-                                                        style={{ flex: 1, fontSize: '14px', padding: '8px', border: '1px solid #ddd', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                                                        style={{ flex: 1, fontSize: '14px', padding: '8px', border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', cursor: 'pointer' }}
                                                     >
                                                         Verify Receipt
                                                     </button>

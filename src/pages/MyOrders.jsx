@@ -101,7 +101,7 @@ const MyOrders = () => {
     };
 
     return (
-        <div style={{ backgroundColor: '#f9fafb', minHeight: '100vh', paddingBottom: '20px' }}>
+        <div style={{ backgroundColor: 'var(--color-background)', minHeight: '100vh', paddingBottom: '20px' }}>
             <PageHeader title="My Orders" />
 
             <div style={{ padding: '16px' }}>
@@ -110,14 +110,15 @@ const MyOrders = () => {
                         textAlign: 'center',
                         marginTop: '60px',
                         padding: '30px',
-                        backgroundColor: 'white',
+                        backgroundColor: 'var(--color-card)',
                         borderRadius: '20px',
-                        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
+                        boxShadow: 'var(--shadow-md)',
                         maxWidth: '400px',
-                        margin: '60px auto'
+                        margin: '60px auto',
+                        border: '1px solid var(--color-border)'
                     }}>
                         <div style={{
-                            backgroundColor: '#eff6ff',
+                            backgroundColor: 'var(--color-primary-transparent)',
                             width: '64px',
                             height: '64px',
                             borderRadius: '32px',
@@ -126,10 +127,10 @@ const MyOrders = () => {
                             justifyContent: 'center',
                             margin: '0 auto 20px'
                         }}>
-                            <LogIn size={32} color="#2563eb" />
+                            <LogIn size={32} color="var(--color-primary)" />
                         </div>
-                        <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#111827', marginBottom: '8px' }}>Sign in Required</h2>
-                        <p style={{ color: '#4b5563', marginBottom: '24px', fontSize: '15px' }}>
+                        <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--color-text)', marginBottom: '8px' }}>Sign in Required</h2>
+                        <p style={{ color: 'var(--color-text-muted)', marginBottom: '24px', fontSize: '15px' }}>
                             Please sign in with your Google account to view your past orders and receipts.
                         </p>
                         <button
@@ -137,7 +138,7 @@ const MyOrders = () => {
                             disabled={authLoading}
                             style={{
                                 width: '100%',
-                                backgroundColor: '#2563eb',
+                                backgroundColor: 'var(--color-primary)',
                                 color: 'white',
                                 border: 'none',
                                 borderRadius: '12px',
@@ -170,30 +171,31 @@ const MyOrders = () => {
                                     flexDirection: 'column',
                                     alignItems: 'center',
                                     gap: '15px',
-                                    background: 'white',
+                                    background: 'var(--color-card)',
                                     padding: '15px',
                                     borderRadius: '16px',
                                     maxWidth: '90%',
-                                    boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)'
+                                    boxShadow: 'var(--shadow-lg)',
+                                    border: '1px solid var(--color-border)'
                                 }}>
                                     <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                                         <div>
-                                            <h2 style={{ margin: 0, fontSize: '18px' }}>Payment Receipt</h2>
-                                            {viewingImage.utr && <div style={{ fontSize: '12px', color: '#1e40af', fontWeight: 600 }}>UTR: {viewingImage.utr}</div>}
+                                            <h2 style={{ margin: 0, fontSize: '18px', color: 'var(--color-text)' }}>Payment Receipt</h2>
+                                            {viewingImage.utr && <div style={{ fontSize: '12px', color: 'var(--color-primary)', fontWeight: 600 }}>UTR: {viewingImage.utr}</div>}
                                         </div>
-                                        <button onClick={() => setViewingImage(null)} style={{ border: 'none', background: 'none', padding: '5px' }}>
-                                            <X size={24} color="#666" />
+                                        <button onClick={() => setViewingImage(null)} style={{ border: 'none', background: 'none', padding: '5px', cursor: 'pointer' }}>
+                                            <X size={24} color="var(--color-text-muted)" />
                                         </button>
                                     </div>
                                     <img
                                         src={`data:image/jpeg;base64,${viewingImage.base64}`}
                                         alt="Receipt"
-                                        style={{ width: '100%', borderRadius: '8px', maxHeight: '65vh', objectFit: 'contain', border: '1px solid #eee' }}
+                                        style={{ width: '100%', borderRadius: '8px', maxHeight: '65vh', objectFit: 'contain', border: '1px solid var(--color-border)' }}
                                     />
                                     <button
                                         className="btn-primary"
                                         onClick={() => setViewingImage(null)}
-                                        style={{ width: '100%', background: '#2563eb', borderRadius: '8px', height: '48px', fontWeight: 600 }}
+                                        style={{ width: '100%', background: 'var(--color-primary)', borderRadius: '8px', height: '48px', fontWeight: 600 }}
                                     >
                                         Close
                                     </button>
@@ -209,7 +211,7 @@ const MyOrders = () => {
                                         color: getStatusColor(order.status),
                                         fontWeight: 'bold',
                                         fontSize: '11px',
-                                        background: '#f3f4f6',
+                                        background: 'var(--color-surface)',
                                         padding: '2px 8px',
                                         borderRadius: '12px'
                                     }}>
@@ -219,21 +221,21 @@ const MyOrders = () => {
 
                                 <div style={{ marginBottom: '12px' }}>
                                     {order.orderItems?.map((item, idx) => (
-                                        <div key={idx} style={{ fontSize: '15px', fontWeight: 600, color: '#111827' }}>
-                                            {item.title} <span style={{ fontWeight: 400, color: '#666' }}>x {item.quantity}</span>
+                                        <div key={idx} style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text)' }}>
+                                            {item.title} <span style={{ fontWeight: 400, color: 'var(--color-text-muted)' }}>x {item.quantity}</span>
                                         </div>
                                     ))}
                                 </div>
 
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #eee' }}>
-                                    <div style={{ fontSize: '13px', color: '#4b5563' }}>
-                                        Total: <strong style={{ color: '#111827' }}>₹{order.amount}</strong>
-                                        {order.utr && <div style={{ fontSize: '11px', color: '#1e40af', fontWeight: 600, marginTop: '2px' }}>UTR: {order.utr}</div>}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--color-border)' }}>
+                                    <div style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
+                                        Total: <strong style={{ color: 'var(--color-text)' }}>₹{order.amount}</strong>
+                                        {order.utr && <div style={{ fontSize: '11px', color: 'var(--color-primary)', fontWeight: 600, marginTop: '2px' }}>UTR: {order.utr}</div>}
                                     </div>
                                     {order.hasImage && (
                                         <div
                                             onClick={() => handleViewReceipt(order.id, order.utr)}
-                                            style={{ fontSize: '12px', color: '#2563eb', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
+                                            style={{ fontSize: '12px', color: 'var(--color-primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
                                         >
                                             <Receipt size={14} /> Verify Receipt ↗
                                         </div>
@@ -241,7 +243,7 @@ const MyOrders = () => {
                                 </div>
 
                                 {order.shippingAddress && (
-                                    <div style={{ marginTop: '12px', fontSize: '12px', color: '#666', background: '#f9fafb', padding: '8px', borderRadius: '4px' }}>
+                                    <div style={{ marginTop: '12px', fontSize: '12px', color: 'var(--color-text-muted)', background: 'var(--color-surface)', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}>
                                         <strong>Ship to:</strong> {order.shippingAddress.name}, {order.shippingAddress.city}
                                     </div>
                                 )}

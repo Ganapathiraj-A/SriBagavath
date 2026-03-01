@@ -234,10 +234,10 @@ const EventRegistration = () => {
                 <div style={{ padding: '1.5rem', maxWidth: '42rem', margin: '0 auto' }}>
                     <div className="card" style={{ padding: '2rem', display: 'grid', gap: '1.5rem' }}>
                         <div style={{ textAlign: 'center' }}>
-                            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '0.5rem' }}>
+                            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-text)', marginBottom: '0.5rem' }}>
                                 Registration Consent
                             </h2>
-                            <p style={{ color: '#4b5563', fontSize: '1rem' }}>
+                            <p style={{ color: 'var(--color-text-muted)', fontSize: '1rem' }}>
                                 Please review and accept the following terms to proceed with your registration for <strong>{program.programName}</strong>.
                             </p>
                         </div>
@@ -245,11 +245,11 @@ const EventRegistration = () => {
                         <div
                             className="consent-text-container"
                             style={{
-                                backgroundColor: '#f9fafb',
+                                backgroundColor: 'var(--color-surface)',
                                 padding: '1.5rem',
                                 borderRadius: '0.75rem',
-                                border: '1px solid #e5e7eb',
-                                color: '#374151',
+                                border: '1px solid var(--color-border)',
+                                color: 'var(--color-text)',
                                 fontSize: '1.0625rem',
                                 lineHeight: '1.6',
                                 whiteSpace: 'pre-wrap',
@@ -262,14 +262,14 @@ const EventRegistration = () => {
                         </div>
 
                         <div style={{
-                            backgroundColor: '#fff7ed',
+                            backgroundColor: 'var(--color-primary-transparent)',
                             padding: '1.25rem',
                             borderRadius: '0.75rem',
-                            border: '1px solid #ffedd5',
+                            border: '1px solid var(--color-primary-light)',
                             display: 'grid',
                             gap: '0.75rem'
                         }}>
-                            <p style={{ fontWeight: 600, color: '#9a3412', margin: 0, fontSize: '1.125rem' }}>
+                            <p style={{ fontWeight: 600, color: 'var(--color-primary)', margin: 0, fontSize: '1.125rem' }}>
                                 {program.consentQuestion || "Do you agree to the terms mentioned above?"}
                             </p>
                         </div>
@@ -310,21 +310,21 @@ const EventRegistration = () => {
             <div style={{
                 textAlign: 'center',
                 padding: '1rem',
-                backgroundColor: '#f3f4f6',
-                borderBottom: '1px solid #e5e7eb',
+                backgroundColor: 'var(--color-surface)',
+                borderBottom: '1px solid var(--color-border)',
                 marginBottom: '1rem'
             }}>
                 <h2 style={{
                     fontSize: '1.25rem',
                     fontWeight: 700,
-                    color: '#111827',
+                    color: 'var(--color-text)',
                     margin: 0
                 }}>
                     {program?.programName}
                 </h2>
                 <p style={{
                     fontSize: '0.95rem',
-                    color: '#4b5563',
+                    color: 'var(--color-text-muted)',
                     margin: '0.25rem 0 0 0'
                 }}>
                     {program?.programDate ? new Date(program.programDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : ''} - {program?.programCity}
@@ -342,9 +342,9 @@ const EventRegistration = () => {
                             alignItems: 'center',
                             justifyContent: 'center',
                             gap: '8px',
-                            background: '#e0f2fe',
-                            color: '#0284c7',
-                            border: '1px solid #bae6fd'
+                            background: 'var(--color-primary-transparent)',
+                            color: 'var(--color-primary)',
+                            border: '1px solid var(--color-primary-light)'
                         }}
                     >
                         <RotateCcw size={16} />
@@ -363,9 +363,10 @@ const EventRegistration = () => {
                             width: '100%',
                             padding: '10px',
                             borderRadius: '8px',
-                            border: '1px solid #ddd',
+                            border: '1px solid var(--color-border)',
                             fontSize: '16px',
-                            backgroundColor: 'white'
+                            backgroundColor: 'var(--color-surface)',
+                            color: 'var(--color-text)'
                         }}
                     >
                         {[...Array(15)].map((_, i) => (
@@ -472,16 +473,16 @@ const EventRegistration = () => {
                                         justifyContent: 'space-between',
                                         alignItems: 'center',
                                         padding: '0.75rem',
-                                        border: isSelected ? '1px solid var(--color-primary)' : '1px solid #e5e7eb',
+                                        border: isSelected ? '1px solid var(--color-primary)' : '1px solid var(--color-border)',
                                         borderRadius: '0.5rem',
-                                        backgroundColor: isSelected ? '#eff6ff' : (isFull ? '#f3f4f6' : 'white'),
+                                        backgroundColor: isSelected ? 'var(--color-primary-transparent)' : (isFull ? 'var(--color-surface)' : 'var(--color-card)'),
                                         cursor: isFull ? 'not-allowed' : 'pointer',
                                         opacity: isFull ? 0.7 : 1
                                     }}
                                 >
                                     <div>
-                                        <div style={{ fontWeight: 500, color: '#374151' }}>{option.name}</div>
-                                        <div style={{ fontSize: '0.85rem', color: isFull ? '#dc2626' : (usedCount > 0 ? '#d97706' : '#6b7280') }}>
+                                        <div style={{ fontWeight: 500, color: 'var(--color-text)' }}>{option.name}</div>
+                                        <div style={{ fontSize: '0.85rem', color: isFull ? 'var(--color-error)' : (usedCount > 0 ? 'var(--color-warning)' : 'var(--color-text-muted)') }}>
                                             {isFull ? 'Sold Out' : (option.maxCount ? `${usedCount}/${option.maxCount} filled` : 'Available')}
                                         </div>
                                     </div>
@@ -491,8 +492,8 @@ const EventRegistration = () => {
                                             width: '1.25rem',
                                             height: '1.25rem',
                                             borderRadius: '50%',
-                                            border: isSelected ? '5px solid var(--color-primary)' : '2px solid #d1d5db',
-                                            backgroundColor: isSelected ? 'white' : 'transparent'
+                                            border: isSelected ? '5px solid var(--color-primary)' : '2px solid var(--color-border)',
+                                            backgroundColor: isSelected ? 'var(--color-card)' : 'transparent'
                                         }} />
                                     </div>
                                 </div>
@@ -502,7 +503,7 @@ const EventRegistration = () => {
                 </div>
             )}
 
-            <div className="card" style={{ position: 'sticky', bottom: '10px', background: '#ffedd5', border: '1px solid #fdba74' }}>
+            <div className="card" style={{ position: 'sticky', bottom: '10px', background: 'var(--color-primary-transparent)', border: '1px solid var(--color-primary-light)', zIndex: 10 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontWeight: 600 }}>Total Estimated Amount:</span>
                     <span style={{ fontSize: '18px', fontWeight: 'bold' }}>₹{calculateTotal()}</span>
@@ -512,12 +513,12 @@ const EventRegistration = () => {
                     <div style={{
                         marginTop: '10px',
                         padding: '10px',
-                        backgroundColor: '#fef2f2',
-                        border: '1px solid #fee2e2',
+                        backgroundColor: 'var(--color-error-transparent)',
+                        border: '1px solid var(--color-error-light)',
                         borderRadius: '8px',
                         textAlign: 'center'
                     }}>
-                        <p style={{ margin: 0, color: '#b91c1c', fontWeight: 600, fontSize: '0.9rem' }}>
+                        <p style={{ margin: 0, color: 'var(--color-error)', fontWeight: 600, fontSize: '0.9rem' }}>
                             To register please contact {offlineRegistrationContact}
                         </p>
                     </div>
