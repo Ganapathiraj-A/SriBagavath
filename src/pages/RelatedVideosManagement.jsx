@@ -160,21 +160,21 @@ const RelatedVideosManagement = () => {
                 rightAction={
                     <button
                         onClick={() => navigate('/videos')}
+                        title="View Public Listing"
                         style={{
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '6px',
-                            padding: '8px 12px',
+                            justifyContent: 'center',
+                            padding: '10px',
                             backgroundColor: '#f3f4f6',
                             border: '1px solid #d1d5db',
-                            borderRadius: '20px',
+                            borderRadius: '50%',
                             color: '#4b5563',
-                            fontSize: '0.85rem',
-                            fontWeight: 600,
-                            cursor: 'pointer'
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
                         }}
                     >
-                        <Eye size={16} /> View Listing
+                        <Eye size={20} />
                     </button>
                 }
             />
