@@ -18,11 +18,20 @@ const Videos = () => {
     useEffect(() => {
         const fetchVideos = async () => {
             try {
+                console.log("Fetching related videos on public page...");
                 const q = query(collection(db, 'relatedVideos'), orderBy('order', 'asc'));
                 const snapshot = await getDocs(q);
+                console.log("Public Videos Snapshot:", snapshot.docs.length);
                 setVideos(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
             } catch (error) {
-                console.error("Error fetching related videos:", error);
+                console.error("Error fetching related videos on public page:", error);
+                // Fallback for missing index
+                if (error.code === 'failed-precondition' || error.message?.includes('index')) {
+                    console.warn("Falling back to unordered query on public page...");
+                    const fallbackQ = query(collection(db, 'relatedVideos'));
+                    const snap = await getDocs(fallbackQ);
+                    setVideos(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+                }
             } finally {
                 setLoading(false);
             }

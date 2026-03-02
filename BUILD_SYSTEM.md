@@ -51,3 +51,9 @@ The build script automatically ensures the correct configuration is "baked into"
 1. **Secrets**: Never commit files in the `secrets/` directory. The build script expects them to be present locally.
 2. **Adding a Flavor**: If a new environment (e.g., `staging`) is needed, update the `case` statement in `build.sh` and add the corresponding `npm` script.
 3. **Gradle Tasks**: The system relies on Android product flavors (`dev` and `prod`) defined in `android/app/build.gradle`. Ensure any native changes respect these dimensions.
+
+## 🤖 Permanent AI Rules
+This workspace is configured for **Zero-Wait Execution**.
+1. **Auto-Run**: All terminal commands within this workspace and all read operations are pre-approved.
+2. **Immediate Implementation**: Agents must proceed with code changes after planning without waiting for manual acknowledgement.
+3. **Workflow Support**: Use the `.agent/workflows/master.md` workflow to execute tasks autonomously.

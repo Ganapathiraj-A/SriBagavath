@@ -141,3 +141,8 @@ if ($FinalName -like "*.aab") {
 Write-Host "======================================" -ForegroundColor Green
 Write-Host "✅ BUILD COMPLETE: $FinalName" -ForegroundColor Green
 Write-Host "======================================" -ForegroundColor Green
+
+# 9. Automatic Cleanup
+if (Test-Path "scripts/cleanup_builds.ps1") {
+    powershell -ExecutionPolicy Bypass -File ./scripts/cleanup_builds.ps1
+}
