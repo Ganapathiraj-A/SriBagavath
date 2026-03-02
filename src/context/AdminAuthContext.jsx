@@ -72,9 +72,10 @@ export const AdminAuthProvider = ({ children }) => {
                 if (!currentUser.isAnonymous) {
                     console.log("[AdminAuth] Initializing Recognition for UID:", currentUser.uid);
 
-                    const adminColl = collection(db, 'admins');
                     const idsToCheck = [currentUser.uid];
-                    if (currentUser.email) idsToCheck.push(currentUser.email);
+                    if (currentUser.email) idsToCheck.push(currentUser.email.toLowerCase());
+
+                    console.log("[AdminAuth] IDs to check in admins collection:", idsToCheck);
 
                     // Consolidate UID and Email check into a single listener
                     const adminQuery = query(adminColl, where('__name__', 'in', idsToCheck));
@@ -90,8 +91,8 @@ export const AdminAuthProvider = ({ children }) => {
                     };
 
                     adminUnsubscribe = onSnapshot(adminQuery, (snap) => {
+                        console.log("[AdminAuth] Admin snapshot size:", snap.size);
                         if (!snap.empty) {
-                            // If we have multiple (shouldn't happen but safe), pick first
                             handleAdminData(snap.docs[0].data());
                         } else {
                             // Not found in admins, check pending

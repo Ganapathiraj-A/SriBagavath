@@ -13,10 +13,10 @@ import { useDriveFiles } from '@/hooks/useDriveFiles';
 const PdfBooks = () => {
   const navigate = useNavigate();
   const { digitalBookLanguages } = useGlobalSettings();
-  const { hasAccess, isAdmin, isInitialized } = useAdminAuth();
+  const { hasAccess, isInitialized } = useAdminAuth();
 
   // Wait for auth initialization before permitting edit mode
-  const canEdit = isInitialized && (isAdmin || hasAccess('DIGITAL_BOOKS_MANAGEMENT'));
+  const canEdit = isInitialized && hasAccess('DIGITAL_BOOKS_MANAGEMENT');
   const [activeTabId, setActiveTabId] = useState('');
   const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
