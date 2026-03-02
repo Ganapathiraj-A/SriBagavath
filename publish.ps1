@@ -56,10 +56,17 @@ if (-not (Test-Path $ArtifactName)) {
 
 # 3. Git Tagging (for production)
 if ($DoTagging) {
-    $VersionTag = "v$($Version)-$($Flavor)"
+    if ($Flavor -eq "prod-aab") {
+        $VersionTag = "playstore-v$($Version)"
+        $CommitMsg = "play store update version v$Version"
+    } else {
+        $VersionTag = "v$($Version)-$($Flavor)"
+        $CommitMsg = "chore: release $VersionTag"
+    }
+    
     Write-Host "Creating versioned tag: $VersionTag" -ForegroundColor Cyan
     git add .
-    git commit -m "chore: release $VersionTag" 2>$null
+    git commit -m "$CommitMsg" 2>$null
     git tag -a "$VersionTag" -m "Release $VersionTag"
     git push origin main --tags
 }
