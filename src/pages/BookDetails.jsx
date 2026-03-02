@@ -72,9 +72,7 @@ _${book.category}_
 
 📖 *Description:*
 ${book.description || 'No description available.'}
-
-Download the Sri Bagavath App for more spiritual resources.
-        `.trim();
+        `.trim() + `\n\nDownload *Sri Bagavath* App for latest details:\nhttps://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share`;
 
         try {
             let files = [];

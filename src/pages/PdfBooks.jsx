@@ -121,9 +121,10 @@ const PdfBooks = () => {
     e.stopPropagation();
     const viewUrl = file.webViewLink || `https://drive.google.com/file/d/${file.id}/view`;
     try {
+      const text = `📗 *${file.name}*\n\nDownload *Sri Bagavath* App for latest details:\nhttps://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share`;
       await Share.share({
         title: file.name,
-        text: `Check out this book: ${file.name}`,
+        text: text,
         url: viewUrl,
         dialogTitle: 'Share Book'
       });

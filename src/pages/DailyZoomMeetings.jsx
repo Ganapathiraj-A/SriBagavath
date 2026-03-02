@@ -330,8 +330,7 @@ ${meeting.youtubeUrl ? `\n🎥 *YouTube Live:* \n${meeting.youtubeUrl}` : ''}
 
 ${meeting.description ? `\n_${meeting.description}_\n` : ''}
 ━━━━━━━━━━━━━━━━━━━━
-Join us for our daily spiritual gathering.
-        `.trim();
+        `.trim() + `\n\nDownload *Sri Bagavath* App for latest details:\nhttps://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share`;
 
         try {
             let files = [];
@@ -385,7 +384,7 @@ Join us for our daily spiritual gathering.
             }
         });
 
-        text += '━━━━━━━━━━━━━━━━━━━━\nJoin our daily spiritual gatherings online.';
+        text += '━━━━━━━━━━━━━━━━━━━━\nDownload *Sri Bagavath* App for latest details:\nhttps://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share';
 
         try {
             let files = [];
