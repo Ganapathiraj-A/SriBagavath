@@ -40,7 +40,18 @@ const ManageUsers = () => {
     useEffect(() => {
         // Get current admins (Realtime for role updates)
         const unsubAdmins = onSnapshot(collection(db, 'admins'), (snapshot) => {
-            setAdmins(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+            const rawAdmins = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+
+            // Deduplicate by email (case-insensitive)
+            const uniqueAdminsMap = new Map();
+            rawAdmins.forEach(admin => {
+                const emailKey = admin.email?.toLowerCase().trim();
+                if (emailKey && !uniqueAdminsMap.has(emailKey)) {
+                    uniqueAdminsMap.set(emailKey, admin);
+                }
+            });
+
+            setAdmins(Array.from(uniqueAdminsMap.values()));
             setLoading(false);
         });
 
@@ -73,11 +84,22 @@ const ManageUsers = () => {
 
     const handleSave = async () => {
         if (!selectedUser) return;
-        const emailToSave = isEditing ? selectedUser.email : newEmail;
+        const emailToSave = isEditing ? selectedUser.email : newEmail.trim();
 
         if (!emailToSave || !emailToSave.includes('@')) {
             alert("Valid Email is required");
             return;
+        }
+
+        const normalizedEmail = emailToSave.toLowerCase();
+
+        // Check for duplicates if adding a new user
+        if (!isEditing) {
+            const existing = admins.find(a => a.email?.toLowerCase().trim() === normalizedEmail);
+            if (existing) {
+                alert(`User with email ${emailToSave} already exists as ${existing.role}`);
+                return;
+            }
         }
 
         try {
@@ -92,8 +114,8 @@ const ManageUsers = () => {
                 userData.grantedBy = 'Admin';
             }
 
-            // Write/Update to admins collection - use email as ID for new ones
-            const docId = isEditing ? selectedUser.id : emailToSave.trim().toLowerCase();
+            // Write/Update to admins collection - use normalized email as ID
+            const docId = isEditing ? selectedUser.id : normalizedEmail;
             await setDoc(doc(db, 'admins', docId), userData, { merge: true });
 
             alert(isEditing ? "User updated successfully!" : "User added successfully!");

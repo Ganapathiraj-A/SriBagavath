@@ -11,7 +11,7 @@ import { db } from '@/firebase.js';
  * if the local version is behind the server version.
  */
 
-const APP_VERSION = '3.0.101';
+const APP_VERSION = '3.0.102';
 
 const LOCAL_STORAGE_KEY = 'sbb_sync_registry';
 
