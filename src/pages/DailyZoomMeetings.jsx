@@ -392,10 +392,40 @@ Join us for our daily spiritual gathering.
             />
 
             <div style={{ padding: '1.5rem', maxWidth: '32rem', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '0.95rem' }}>
-                        Join our daily spiritual gatherings online
-                    </p>
+                {/* Teacher Filter & Share Button Group */}
+                <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.75rem' }}>
+                    {teachers.length > 0 && (
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#4b5563', paddingLeft: '0.2rem' }}>Filter by Speaker</label>
+                            <select
+                                value={selectedTeacherId}
+                                onChange={(e) => setSelectedTeacherId(e.target.value)}
+                                style={{
+                                    padding: '0.75rem',
+                                    borderRadius: '0.75rem',
+                                    border: '1px solid var(--color-border)',
+                                    backgroundColor: 'var(--color-card)',
+                                    fontSize: '1rem',
+                                    fontWeight: 500,
+                                    color: 'var(--color-text)',
+                                    outline: 'none',
+                                    width: '100%',
+                                    cursor: 'pointer',
+                                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                                    appearance: 'none',
+                                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                                    backgroundRepeat: 'no-repeat',
+                                    backgroundPosition: 'right 0.75rem center',
+                                    backgroundSize: '1.25rem'
+                                }}
+                            >
+                                <option value="all">All Speakers</option>
+                                {teachers.map(t => (
+                                    <option key={t.id} value={t.id}>{t.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
                     <button
                         onClick={handleShareList}
                         aria-label="Share meetings list"
@@ -403,53 +433,20 @@ Join us for our daily spiritual gathering.
                             display: 'flex',
                             alignItems: 'center',
                             gap: '0.4rem',
-                            padding: '0.4rem 0.75rem',
+                            padding: '0.75rem 1rem',
                             backgroundColor: 'var(--color-card)',
                             color: 'var(--color-text)',
                             border: '1px solid var(--color-border)',
-                            borderRadius: '0.5rem',
-                            fontSize: '0.85rem',
+                            borderRadius: '0.75rem',
+                            fontSize: '0.9rem',
                             fontWeight: 600,
-                            cursor: 'pointer'
+                            cursor: 'pointer',
+                            height: '3.15rem' // Match the select height roughly inclusive of padding/border
                         }}
                     >
-                        <Share2 size={16} /> Share List
+                        <Share2 size={18} /> Share List
                     </button>
                 </div>
-
-                {/* Teacher Filter - Dropdown (Moved above tabs) */}
-                {teachers.length > 0 && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                        <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#4b5563', paddingLeft: '0.2rem' }}>Filter by Speaker</label>
-                        <select
-                            value={selectedTeacherId}
-                            onChange={(e) => setSelectedTeacherId(e.target.value)}
-                            style={{
-                                padding: '0.75rem',
-                                borderRadius: '0.75rem',
-                                border: '1px solid var(--color-border)',
-                                backgroundColor: 'var(--color-card)',
-                                fontSize: '1rem',
-                                fontWeight: 500,
-                                color: 'var(--color-text)',
-                                outline: 'none',
-                                width: '100%',
-                                cursor: 'pointer',
-                                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                                appearance: 'none',
-                                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-                                backgroundRepeat: 'no-repeat',
-                                backgroundPosition: 'right 0.75rem center',
-                                backgroundSize: '1.25rem'
-                            }}
-                        >
-                            <option value="all">All Speakers</option>
-                            {teachers.map(t => (
-                                <option key={t.id} value={t.id}>{t.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                )}
 
                 {/* Tab Switcher - Underlined Style (matching Book Store) */}
                 <div style={{
