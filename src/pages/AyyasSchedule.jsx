@@ -85,21 +85,20 @@ const AyyasSchedule = () => {
         const fromStr = fromDate.toLocaleDateString(undefined, dateOptions);
         const communitiesStr = toDate.toLocaleDateString(undefined, dateOptions);
 
+        const appUrl = 'https://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share';
         const shareText = `
 *Ayya's Schedule*
 
 📍 *Place:* ${schedule.place}
 📅 ${fromStr}
 📅 ${communitiesStr}
-        `.trim() + `\n\nDownload the Sri Bagavath App for the latest updates`;
-
-        const appUrl = 'https://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share';
+━━━━━━━━━━━━━━━━━━━━
+Download the *Sri Bagavath App* (${appUrl}) for the latest updates`.trim();
 
         try {
             await Share.share({
                 title: "Ayya's Schedule",
                 text: shareText,
-                url: appUrl,
                 dialogTitle: "Share Schedule",
             });
         } catch (_err) {

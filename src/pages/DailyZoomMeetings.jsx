@@ -293,12 +293,24 @@ const DailyZoomMeetings = () => {
         }
     };
 
-    const saveBase64ToFile = async (base64Data, fileName) => {
+    const saveImageForShare = async (imgData, fileName) => {
+        if (!imgData) return null;
         try {
-            const cleanBase64 = base64Data.includes(',') ? base64Data.split(',')[1] : base64Data;
+            let base64;
+            if (imgData.startsWith('http')) {
+                const response = await fetch(imgData);
+                const blob = await response.blob();
+                base64 = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result.split(',')[1]);
+                    reader.readAsDataURL(blob);
+                });
+            } else {
+                base64 = imgData.includes(',') ? imgData.split(',')[1] : imgData;
+            }
             const result = await Filesystem.writeFile({
                 path: fileName,
-                data: cleanBase64,
+                data: base64,
                 directory: Directory.Cache
             });
             return result.uri;
@@ -318,6 +330,7 @@ const DailyZoomMeetings = () => {
 
         const name = displayName || meeting.name || 'Unknown Speaker';
 
+        const appUrl = 'https://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share';
         const text = `
 ✨ *Daily Zoom Meeting* ✨
 ━━━━━━━━━━━━━━━━━━━━
@@ -330,22 +343,19 @@ ${meeting.youtubeUrl ? `\n🎥 *YouTube Live:* \n${meeting.youtubeUrl}` : ''}
 
 ${meeting.description ? `\n_${meeting.description}_\n` : ''}
 ━━━━━━━━━━━━━━━━━━━━
-        `.trim() + `\n\nDownload the Sri Bagavath App for the latest updates`;
-
-        const appUrl = 'https://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share';
+Download the *Sri Bagavath App* (${appUrl}) for the latest updates`.trim();
 
         try {
             let files = [];
             if (displayImage) {
                 const fileName = `meeting_${meeting.id}_${Date.now()}.jpg`;
-                const uri = await saveBase64ToFile(displayImage, fileName);
+                const uri = await saveImageForShare(displayImage, fileName);
                 if (uri) files.push(uri);
             }
 
             await Share.share({
                 title: `${name} - Daily Zoom Meeting`,
                 text: text,
-                url: appUrl,
                 files: files.length > 0 ? files : undefined
             });
         } catch (_err) {
@@ -387,9 +397,8 @@ ${meeting.description ? `\n_${meeting.description}_\n` : ''}
             }
         });
 
-        text += '━━━━━━━━━━━━━━━━━━━━\nDownload the Sri Bagavath App for the latest updates';
-
         const appUrl = 'https://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share';
+        text += '━━━━━━━━━━━━━━━━━━━━\nDownload the *Sri Bagavath App* (' + appUrl + ') for the latest updates';
 
         try {
             let files = [];
@@ -398,14 +407,13 @@ ${meeting.description ? `\n_${meeting.description}_\n` : ''}
 
             for (const item of uniqueImages) {
                 const fileName = `teacher_${item.id}_${Date.now()}.jpg`;
-                const uri = await saveBase64ToFile(item.image, fileName);
+                const uri = await saveImageForShare(item.image, fileName);
                 if (uri) files.push(uri);
             }
 
             await Share.share({
                 title: 'Daily Zoom Meetings List',
                 text: text,
-                url: appUrl,
                 files: files.length > 0 ? files : undefined
             });
         } catch (_err) {

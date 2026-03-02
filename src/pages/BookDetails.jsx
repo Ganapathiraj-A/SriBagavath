@@ -72,9 +72,8 @@ _${book.category}_
 
 📖 *Description:*
 ${book.description || 'No description available.'}
-        `.trim() + `\n\nDownload the Sri Bagavath App for the latest updates`;
-
-        const appUrl = 'https://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share';
+━━━━━━━━━━━━━━━━━━━━
+Download the *Sri Bagavath App* (${appUrl}) for the latest updates`.trim();
 
         try {
             let files = [];
@@ -92,7 +91,6 @@ ${book.description || 'No description available.'}
             await Share.share({
                 title: book.title,
                 text: text,
-                url: appUrl,
                 files: files.length > 0 ? files : undefined
             });
         } catch (_err) {

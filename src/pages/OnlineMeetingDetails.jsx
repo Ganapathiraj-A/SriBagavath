@@ -52,6 +52,7 @@ const OnlineMeetingDetails = () => {
 
     const handleShare = async () => {
         if (!meeting) return;
+        const appUrl = 'https://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share';
         const text = `
 *Online Meeting with ${meeting.conductedBy}*
 ${meeting.description || meeting.descriptions ? '\n' + (meeting.description || meeting.descriptions) + '\n' : ''}
@@ -59,15 +60,13 @@ ${meeting.description || meeting.descriptions ? '\n' + (meeting.description || m
 ⏰ *Time:* ${meeting.startTime} - ${meeting.endTime}
 
 🔗 *Join Link:* ${meeting.joinLink}
-        `.trim() + `\n\nDownload the Sri Bagavath App for the latest updates`;
-
-        const appUrl = 'https://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share';
+━━━━━━━━━━━━━━━━━━━━
+Download the *Sri Bagavath App* (${appUrl}) for the latest updates`.trim();
 
         try {
             await Share.share({
                 title: `Online Meeting - ${meeting.conductedBy}`,
-                text: text,
-                url: appUrl
+                text: text
             });
         } catch (_err) {
             console.error('Error sharing:', _err);

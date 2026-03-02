@@ -288,6 +288,7 @@ const Programs = () => {
     const handleShare = async (program) => {
         if (!program) return;
 
+        const appUrl = 'https://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share';
         const text = `
 *${program.programName}*
 
@@ -298,15 +299,13 @@ const Programs = () => {
 🏢 *Venue:* ${program.programVenue}
 
 ${program.programDescription ? `📝 *Description:*\n${program.programDescription}\n\n` : ''}${program.registrationStatus === 'Open' ? `✅ Registration Open until ${new Date(program.lastDateToRegister).toLocaleDateString()}` : '🚫 Registration Closed'}
-        `.trim() + `\n\nDownload the Sri Bagavath App for the latest updates`;
-
-        const appUrl = 'https://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share';
+━━━━━━━━━━━━━━━━━━━━
+Download the *Sri Bagavath App* (${appUrl}) for the latest updates`.trim();
 
         try {
             await Share.share({
                 title: program.programName,
-                text: text,
-                url: appUrl
+                text: text
             });
 
             // Track Share

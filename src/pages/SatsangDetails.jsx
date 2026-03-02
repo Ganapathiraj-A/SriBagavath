@@ -56,22 +56,21 @@ const SatsangDetails = () => {
 
     const handleShare = async () => {
         if (!meeting) return;
-        const text = `
-    * Satsang with ${meeting.conductedBy}*
-        ${meeting.description || meeting.descriptions ? '\n' + (meeting.description || meeting.descriptions) + '\n' : ''}
-📅 * Date:* ${new Date(meeting.date).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
-⏰ * Time:* ${meeting.startTime} - ${meeting.endTime}
-📍 * City:* ${meeting.city}
-🏠 * Venue:* ${meeting.venue}
-`.trim() + `\n\nDownload the Sri Bagavath App for the latest updates`;
-
         const appUrl = 'https://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share';
+        const text = `
+*Satsang with ${meeting.conductedBy}*
+${meeting.description || meeting.descriptions ? '\n' + (meeting.description || meeting.descriptions) + '\n' : ''}
+📅 *Date:* ${new Date(meeting.date).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
+⏰ *Time:* ${meeting.startTime} - ${meeting.endTime}
+📍 *City:* ${meeting.city}
+🏠 *Venue:* ${meeting.venue}
+━━━━━━━━━━━━━━━━━━━━
+Download the *Sri Bagavath App* (${appUrl}) for the latest updates`.trim();
 
         try {
             await Share.share({
-                title: `Satsang - ${meeting.conductedBy} `,
-                text: text,
-                url: appUrl
+                title: `Satsang - ${meeting.conductedBy}`,
+                text: text
             });
         } catch (_err) {
             console.error('Error sharing:', _err);
