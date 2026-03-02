@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { collection, query, getDocs, onSnapshot, doc, setDoc, deleteDoc, serverTimestamp, orderBy } from '@/utils/FirestoreProxy';
 import { db } from '@/firebase';
 import PageHeader from '@/components/PageHeader';
-import { Plus, Trash2, Edit, Save, X, ExternalLink, Video, ChevronLeft, Eye } from 'lucide-react';
+import { Plus, Trash2, Edit, Save, X, ExternalLink, Video, Eye, ChevronUp, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const RelatedVideosManagement = () => {
@@ -17,13 +17,27 @@ const RelatedVideosManagement = () => {
     const [formData, setFormData] = useState({ title: '', url: '' });
 
     useEffect(() => {
-        const q = query(collection(db, 'relatedVideos'), orderBy('createdAt', 'desc'));
+        const q = query(collection(db, 'relatedVideos'), orderBy('order', 'asc'));
         const unsubscribe = onSnapshot(q, (snapshot) => {
-            setVideos(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+            const fetchedVideos = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            // Temporary fix for legacy data without order
+            const needsOrder = fetchedVideos.some(v => v.order === undefined);
+            if (needsOrder) {
+                fixLegacyOrdering(fetchedVideos);
+            }
+            setVideos(fetchedVideos);
             setLoading(false);
         });
         return () => unsubscribe();
     }, []);
+
+    const fixLegacyOrdering = async (data) => {
+        for (let i = 0; i < data.length; i++) {
+            if (data[i].order === undefined) {
+                await setDoc(doc(db, 'relatedVideos', data[i].id), { order: i }, { merge: true });
+            }
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -31,10 +45,19 @@ const RelatedVideosManagement = () => {
 
         try {
             const docId = editingId || doc(collection(db, 'relatedVideos')).id;
-            await setDoc(doc(db, 'relatedVideos', docId), {
+            const videoData = {
                 ...formData,
-                createdAt: serverTimestamp()
-            }, { merge: true });
+                updatedAt: serverTimestamp()
+            };
+
+            if (!editingId) {
+                // New item: put at bottom
+                const maxOrder = videos.length > 0 ? Math.max(...videos.map(v => v.order || 0)) : -1;
+                videoData.order = maxOrder + 1;
+                videoData.createdAt = serverTimestamp();
+            }
+
+            await setDoc(doc(db, 'relatedVideos', docId), videoData, { merge: true });
 
             resetForm();
             alert(editingId ? "Video updated successfully!" : "Video added successfully!");
@@ -57,6 +80,26 @@ const RelatedVideosManagement = () => {
         } catch (error) {
             console.error("Error deleting video:", error);
             alert("Failed to delete video");
+        }
+    };
+
+    const handleMove = async (index, direction) => {
+        const targetIndex = direction === 'up' ? index - 1 : index + 1;
+        if (targetIndex < 0 || targetIndex >= videos.length) return;
+
+        const currentVideo = videos[index];
+        const targetVideo = videos[targetIndex];
+
+        try {
+            // Swap orders
+            const currentRef = doc(db, 'relatedVideos', currentVideo.id);
+            const targetRef = doc(db, 'relatedVideos', targetVideo.id);
+
+            const tempOrder = currentVideo.order;
+            await setDoc(currentRef, { order: targetVideo.order }, { merge: true });
+            await setDoc(targetRef, { order: tempOrder }, { merge: true });
+        } catch (error) {
+            console.error("Error reordering:", error);
         }
     };
 
@@ -208,7 +251,7 @@ const RelatedVideosManagement = () => {
                             <p>No playlists configured yet.</p>
                         </div>
                     ) : (
-                        videos.map((video) => (
+                        videos.map((video, index) => (
                             <motion.div
                                 key={video.id}
                                 layout
@@ -216,7 +259,7 @@ const RelatedVideosManagement = () => {
                                 animate={{ opacity: 1 }}
                                 style={{
                                     backgroundColor: 'var(--color-surface)',
-                                    padding: '1rem',
+                                    padding: '0.75rem 1rem',
                                     borderRadius: '0.75rem',
                                     boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                                     display: 'flex',
@@ -225,16 +268,50 @@ const RelatedVideosManagement = () => {
                                     border: '1px solid var(--color-border)'
                                 }}
                             >
-                                <div style={{ overflow: 'hidden', marginRight: '1rem' }}>
-                                    <div style={{ fontWeight: 600, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                        <Video size={16} color="#ef4444" />
-                                        {video.title}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, overflow: 'hidden' }}>
+                                    {/* Reorder Buttons */}
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                        <button
+                                            onClick={() => handleMove(index, 'up')}
+                                            disabled={index === 0}
+                                            style={{
+                                                padding: '2px',
+                                                color: index === 0 ? 'var(--color-text-light)' : 'var(--color-text-muted)',
+                                                cursor: index === 0 ? 'default' : 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center'
+                                            }}
+                                        >
+                                            <ChevronUp size={18} />
+                                        </button>
+                                        <button
+                                            onClick={() => handleMove(index, 'down')}
+                                            disabled={index === videos.length - 1}
+                                            style={{
+                                                padding: '2px',
+                                                color: index === videos.length - 1 ? 'var(--color-text-light)' : 'var(--color-text-muted)',
+                                                cursor: index === videos.length - 1 ? 'default' : 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center'
+                                            }}
+                                        >
+                                            <ChevronDown size={18} />
+                                        </button>
                                     </div>
-                                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', marginTop: '0.25rem' }}>
-                                        {video.url}
+
+                                    <div style={{ overflow: 'hidden' }}>
+                                        <div style={{ fontWeight: 600, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                            <Video size={16} color="#ef4444" />
+                                            {video.title}
+                                        </div>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', marginTop: '0.25rem' }}>
+                                            {video.url}
+                                        </div>
                                     </div>
                                 </div>
-                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <div style={{ display: 'flex', gap: '0.4rem', marginLeft: '0.5rem' }}>
                                     <button
                                         onClick={() => window.open(video.url, '_blank')}
                                         style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', background: 'var(--color-background)', color: 'var(--color-primary)', cursor: 'pointer' }}

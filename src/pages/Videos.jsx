@@ -18,7 +18,7 @@ const Videos = () => {
     useEffect(() => {
         const fetchVideos = async () => {
             try {
-                const q = query(collection(db, 'relatedVideos'), orderBy('createdAt', 'desc'));
+                const q = query(collection(db, 'relatedVideos'), orderBy('order', 'asc'));
                 const snapshot = await getDocs(q);
                 setVideos(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
             } catch (error) {
