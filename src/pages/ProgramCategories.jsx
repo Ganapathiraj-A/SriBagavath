@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ChevronLeft, Calendar, Video, Users, MessageCircle } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { useUnseenCounts } from '@/hooks/useUnseenCounts';

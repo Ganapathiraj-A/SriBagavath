@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { FileText, Folder, ChevronLeft } from 'lucide-react';
+import { FileText, Folder } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { useDriveFiles } from '@/hooks/useDriveFiles';
 import { useGlobalSettings } from '@/context/GlobalSettingsContext';

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Calendar, Clock, MapPin, Share2, ChevronLeft, User, Users } from 'lucide-react';
+import { Calendar, Clock, MapPin, Share2, ChevronLeft } from 'lucide-react';
 import { Share } from '@capacitor/share';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import PageHeader from '@/components/PageHeader';

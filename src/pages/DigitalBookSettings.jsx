@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Plus, Trash2, ArrowUp, ArrowDown, BookOpen } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
@@ -12,6 +12,8 @@ const DigitalBookSettings = () => {
 
     const [newLangName, setNewLangName] = useState('');
     const [newLangFolderId, setNewLangFolderId] = useState('');
+
+    const [expandedIdx, setExpandedIdx] = useState(null);
 
     if (!hasAccess('DIGITAL_BOOKS_MANAGEMENT')) {
         return (
@@ -64,8 +66,6 @@ const DigitalBookSettings = () => {
         handleSaveLanguageArray(updated);
         setNewLangName(''); setNewLangFolderId('');
     };
-
-    const [expandedIdx, setExpandedIdx] = useState(null);
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>
@@ -153,7 +153,7 @@ const DigitalBookSettings = () => {
                 <div style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '1.5rem', border: '1px solid var(--color-border)' }}>
                     <div style={{ marginBottom: '1rem' }}>
                         <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--color-text)', margin: 0 }}>Configured Languages</h3>
-                        <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', margin: '4px 0 0 0' }}>The first two languages appear as Main Tabs. The rest appear in the 'Other Languages' dropdown.</p>
+                        <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', margin: '4px 0 0 0' }}>The first two languages appear as Main Tabs. The rest appear in the &apos;Other Languages&apos; dropdown.</p>
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>

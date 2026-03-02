@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, MapPin, AlertCircle, Share2, ChevronLeft } from 'lucide-react';
+import { Calendar, MapPin, Share2 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { Share } from '@capacitor/share';
 import { Filesystem, Directory } from '@capacitor/filesystem';
@@ -11,7 +11,7 @@ import { ensureGoogleAuthInitialized } from '@/utils/GoogleAuthUtils';
 
 import { auth, db } from '@/firebase';
 import { GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
-import { doc, getDoc, getDocCacheFirst, collection, query, where, orderBy } from '@/utils/FirestoreProxy';
+import { collection, query, where, orderBy } from '@/utils/FirestoreProxy';
 import { useAdminAuth } from '@/context/AdminAuthContext';
 import { getLocalDateString } from '@/utils/dateUtils';
 import { useGlobalSettings } from '@/context/GlobalSettingsContext';

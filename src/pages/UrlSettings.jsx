@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    ChevronLeft, Cloud, Save, Check, Copy, ExternalLink, Link as LinkIcon, Info, Trash2, ArrowUp, ArrowDown, Plus, Edit2
+    ChevronLeft, Cloud, Check, Copy, ExternalLink, Link as LinkIcon, Info
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { useAdminAuth } from '@/context/AdminAuthContext';

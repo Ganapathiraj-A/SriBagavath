@@ -1,6 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
-import { doc, getDoc, updateDoc, increment, setDoc, getDocCacheFirst } from '@/utils/FirestoreProxy.js';
+import { doc, updateDoc, increment, setDoc, getDocCacheFirst } from '@/utils/FirestoreProxy.js';
 import { db } from '@/firebase.js';
 
 /**

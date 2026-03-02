@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import {
-    Plus, Edit2, Trash2, Save, ChevronLeft, Circle
+import { Edit2, Trash2, Save, ChevronLeft, Circle
 } from 'lucide-react';
 import { db } from '@/firebase';
-import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy, where, writeBatch } from '@/utils/FirestoreProxy';
+import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy, writeBatch } from '@/utils/FirestoreProxy';
 import PageHeader from '@/components/PageHeader';
 
 const DailyZoomLinkManagement = () => {

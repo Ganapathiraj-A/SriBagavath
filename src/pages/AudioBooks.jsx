@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Share2, Play, Edit2, Music } from 'lucide-react';
 import { Share } from '@capacitor/share';

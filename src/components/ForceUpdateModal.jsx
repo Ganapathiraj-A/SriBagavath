@@ -1,6 +1,5 @@
-import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, AlertTriangle, ExternalLink } from 'lucide-react';
+import { Download, ExternalLink } from 'lucide-react';
 
 const ForceUpdateModal = ({ currentVersion, minVersion }) => {
     // Version comparison logic (simple string comparison for 2.8.x style)

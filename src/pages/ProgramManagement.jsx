@@ -1,14 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Capacitor } from '@capacitor/core';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
-import { Plus, Edit2, Trash2, Calendar as CalendarIcon, ChevronDown, ChevronUp, Package, ChevronLeft, MapPin } from 'lucide-react';
+import { Plus, Trash2, Package, ChevronLeft, MapPin } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { db, auth } from '@/firebase';
 import '../components/RegistrationStyles.css';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, setDoc, query, where, orderBy, limit, serverTimestamp } from '@/utils/FirestoreProxy';
-import { LogOut } from 'lucide-react';
 import { signOut } from 'firebase/auth';
 import { bumpServerVersion } from '@/utils/SyncManager';
 // Removed storage imports as we are using Base64 in Firestore
@@ -16,8 +15,6 @@ import { bumpServerVersion } from '@/utils/SyncManager';
 import { tamilnaduCities } from '@/data/tamilnaduCities';
 import { TransactionService } from '@/services/TransactionService';
 import { StatsService } from '@/services/StatsService';
-import { increment as firestoreIncrement } from '@/utils/FirestoreProxy';
-import { useUnseenCounts } from '@/hooks/useUnseenCounts';
 import { getLocalDateString } from '@/utils/dateUtils';
 
 // Helper to compress image to Base64

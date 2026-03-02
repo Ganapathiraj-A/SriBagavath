@@ -1,5 +1,5 @@
 import { db } from '@/firebase';
-import { doc, updateDoc, increment, setDoc, getDoc, getDocs, collection, deleteDoc, Timestamp } from '@/utils/FirestoreProxy';
+import { doc, updateDoc, increment, setDoc, getDocs, collection, deleteDoc, Timestamp } from '@/utils/FirestoreProxy';
 import { getLocalDateString } from '@/utils/dateUtils';
 
 export const StatsService = {

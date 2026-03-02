@@ -8,11 +8,8 @@ import {
     User,
     LogOut,
     LogIn,
-    Settings,
     Heart,
-    IndianRupee,
-    LayoutDashboard,
-    FileSpreadsheet
+    LayoutDashboard
 } from 'lucide-react';
 import { signOut, GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
 import { useAdminAuth } from '@/context/AdminAuthContext';
@@ -23,8 +20,7 @@ import { App } from '@capacitor/app';
 import { ensureGoogleAuthInitialized, GET_GOOGLE_CLIENT_ID } from '@/utils/GoogleAuthUtils';
 import { db, auth } from '@/firebase';
 import { StatsService } from '@/services/StatsService';
-import { collection, query, where, getDocs, addDoc } from '@/utils/FirestoreProxy';
-import { Toast } from '@capacitor/toast';
+import { collection, addDoc } from '@/utils/FirestoreProxy';
 
 // Module-level variable to track if this is the very first load of the app in this session.
 // This allows us to skip animations during the transition from the splash/skeleton screen.

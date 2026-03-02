@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
-import { collection, query, where, doc, getDoc, onSnapshot, getDocCacheFirst } from '@/utils/FirestoreProxy';
+import { collection, query, where, doc, getDocs, onSnapshot, getDocCacheFirst } from '@/utils/FirestoreProxy';
 import { auth, db } from '@/firebase';
 
 const AdminAuthContext = createContext();

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -10,12 +10,11 @@ import {
     Download,
     Filter,
     BarChart3,
-    ArrowRight,
-    Search
+    ArrowRight
 } from 'lucide-react';
 import { db } from '@/firebase';
 import { getLocalDateString } from '@/utils/dateUtils';
-import { collection, query, where, getDocs, orderBy, Timestamp } from '@/utils/FirestoreProxy';
+import { collection, query, where, getDocs } from '@/utils/FirestoreProxy';
 import { Share } from '@capacitor/share';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';

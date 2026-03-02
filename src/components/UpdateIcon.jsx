@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, CheckCircle, Smartphone, Wifi, Server, RefreshCw, Bot, Camera, FileSpreadsheet, ClipboardList, Layers } from 'lucide-react';
+import { Download, CheckCircle, Wifi, Server, RefreshCw, Bot, Camera, FileSpreadsheet, ClipboardList, Layers } from 'lucide-react';
 import UpdateService from '@/services/UpdateService';
 import { registerPlugin } from '@capacitor/core';
 

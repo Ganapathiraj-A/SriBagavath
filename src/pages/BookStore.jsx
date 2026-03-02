@@ -1,14 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { IndianRupee, ShoppingCart, ChevronLeft, Plus, Minus, Info, RefreshCw, ChevronDown } from 'lucide-react';
+import { IndianRupee, Plus, Minus, Info } from 'lucide-react';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
 import { ensureGoogleAuthInitialized } from '@/utils/GoogleAuthUtils';
 import PageHeader from '@/components/PageHeader';
 import LazyImage from '@/components/LazyImage';
 import { auth, db } from '@/firebase';
-import { collection, getDocs, query, orderBy, doc, getDoc } from '@/utils/FirestoreProxy';
 import { GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
 import { useCart } from '@/context/CartContext';
 import { useAdminAuth } from '@/context/AdminAuthContext';

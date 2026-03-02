@@ -26,10 +26,13 @@ export default defineConfig({
           'firebase-vendor': ['firebase/app', 'firebase/auth', 'firebase/firestore'],
           'framer-motion-vendor': ['framer-motion'],
           'pdfjs-vendor': ['pdfjs-dist'],
-          'lucide-vendor': ['lucide-react']
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'lucide-vendor': ['lucide-react'],
+          'html2canvas-vendor': ['html2canvas']
         }
       }
-    }
+    },
+    chunkSizeWarningLimit: 1000,
   },
   optimizeDeps: {
     esbuildOptions: {

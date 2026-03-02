@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { TransactionService } from '@/services/TransactionService';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '@/components/PageHeader';

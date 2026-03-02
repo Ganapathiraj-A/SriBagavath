@@ -1,15 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { AnimatePresence } from 'framer-motion';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Plus, Edit2, Trash2, ChevronLeft, LogOut, Package, Image as ImageIcon, BookOpen, X, ChevronUp, ChevronDown, RefreshCw, Eye } from 'lucide-react';
+import { Plus, Trash2, Image as ImageIcon, BookOpen, X, ChevronUp, ChevronDown, Eye } from 'lucide-react';
 import { useAdminAuth } from '@/context/AdminAuthContext';
 import PageHeader from '@/components/PageHeader';
 import LazyImage from '@/components/LazyImage';
-import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
-import { Camera, CameraResultType } from '@capacitor/camera';
-import { App } from '@capacitor/app';
-import { Capacitor } from '@capacitor/core';
 import { db } from '@/firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, setDoc, query, orderBy, serverTimestamp, getDoc, where } from '@/utils/FirestoreProxy';
 import { StatsService } from '@/services/StatsService';

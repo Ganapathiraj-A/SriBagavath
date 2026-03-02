@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
-    Calendar, Clock, Video, Plus, Edit2, Trash2,
-    ChevronLeft, AlertCircle, Save, X, ExternalLink, RefreshCw, Info
+    Calendar, Clock, Video, Plus, Edit2, Trash2, AlertCircle, Save, X, ExternalLink, RefreshCw, Info
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { db } from '@/firebase';

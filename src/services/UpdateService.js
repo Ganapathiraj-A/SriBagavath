@@ -1,5 +1,4 @@
 import { Capacitor, registerPlugin } from '@capacitor/core';
-import { Filesystem, Directory } from '@capacitor/filesystem';
 import { App } from '@capacitor/app';
 // import { Dialog } from '@capacitor/dialog'; // Optional, using standard confirm for now
 

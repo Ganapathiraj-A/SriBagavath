@@ -1,5 +1,3 @@
-import { Share } from '@capacitor/share';
-import { Filesystem, Directory } from '@capacitor/filesystem';
 import { AppLauncher } from '@capacitor/app-launcher';
 import OCR from '@/plugins/OCRPlugin';
 

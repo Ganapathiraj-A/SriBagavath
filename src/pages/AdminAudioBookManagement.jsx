@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Plus, Search, Edit2, Trash2, GripVertical,
-    Save, X, Upload, Eye, Music, ChevronUp, ChevronDown
+    Plus, Search, Edit2, Trash2, X, Upload, Eye, Music, ChevronUp, ChevronDown
 } from 'lucide-react';
 import {
     collection, onSnapshot, doc, setDoc,

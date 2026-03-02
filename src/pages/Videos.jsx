@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Youtube, ExternalLink, Send } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
-import { collection, query, getDocs, orderBy } from '@/utils/FirestoreProxy';
+import { collection, query, getDocs } from '@/utils/FirestoreProxy';
 import { db } from '@/firebase';
 import { useAdminAuth } from '@/context/AdminAuthContext';
 import { Edit2 } from 'lucide-react';

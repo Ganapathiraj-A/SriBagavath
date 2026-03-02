@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import {
-    Plus, Edit2, Trash2, Save, X, ChevronUp, ChevronDown, ChevronLeft, User, Phone, ExternalLink
+import { Trash2, Save, ChevronUp, ChevronDown, ChevronLeft, User, Phone, ExternalLink
 } from 'lucide-react';
 import { db } from '@/firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy } from '@/utils/FirestoreProxy';

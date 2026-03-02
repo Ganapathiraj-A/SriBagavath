@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Download, Upload, FileSpreadsheet, Check, AlertTriangle, X, Users, UserPlus, CloudUpload, CloudDownload, ShoppingBag, Heart } from 'lucide-react';
+import { ChevronLeft, Download, Upload, FileSpreadsheet, X, CloudUpload, ShoppingBag, Heart } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { db, auth } from '@/firebase';
 import { collection, getDocs, doc, writeBatch, serverTimestamp, query, where, getCountFromServer } from '@/utils/FirestoreProxy';

@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { db, auth } from '@/firebase';
-import { doc, onSnapshot, setDoc, getDoc, getDocCacheFirst } from '@/utils/FirestoreProxy';
+import { doc, onSnapshot, setDoc, getDocCacheFirst } from '@/utils/FirestoreProxy';
 import { TransactionService } from '@/services/TransactionService';
 import { onAuthStateChanged } from 'firebase/auth';
 import { App as CapacitorApp } from '@capacitor/app';
@@ -172,6 +172,7 @@ export const GlobalSettingsProvider = ({ children }) => {
     // 4. Admin Settings Sync (Private)
     useEffect(() => {
         if (!currentUser) {
+            // eslint-disable-next-line
             setAdminSettings(prev => {
                 if (prev.bankPassword === '' && prev.sheetLink === '') return prev;
                 return {
@@ -201,7 +202,7 @@ export const GlobalSettingsProvider = ({ children }) => {
         }, () => console.log("Admin settings listener restricted"));
 
         return () => unsubscribeAdmin();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
     }, [currentUser]);
 
     // helper for Global Updates (Public)

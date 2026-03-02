@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ChevronLeft, Upload, FileText } from 'lucide-react';
+import { ChevronLeft, Upload } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { parseHdfcStatement } from '@/utils/BankStatementParser';
 import { db } from '@/firebase';

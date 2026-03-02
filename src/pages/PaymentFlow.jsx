@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Camera, CameraResultType } from '@capacitor/camera';
 import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
-import { Trash2, CheckCircle2, QrCode as QrIcon, Camera as CameraIcon, PlayCircle, Eye, EyeOff, ChevronDown, ChevronUp } from 'lucide-react';
+import { Trash2, CheckCircle2, Camera as CameraIcon, PlayCircle, EyeOff, ChevronDown, ChevronUp } from 'lucide-react';
 import { Clipboard } from '@capacitor/clipboard';
 
 import { TransactionService } from '@/services/TransactionService';

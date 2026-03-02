@@ -1,29 +1,17 @@
 import React from 'react';
-import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
+import { motion } from 'framer-motion';  
 import { useNavigate } from 'react-router-dom';
 import {
     ChevronLeft,
     Layers,
-    Save,
     User,
-    Shield,
-    Info,
-    LogOut,
-    ExternalLink,
-    Smartphone,
-    Code,
-    Bug,
-    Home,
-    Layout,
     RefreshCw,
-    Database,
     BookOpen,
     Users,
     LayoutDashboard,
     Settings,
     Check,
     Video,
-    CreditCard,
     Copy,
     ChevronRight,
     Cpu,
@@ -91,7 +79,7 @@ const CopyableInput = ({ label, value, onChange, placeholder, type = "text", sty
     );
 };
 
-const SettingItem = ({ title, subtitle, icon: Icon, delay, onClick, color = 'var(--color-primary)', bgColor = 'var(--color-primary-transparent)' }) => { // eslint-disable-line no-unused-vars
+const SettingItem = ({ title, subtitle, icon: Icon, delay, onClick, color = 'var(--color-primary)', bgColor = 'var(--color-primary-transparent)' }) => {  
     return (
         <motion.button
             initial={{ opacity: 0, x: -20 }}

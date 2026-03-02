@@ -3,8 +3,8 @@ import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from
 import { AnimatePresence } from 'framer-motion';
 import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
-import { GET_GOOGLE_CLIENT_ID, ensureGoogleAuthInitialized } from './utils/GoogleAuthUtils';
-import { initializeSyncManager } from './utils/SyncManager';
+import { ensureGoogleAuthInitialized } from './utils/GoogleAuthUtils';
+import DiagnosticLogs from './utils/DiagnosticLogs';
 
 import Home from './pages/Home'; // Home stays static for immediate visible paint
 
@@ -91,9 +91,7 @@ function AnimatedRoutes() {
 
   // Centralized Screen Tracking
   useEffect(() => {
-    import('./utils/DiagnosticLogs').then(m => {
-      m.default.logNavigation(location.pathname === '/' ? 'Home' : location.pathname);
-    });
+    DiagnosticLogs.logNavigation(location.pathname === '/' ? 'Home' : location.pathname);
 
     const Analytics = import('./utils/Analytics').then(m => {
       m.default.trackScreenView(location.pathname === '/' ? 'Home' : location.pathname);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
 import { doc, setDoc, Timestamp } from '@/utils/FirestoreProxy';
@@ -7,7 +7,7 @@ import { useAdminAuth } from '@/context/AdminAuthContext';
 import { Lock, Mail, Chrome, RefreshCw } from 'lucide-react';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
-import { GET_GOOGLE_CLIENT_ID, ensureGoogleAuthInitialized } from '@/utils/GoogleAuthUtils';
+import { ensureGoogleAuthInitialized } from '@/utils/GoogleAuthUtils';
 import '../components/RegistrationStyles.css';
 
 const AdminLogin = () => {

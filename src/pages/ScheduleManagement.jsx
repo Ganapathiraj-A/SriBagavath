@@ -1,12 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
-import { Capacitor } from '@capacitor/core';
+import { useState, useEffect } from 'react';
 import { cleanupOldSchedules } from '@/utils/cleanup';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit2, Trash2, Calendar as CalendarIcon, MapPin, ChevronLeft, Eye, X, Search } from 'lucide-react';
-import { db, auth } from '@/firebase';
+import { Plus, Calendar as CalendarIcon, MapPin, Eye, X, Search } from 'lucide-react';
+import { db } from '@/firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy, setDoc, serverTimestamp } from '@/utils/FirestoreProxy';
-import { signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '@/components/PageHeader';
 import '../components/RegistrationStyles.css';

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronLeft, Image, Users, Calendar, LayoutDashboard, Map as MapIcon, RefreshCcw, Database } from 'lucide-react';
@@ -241,7 +241,7 @@ Otherwise, it stays 'Good'.`;
         fetchStats();
     }, [fetchStats]);
 
-    // eslint-disable-next-line no-unused-vars
+     
     const StatCard = ({ title, value, unit = "", icon: IconComponent, color, bgColor }) => (
         <div style={{
             background: 'var(--color-card)',

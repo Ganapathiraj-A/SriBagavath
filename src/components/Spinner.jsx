@@ -1,4 +1,3 @@
-import React from 'react';
 
 const Spinner = ({ size = 20, color = 'white' }) => (
     <svg

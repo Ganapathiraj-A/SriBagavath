@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Plus, Minus, Search, Camera, RotateCcw, ChevronDown } from 'lucide-react';
+import { ChevronLeft, Plus, Minus, Search, Camera, RotateCcw } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { db } from '@/firebase';
 import { collection, getDocs, query, orderBy, getDoc, doc } from '@/utils/FirestoreProxy';

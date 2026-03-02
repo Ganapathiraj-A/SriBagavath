@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -6,8 +5,7 @@ import {
     CreditCard,
     BookOpen,
     Heart,
-    ChevronRight,
-    Landmark
+    ChevronRight
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 

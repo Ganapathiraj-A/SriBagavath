@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -8,16 +8,13 @@ import {
     XCircle,
     Clock,
     X,
-    Receipt,
     Search,
     Filter,
     FileDown,
-    CalendarDays,
-    RefreshCw
+    CalendarDays
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { db } from '@/firebase';
-import { collection, query, orderBy, onSnapshot } from '@/utils/FirestoreProxy';
 import { TransactionService } from '@/services/TransactionService';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';

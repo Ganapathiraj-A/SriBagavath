@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Clock, MapPin, ChevronLeft, Users, RefreshCw } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { MapPin, Users, RefreshCw } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { db } from '@/firebase';
-import { collection, query, where, orderBy, getDocs } from '@/utils/FirestoreProxy';
+import { collection, getDocs } from '@/utils/FirestoreProxy';
 import { useAdminAuth } from '@/context/AdminAuthContext';
 import { getLocalDateString } from '@/utils/dateUtils';
 

@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Video, Calendar, User, Youtube, Share2, ChevronRight, Loader2, Clock, Edit2 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Video, Calendar, User, Youtube, Share2, ChevronRight, Loader2, Clock } from 'lucide-react';
 import { Share } from '@capacitor/share';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import html2canvas from 'html2canvas';
@@ -337,8 +337,7 @@ const DailyZoomMeetings = () => {
                 useCORS: true,
                 scale: 2,
                 backgroundColor: '#ffffff',
-                logging: false,
-                allowTaint: true
+                logging: false
             });
 
             const base64 = canvas.toDataURL('image/jpeg', 0.9).split(',')[1];
@@ -369,18 +368,37 @@ const DailyZoomMeetings = () => {
         }
     };
 
-    const handleShareMeeting = (meeting, displayName, displayImage) => {
+    const fetchAsBase64 = async (url) => {
+        if (!url || !url.startsWith('http')) return url;
+        try {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            return await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.readAsDataURL(blob);
+            });
+        } catch (e) {
+            console.error("Failed to fetch image as base64", e);
+            return url;
+        }
+    };
+
+    const handleShareMeeting = async (meeting, displayName, displayImage) => {
+        setSharingData({ type: 'single', meeting, displayName, displayImage: null }); // Show loader state if needed, but we do invisible render
+        const base64Img = await fetchAsBase64(displayImage);
+
         setSharingData({
             type: 'single',
             meeting,
             displayName,
-            displayImage
+            displayImage: base64Img
         });
         // Wait for state update to render
-        setTimeout(() => captureAndShare(`${displayName} - Zoom Meeting`), 300);
+        setTimeout(() => captureAndShare(`${displayName} - Zoom Meeting`), 500);
     };
 
-    const handleShareList = () => {
+    const handleShareList = async () => {
         const currentMeetings = activeTab === 'upcoming' ? upcomingMeetings : pastMeetings;
         const filtered = currentMeetings.filter(m => selectedTeacherId === 'all' || m.teacherId === selectedTeacherId);
 
@@ -389,13 +407,23 @@ const DailyZoomMeetings = () => {
             return;
         }
 
+        alert('Preparing image, please wait...');
+
+        const meetingsWithBase64Images = await Promise.all(filtered.map(async m => {
+            const teacher = teachers.find(t => t.id === m.teacherId);
+            const name = teacher?.name || m.name || 'Unknown Speaker';
+            const img = teacher?.image || m.image;
+            const b64 = await fetchAsBase64(img);
+            return { ...m, _displayName: name, _displayImageB64: b64 };
+        }));
+
         setSharingData({
             type: 'list',
-            meetings: filtered,
+            meetings: meetingsWithBase64Images,
             title: activeTab === 'upcoming' ? 'Upcoming Daily Zoom Meetings' : 'Past Daily Zoom Meetings'
         });
 
-        setTimeout(() => captureAndShare('Daily Zoom Meetings List'), 300);
+        setTimeout(() => captureAndShare('Daily Zoom Meetings List'), 500);
     };
 
     const displayedMeetings = (activeTab === 'upcoming' ? upcomingMeetings : pastMeetings)
@@ -660,13 +688,10 @@ const DailyZoomMeetings = () => {
                         ) : (
                             <div>
                                 {sharingData.meetings.map((m, idx) => {
-                                    const teacher = teachers.find(t => t.id === m.teacherId);
-                                    const name = teacher?.name || m.name || 'Unknown Speaker';
-                                    const img = teacher?.image || m.image;
                                     return (
                                         <div key={m.id} style={{ display: 'flex', gap: '20px', marginBottom: '25px', paddingBottom: idx < sharingData.meetings.length - 1 ? '20px' : 0, borderBottom: idx < sharingData.meetings.length - 1 ? '1px solid #f3f4f6' : 'none' }}>
                                             <img
-                                                src={img}
+                                                src={m._displayImageB64}
                                                 style={{ width: '70px', height: '70px', borderRadius: '12px', objectFit: 'cover', flexShrink: 0 }}
                                                 crossOrigin="anonymous"
                                                 alt=""
@@ -677,7 +702,7 @@ const DailyZoomMeetings = () => {
                                                     {new Date(m.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
                                                 </p>
                                                 <p style={{ margin: '0 0 8px 0', fontSize: '16px', color: '#111827', fontWeight: 750 }}>
-                                                    {name}
+                                                    {m._displayName}
                                                 </p>
                                                 <p style={{ margin: 0, fontSize: '12px', color: '#4b5563', wordBreak: 'break-all' }}>
                                                     {m.joinUrl}

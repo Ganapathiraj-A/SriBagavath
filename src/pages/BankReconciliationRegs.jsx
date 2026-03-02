@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ChevronLeft, Search, X, Receipt, Check } from 'lucide-react';
+import { ChevronLeft, Search, X, Check } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { db } from '@/firebase';
-import { collection, query, orderBy, limit, getDocs, onSnapshot, getCountFromServer, where, startAfter } from '@/utils/FirestoreProxy';
+import { collection, query, orderBy, limit, getDocs, getCountFromServer, where, startAfter } from '@/utils/FirestoreProxy';
 import { TransactionService } from '@/services/TransactionService';
 import { compressImage } from '@/utils/imageUtils';
 import OCR from '@/plugins/OCRPlugin';
-import { RefreshCw, Image } from 'lucide-react';
+import { Image } from 'lucide-react';
 import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 
 const BankReconciliationRegs = () => {

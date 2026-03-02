@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Plus, Trash2, Camera, RotateCcw } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { db } from '@/firebase';
 import { getLocalDateString } from '@/utils/dateUtils';
-import { collection, query, where, getDocs, Timestamp, orderBy } from '@/utils/FirestoreProxy';
+import { collection, getDocs } from '@/utils/FirestoreProxy';
 import { TransactionService } from '@/services/TransactionService';
 import { Camera as CameraPlugin, CameraResultType } from '@capacitor/camera';
 

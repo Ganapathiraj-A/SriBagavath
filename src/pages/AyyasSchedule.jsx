@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, MapPin, Share2, ChevronLeft } from 'lucide-react';
+import { Share2, ChevronLeft } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import PageHeader from '@/components/PageHeader';
 import { Share } from '@capacitor/share';
 import { db } from '@/firebase';
-import { collection, query, orderBy, getDocs, where } from '@/utils/FirestoreProxy';
+import { collection, query, orderBy } from '@/utils/FirestoreProxy';
 import { getLocalDateString } from '@/utils/dateUtils';
 import { useAdminAuth } from '@/context/AdminAuthContext';
 

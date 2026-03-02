@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Check, Trash2, Rewind, AlertCircle, X, LogOut, Package, Image, Info } from 'lucide-react';
+import { ChevronLeft, Check, Trash2, Rewind, AlertCircle, X, Package, Image, Info } from 'lucide-react';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
 import { TransactionService } from '@/services/TransactionService';

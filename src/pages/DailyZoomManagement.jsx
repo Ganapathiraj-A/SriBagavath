@@ -1,14 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
-    Plus, Edit2, Trash2, Save, ChevronLeft, User, Video, Calendar, Image as ImageIcon, Link as LinkIcon, FileText, Youtube, Eye, Trash
+    Plus, Edit2, Trash2, Save, ChevronLeft, User, Calendar, Link as LinkIcon, FileText, Youtube, Eye, Trash
 } from 'lucide-react';
 import { db } from '@/firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy, limit, where } from '@/utils/FirestoreProxy';
 import PageHeader from '@/components/PageHeader';
 import { getLocalDateString } from '@/utils/dateUtils';
-import { compressImage } from '@/utils/imageUtils';
 import '../components/RegistrationStyles.css';
 
 const DailyZoomManagement = () => {
@@ -142,12 +141,12 @@ const DailyZoomManagement = () => {
         e.preventDefault();
         try {
             if (editingId) {
-                // eslint-disable-next-line no-unused-vars
+                 
                 const { name, image, ...saveData } = formData;
                 await updateDoc(doc(db, 'daily_zoom_meetings', editingId), saveData);
                 alert('Meeting updated!');
             } else {
-                // eslint-disable-next-line no-unused-vars
+                 
                 const { name, image, ...saveData } = formData;
                 await addDoc(collection(db, 'daily_zoom_meetings'), {
                     ...saveData,
@@ -195,6 +194,21 @@ const DailyZoomManagement = () => {
                 loadData();
             } catch (err) {
                 alert('Error removing old entries: ' + err.message);
+            } finally {
+                setLoading(false);
+            }
+        }
+    };
+
+    const handleDelete = async (id) => {
+        if (window.confirm('Are you sure you want to delete this meeting?')) {
+            try {
+                setLoading(true);
+                await deleteDoc(doc(db, 'daily_zoom_meetings', id));
+                alert('Meeting deleted successfully.');
+                loadData();
+            } catch (err) {
+                alert('Error deleting meeting: ' + err.message);
             } finally {
                 setLoading(false);
             }

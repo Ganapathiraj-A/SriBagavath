@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 import DiagnosticLogs from '@/utils/DiagnosticLogs';
-import { Terminal, Copy, Trash2, X, ChevronUp, ChevronDown, Cloud, CloudOff, RefreshCw } from 'lucide-react';
+import { Terminal, Copy, Trash2, ChevronUp, ChevronDown, Cloud, CloudOff, RefreshCw } from 'lucide-react';
 import { db, auth } from '@/firebase';
 import { motion, AnimatePresence } from 'framer-motion';
 
