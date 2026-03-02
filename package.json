@@ -1,7 +1,7 @@
 {
   "name": "sri-bagavath",
   "private": true,
-  "version": "3.0.131",
+  "version": "3.0.132",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -32,6 +32,7 @@
     "@codetrix-studio/capacitor-google-auth": "git+https://github.com/Ganapathiraj-A/capacitor-google-auth-fork.git#master",
     "firebase": "^12.6.0",
     "framer-motion": "^12.23.25",
+    "html2canvas": "^1.4.1",
     "lucide-react": "^0.555.0",
     "pdfjs-dist": "^5.4.530",
     "react": "^19.2.0",

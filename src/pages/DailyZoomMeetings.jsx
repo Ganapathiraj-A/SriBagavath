@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Video, Calendar, User, Youtube, Share2, ChevronRight, Loader2, Clock, Edit2 } from 'lucide-react';
 import { Share } from '@capacitor/share';
 import { Filesystem, Directory } from '@capacitor/filesystem';
+import html2canvas from 'html2canvas';
 import PageHeader from '@/components/PageHeader';
 import LazyImage from '@/components/LazyImage';
 import { db } from '@/firebase';
@@ -321,57 +322,57 @@ const DailyZoomMeetings = () => {
         }
     };
 
-    const handleShareMeeting = async (meeting, displayName, displayImage) => {
-        const date = new Date(meeting.date).toLocaleDateString(undefined, {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
+    const shareRef = useRef(null);
+    const [sharingData, setSharingData] = useState(null);
 
-        const name = displayName || meeting.name || 'Unknown Speaker';
-
-        const appUrl = 'https://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share';
-        const text = `
-📲 *Download the Sri Bagavath App:* ${appUrl}
-
-✨ *Daily Zoom Meeting* ✨
-━━━━━━━━━━━━━━━━━━━━
-👤 *Speaker:* ${name}
-📅 *Date:* ${date}
-
-🔗 *Join Link:*
-${meeting.joinUrl}
-${meeting.youtubeUrl ? `\n🎥 *YouTube Live:* \n${meeting.youtubeUrl}` : ''}
-
-${meeting.description ? `\n_${meeting.description}_\n` : ''}
-━━━━━━━━━━━━━━━━━━━━
-Download the App for the latest updates`.trim();
+    const captureAndShare = async (title) => {
+        if (!shareRef.current) return;
 
         try {
-            let files = [];
-            if (displayImage) {
-                const fileName = `meeting_${meeting.id}_${Date.now()}.jpg`;
-                const uri = await saveImageForShare(displayImage, fileName);
-                if (uri) files.push(uri);
-            }
+            // Give a tiny bit of time for images/fonts if needed
+            await new Promise(r => setTimeout(r, 100));
+
+            const canvas = await html2canvas(shareRef.current, {
+                useCORS: true,
+                scale: 2, // Higher quality
+                backgroundColor: '#ffffff',
+                logging: false
+            });
+
+            const base64 = canvas.toDataURL('image/jpeg', 0.9).split(',')[1];
+            const fileName = `share_${Date.now()}.jpg`;
+
+            const result = await Filesystem.writeFile({
+                path: fileName,
+                data: base64,
+                directory: Directory.Cache,
+                encoding: 'base64'
+            });
 
             await Share.share({
-                title: `${name} - Daily Zoom Meeting`,
-                text: text,
-                files: files.length > 0 ? files : undefined
+                title: title,
+                files: [result.uri]
             });
-        } catch (_err) {
-            console.error('Error sharing:', _err);
-            // Fallback to clipboard if share fails (e.g. on web)
-            if (navigator.clipboard) {
-                await navigator.clipboard.writeText(text);
-                alert('Meeting details copied to clipboard!');
-            }
+        } catch (err) {
+            console.error('Error capturing and sharing:', err);
+            alert('Sharing failed. Please try again.');
+        } finally {
+            setSharingData(null);
         }
     };
 
-    const handleShareList = async () => {
+    const handleShareMeeting = (meeting, displayName, displayImage) => {
+        setSharingData({
+            type: 'single',
+            meeting,
+            displayName,
+            displayImage
+        });
+        // Wait for state update to render
+        setTimeout(() => captureAndShare(`${displayName} - Zoom Meeting`), 100);
+    };
+
+    const handleShareList = () => {
         const currentMeetings = activeTab === 'upcoming' ? upcomingMeetings : pastMeetings;
         const filtered = currentMeetings.filter(m => selectedTeacherId === 'all' || m.teacherId === selectedTeacherId);
 
@@ -380,50 +381,13 @@ Download the App for the latest updates`.trim();
             return;
         }
 
-        const appUrl = 'https://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share';
-        let text = `📲 *Download the Sri Bagavath App:* ${appUrl}\n\n`;
-        text += `🌟 ${listTitle}${teacherName}\n━━━━━━━━━━━━━━━━━━━━\n\n`;
-
-        let imagesToShare = new Map();
-
-        filtered.forEach(m => {
-            const date = new Date(m.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', weekday: 'short' });
-            const teacher = teachers.find(t => t.id === m.teacherId);
-            const name = teacher?.name || m.name || 'Unknown Speaker';
-            text += `🔹 *${date}* • ${name}\n🔗 ${m.joinUrl}\n\n`;
-
-            if (teacher?.image && !imagesToShare.has(teacher.id)) {
-                imagesToShare.set(teacher.id, { id: teacher.id, image: teacher.image });
-            } else if (m.image && !teacher) {
-                imagesToShare.set(m.id, { id: m.id, image: m.image });
-            }
+        setSharingData({
+            type: 'list',
+            meetings: filtered,
+            title: activeTab === 'upcoming' ? 'Upcoming Daily Zoom Meetings' : 'Past Daily Zoom Meetings'
         });
 
-        text += '━━━━━━━━━━━━━━━━━━━━\nDownload the App for the latest updates';
-
-        try {
-            let files = [];
-            // Share the first speaker's photo for the most prominent preview
-            const uniqueImages = Array.from(imagesToShare.values()).slice(0, 1);
-
-            for (const item of uniqueImages) {
-                const fileName = `teacher_${item.id}_${Date.now()}.jpg`;
-                const uri = await saveImageForShare(item.image, fileName);
-                if (uri) files.push(uri);
-            }
-
-            await Share.share({
-                title: 'Daily Zoom Meetings List',
-                text: text,
-                files: files.length > 0 ? files : undefined
-            });
-        } catch (_err) {
-            console.error('Error sharing list:', _err);
-            if (navigator.clipboard) {
-                await navigator.clipboard.writeText(text);
-                alert('Meetings list copied to clipboard!');
-            }
-        }
+        setTimeout(() => captureAndShare('Daily Zoom Meetings List'), 100);
     };
 
     const displayedMeetings = (activeTab === 'upcoming' ? upcomingMeetings : pastMeetings)
