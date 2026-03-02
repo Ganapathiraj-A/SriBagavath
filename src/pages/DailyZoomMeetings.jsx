@@ -380,17 +380,31 @@ Download the App for the latest updates`.trim();
             return;
         }
 
-        const listTitle = activeTab === 'upcoming' ? '🗓️ *Upcoming Daily Zoom Meetings*' : '⏳ *Past Daily Zoom Meetings*';
-        const teacherName = selectedTeacherId === 'all' ? '' : `\n(Speaker: ${teachers.find(t => t.id === selectedTeacherId)?.name})`;
-
         const appUrl = 'https://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share';
         let text = `📲 *Download the Sri Bagavath App:* ${appUrl}\n\n`;
         text += `🌟 ${listTitle}${teacherName}\n━━━━━━━━━━━━━━━━━━━━\n\n`;
 
+        let imagesToShare = new Map();
+
+        filtered.forEach(m => {
+            const date = new Date(m.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', weekday: 'short' });
+            const teacher = teachers.find(t => t.id === m.teacherId);
+            const name = teacher?.name || m.name || 'Unknown Speaker';
+            text += `🔹 *${date}* • ${name}\n🔗 ${m.joinUrl}\n\n`;
+
+            if (teacher?.image && !imagesToShare.has(teacher.id)) {
+                imagesToShare.set(teacher.id, { id: teacher.id, image: teacher.image });
+            } else if (m.image && !teacher) {
+                imagesToShare.set(m.id, { id: m.id, image: m.image });
+            }
+        });
+
+        text += '━━━━━━━━━━━━━━━━━━━━\nDownload the App for the latest updates';
+
         try {
             let files = [];
-            // Only share up to 3 prominent images to avoid overwhelming the share bundle
-            const uniqueImages = Array.from(imagesToShare.values()).slice(0, 3);
+            // Share the first speaker's photo for the most prominent preview
+            const uniqueImages = Array.from(imagesToShare.values()).slice(0, 1);
 
             for (const item of uniqueImages) {
                 const fileName = `teacher_${item.id}_${Date.now()}.jpg`;
