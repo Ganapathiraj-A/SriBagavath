@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { readFileSync } from 'fs'
+import path from 'path'
 
 const pkg = JSON.parse(readFileSync('./package.json', 'utf-8'))
 
@@ -9,7 +10,7 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@': '/home/ganapathiraj/Code/AndroidDevelopment/SriBagavath/src'
+      '@': path.resolve(__dirname, './src')
     }
   },
   define: {
