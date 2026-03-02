@@ -12,7 +12,7 @@ import { collection, query, where, orderBy, getDocs, limit, startAfter } from '@
 import { getLocalDateString } from '@/utils/dateUtils';
 import { useAdminAuth } from '@/context/AdminAuthContext';
 
-const MeetingCard = ({ meeting, teacher, delay, isAdmin, onShare }) => {
+const MeetingCard = ({ meeting, teacher, delay, isAdmin, onShare, isSharing }) => {
     const navigate = useNavigate();
     const date = new Date(meeting.date);
 
@@ -94,7 +94,7 @@ const MeetingCard = ({ meeting, teacher, delay, isAdmin, onShare }) => {
                             cursor: 'pointer'
                         }}
                     >
-                        <Share2 size={18} />
+                        {isSharing ? <Loader2 size={18} className="animate-spin" color="var(--color-primary)" /> : <Share2 size={18} />}
                     </button>
                 </div>
 
@@ -173,6 +173,8 @@ const DailyZoomMeetings = () => {
     const [loadingMore, setLoadingMore] = useState(false);
     const [lastVisible, setLastVisible] = useState(null);
     const [hasMorePast, setHasMorePast] = useState(true);
+    const [isSharingMeetingId, setIsSharingMeetingId] = useState(null);
+    const [isSharingList, setIsSharingList] = useState(false);
 
     const ORANGE = 'var(--color-primary)';
 
@@ -329,15 +331,20 @@ const DailyZoomMeetings = () => {
         if (!shareRef.current) return;
 
         try {
-            // Further increase timeout to ensure all images and fonts are fully rendered
-            // Some devices need more time for WebView to paint the hidden element
-            await new Promise(r => setTimeout(r, 800));
+            // Some devices need MUCH more time for WebView to paint the hidden element
+            await new Promise(r => setTimeout(r, 1500));
 
             const canvas = await html2canvas(shareRef.current, {
                 useCORS: true,
                 scale: 2,
                 backgroundColor: '#ffffff',
-                logging: false
+                logging: true, // Enable logging temporarily to see if it fails internally
+                imageTimeout: 15000,
+                onclone: (clonedDoc) => {
+                    // Force display block on clone in case framework hiding gets aggressive
+                    const el = clonedDoc.getElementById('share-container-wrapper');
+                    if (el) el.style.display = 'block';
+                }
             });
 
             const base64 = canvas.toDataURL('image/jpeg', 0.9).split(',')[1];
@@ -365,13 +372,17 @@ const DailyZoomMeetings = () => {
             alert('Sharing failed. Please try again.');
         } finally {
             setSharingData(null);
+            setIsSharingMeetingId(null);
+            setIsSharingList(false);
         }
     };
 
     const fetchAsBase64 = async (url) => {
         if (!url || !url.startsWith('http')) return url;
         try {
-            const response = await fetch(url);
+            // Some environments require explicitly requesting CORS
+            const response = await fetch(url, { mode: 'cors', credentials: 'omit' });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const blob = await response.blob();
             return await new Promise((resolve) => {
                 const reader = new FileReader();
@@ -379,12 +390,14 @@ const DailyZoomMeetings = () => {
                 reader.readAsDataURL(blob);
             });
         } catch (e) {
-            console.error("Failed to fetch image as base64", e);
-            return url;
+            console.error("Failed to fetch image as base64, falling back to safe local placeholder", e);
+            // Return a 1x1 transparent PNG if fetch fails, to guarantee we NEVER taint the canvas
+            return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=";
         }
     };
 
     const handleShareMeeting = async (meeting, displayName, displayImage) => {
+        setIsSharingMeetingId(meeting.id);
         setSharingData({ type: 'single', meeting, displayName, displayImage: null }); // Show loader state if needed, but we do invisible render
         const base64Img = await fetchAsBase64(displayImage);
 
@@ -394,8 +407,9 @@ const DailyZoomMeetings = () => {
             displayName,
             displayImage: base64Img
         });
-        // Wait for state update to render
-        setTimeout(() => captureAndShare(`${displayName} - Zoom Meeting`), 500);
+
+        // Use a longer timeout to guarantee the DOM is fully constructed and painted with the new Base64 string
+        setTimeout(() => captureAndShare(`${displayName} - Zoom Meeting`), 800);
     };
 
     const handleShareList = async () => {
@@ -407,7 +421,7 @@ const DailyZoomMeetings = () => {
             return;
         }
 
-        alert('Preparing image, please wait...');
+        setIsSharingList(true);
 
         const meetingsWithBase64Images = await Promise.all(filtered.map(async m => {
             const teacher = teachers.find(t => t.id === m.teacherId);
@@ -423,7 +437,8 @@ const DailyZoomMeetings = () => {
             title: activeTab === 'upcoming' ? 'Upcoming Daily Zoom Meetings' : 'Past Daily Zoom Meetings'
         });
 
-        setTimeout(() => captureAndShare('Daily Zoom Meetings List'), 500);
+        // Use a longer timeout for lists since there are multiple images to paint
+        setTimeout(() => captureAndShare('Daily Zoom Meetings List'), 1000);
     };
 
     const displayedMeetings = (activeTab === 'upcoming' ? upcomingMeetings : pastMeetings)
@@ -495,22 +510,25 @@ const DailyZoomMeetings = () => {
                     <button
                         onClick={handleShareList}
                         aria-label="Share meetings list"
+                        disabled={isSharingList}
                         style={{
                             display: 'flex',
                             alignItems: 'center',
                             gap: '0.4rem',
                             padding: '0.75rem 1rem',
                             backgroundColor: 'var(--color-card)',
-                            color: 'var(--color-text)',
+                            color: isSharingList ? 'var(--color-text-muted)' : 'var(--color-text)',
                             border: '1px solid var(--color-border)',
                             borderRadius: '0.75rem',
                             fontSize: '0.9rem',
                             fontWeight: 600,
-                            cursor: 'pointer',
-                            height: '3.15rem' // Match the select height roughly inclusive of padding/border
+                            cursor: isSharingList ? 'default' : 'pointer',
+                            height: '3.15rem', // Match the select height roughly inclusive of padding/border
+                            opacity: isSharingList ? 0.7 : 1
                         }}
                     >
-                        <Share2 size={18} /> Share List
+                        {isSharingList ? <Loader2 size={18} className="animate-spin" /> : <Share2 size={18} />}
+                        {isSharingList ? 'Preparing...' : 'Share List'}
                     </button>
                 </div>
 
@@ -595,6 +613,7 @@ const DailyZoomMeetings = () => {
                                 delay={idx * 0.05}
                                 isAdmin={isAdmin}
                                 onShare={handleShareMeeting}
+                                isSharing={isSharingMeetingId === m.id}
                             />
                         ))}
 
@@ -638,18 +657,17 @@ const DailyZoomMeetings = () => {
             <div style={{
                 position: 'fixed',
                 top: 0,
-                left: 0,
-                opacity: 0,
-                pointerEvents: 'none',
+                left: '-9999px', // Move off-screen instead of opacity 0 to ensure browser renders it fully
                 zIndex: -100
             }}>
                 {sharingData && (
                     <div
+                        id="share-container-wrapper"
                         ref={shareRef}
                         style={{
-                            width: '400px',
+                            width: '450px', // slightly wider for better text fit
                             backgroundColor: '#ffffff',
-                            padding: '30px',
+                            padding: '40px',
                             fontFamily: 'system-ui, -apple-system, sans-serif'
                         }}
                     >
@@ -664,13 +682,15 @@ const DailyZoomMeetings = () => {
                         {/* Content */}
                         {sharingData.type === 'single' ? (
                             <div style={{ textAlign: 'center' }}>
-                                <img
-                                    src={sharingData.displayImage}
-                                    style={{ width: '200px', height: '200px', borderRadius: '20px', objectFit: 'cover', marginBottom: '20px', border: '5px solid #fff7ed', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
-                                    crossOrigin="anonymous"
-                                    alt=""
-                                    onError={(e) => { e.target.style.display = 'none'; }}
-                                />
+                                {sharingData.displayImage !== "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=" && (
+                                    <img
+                                        src={sharingData.displayImage}
+                                        style={{ width: '200px', height: '200px', borderRadius: '20px', objectFit: 'cover', marginBottom: '20px', border: '5px solid #fff7ed', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                                        crossOrigin="anonymous"
+                                        alt=""
+                                        onError={(e) => { e.target.style.display = 'none'; }}
+                                    />
+                                )}
                                 <h2 style={{ fontSize: '22px', color: '#1f2937', margin: '0 0 10px 0', fontWeight: 750 }}>
                                     {sharingData.displayName}
                                 </h2>
@@ -690,13 +710,15 @@ const DailyZoomMeetings = () => {
                                 {sharingData.meetings.map((m, idx) => {
                                     return (
                                         <div key={m.id} style={{ display: 'flex', gap: '20px', marginBottom: '25px', paddingBottom: idx < sharingData.meetings.length - 1 ? '20px' : 0, borderBottom: idx < sharingData.meetings.length - 1 ? '1px solid #f3f4f6' : 'none' }}>
-                                            <img
-                                                src={m._displayImageB64}
-                                                style={{ width: '70px', height: '70px', borderRadius: '12px', objectFit: 'cover', flexShrink: 0 }}
-                                                crossOrigin="anonymous"
-                                                alt=""
-                                                onError={(e) => { e.target.style.display = 'none'; }}
-                                            />
+                                            {m._displayImageB64 !== "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=" && (
+                                                <img
+                                                    src={m._displayImageB64}
+                                                    style={{ width: '70px', height: '70px', borderRadius: '12px', objectFit: 'cover', flexShrink: 0 }}
+                                                    crossOrigin="anonymous"
+                                                    alt=""
+                                                    onError={(e) => { e.target.style.display = 'none'; }}
+                                                />
+                                            )}
                                             <div style={{ flex: 1 }}>
                                                 <p style={{ margin: '0 0 4px 0', fontSize: '14px', color: '#f97316', fontWeight: 700 }}>
                                                     {new Date(m.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
