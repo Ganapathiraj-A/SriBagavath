@@ -597,6 +597,90 @@ const DailyZoomMeetings = () => {
                     </div>
                 )}
             </div>
+
+            {/* Hidden Shareable Template */}
+            <div style={{ position: 'fixed', left: '-2000px', top: 0 }}>
+                {sharingData && (
+                    <div
+                        ref={shareRef}
+                        style={{
+                            width: '400px',
+                            backgroundColor: '#ffffff',
+                            padding: '30px',
+                            fontFamily: 'system-ui, -apple-system, sans-serif'
+                        }}
+                    >
+                        {/* Header */}
+                        <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+                            <h1 style={{ color: '#f97316', margin: '0 0 10px 0', fontSize: '24px', fontWeight: 800 }}>
+                                {sharingData.type === 'single' ? 'Daily Zoom Meeting' : sharingData.title}
+                            </h1>
+                            <div style={{ height: '3px', width: '60px', backgroundColor: '#f97316', margin: '0 auto' }}></div>
+                        </div>
+
+                        {/* Content */}
+                        {sharingData.type === 'single' ? (
+                            <div style={{ textAlign: 'center' }}>
+                                <img
+                                    src={sharingData.displayImage}
+                                    style={{ width: '200px', height: '200px', borderRadius: '20px', objectFit: 'cover', marginBottom: '20px', border: '5px solid #fff7ed', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                                    crossOrigin="anonymous"
+                                    alt=""
+                                />
+                                <h2 style={{ fontSize: '22px', color: '#1f2937', margin: '0 0 10px 0', fontWeight: 750 }}>
+                                    {sharingData.displayName}
+                                </h2>
+                                <p style={{ color: '#f97316', fontSize: '18px', fontWeight: 600, margin: '0 0 15px 0' }}>
+                                    {new Date(sharingData.meeting.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                                </p>
+                                <p style={{ color: '#4b5563', fontSize: '15px', lineHeight: 1.6, margin: '0 0 20px 0', fontStyle: 'italic' }}>
+                                    {sharingData.meeting.description || ''}
+                                </p>
+                                <div style={{ backgroundColor: '#fff7ed', padding: '15px', borderRadius: '15px', border: '1px solid #ffedd5' }}>
+                                    <p style={{ margin: '0 0 5px 0', fontSize: '14px', color: '#9a3412', fontWeight: 700 }}>ZOOM JOIN LINK</p>
+                                    <p style={{ margin: 0, fontSize: '13px', color: '#1f2937', wordBreak: 'break-all' }}>{sharingData.meeting.joinUrl}</p>
+                                </div>
+                            </div>
+                        ) : (
+                            <div>
+                                {sharingData.meetings.map((m, idx) => {
+                                    const teacher = teachers.find(t => t.id === m.teacherId);
+                                    const name = teacher?.name || m.name || 'Unknown Speaker';
+                                    const img = teacher?.image || m.image;
+                                    return (
+                                        <div key={m.id} style={{ display: 'flex', gap: '20px', marginBottom: '25px', paddingBottom: idx < sharingData.meetings.length - 1 ? '20px' : 0, borderBottom: idx < sharingData.meetings.length - 1 ? '1px solid #f3f4f6' : 'none' }}>
+                                            <img
+                                                src={img}
+                                                style={{ width: '70px', height: '70px', borderRadius: '12px', objectFit: 'cover', flexShrink: 0 }}
+                                                crossOrigin="anonymous"
+                                                alt=""
+                                            />
+                                            <div style={{ flex: 1 }}>
+                                                <p style={{ margin: '0 0 4px 0', fontSize: '14px', color: '#f97316', fontWeight: 700 }}>
+                                                    {new Date(m.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+                                                </p>
+                                                <p style={{ margin: '0 0 8px 0', fontSize: '16px', color: '#111827', fontWeight: 750 }}>
+                                                    {name}
+                                                </p>
+                                                <p style={{ margin: 0, fontSize: '12px', color: '#4b5563', wordBreak: 'break-all' }}>
+                                                    {m.joinUrl}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+
+                        {/* Footer */}
+                        <div style={{ textAlign: 'center', marginTop: '40px', paddingTop: '20px', borderTop: '2px solid #f3f4f6' }}>
+                            <p style={{ margin: 0, color: '#f97316', fontSize: '16px', fontWeight: 800 }}>
+                                Download Sri Bagavath App for latest details
+                            </p>
+                        </div>
+                    </div>
+                )}
+            </div>
             {/* Tailwind-like utility for spinning if not present */}
             <style>{`
                 @keyframes spin {
