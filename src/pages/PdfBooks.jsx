@@ -287,24 +287,22 @@ const PdfBooks = () => {
             )}
             <button
               onClick={() => setEditMode(!editMode)}
+              title={editMode ? "Save Changes" : "Edit Books"}
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px',
-                padding: '6px 14px',
-                borderRadius: '12px',
+                justifyContent: 'center',
+                padding: '10px',
+                borderRadius: '50%',
                 border: '1px solid var(--color-primary)',
                 backgroundColor: editMode ? 'var(--color-primary)' : 'var(--color-primary-transparent)',
                 color: editMode ? 'var(--color-text-on-primary)' : 'var(--color-primary)',
-                fontSize: '0.85rem',
-                fontWeight: 600,
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
                 boxShadow: 'var(--shadow-sm)'
               }}
             >
-              <Edit2 size={14} />
-              {editMode ? 'Done' : 'Edit'}
+              {editMode ? <Check size={18} /> : <Edit2 size={18} />}
             </button>
           </div>
         )}

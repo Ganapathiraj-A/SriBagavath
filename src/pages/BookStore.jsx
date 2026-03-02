@@ -182,21 +182,21 @@ const BookStore = () => {
                 rightAction={canEdit && (
                     <button
                         onClick={() => navigate('/admin/books', { state: { returnPath: '/bookstore' } })}
+                        title="Edit Products"
                         style={{
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '6px',
-                            padding: '8px 12px',
+                            justifyContent: 'center',
+                            padding: '10px',
                             backgroundColor: 'var(--color-primary-transparent)',
                             border: '1px solid var(--color-primary)',
-                            borderRadius: '20px',
+                            borderRadius: '50%',
                             color: 'var(--color-primary)',
-                            fontSize: '0.85rem',
-                            fontWeight: 600,
-                            cursor: 'pointer'
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
                         }}
                     >
-                        <Edit2 size={16} /> Edit
+                        <Edit2 size={18} />
                     </button>
                 )}
             />
