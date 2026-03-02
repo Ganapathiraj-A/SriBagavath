@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { BookOpen, FileText, Edit2, Image as ImageIcon, Upload, Link as LinkIcon, Trash2, X, Search, Share2, ChevronDown, Settings as SettingsIcon } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';

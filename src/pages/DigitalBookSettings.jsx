@@ -65,6 +65,8 @@ const DigitalBookSettings = () => {
         setNewLangName(''); setNewLangFolderId('');
     };
 
+    const [expandedIdx, setExpandedIdx] = useState(null);
+
     return (
         <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>
             <PageHeader
@@ -154,53 +156,98 @@ const DigitalBookSettings = () => {
                         <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', margin: '4px 0 0 0' }}>The first two languages appear as Main Tabs. The rest appear in the 'Other Languages' dropdown.</p>
                     </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         {digitalBookLanguages && digitalBookLanguages.map((lang, idx) => (
                             <div key={lang.id || idx} style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '12px',
                                 backgroundColor: 'var(--color-surface)',
-                                padding: '16px',
                                 borderRadius: '12px',
                                 border: '1px solid var(--color-border)',
-                                position: 'relative'
+                                overflow: 'hidden'
                             }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <div style={{ display: 'flex', gap: '8px' }}>
-                                        <button onClick={() => handleLanguageMove(idx, -1)} disabled={idx === 0} style={{ padding: '8px', backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)', borderRadius: '8px', cursor: idx === 0 ? 'not-allowed' : 'pointer', color: idx === 0 ? 'transparent' : 'var(--color-text-muted)', display: 'flex', alignItems: 'center' }}><ArrowUp size={16} /></button>
-                                        <button onClick={() => handleLanguageMove(idx, 1)} disabled={idx === digitalBookLanguages.length - 1} style={{ padding: '8px', backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)', borderRadius: '8px', cursor: idx === digitalBookLanguages.length - 1 ? 'not-allowed' : 'pointer', color: idx === digitalBookLanguages.length - 1 ? 'transparent' : 'var(--color-text-muted)', display: 'flex', alignItems: 'center' }}><ArrowDown size={16} /></button>
+                                {/* Header / Toggle */}
+                                <div
+                                    onClick={() => setExpandedIdx(expandedIdx === idx ? null : idx)}
+                                    style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        padding: '12px 16px',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <div style={{ display: 'flex', gap: '4px' }}>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handleLanguageMove(idx, -1); }}
+                                                disabled={idx === 0}
+                                                style={{ padding: '6px', backgroundColor: 'var(--color-background)', border: '1px solid var(--color-border)', borderRadius: '6px', cursor: idx === 0 ? 'not-allowed' : 'pointer', color: idx === 0 ? 'transparent' : 'var(--color-text-muted)', display: 'flex', alignItems: 'center' }}
+                                            >
+                                                <ArrowUp size={14} />
+                                            </button>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handleLanguageMove(idx, 1); }}
+                                                disabled={idx === digitalBookLanguages.length - 1}
+                                                style={{ padding: '6px', backgroundColor: 'var(--color-background)', border: '1px solid var(--color-border)', borderRadius: '6px', cursor: idx === digitalBookLanguages.length - 1 ? 'not-allowed' : 'pointer', color: idx === digitalBookLanguages.length - 1 ? 'transparent' : 'var(--color-text-muted)', display: 'flex', alignItems: 'center' }}
+                                            >
+                                                <ArrowDown size={14} />
+                                            </button>
+                                        </div>
+                                        <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>{lang.name}</span>
+                                        <div style={{ fontSize: '0.7rem', fontWeight: 600, padding: '2px 8px', borderRadius: '10px', backgroundColor: idx < 2 ? 'var(--color-success-transparent)' : 'var(--color-background)', color: idx < 2 ? 'var(--color-success)' : 'var(--color-text-muted)' }}>
+                                            {idx < 2 ? `Tab ${idx + 1}` : `Other`}
+                                        </div>
                                     </div>
-                                    <div style={{ fontSize: '0.75rem', fontWeight: 600, padding: '4px 8px', borderRadius: '12px', backgroundColor: idx < 2 ? 'var(--color-success-transparent)' : 'var(--color-background)', color: idx < 2 ? 'var(--color-success)' : 'var(--color-text-muted)' }}>
-                                        {idx < 2 ? `Main Tab ${idx + 1}` : `Dropdown ${idx - 1}`}
+                                    <div style={{ color: 'var(--color-text-muted)' }}>
+                                        {expandedIdx === idx ? <ArrowUp size={18} /> : <ArrowDown size={18} />}
                                     </div>
-                                    <button onClick={() => handleRemoveLanguage(idx)} style={{ padding: '8px', background: 'var(--color-error-transparent)', color: 'var(--color-error)', border: 'none', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                        <Trash2 size={16} />
-                                    </button>
                                 </div>
 
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px' }}>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Language Name</span>
-                                        <input
-                                            type="text"
-                                            value={lang.name}
-                                            onChange={(e) => handleLanguageEdit(idx, 'name', e.target.value)}
-                                            placeholder="e.g. Tamil"
-                                            style={{ width: '100%', padding: '12px', fontSize: '0.95rem', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}
-                                        />
+                                {/* Expanded Content */}
+                                {expandedIdx === idx && (
+                                    <div style={{ padding: '0 16px 16px 16px', borderTop: '1px solid var(--color-border)', paddingTop: '16px' }}>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px' }}>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Language Name</span>
+                                                <input
+                                                    type="text"
+                                                    value={lang.name}
+                                                    onChange={(e) => handleLanguageEdit(idx, 'name', e.target.value)}
+                                                    placeholder="e.g. Tamil"
+                                                    style={{ width: '100%', padding: '10px', fontSize: '0.9rem', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}
+                                                />
+                                            </div>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Folder ID</span>
+                                                <input
+                                                    type="text"
+                                                    value={lang.folderId}
+                                                    onChange={(e) => handleLanguageEdit(idx, 'folderId', e.target.value)}
+                                                    placeholder="Google Drive Folder ID"
+                                                    style={{ width: '100%', padding: '10px', fontSize: '0.9rem', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}
+                                                />
+                                            </div>
+                                            <button
+                                                onClick={() => handleRemoveLanguage(idx)}
+                                                style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    gap: '8px',
+                                                    padding: '10px',
+                                                    backgroundColor: 'var(--color-error-transparent)',
+                                                    color: 'var(--color-error)',
+                                                    border: 'none',
+                                                    borderRadius: '8px',
+                                                    fontWeight: 600,
+                                                    cursor: 'pointer',
+                                                    marginTop: '4px'
+                                                }}
+                                            >
+                                                <Trash2 size={16} /> Remove Language
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Folder ID</span>
-                                        <input
-                                            type="text"
-                                            value={lang.folderId}
-                                            onChange={(e) => handleLanguageEdit(idx, 'folderId', e.target.value)}
-                                            placeholder="Google Drive Folder ID"
-                                            style={{ width: '100%', padding: '12px', fontSize: '0.95rem', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}
-                                        />
-                                    </div>
-                                </div>
+                                )}
                             </div>
                         ))}
                         {(!digitalBookLanguages || digitalBookLanguages.length === 0) && (
