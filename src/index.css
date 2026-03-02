@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
   --color-primary: #FF9933;
   --color-primary-dark: #CC7A00;
   --color-primary-transparent: rgba(255, 153, 51, 0.1);
@@ -50,10 +50,10 @@
   --color-shadow: rgba(0, 0, 0, 0.1);
 }
 
+/* 
 @media (prefers-color-scheme: dark) {
   :root {
     --color-background: #0F172A;
-    /* Deep Slate */
     --color-surface: #1E293B;
     --color-card: #1E293B;
     --color-border: #334155;
@@ -79,7 +79,6 @@
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5);
 
-    /* New Theme Tokens (Dark Mode) */
     --color-text-secondary: #94A3B8;
     --color-surface-alt: #334155;
     --color-success-transparent: rgba(52, 211, 153, 0.1);
@@ -96,6 +95,7 @@
     --color-shadow: rgba(0, 0, 0, 0.5);
   }
 }
+*/
 
 * {
   margin: 0;
