@@ -329,14 +329,15 @@ const DailyZoomMeetings = () => {
         if (!shareRef.current) return;
 
         try {
-            // Give a tiny bit of time for images/fonts if needed
-            await new Promise(r => setTimeout(r, 100));
+            // Increase timeout to ensure images and fonts are fully rendered
+            await new Promise(r => setTimeout(r, 400));
 
             const canvas = await html2canvas(shareRef.current, {
                 useCORS: true,
-                scale: 2, // Higher quality
+                scale: 2,
                 backgroundColor: '#ffffff',
-                logging: false
+                logging: false,
+                allowTaint: true
             });
 
             const base64 = canvas.toDataURL('image/jpeg', 0.9).split(',')[1];
@@ -369,7 +370,7 @@ const DailyZoomMeetings = () => {
             displayImage
         });
         // Wait for state update to render
-        setTimeout(() => captureAndShare(`${displayName} - Zoom Meeting`), 100);
+        setTimeout(() => captureAndShare(`${displayName} - Zoom Meeting`), 200);
     };
 
     const handleShareList = () => {
@@ -599,7 +600,7 @@ const DailyZoomMeetings = () => {
             </div>
 
             {/* Hidden Shareable Template */}
-            <div style={{ position: 'fixed', left: '-2000px', top: 0 }}>
+            <div style={{ position: 'fixed', left: '-5000px', top: 0, zIndex: -1 }}>
                 {sharingData && (
                     <div
                         ref={shareRef}
@@ -626,6 +627,7 @@ const DailyZoomMeetings = () => {
                                     style={{ width: '200px', height: '200px', borderRadius: '20px', objectFit: 'cover', marginBottom: '20px', border: '5px solid #fff7ed', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
                                     crossOrigin="anonymous"
                                     alt=""
+                                    onError={(e) => { e.target.style.display = 'none'; }}
                                 />
                                 <h2 style={{ fontSize: '22px', color: '#1f2937', margin: '0 0 10px 0', fontWeight: 750 }}>
                                     {sharingData.displayName}
@@ -654,6 +656,7 @@ const DailyZoomMeetings = () => {
                                                 style={{ width: '70px', height: '70px', borderRadius: '12px', objectFit: 'cover', flexShrink: 0 }}
                                                 crossOrigin="anonymous"
                                                 alt=""
+                                                onError={(e) => { e.target.style.display = 'none'; }}
                                             />
                                             <div style={{ flex: 1 }}>
                                                 <p style={{ margin: '0 0 4px 0', fontSize: '14px', color: '#f97316', fontWeight: 700 }}>
