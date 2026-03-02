@@ -72,12 +72,13 @@ export const AdminAuthProvider = ({ children }) => {
                 if (!currentUser.isAnonymous) {
                     console.log("[AdminAuth] Initializing Recognition for UID:", currentUser.uid);
 
+                    const adminColl = collection(db, 'admins');
                     const idsToCheck = [currentUser.uid];
-                    if (currentUser.email) idsToCheck.push(currentUser.email.toLowerCase());
+                    if (currentUser.email) idsToCheck.push(currentUser.email.toLowerCase().trim());
 
-                    console.log("[AdminAuth] IDs to check in admins collection:", idsToCheck);
+                    console.log("[AdminAuth] IDs to check (Doc ID):", idsToCheck);
 
-                    // Consolidate UID and Email check into a single listener
+                    // 1. Snapshot for ID-based match (UID or Email-as-ID)
                     const adminQuery = query(adminColl, where('__name__', 'in', idsToCheck));
 
                     const requestDocRef = doc(db, 'admin_requests', currentUser.uid);
@@ -90,28 +91,48 @@ export const AdminAuthProvider = ({ children }) => {
                         setIsInitialized(true);
                     };
 
-                    adminUnsubscribe = onSnapshot(adminQuery, (snap) => {
-                        console.log("[AdminAuth] Admin snapshot size:", snap.size);
+                    adminUnsubscribe = onSnapshot(adminQuery, async (snap) => {
+                        console.log("[AdminAuth] Admin ID snapshot size:", snap.size);
                         if (!snap.empty) {
                             handleAdminData(snap.docs[0].data());
-                        } else {
-                            // Not found in admins, check pending
-                            setIsAdmin(false);
-                            if (!requestUnsubscribe) {
-                                requestUnsubscribe = onSnapshot(requestDocRef, (reqSnap) => {
-                                    setIsPending(reqSnap.exists() && reqSnap.data().status === 'PENDING');
-                                    setIsInitialized(true);
-                                }, (err) => {
-                                    console.log("[AdminAuth] Request listener restricted:", err);
-                                    setIsInitialized(true); // Don't block app even if listener fails
-                                });
+                        } else if (currentUser.email) {
+                            // Fallback: Check if email exists in any document's 'email' field
+                            // This handles cases where ID is UID or legacy string, but email matches.
+                            console.log("[AdminAuth] Fallback: Checking email field match...");
+                            try {
+                                const emailQuery = query(adminColl, where('email', '==', currentUser.email.toLowerCase().trim()));
+                                const emailSnap = await getDocs(emailQuery);
+                                if (!emailSnap.empty) {
+                                    console.log("[AdminAuth] Match found via email field!");
+                                    handleAdminData(emailSnap.docs[0].data());
+                                    return;
+                                }
+                            } catch (e) {
+                                console.error("[AdminAuth] Fallback query failed:", e);
                             }
+
+                            // If still not found, check requests
+                            setupRequestListener();
+                        } else {
+                            setupRequestListener();
                         }
                     }, (err) => {
                         console.log("[AdminAuth] Admin listener restricted:", err);
                         setIsAdmin(false);
                         setIsInitialized(true);
                     });
+
+                    const setupRequestListener = () => {
+                        if (!requestUnsubscribe) {
+                            requestUnsubscribe = onSnapshot(requestDocRef, (reqSnap) => {
+                                setIsPending(reqSnap.exists() && reqSnap.data().status === 'PENDING');
+                                setIsInitialized(true);
+                            }, (err) => {
+                                console.log("[AdminAuth] Request listener restricted:", err);
+                                setIsInitialized(true);
+                            });
+                        }
+                    };
                 } else {
                     // Anonymous User
                     setIsAdmin(false);
