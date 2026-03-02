@@ -16,12 +16,14 @@ export const AdminAuthProvider = ({ children }) => {
     const hasAccess = (requiredPermission) => {
         if (!isAdmin) return false;
         if (!requiredPermission) return true; // No specific permission needed
-        if (role === 'SUPER_ADMIN') return true; // Super admin has all access
-        if (role === 'ADMIN') {
+
+        const normalizedRole = role?.toUpperCase();
+        if (normalizedRole === 'SUPER_ADMIN') return true; // Super admin has all access
+        if (normalizedRole === 'ADMIN') {
             // Admin has access to everything EXCEPT Manage Users (unless explicitly granted, but logic implies exclusion)
             return requiredPermission !== 'MANAGE_USERS';
         }
-        if (role === 'POWER_USER') {
+        if (normalizedRole === 'POWER_USER') {
             return permissions.includes(requiredPermission);
         }
         return false;
@@ -34,21 +36,16 @@ export const AdminAuthProvider = ({ children }) => {
             let adminDoc = await getDocCacheFirst(doc(db, 'admins', uid));
             let data = adminDoc.exists() ? adminDoc.data() : null;
 
-            // 2. Try Email based lookup (Cache-First)
+            // 2. Try Email based lookup (Cache-First) - Case Insensitive
             if (!data && auth.currentUser?.email) {
-                adminDoc = await getDocCacheFirst(doc(db, 'admins', auth.currentUser.email));
+                const normalizedEmail = auth.currentUser.email.toLowerCase();
+                adminDoc = await getDocCacheFirst(doc(db, 'admins', normalizedEmail));
                 data = adminDoc.exists() ? adminDoc.data() : null;
             }
 
             if (data) {
                 setIsAdmin(true);
-                if (data.role) {
-                    setRole(data.role);
-                } else if (auth.currentUser?.email === 'ganapathiraj@gmail.com') {
-                    setRole('SUPER_ADMIN');
-                } else {
-                    setRole('ADMIN');
-                }
+                setRole(data.role || 'ADMIN');
                 setPermissions(data.permissions || []);
                 setIsPending(false);
             } else {
@@ -86,7 +83,7 @@ export const AdminAuthProvider = ({ children }) => {
 
                     const handleAdminData = (data) => {
                         setIsAdmin(true);
-                        setRole(data.role || (currentUser.email === 'ganapathiraj@gmail.com' ? 'SUPER_ADMIN' : 'ADMIN'));
+                        setRole(data.role || 'ADMIN');
                         setPermissions(data.permissions || []);
                         setIsPending(false);
                         setIsInitialized(true);

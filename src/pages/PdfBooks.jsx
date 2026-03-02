@@ -13,11 +13,10 @@ import { useDriveFiles } from '@/hooks/useDriveFiles';
 const PdfBooks = () => {
   const navigate = useNavigate();
   const { digitalBookLanguages } = useGlobalSettings();
-  const { hasAccess, isAdmin } = useAdminAuth();
+  const { hasAccess, isAdmin, isInitialized } = useAdminAuth();
 
-  // Checking isAdmin gives a faster baseline for showing the edit tools to Super Admins.
-  // hasAccess is slower to resolve for Power Users, but will still be accurate once loaded.
-  const canEdit = isAdmin || hasAccess('DIGITAL_BOOKS_MANAGEMENT');
+  // Wait for auth initialization before permitting edit mode
+  const canEdit = isInitialized && (isAdmin || hasAccess('DIGITAL_BOOKS_MANAGEMENT'));
   const [activeTabId, setActiveTabId] = useState('');
   const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
