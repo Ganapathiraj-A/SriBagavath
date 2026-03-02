@@ -119,6 +119,7 @@ const PdfBooks = () => {
 
   const handleShare = async (e, file) => {
     e.stopPropagation();
+    e.preventDefault();
     const viewUrl = file.webViewLink || `https://drive.google.com/file/d/${file.id}/view`;
     try {
       const text = `📗 *${file.name}*\n\n🔗 *Book Link:* ${viewUrl}\n\nDownload the Sri Bagavath App for the latest updates`;
@@ -236,14 +237,21 @@ const PdfBooks = () => {
                   <Edit2 size={18} color="var(--color-primary)" />
                 ) : (
                   <button
-                    onClick={(e) => handleShare(e, file)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      handleShare(e, file);
+                    }}
                     style={{
                       padding: '8px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       borderRadius: '50%',
-                      backgroundColor: 'var(--color-surface)'
+                      backgroundColor: 'var(--color-surface)',
+                      cursor: 'pointer',
+                      border: 'none',
+                      zIndex: 10
                     }}
                   >
                     <Share2 size={18} color="var(--color-primary)" />

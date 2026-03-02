@@ -34,6 +34,7 @@ const AudioBooks = () => {
 
   const handleShare = async (e, book) => {
     e.stopPropagation();
+    e.preventDefault();
     try {
       const text = `🎧 *${book.title}*\n\n🔗 *Audio Link:* ${book.link}\n\nDownload the Sri Bagavath App for the latest updates`;
       const appUrl = 'https://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share';
@@ -187,7 +188,11 @@ const AudioBooks = () => {
                   {book.title}
                 </span>
                 <button
-                  onClick={(e) => handleShare(e, book)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    handleShare(e, book);
+                  }}
                   style={{
                     padding: '6px',
                     borderRadius: '50%',
@@ -198,7 +203,8 @@ const AudioBooks = () => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    flexShrink: 0
+                    flexShrink: 0,
+                    zIndex: 10
                   }}
                 >
                   <Share2 size={16} />
