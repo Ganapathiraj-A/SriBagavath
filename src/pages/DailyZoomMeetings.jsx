@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Video, Calendar, User, Youtube, Share2, ChevronRight, Loader2, Clock, Edit2 } from 'lucide-react';
 import { Share } from '@capacitor/share';
+import { Filesystem, Directory } from '@capacitor/filesystem';
 import PageHeader from '@/components/PageHeader';
 import LazyImage from '@/components/LazyImage';
 import { db } from '@/firebase';
@@ -82,7 +83,7 @@ const MeetingCard = ({ meeting, teacher, delay, isAdmin, onShare }) => {
                         {displayName}
                     </h3>
                     <button
-                        onClick={() => onShare(meeting, displayName)}
+                        onClick={() => onShare(meeting, displayName, displayImage)}
                         aria-label={`Share ${displayName}`}
                         style={{
                             background: 'none',
@@ -292,7 +293,22 @@ const DailyZoomMeetings = () => {
         }
     };
 
-    const handleShareMeeting = async (meeting, displayName) => {
+    const saveBase64ToFile = async (base64Data, fileName) => {
+        try {
+            const cleanBase64 = base64Data.includes(',') ? base64Data.split(',')[1] : base64Data;
+            const result = await Filesystem.writeFile({
+                path: fileName,
+                data: cleanBase64,
+                directory: Directory.Cache
+            });
+            return result.uri;
+        } catch (err) {
+            console.error("Error saving image for share:", err);
+            return null;
+        }
+    };
+
+    const handleShareMeeting = async (meeting, displayName, displayImage) => {
         const date = new Date(meeting.date).toLocaleDateString(undefined, {
             weekday: 'long',
             year: 'numeric',
@@ -315,10 +331,18 @@ Join us for our daily spiritual gathering.
         `.trim();
 
         try {
+            let files = [];
+            if (displayImage) {
+                const fileName = `meeting_${meeting.id}_${Date.now()}.jpg`;
+                const uri = await saveBase64ToFile(displayImage, fileName);
+                if (uri) files.push(uri);
+            }
+
             await Share.share({
                 title: `${name} - Daily Zoom Meeting`,
                 text: text,
-                url: meeting.joinUrl
+                url: meeting.joinUrl,
+                files: files.length > 0 ? files : undefined
             });
         } catch (_err) {
             console.error('Error sharing:', _err);
@@ -343,20 +367,39 @@ Join us for our daily spiritual gathering.
         const teacherName = selectedTeacherId === 'all' ? '' : ` (Speaker: ${teachers.find(t => t.id === selectedTeacherId)?.name})`;
 
         let text = `${listTitle}${teacherName}\n\n`;
+        let imagesToShare = new Map(); // Use Map to track unique images by speaker
 
         filtered.forEach(m => {
             const date = new Date(m.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
             const teacher = teachers.find(t => t.id === m.teacherId);
             const name = teacher?.name || m.name || 'Unknown Speaker';
             text += `• ${date}: *${name}*\n  🔗 ${m.joinUrl}\n\n`;
+
+            if (teacher?.image && !imagesToShare.has(teacher.id)) {
+                imagesToShare.set(teacher.id, { id: teacher.id, image: teacher.image });
+            } else if (m.image && !teacher) {
+                // Fallback for legacy embedded images
+                imagesToShare.set(m.id, { id: m.id, image: m.image });
+            }
         });
 
         text += 'Join our daily spiritual gatherings online.';
 
         try {
+            let files = [];
+            // Only share up to 3 prominent images to avoid overwhelming the share bundle
+            const uniqueImages = Array.from(imagesToShare.values()).slice(0, 3);
+
+            for (const item of uniqueImages) {
+                const fileName = `teacher_${item.id}_${Date.now()}.jpg`;
+                const uri = await saveBase64ToFile(item.image, fileName);
+                if (uri) files.push(uri);
+            }
+
             await Share.share({
                 title: 'Daily Zoom Meetings List',
-                text: text
+                text: text,
+                files: files.length > 0 ? files : undefined
             });
         } catch (_err) {
             console.error('Error sharing list:', _err);
