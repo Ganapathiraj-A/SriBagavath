@@ -64,7 +64,10 @@ const BookDetails = () => {
     const handleShare = async () => {
         if (!book) return;
 
+        const appUrl = 'https://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share';
         const text = `
+📲 *Download the Sri Bagavath App:* ${appUrl}
+
 📙 *${book.title}*
 _${book.category}_
 
@@ -73,7 +76,7 @@ _${book.category}_
 📖 *Description:*
 ${book.description || 'No description available.'}
 ━━━━━━━━━━━━━━━━━━━━
-Download the *Sri Bagavath App* (${appUrl}) for the latest updates`.trim();
+Download the App for the latest updates`.trim();
 
         try {
             let files = [];
@@ -83,7 +86,8 @@ Download the *Sri Bagavath App* (${appUrl}) for the latest updates`.trim();
                 const result = await Filesystem.writeFile({
                     path: fileName,
                     data: cleanBase64,
-                    directory: Directory.Cache
+                    directory: Directory.Cache,
+                    encoding: 'base64'
                 });
                 files.push(result.uri);
             }

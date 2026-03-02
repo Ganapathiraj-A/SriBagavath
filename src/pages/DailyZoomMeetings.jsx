@@ -311,7 +311,8 @@ const DailyZoomMeetings = () => {
             const result = await Filesystem.writeFile({
                 path: fileName,
                 data: base64,
-                directory: Directory.Cache
+                directory: Directory.Cache,
+                encoding: 'base64'
             });
             return result.uri;
         } catch (err) {
@@ -332,6 +333,8 @@ const DailyZoomMeetings = () => {
 
         const appUrl = 'https://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share';
         const text = `
+📲 *Download the Sri Bagavath App:* ${appUrl}
+
 ✨ *Daily Zoom Meeting* ✨
 ━━━━━━━━━━━━━━━━━━━━
 👤 *Speaker:* ${name}
@@ -343,7 +346,7 @@ ${meeting.youtubeUrl ? `\n🎥 *YouTube Live:* \n${meeting.youtubeUrl}` : ''}
 
 ${meeting.description ? `\n_${meeting.description}_\n` : ''}
 ━━━━━━━━━━━━━━━━━━━━
-Download the *Sri Bagavath App* (${appUrl}) for the latest updates`.trim();
+Download the App for the latest updates`.trim();
 
         try {
             let files = [];
@@ -380,25 +383,9 @@ Download the *Sri Bagavath App* (${appUrl}) for the latest updates`.trim();
         const listTitle = activeTab === 'upcoming' ? '🗓️ *Upcoming Daily Zoom Meetings*' : '⏳ *Past Daily Zoom Meetings*';
         const teacherName = selectedTeacherId === 'all' ? '' : `\n(Speaker: ${teachers.find(t => t.id === selectedTeacherId)?.name})`;
 
-        let text = `🌟 ${listTitle}${teacherName}\n━━━━━━━━━━━━━━━━━━━━\n\n`;
-        let imagesToShare = new Map(); // Use Map to track unique images by speaker
-
-        filtered.forEach(m => {
-            const date = new Date(m.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', weekday: 'short' });
-            const teacher = teachers.find(t => t.id === m.teacherId);
-            const name = teacher?.name || m.name || 'Unknown Speaker';
-            text += `🔹 *${date}* • ${name}\n🔗 ${m.joinUrl}\n\n`;
-
-            if (teacher?.image && !imagesToShare.has(teacher.id)) {
-                imagesToShare.set(teacher.id, { id: teacher.id, image: teacher.image });
-            } else if (m.image && !teacher) {
-                // Fallback for legacy embedded images
-                imagesToShare.set(m.id, { id: m.id, image: m.image });
-            }
-        });
-
         const appUrl = 'https://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share';
-        text += '━━━━━━━━━━━━━━━━━━━━\nDownload the *Sri Bagavath App* (' + appUrl + ') for the latest updates';
+        let text = `📲 *Download the Sri Bagavath App:* ${appUrl}\n\n`;
+        text += `🌟 ${listTitle}${teacherName}\n━━━━━━━━━━━━━━━━━━━━\n\n`;
 
         try {
             let files = [];

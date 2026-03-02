@@ -58,6 +58,8 @@ const SatsangDetails = () => {
         if (!meeting) return;
         const appUrl = 'https://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share';
         const text = `
+📲 *Download the Sri Bagavath App:* ${appUrl}
+
 *Satsang with ${meeting.conductedBy}*
 ${meeting.description || meeting.descriptions ? '\n' + (meeting.description || meeting.descriptions) + '\n' : ''}
 📅 *Date:* ${new Date(meeting.date).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
@@ -65,7 +67,7 @@ ${meeting.description || meeting.descriptions ? '\n' + (meeting.description || m
 📍 *City:* ${meeting.city}
 🏠 *Venue:* ${meeting.venue}
 ━━━━━━━━━━━━━━━━━━━━
-Download the *Sri Bagavath App* (${appUrl}) for the latest updates`.trim();
+Download the App for the latest updates`.trim();
 
         try {
             await Share.share({
@@ -93,7 +95,8 @@ Download the *Sri Bagavath App* (${appUrl}) for the latest updates`.trim();
             const result = await Filesystem.writeFile({
                 path: fileName,
                 data: cleanBase64,
-                directory: Directory.Cache
+                directory: Directory.Cache,
+                encoding: 'base64'
             });
 
             await Share.share({

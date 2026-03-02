@@ -37,7 +37,7 @@ const AudioBooks = () => {
     e.preventDefault();
     try {
       const appUrl = 'https://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share';
-      const text = `🎧 *${book.title}*\n\n🔗 *Audio Link:* ${book.link}\n\nDownload the *Sri Bagavath App* (${appUrl}) for the latest updates`;
+      const text = `📲 *Download the Sri Bagavath App:* ${appUrl}\n\n🎧 *${book.title}*\n🔗 *Audio Link:* ${book.link}\n\nDownload the App for the latest updates`;
       await Share.share({
         title: book.title,
         text: text,

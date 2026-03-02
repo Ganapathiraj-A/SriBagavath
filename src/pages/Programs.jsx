@@ -290,6 +290,8 @@ const Programs = () => {
 
         const appUrl = 'https://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share';
         const text = `
+📲 *Download the Sri Bagavath App:* ${appUrl}
+
 *${program.programName}*
 
 📅 *Date:* ${new Date(program.programDate).toLocaleDateString()} ${program.programEndDate ? `- ${new Date(program.programEndDate).toLocaleDateString()}` : ''}
@@ -300,7 +302,7 @@ const Programs = () => {
 
 ${program.programDescription ? `📝 *Description:*\n${program.programDescription}\n\n` : ''}${program.registrationStatus === 'Open' ? `✅ Registration Open until ${new Date(program.lastDateToRegister).toLocaleDateString()}` : '🚫 Registration Closed'}
 ━━━━━━━━━━━━━━━━━━━━
-Download the *Sri Bagavath App* (${appUrl}) for the latest updates`.trim();
+Download the App for the latest updates`.trim();
 
         try {
             await Share.share({
