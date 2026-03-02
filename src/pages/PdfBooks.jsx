@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Share } from '@capacitor/share';
-import { Capacitor } from '@capacitor/core';
-import { BookOpen, FileText, Edit2, Image as ImageIcon, Upload, Link as LinkIcon, Trash2, X, Search, Share2, ChevronDown } from 'lucide-react';
+import { BookOpen, FileText, Edit2, Image as ImageIcon, Upload, Link as LinkIcon, Trash2, X, Search, Share2, ChevronDown, Settings as SettingsIcon } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { useAdminAuth } from '@/context/AdminAuthContext';
 import { useGlobalSettings } from '@/context/GlobalSettingsContext';
@@ -12,9 +10,13 @@ import { compressImage } from '@/utils/imageUtils';
 import { useDriveFiles } from '@/hooks/useDriveFiles';
 
 const PdfBooks = () => {
+  const navigate = useNavigate();
   const { digitalBookLanguages } = useGlobalSettings();
-  const { isAdmin, hasAccess } = useAdminAuth();
-  const canEdit = hasAccess('DIGITAL_BOOKS_MANAGEMENT');
+  const { hasAccess, isAdmin } = useAdminAuth();
+
+  // Checking isAdmin gives a faster baseline for showing the edit tools to Super Admins.
+  // hasAccess is slower to resolve for Power Users, but will still be accurate once loaded.
+  const canEdit = isAdmin || hasAccess('DIGITAL_BOOKS_MANAGEMENT');
   const [activeTabId, setActiveTabId] = useState('');
   const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -360,27 +362,53 @@ const PdfBooks = () => {
         </div>
 
         {canEdit && (
-          <button
-            onClick={() => setEditMode(!editMode)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '6px 12px',
-              borderRadius: '20px',
-              border: '1px solid',
-              borderColor: editMode ? 'var(--color-primary)' : 'var(--color-border)',
-              backgroundColor: editMode ? 'var(--color-primary-transparent)' : 'var(--color-card)',
-              color: editMode ? 'var(--color-primary)' : 'var(--color-text-muted)',
-              fontSize: '0.85rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            <Edit2 size={14} />
-            {editMode ? 'Done' : 'Edit'}
-          </button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {editMode && (
+              <motion.button
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                onClick={() => navigate('/admin/digital-books-settings')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '6px',
+                  borderRadius: '20px',
+                  backgroundColor: 'var(--color-surface)',
+                  color: 'var(--color-primary)',
+                  border: '1px solid var(--color-primary)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  width: '32px',
+                  height: '32px'
+                }}
+                title="Configure Languages"
+              >
+                <SettingsIcon size={16} />
+              </motion.button>
+            )}
+            <button
+              onClick={() => setEditMode(!editMode)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 12px',
+                borderRadius: '20px',
+                border: '1px solid',
+                borderColor: editMode ? 'var(--color-primary)' : 'var(--color-border)',
+                backgroundColor: editMode ? 'var(--color-primary-transparent)' : 'var(--color-card)',
+                color: editMode ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                fontSize: '0.85rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <Edit2 size={14} />
+              {editMode ? 'Done' : 'Edit'}
+            </button>
+          </div>
         )}
       </div>
 

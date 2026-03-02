@@ -23,6 +23,7 @@ const ProgramTypesManagement = lazy(() => import('./pages/ProgramTypesManagement
 const ManageUsers = lazy(() => import('./pages/ManageUsers'));
 const ProgramConversations = lazy(() => import('./pages/ProgramConversations'));
 const UrlSettings = lazy(() => import('./pages/UrlSettings'));
+const DigitalBookSettings = lazy(() => import('./pages/DigitalBookSettings'));
 const RelatedVideosManagement = lazy(() => import('./pages/RelatedVideosManagement'));
 const RecordedPrograms = lazy(() => import('./pages/RecordedPrograms'));
 const DigitalBooksHub = lazy(() => import('./pages/DigitalBooksHub'));
@@ -171,6 +172,7 @@ function AnimatedRoutes() {
           '/admin/back-office': '/configuration',
           '/admin/settings': '/configuration',
           '/admin/url-settings': '/admin/settings',
+          '/admin/digital-books-settings': '/admin/settings',
           '/admin/related-videos': '/admin/settings',
           '/admin-review': '/configuration',
           '/admin/purchases': '/configuration',
@@ -312,6 +314,7 @@ function AnimatedRoutes() {
           <Route path="/manage-users" element={<ProtectedRoute requiredPermission="MANAGE_USERS"><ManageUsers /></ProtectedRoute>} />
           <Route path="/conversations/programs" element={<ProtectedRoute requiredPermission="PROGRAM_CONVERSATIONS"><ProgramConversations /></ProtectedRoute>} />
           <Route path="/admin/url-settings" element={<ProtectedRoute requiredRole="SUPER_ADMIN"><UrlSettings /></ProtectedRoute>} />
+          <Route path="/admin/digital-books-settings" element={<ProtectedRoute requiredPermission="DIGITAL_BOOKS_MANAGEMENT"><DigitalBookSettings /></ProtectedRoute>} />
           <Route path="/admin/related-videos" element={<ProtectedRoute requiredPermission="RELATED_VIDEO_MANAGEMENT"><RelatedVideosManagement /></ProtectedRoute>} />
           <Route path="/schedule/manage" element={<ProtectedRoute requiredPermission="SCHEDULE_MANAGEMENT"><ScheduleManagement /></ProtectedRoute>} />
 

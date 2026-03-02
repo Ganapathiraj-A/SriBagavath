@@ -192,6 +192,16 @@ const AdminSettings = () => {
                     bgColor: 'var(--color-accent-transparent)'
                 },
                 {
+                    id: 'DIGITAL_BOOKS_LANGUAGES',
+                    title: 'Digital Books Languages',
+                    subtitle: 'Manage languages & folder IDs',
+                    icon: BookOpen,
+                    path: '/admin/digital-books-settings',
+                    permission: 'DIGITAL_BOOKS_MANAGEMENT',
+                    color: 'var(--color-primary)',
+                    bgColor: 'var(--color-primary-transparent)'
+                },
+                {
                     id: 'MANAGE_USERS',
                     title: 'Manage Admins',
                     subtitle: 'Permission & Access Control',
