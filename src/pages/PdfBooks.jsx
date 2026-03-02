@@ -257,7 +257,58 @@ const PdfBooks = () => {
 
   return (
     <div style={{ backgroundColor: 'var(--color-background)', minHeight: '100vh', paddingBottom: '30px' }}>
-      <PageHeader title="Digital Books" />
+      <PageHeader
+        title="Digital Books"
+        rightAction={canEdit && (
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            {editMode && (
+              <motion.button
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                onClick={() => navigate('/admin/digital-books-settings')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '6px',
+                  borderRadius: '12px',
+                  backgroundColor: 'var(--color-surface)',
+                  color: 'var(--color-primary)',
+                  border: '1px solid var(--color-primary)',
+                  cursor: 'pointer',
+                  width: '32px',
+                  height: '32px',
+                  boxShadow: 'var(--shadow-sm)'
+                }}
+                title="Configure Languages"
+              >
+                <SettingsIcon size={18} />
+              </motion.button>
+            )}
+            <button
+              onClick={() => setEditMode(!editMode)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 14px',
+                borderRadius: '12px',
+                border: '1px solid var(--color-primary)',
+                backgroundColor: editMode ? 'var(--color-primary)' : 'var(--color-primary-transparent)',
+                color: editMode ? 'var(--color-text-on-primary)' : 'var(--color-primary)',
+                fontSize: '0.85rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                boxShadow: 'var(--shadow-sm)'
+              }}
+            >
+              <Edit2 size={14} />
+              {editMode ? 'Done' : 'Edit'}
+            </button>
+          </div>
+        )}
+      />
 
       {/* Tabs & Edit Toggle */}
       <div style={{
@@ -361,55 +412,6 @@ const PdfBooks = () => {
           )}
         </div>
 
-        {canEdit && (
-          <div style={{ display: 'flex', gap: '8px' }}>
-            {editMode && (
-              <motion.button
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                onClick={() => navigate('/admin/digital-books-settings')}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '6px',
-                  borderRadius: '20px',
-                  backgroundColor: 'var(--color-surface)',
-                  color: 'var(--color-primary)',
-                  border: '1px solid var(--color-primary)',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  width: '32px',
-                  height: '32px'
-                }}
-                title="Configure Languages"
-              >
-                <SettingsIcon size={16} />
-              </motion.button>
-            )}
-            <button
-              onClick={() => setEditMode(!editMode)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                borderRadius: '20px',
-                border: '1px solid',
-                borderColor: editMode ? 'var(--color-primary)' : 'var(--color-border)',
-                backgroundColor: editMode ? 'var(--color-primary-transparent)' : 'var(--color-card)',
-                color: editMode ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                fontSize: '0.85rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all 0.2s ease'
-              }}
-            >
-              <Edit2 size={14} />
-              {editMode ? 'Done' : 'Edit'}
-            </button>
-          </div>
-        )}
       </div>
 
       <div style={{ maxWidth: '30rem', margin: '0 auto' }}>
