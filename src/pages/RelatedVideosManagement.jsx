@@ -13,6 +13,7 @@ const RelatedVideosManagement = () => {
     const [isAdding, setIsAdding] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [activeTab, setActiveTab] = useState('general');
+    const [isFetching, setIsFetching] = useState(false);
 
     // Form State
     const [formData, setFormData] = useState({ title: '', url: '', category: 'general' });
@@ -125,6 +126,31 @@ const RelatedVideosManagement = () => {
         setFormData({ title: '', url: '', category: activeTab });
         setIsAdding(false);
         setEditingId(null);
+        setIsFetching(false);
+    };
+
+    const fetchPlaylistTitle = async (url) => {
+        if (!url || formData.title) return; // Don't overwrite existing title
+
+        // Simple regex to check if it's a YouTube URL
+        if (!url.includes('youtube.com/') && !url.includes('youtu.be/')) return;
+
+        setIsFetching(true);
+        try {
+            // Use YouTube oEmbed API to get metadata
+            const oEmbedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`;
+            const response = await fetch(oEmbedUrl);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.title && !formData.title) {
+                    setFormData(prev => ({ ...prev, title: data.title }));
+                }
+            }
+        } catch (error) {
+            console.error("Error fetching playlist title:", error);
+        } finally {
+            setIsFetching(false);
+        }
     };
 
     return (
@@ -206,13 +232,15 @@ const RelatedVideosManagement = () => {
 
                             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: '0.25rem' }}>Title</label>
+                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: '0.25rem' }}>
+                                        Title {isFetching && <span style={{ color: 'var(--color-primary)', fontSize: '0.75rem', marginLeft: '0.5rem', fontWeight: 400 }}>Fetching...</span>}
+                                    </label>
                                     <input
                                         type="text"
                                         value={formData.title}
                                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                        placeholder="e.g., Monthly Satsang Playlists"
-                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', outline: 'none', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}
+                                        placeholder={isFetching ? "Fetching title..." : "e.g., Monthly Satsang Playlists"}
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', outline: 'none', backgroundColor: 'var(--color-background)', color: 'var(--color-text)', opacity: isFetching ? 0.7 : 1 }}
                                         required
                                     />
                                 </div>
@@ -222,6 +250,7 @@ const RelatedVideosManagement = () => {
                                         type="url"
                                         value={formData.url}
                                         onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+                                        onBlur={() => fetchPlaylistTitle(formData.url)}
                                         placeholder="https://youtube.com/playlist?list=..."
                                         style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', outline: 'none', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}
                                         required
