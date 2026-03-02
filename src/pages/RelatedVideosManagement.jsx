@@ -299,27 +299,49 @@ const RelatedVideosManagement = () => {
                 </AnimatePresence>
 
                 {/* Tabs Section */}
-                <div style={{ display: 'flex', backgroundColor: 'var(--color-background)', padding: '4px', borderRadius: '12px', marginBottom: '2rem', border: '1px solid var(--color-border)' }}>
-                    {['general', 'teachers'].map(tab => (
-                        <button
-                            key={tab}
-                            onClick={() => setActiveTab(tab)}
-                            style={{
-                                flex: 1,
-                                padding: '10px',
-                                border: 'none',
-                                borderRadius: '8px',
-                                backgroundColor: activeTab === tab ? 'white' : 'transparent',
-                                color: activeTab === tab ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                transition: 'all 0.2s',
-                                boxShadow: activeTab === tab ? '0 2px 4px rgba(0,0,0,0.1)' : 'none'
-                            }}
-                        >
-                            {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                        </button>
-                    ))}
+                <div style={{
+                    display: 'flex',
+                    gap: '2rem',
+                    marginBottom: '2rem',
+                    borderBottom: '1px solid var(--color-border)',
+                    padding: '0 0.5rem'
+                }}>
+                    {['general', 'teachers'].map(tab => {
+                        const isActive = activeTab === tab;
+                        return (
+                            <button
+                                key={tab}
+                                onClick={() => setActiveTab(tab)}
+                                style={{
+                                    padding: '0.75rem 0.25rem',
+                                    border: 'none',
+                                    backgroundColor: 'transparent',
+                                    fontSize: '0.875rem',
+                                    fontWeight: 700,
+                                    color: isActive ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                    position: 'relative',
+                                    cursor: 'pointer',
+                                    transition: 'color 0.2s'
+                                }}
+                            >
+                                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                                {isActive && (
+                                    <motion.div
+                                        layoutId="activeTabUnderline_mgmt"
+                                        style={{
+                                            position: 'absolute',
+                                            bottom: 0,
+                                            left: 0,
+                                            right: 0,
+                                            height: '3px',
+                                            backgroundColor: 'var(--color-primary)',
+                                            borderRadius: '99px'
+                                        }}
+                                    />
+                                )}
+                            </button>
+                        );
+                    })}
                 </div>
 
                 {/* List Section */}
