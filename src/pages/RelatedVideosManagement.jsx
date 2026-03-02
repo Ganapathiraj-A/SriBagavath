@@ -12,9 +12,10 @@ const RelatedVideosManagement = () => {
     const [loading, setLoading] = useState(true);
     const [isAdding, setIsAdding] = useState(false);
     const [editingId, setEditingId] = useState(null);
+    const [activeTab, setActiveTab] = useState('general');
 
     // Form State
-    const [formData, setFormData] = useState({ title: '', url: '' });
+    const [formData, setFormData] = useState({ title: '', url: '', category: 'general' });
 
     useEffect(() => {
         console.log("Subscribing to relatedVideos (unordered for migration safety)...");
@@ -43,8 +44,12 @@ const RelatedVideosManagement = () => {
 
     const fixLegacyOrdering = async (data) => {
         for (let i = 0; i < data.length; i++) {
-            if (data[i].order === undefined) {
-                await setDoc(doc(db, 'relatedVideos', data[i].id), { order: i }, { merge: true });
+            const updates = {};
+            if (data[i].order === undefined) updates.order = i;
+            if (data[i].category === undefined) updates.category = 'general';
+
+            if (Object.keys(updates).length > 0) {
+                await setDoc(doc(db, 'relatedVideos', data[i].id), updates, { merge: true });
             }
         }
     };
@@ -61,8 +66,9 @@ const RelatedVideosManagement = () => {
             };
 
             if (!editingId) {
-                // New item: put at bottom
-                const maxOrder = videos.length > 0 ? Math.max(...videos.map(v => v.order || 0)) : -1;
+                // New item: put at bottom of its category
+                const categoryVideos = videos.filter(v => v.category === formData.category);
+                const maxOrder = categoryVideos.length > 0 ? Math.max(...categoryVideos.map(v => v.order || 0)) : -1;
                 videoData.order = maxOrder + 1;
                 videoData.createdAt = serverTimestamp();
             }
@@ -78,7 +84,7 @@ const RelatedVideosManagement = () => {
     };
 
     const handleEdit = (video) => {
-        setFormData({ title: video.title, url: video.url });
+        setFormData({ title: video.title, url: video.url, category: video.category || 'general' });
         setEditingId(video.id);
         setIsAdding(true);
     };
@@ -94,11 +100,13 @@ const RelatedVideosManagement = () => {
     };
 
     const handleMove = async (index, direction) => {
+        const categoryVideos = videos.filter(v => (v.category || 'general') === activeTab);
         const targetIndex = direction === 'up' ? index - 1 : index + 1;
-        if (targetIndex < 0 || targetIndex >= videos.length) return;
 
-        const currentVideo = videos[index];
-        const targetVideo = videos[targetIndex];
+        if (targetIndex < 0 || targetIndex >= categoryVideos.length) return;
+
+        const currentVideo = categoryVideos[index];
+        const targetVideo = categoryVideos[targetIndex];
 
         try {
             // Swap orders
@@ -114,7 +122,7 @@ const RelatedVideosManagement = () => {
     };
 
     const resetForm = () => {
-        setFormData({ title: '', url: '' });
+        setFormData({ title: '', url: '', category: activeTab });
         setIsAdding(false);
         setEditingId(null);
     };
@@ -219,6 +227,24 @@ const RelatedVideosManagement = () => {
                                         required
                                     />
                                 </div>
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: '0.5rem' }}>Category</label>
+                                    <div style={{ display: 'flex', gap: '1rem' }}>
+                                        {['general', 'teachers'].map(cat => (
+                                            <label key={cat} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: 'var(--color-text)' }}>
+                                                <input
+                                                    type="radio"
+                                                    name="category"
+                                                    value={cat}
+                                                    checked={formData.category === cat}
+                                                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                                    style={{ cursor: 'pointer' }}
+                                                />
+                                                {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
                                 <button
                                     type="submit"
                                     style={{
@@ -243,12 +269,44 @@ const RelatedVideosManagement = () => {
                     )}
                 </AnimatePresence>
 
+                {/* Tabs Section */}
+                <div style={{ display: 'flex', backgroundColor: 'var(--color-background)', padding: '4px', borderRadius: '12px', marginBottom: '2rem', border: '1px solid var(--color-border)' }}>
+                    {['general', 'teachers'].map(tab => (
+                        <button
+                            key={tab}
+                            onClick={() => setActiveTab(tab)}
+                            style={{
+                                flex: 1,
+                                padding: '10px',
+                                border: 'none',
+                                borderRadius: '8px',
+                                backgroundColor: activeTab === tab ? 'white' : 'transparent',
+                                color: activeTab === tab ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                boxShadow: activeTab === tab ? '0 2px 4px rgba(0,0,0,0.1)' : 'none'
+                            }}
+                        >
+                            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                        </button>
+                    ))}
+                </div>
+
                 {/* List Section */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: '0.5rem' }}>Existing Entries</h3>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                        <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-text-secondary)', margin: 0 }}>
+                            {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Entries
+                        </h3>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+                            {videos.filter(v => (v.category || 'general') === activeTab).length} videos
+                        </span>
+                    </div>
+
                     {loading ? (
                         <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)' }}>Loading entries...</div>
-                    ) : videos.length === 0 ? (
+                    ) : videos.filter(v => (v.category || 'general') === activeTab).length === 0 ? (
                         <div style={{
                             textAlign: 'center',
                             padding: '4rem 2rem',
@@ -258,10 +316,10 @@ const RelatedVideosManagement = () => {
                             color: 'var(--color-text-muted)'
                         }}>
                             <Video size={48} style={{ margin: '0 auto 1rem', opacity: 0.3 }} />
-                            <p>No playlists configured yet.</p>
+                            <p>No playlists in {activeTab} yet.</p>
                         </div>
                     ) : (
-                        videos.map((video, index) => (
+                        videos.filter(v => (v.category || 'general') === activeTab).map((video, index, filteredList) => (
                             <motion.div
                                 key={video.id}
                                 layout
@@ -297,11 +355,11 @@ const RelatedVideosManagement = () => {
                                         </button>
                                         <button
                                             onClick={() => handleMove(index, 'down')}
-                                            disabled={index === videos.length - 1}
+                                            disabled={index === filteredList.length - 1}
                                             style={{
                                                 padding: '2px',
-                                                color: index === videos.length - 1 ? 'var(--color-text-light)' : 'var(--color-text-muted)',
-                                                cursor: index === videos.length - 1 ? 'default' : 'pointer',
+                                                color: index === filteredList.length - 1 ? 'var(--color-text-light)' : 'var(--color-text-muted)',
+                                                cursor: index === filteredList.length - 1 ? 'default' : 'pointer',
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 justifyContent: 'center'

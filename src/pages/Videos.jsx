@@ -14,6 +14,7 @@ const Videos = () => {
     const isAdmin = hasAccess('RELATED_VIDEO_MANAGEMENT');
     const [videos, setVideos] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState('general');
 
     useEffect(() => {
         const fetchVideos = async () => {
@@ -83,127 +84,166 @@ const Videos = () => {
                         <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
                             Loading videos...
                         </div>
-                    ) : videos.length === 0 ? (
-                        <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
-                            No videos configured yet.
-                        </div>
                     ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            {/* Static Social Links (Merged from Conversations) */}
-                            <motion.button
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.1 }}
-                                whileHover={{ scale: 1.01, backgroundColor: 'var(--color-surface)' }}
-                                onClick={() => window.open('https://t.me/Bagavath_conversations', '_blank')}
-                                style={{
-                                    width: '100%',
-                                    padding: '1.25rem',
-                                    backgroundColor: 'var(--color-background)',
-                                    borderRadius: '0.75rem',
-                                    border: '1px solid var(--color-border)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                    textAlign: 'left',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                    <div style={{
-                                        padding: '0.5rem',
-                                        borderRadius: '9999px',
-                                        backgroundColor: 'var(--color-primary-transparent)', // Theme from Conversations
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center'
-                                    }}>
-                                        <Send size={20} color="var(--color-primary)" />
-                                    </div>
-                                    <span style={{ fontSize: '1rem', color: 'var(--color-text)', fontWeight: 500 }}>
-                                        Telegram
-                                    </span>
-                                </div>
-                                <ExternalLink size={18} color="var(--color-text-light)" />
-                            </motion.button>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            {/* Tabs UI */}
+                            <div style={{
+                                display: 'flex',
+                                backgroundColor: 'var(--color-background)',
+                                padding: '4px',
+                                borderRadius: '12px',
+                                marginBottom: '1.5rem',
+                                border: '1px solid var(--color-border)'
+                            }}>
+                                {['general', 'teachers'].map(tab => (
+                                    <button
+                                        key={tab}
+                                        onClick={() => setActiveTab(tab)}
+                                        style={{
+                                            flex: 1,
+                                            padding: '10px',
+                                            border: 'none',
+                                            borderRadius: '8px',
+                                            backgroundColor: activeTab === tab ? 'white' : 'transparent',
+                                            color: activeTab === tab ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                            fontWeight: 600,
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s',
+                                            boxShadow: activeTab === tab ? '0 2px 4px rgba(0,0,0,0.1)' : 'none'
+                                        }}
+                                    >
+                                        {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                                    </button>
+                                ))}
+                            </div>
 
-                            <motion.button
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.2 }}
-                                whileHover={{ scale: 1.01, backgroundColor: 'var(--color-surface)' }}
-                                onClick={() => window.open('https://youtube.com/@bagavathpathai?si=F2JEXlLNpDngYujc', '_blank')}
-                                style={{
-                                    width: '100%',
-                                    padding: '1.25rem',
-                                    backgroundColor: 'var(--color-background)',
-                                    borderRadius: '0.75rem',
-                                    border: '1px solid var(--color-border)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                    textAlign: 'left',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                    <div style={{
-                                        padding: '0.5rem',
-                                        borderRadius: '9999px',
-                                        backgroundColor: 'var(--color-primary-transparent)', // Theme from Conversations
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center'
-                                    }}>
-                                        <Youtube size={20} color="var(--color-primary)" />
-                                    </div>
-                                    <span style={{ fontSize: '1rem', color: 'var(--color-text)', fontWeight: 500 }}>
-                                        YouTube
-                                    </span>
-                                </div>
-                                <ExternalLink size={18} color="var(--color-text-light)" />
-                            </motion.button>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                {/* Static Social Links (Only in General Tab) */}
+                                {activeTab === 'general' && (
+                                    <>
+                                        <motion.button
+                                            initial={{ opacity: 0, x: -20 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: 0.1 }}
+                                            whileHover={{ scale: 1.01, backgroundColor: 'var(--color-surface)' }}
+                                            onClick={() => window.open('https://t.me/Bagavath_conversations', '_blank')}
+                                            style={{
+                                                width: '100%',
+                                                padding: '1.25rem',
+                                                backgroundColor: 'var(--color-background)',
+                                                borderRadius: '0.75rem',
+                                                border: '1px solid var(--color-border)',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'space-between',
+                                                textAlign: 'left',
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                                <div style={{
+                                                    padding: '0.5rem',
+                                                    borderRadius: '9999px',
+                                                    backgroundColor: 'var(--color-primary-transparent)',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center'
+                                                }}>
+                                                    <Send size={20} color="var(--color-primary)" />
+                                                </div>
+                                                <span style={{ fontSize: '1rem', color: 'var(--color-text)', fontWeight: 500 }}>
+                                                    Telegram
+                                                </span>
+                                            </div>
+                                            <ExternalLink size={18} color="var(--color-text-light)" />
+                                        </motion.button>
 
-                            {/* Dynamic Playlist Videos */}
-                            {videos.map((video, index) => (
-                                <motion.button
-                                    key={video.id}
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: (index + 3) * 0.1 }}
-                                    whileHover={{ scale: 1.01, backgroundColor: 'var(--color-surface)' }}
-                                    onClick={() => window.open(video.url, '_blank')}
-                                    style={{
-                                        width: '100%',
-                                        padding: '1.25rem',
-                                        backgroundColor: 'var(--color-background)',
-                                        borderRadius: '0.75rem',
-                                        border: '1px solid var(--color-border)',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'space-between',
-                                        textAlign: 'left',
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                        <div style={{
-                                            padding: '0.5rem',
-                                            borderRadius: '9999px',
-                                            backgroundColor: 'var(--color-error-transparent)',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center'
-                                        }}>
-                                            <Youtube size={20} color="var(--color-error)" />
-                                        </div>
-                                        <span style={{ fontSize: '1rem', color: 'var(--color-text)', fontWeight: 500 }}>
-                                            {video.title}
-                                        </span>
+                                        <motion.button
+                                            initial={{ opacity: 0, x: -20 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: 0.2 }}
+                                            whileHover={{ scale: 1.01, backgroundColor: 'var(--color-surface)' }}
+                                            onClick={() => window.open('https://youtube.com/@bagavathpathai?si=F2JEXlLNpDngYujc', '_blank')}
+                                            style={{
+                                                width: '100%',
+                                                padding: '1.25rem',
+                                                backgroundColor: 'var(--color-background)',
+                                                borderRadius: '0.75rem',
+                                                border: '1px solid var(--color-border)',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'space-between',
+                                                textAlign: 'left',
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                                <div style={{
+                                                    padding: '0.5rem',
+                                                    borderRadius: '9999px',
+                                                    backgroundColor: 'var(--color-primary-transparent)',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center'
+                                                }}>
+                                                    <Youtube size={20} color="var(--color-primary)" />
+                                                </div>
+                                                <span style={{ fontSize: '1rem', color: 'var(--color-text)', fontWeight: 500 }}>
+                                                    YouTube
+                                                </span>
+                                            </div>
+                                            <ExternalLink size={18} color="var(--color-text-light)" />
+                                        </motion.button>
+                                    </>
+                                )}
+
+                                {/* Dynamic Playlist Videos (Filtered) */}
+                                {videos.filter(v => (v.category || 'general') === activeTab).length === 0 && activeTab !== 'general' ? (
+                                    <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+                                        No videos in {activeTab} yet.
                                     </div>
-                                    <ExternalLink size={18} color="var(--color-text-light)" />
-                                </motion.button>
-                            ))}
+                                ) : (
+                                    videos.filter(v => (v.category || 'general') === activeTab).map((video, index) => (
+                                        <motion.button
+                                            key={video.id}
+                                            initial={{ opacity: 0, x: -20 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: (index + 3) * 0.1 }}
+                                            whileHover={{ scale: 1.01, backgroundColor: 'var(--color-surface)' }}
+                                            onClick={() => window.open(video.url, '_blank')}
+                                            style={{
+                                                width: '100%',
+                                                padding: '1.25rem',
+                                                backgroundColor: 'var(--color-background)',
+                                                borderRadius: '0.75rem',
+                                                border: '1px solid var(--color-border)',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'space-between',
+                                                textAlign: 'left',
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                                <div style={{
+                                                    padding: '0.5rem',
+                                                    borderRadius: '9999px',
+                                                    backgroundColor: 'var(--color-error-transparent)',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center'
+                                                }}>
+                                                    <Youtube size={20} color="var(--color-error)" />
+                                                </div>
+                                                <span style={{ fontSize: '1rem', color: 'var(--color-text)', fontWeight: 500 }}>
+                                                    {video.title}
+                                                </span>
+                                            </div>
+                                            <ExternalLink size={18} color="var(--color-text-light)" />
+                                        </motion.button>
+                                    ))
+                                )}
+                            </div>
                         </div>
                     )}
                 </motion.div>
