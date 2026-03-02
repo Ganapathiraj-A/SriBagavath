@@ -330,7 +330,7 @@ ${meeting.youtubeUrl ? `\n🎥 *YouTube Live:* \n${meeting.youtubeUrl}` : ''}
 
 ${meeting.description ? `\n_${meeting.description}_\n` : ''}
 ━━━━━━━━━━━━━━━━━━━━
-        `.trim() + `\n\nDownload *Sri Bagavath* App for latest details:\nhttps://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share`;
+        `.trim() + `\n\nDownload the Sri Bagavath App for the latest updates:\nhttps://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share`;
 
         try {
             let files = [];
@@ -384,7 +384,7 @@ ${meeting.description ? `\n_${meeting.description}_\n` : ''}
             }
         });
 
-        text += '━━━━━━━━━━━━━━━━━━━━\nDownload *Sri Bagavath* App for latest details:\nhttps://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share';
+        text += '━━━━━━━━━━━━━━━━━━━━\nDownload the Sri Bagavath App for the latest updates:\nhttps://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share';
 
         try {
             let files = [];
