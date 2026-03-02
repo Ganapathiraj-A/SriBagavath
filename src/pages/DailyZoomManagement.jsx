@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
-    Plus, Edit2, Trash2, Save, ChevronLeft, User, Video, Calendar, Image as ImageIcon, Link as LinkIcon, FileText, Youtube
+    Plus, Edit2, Trash2, Save, ChevronLeft, User, Video, Calendar, Image as ImageIcon, Link as LinkIcon, FileText, Youtube, Eye, Trash
 } from 'lucide-react';
 import { db } from '@/firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy, limit, where } from '@/utils/FirestoreProxy';
@@ -176,13 +176,23 @@ const DailyZoomManagement = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    const handleDelete = async (id) => {
-        if (window.confirm('Delete this meeting entry?')) {
+    const handleRemoveOldEntries = async () => {
+        if (historyMeetings.length === 0) {
+            alert('No old entries to remove.');
+            return;
+        }
+
+        if (window.confirm(`Are you sure you want to remove all ${historyMeetings.length} past meeting entries? This cannot be undone.`)) {
             try {
-                await deleteDoc(doc(db, 'daily_zoom_meetings', id));
+                setLoading(true);
+                const deletePromises = historyMeetings.map(m => deleteDoc(doc(db, 'daily_zoom_meetings', m.id)));
+                await Promise.all(deletePromises);
+                alert('All old entries removed successfully.');
                 loadData();
-            } catch (_err) {
-                alert('Error deleting: ' + _err.message);
+            } catch (err) {
+                alert('Error removing old entries: ' + err.message);
+            } finally {
+                setLoading(false);
             }
         }
     };
@@ -200,14 +210,56 @@ const DailyZoomManagement = () => {
                 }
                 rightAction={
                     <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-                        <button onClick={() => navigate('/programs/online/daily')} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'var(--color-warning-transparent)', border: '1px solid var(--color-warning-transparent)', color: 'var(--color-warning)', padding: '6px 10px', borderRadius: '0.5rem', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                            <Video size={14} /> Listing
+                        <button
+                            onClick={() => navigate('/programs/online/daily')}
+                            title="View Public Listing"
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                background: 'var(--color-warning-transparent)',
+                                border: '1px solid var(--color-warning)',
+                                color: 'var(--color-warning)',
+                                width: '36px',
+                                height: '36px',
+                                borderRadius: '50%',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                            }}
+                        >
+                            <Eye size={18} />
                         </button>
                     </div>
                 }
             />
 
             <div style={{ maxWidth: '42rem', margin: '0 auto', padding: '1rem' }}>
+                {(activeTab === 'upcoming' || activeTab === 'history') && (
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+                        <button
+                            onClick={handleRemoveOldEntries}
+                            disabled={loading || historyMeetings.length === 0}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                padding: '8px 16px',
+                                backgroundColor: 'var(--color-error-transparent)',
+                                border: '1px solid var(--color-error)',
+                                borderRadius: '20px',
+                                color: 'var(--color-error)',
+                                fontSize: '0.8rem',
+                                fontWeight: 600,
+                                cursor: loading || historyMeetings.length === 0 ? 'not-allowed' : 'pointer',
+                                opacity: loading || historyMeetings.length === 0 ? 0.6 : 1,
+                                transition: 'all 0.2s'
+                            }}
+                        >
+                            <Trash size={14} /> Remove Old Entries
+                        </button>
+                    </div>
+                )}
+
                 <div style={{
                     display: 'flex',
                     borderBottom: '1px solid var(--color-border)',
