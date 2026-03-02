@@ -17,15 +17,16 @@ const RelatedVideosManagement = () => {
     const [formData, setFormData] = useState({ title: '', url: '' });
 
     useEffect(() => {
-        console.log("Subscribing to relatedVideos with order sort...");
-        const q = query(collection(db, 'relatedVideos'), orderBy('order', 'asc'));
+        console.log("Subscribing to relatedVideos (unordered for migration safety)...");
+        const q = query(collection(db, 'relatedVideos'));
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
             console.log("Firestore Snapshot received. Doc count:", snapshot.docs.length);
-            const fetchedVideos = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-            console.log("Fetched Videos Summary:", fetchedVideos.map(v => ({ id: v.id, title: v.title, order: v.order })));
+            let fetchedVideos = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 
-            // Temporary fix for legacy data without order
+            // Memory sort for visibility of legacy items
+            fetchedVideos.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+
             const needsOrder = fetchedVideos.some(v => v.order === undefined);
             if (needsOrder) {
                 console.log("Legacy data detected. Initiating order fix...");
@@ -34,24 +35,8 @@ const RelatedVideosManagement = () => {
             setVideos(fetchedVideos);
             setLoading(false);
         }, (error) => {
-            console.error("Firestore Snapshot Error! Code:", error.code, "Message:", error.message);
-
-            // Fallback: If index is missing or other precondition fails, try a simple query
-            if (error.code === 'failed-precondition' || error.message.includes('index')) {
-                console.warn("Attempting fallback to unordered query...");
-                const fallbackQ = query(collection(db, 'relatedVideos'));
-                getDocs(fallbackQ).then(snap => {
-                    const fallbackData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    console.log("Fallback query successful. Fetched:", fallbackData.length);
-                    setVideos(fallbackData);
-                    setLoading(false);
-                }).catch(err => {
-                    console.error("Fallback query also failed:", err);
-                    setLoading(false);
-                });
-            } else {
-                setLoading(false);
-            }
+            console.error("Firestore Snapshot Error!", error);
+            setLoading(false);
         });
         return () => unsubscribe();
     }, []);
