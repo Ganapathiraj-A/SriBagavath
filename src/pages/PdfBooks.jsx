@@ -184,57 +184,68 @@ const PdfBooks = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="card"
-                onClick={() => {
-                  if (canEdit && editMode) {
-                    setEditingFile(file);
-                    setIsModalOpen(true);
-                    loadPrintedBooks();
-                  } else {
-                    window.open(viewUrl, '_blank');
-                  }
-                }}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '12px',
                   padding: '12px',
-                  cursor: 'pointer',
                   flex: 1,
                   minWidth: 0,
                   border: editMode ? '1px dashed var(--color-primary)' : '1px solid var(--color-border)',
                   position: 'relative',
-                  backgroundColor: 'var(--color-card)'
+                  backgroundColor: 'var(--color-card)',
+                  cursor: 'default'
                 }}
                 whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
               >
-                <div style={{
-                  width: '50px',
-                  height: '65px',
-                  borderRadius: '6px',
-                  backgroundColor: 'var(--color-primary-transparent)',
-                  color: 'var(--color-primary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                  overflow: 'hidden',
-                  border: '1px solid var(--color-border)'
-                }}>
-                  {cover ? (
-                    <img src={cover} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    <FileText size={20} />
-                  )}
+                {/* Main clickable area */}
+                <div
+                  onClick={() => {
+                    if (canEdit && editMode) {
+                      setEditingFile(file);
+                      setIsModalOpen(true);
+                      loadPrintedBooks();
+                    } else {
+                      window.open(viewUrl, '_blank');
+                    }
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    flex: 1,
+                    cursor: 'pointer',
+                    minWidth: 0
+                  }}
+                >
+                  <div style={{
+                    width: '50px',
+                    height: '65px',
+                    borderRadius: '6px',
+                    backgroundColor: 'var(--color-primary-transparent)',
+                    color: 'var(--color-primary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    overflow: 'hidden',
+                    border: '1px solid var(--color-border)'
+                  }}>
+                    {cover ? (
+                      <img src={cover} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <FileText size={20} />
+                    )}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ color: 'var(--color-text)', fontSize: '1rem', fontWeight: 500, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {file.name}
+                    </span>
+                  </div>
+                  {editMode && <Edit2 size={18} color="var(--color-primary)" />}
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <span style={{ color: 'var(--color-text)', fontSize: '1rem', fontWeight: 500, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {file.name}
-                  </span>
-                </div>
-                {editMode ? (
-                  <Edit2 size={18} color="var(--color-primary)" />
-                ) : (
+
+                {!editMode && (
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -250,7 +261,8 @@ const PdfBooks = () => {
                       backgroundColor: 'var(--color-surface)',
                       cursor: 'pointer',
                       border: 'none',
-                      zIndex: 10
+                      zIndex: 10,
+                      flexShrink: 0
                     }}
                   >
                     <Share2 size={18} color="var(--color-primary)" />

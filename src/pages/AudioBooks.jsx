@@ -109,106 +109,116 @@ const AudioBooks = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
-              onClick={() => window.open(book.link, '_blank')}
               style={{
                 backgroundColor: 'var(--color-card)',
                 borderRadius: '1rem',
                 overflow: 'hidden',
                 boxShadow: 'var(--shadow-md)',
-                cursor: 'pointer',
                 position: 'relative',
                 display: 'flex',
-                flexDirection: 'column'
+                flexDirection: 'column',
+                cursor: 'default'
               }}
               whileHover={{ y: -4, boxShadow: 'var(--shadow-lg)' }}
-              whileTap={{ scale: 0.98 }}
             >
-              {/* Image Aspect Ratio Container */}
-              <div style={{ position: 'relative', paddingTop: '140%', backgroundColor: 'var(--color-surface)' }}>
-                {book.image ? (
-                  <img
-                    src={book.image}
-                    alt={book.title}
-                    style={{
+              <div
+                onClick={() => window.open(book.link, '_blank')}
+                style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', flex: 1 }}
+              >
+                {/* Image Aspect Ratio Container */}
+                <div style={{ position: 'relative', paddingTop: '140%', backgroundColor: 'var(--color-surface)' }}>
+                  {book.image ? (
+                    <img
+                      src={book.image}
+                      alt={book.title}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover'
+                      }}
+                    />
+                  ) : (
+                    <div style={{
                       position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover'
-                    }}
-                  />
-                ) : (
+                      top: 0, left: 0, width: '100%', height: '100%',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}>
+                      <Music size={32} color="var(--color-text-light)" />
+                    </div>
+                  )}
+
+                  {/* Play Icon Overlay */}
                   <div style={{
                     position: 'absolute',
-                    top: 0, left: 0, width: '100%', height: '100%',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    bottom: '10px',
+                    right: '10px',
+                    backgroundColor: 'rgba(255,255,255,0.9)',
+                    borderRadius: '50%',
+                    padding: '8px',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
                   }}>
-                    <Music size={32} color="var(--color-text-light)" />
+                    <Play size={16} fill="var(--color-primary)" color="var(--color-primary)" />
                   </div>
-                )}
+                </div>
 
-                {/* Play Icon Overlay */}
+                {/* Info */}
                 <div style={{
-                  position: 'absolute',
-                  bottom: '10px',
-                  right: '10px',
-                  backgroundColor: 'rgba(255,255,255,0.9)',
-                  borderRadius: '50%',
-                  padding: '8px',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                  padding: '0.75rem',
                   display: 'flex',
+                  justifyContent: 'space-between',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  backgroundColor: 'var(--color-card)',
+                  borderTop: '1px solid var(--color-border)',
+                  flex: 1
                 }}>
-                  <Play size={16} fill="var(--color-primary)" color="var(--color-primary)" />
+                  <span style={{
+                    fontWeight: 600,
+                    fontSize: '0.9rem',
+                    color: 'var(--color-text)',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    flex: 1,
+                    marginRight: '0.5rem'
+                  }}>
+                    {book.title}
+                  </span>
                 </div>
               </div>
 
-              {/* Info */}
-              <div style={{
-                padding: '0.75rem',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                backgroundColor: 'var(--color-card)',
-                borderTop: '1px solid var(--color-border)'
-              }}>
-                <span style={{
-                  fontWeight: 600,
-                  fontSize: '0.9rem',
-                  color: 'var(--color-text)',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  flex: 1,
-                  marginRight: '0.5rem'
-                }}>
-                  {book.title}
-                </span>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    handleShare(e, book);
-                  }}
-                  style={{
-                    padding: '6px',
-                    borderRadius: '50%',
-                    border: 'none',
-                    backgroundColor: 'var(--color-surface)',
-                    color: 'var(--color-text-muted)',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                    zIndex: 10
-                  }}
-                >
-                  <Share2 size={16} />
-                </button>
-              </div>
+              {/* Share Button (Absolute or inside info but separate click) */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  handleShare(e, book);
+                }}
+                style={{
+                  position: 'absolute',
+                  bottom: '8px',
+                  right: '8px',
+                  padding: '6px',
+                  borderRadius: '50%',
+                  border: 'none',
+                  backgroundColor: 'var(--color-surface)',
+                  color: 'var(--color-text-muted)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  zIndex: 20,
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                }}
+              >
+                <Share2 size={16} />
+              </button>
             </motion.div>
           ))}
         </div>

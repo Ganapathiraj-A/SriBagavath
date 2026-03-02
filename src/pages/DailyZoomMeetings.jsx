@@ -329,8 +329,9 @@ const DailyZoomMeetings = () => {
         if (!shareRef.current) return;
 
         try {
-            // Increase timeout to ensure images and fonts are fully rendered
-            await new Promise(r => setTimeout(r, 400));
+            // Further increase timeout to ensure all images and fonts are fully rendered
+            // Some devices need more time for WebView to paint the hidden element
+            await new Promise(r => setTimeout(r, 800));
 
             const canvas = await html2canvas(shareRef.current, {
                 useCORS: true,
@@ -341,6 +342,12 @@ const DailyZoomMeetings = () => {
             });
 
             const base64 = canvas.toDataURL('image/jpeg', 0.9).split(',')[1];
+
+            // Check if base64 is suspiciously short (indicates empty/failed capture)
+            if (base64.length < 1000) {
+                throw new Error("Captured image is blank");
+            }
+
             const fileName = `share_${Date.now()}.jpg`;
 
             const result = await Filesystem.writeFile({
@@ -370,7 +377,7 @@ const DailyZoomMeetings = () => {
             displayImage
         });
         // Wait for state update to render
-        setTimeout(() => captureAndShare(`${displayName} - Zoom Meeting`), 200);
+        setTimeout(() => captureAndShare(`${displayName} - Zoom Meeting`), 300);
     };
 
     const handleShareList = () => {
@@ -388,7 +395,7 @@ const DailyZoomMeetings = () => {
             title: activeTab === 'upcoming' ? 'Upcoming Daily Zoom Meetings' : 'Past Daily Zoom Meetings'
         });
 
-        setTimeout(() => captureAndShare('Daily Zoom Meetings List'), 100);
+        setTimeout(() => captureAndShare('Daily Zoom Meetings List'), 300);
     };
 
     const displayedMeetings = (activeTab === 'upcoming' ? upcomingMeetings : pastMeetings)
@@ -600,7 +607,14 @@ const DailyZoomMeetings = () => {
             </div>
 
             {/* Hidden Shareable Template */}
-            <div style={{ position: 'fixed', left: '-5000px', top: 0, zIndex: -1 }}>
+            <div style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                opacity: 0,
+                pointerEvents: 'none',
+                zIndex: -100
+            }}>
                 {sharingData && (
                     <div
                         ref={shareRef}
