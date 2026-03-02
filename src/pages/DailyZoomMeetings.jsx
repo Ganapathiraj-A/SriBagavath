@@ -344,7 +344,6 @@ Join us for our daily spiritual gathering.
             await Share.share({
                 title: `${name} - Daily Zoom Meeting`,
                 text: text,
-                url: meeting.joinUrl,
                 files: files.length > 0 ? files : undefined
             });
         } catch (_err) {
