@@ -298,12 +298,15 @@ const Programs = () => {
 🏢 *Venue:* ${program.programVenue}
 
 ${program.programDescription ? `📝 *Description:*\n${program.programDescription}\n\n` : ''}${program.registrationStatus === 'Open' ? `✅ Registration Open until ${new Date(program.lastDateToRegister).toLocaleDateString()}` : '🚫 Registration Closed'}
-        `.trim() + `\n\nDownload the Sri Bagavath App for the latest updates:\nhttps://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share`;
+        `.trim() + `\n\nDownload the Sri Bagavath App for the latest updates`;
+
+        const appUrl = 'https://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share';
 
         try {
             await Share.share({
                 title: program.programName,
                 text: text,
+                url: appUrl
             });
 
             // Track Share

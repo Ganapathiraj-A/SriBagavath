@@ -330,7 +330,9 @@ ${meeting.youtubeUrl ? `\n🎥 *YouTube Live:* \n${meeting.youtubeUrl}` : ''}
 
 ${meeting.description ? `\n_${meeting.description}_\n` : ''}
 ━━━━━━━━━━━━━━━━━━━━
-        `.trim() + `\n\nDownload the Sri Bagavath App for the latest updates:\nhttps://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share`;
+        `.trim() + `\n\nDownload the Sri Bagavath App for the latest updates`;
+
+        const appUrl = 'https://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share';
 
         try {
             let files = [];
@@ -343,6 +345,7 @@ ${meeting.description ? `\n_${meeting.description}_\n` : ''}
             await Share.share({
                 title: `${name} - Daily Zoom Meeting`,
                 text: text,
+                url: appUrl,
                 files: files.length > 0 ? files : undefined
             });
         } catch (_err) {
@@ -384,7 +387,9 @@ ${meeting.description ? `\n_${meeting.description}_\n` : ''}
             }
         });
 
-        text += '━━━━━━━━━━━━━━━━━━━━\nDownload the Sri Bagavath App for the latest updates:\nhttps://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share';
+        text += '━━━━━━━━━━━━━━━━━━━━\nDownload the Sri Bagavath App for the latest updates';
+
+        const appUrl = 'https://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share';
 
         try {
             let files = [];
@@ -400,6 +405,7 @@ ${meeting.description ? `\n_${meeting.description}_\n` : ''}
             await Share.share({
                 title: 'Daily Zoom Meetings List',
                 text: text,
+                url: appUrl,
                 files: files.length > 0 ? files : undefined
             });
         } catch (_err) {

@@ -35,11 +35,12 @@ const AudioBooks = () => {
   const handleShare = async (e, book) => {
     e.stopPropagation();
     try {
-      const text = `🎧 *${book.title}*\n\nDownload the Sri Bagavath App for the latest updates:\nhttps://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share`;
+      const text = `🎧 *${book.title}*\n\n🔗 *Audio Link:* ${book.link}\n\nDownload the Sri Bagavath App for the latest updates`;
+      const appUrl = 'https://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share';
       await Share.share({
         title: book.title,
         text: text,
-        url: book.link,
+        url: appUrl,
         dialogTitle: 'Share Audio Book'
       });
     } catch (err) {

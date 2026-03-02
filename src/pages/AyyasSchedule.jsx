@@ -91,12 +91,15 @@ const AyyasSchedule = () => {
 📍 *Place:* ${schedule.place}
 📅 ${fromStr}
 📅 ${communitiesStr}
-        `.trim() + `\n\nDownload the Sri Bagavath App for the latest updates:\nhttps://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share`;
+        `.trim() + `\n\nDownload the Sri Bagavath App for the latest updates`;
+
+        const appUrl = 'https://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share';
 
         try {
             await Share.share({
                 title: "Ayya's Schedule",
                 text: shareText,
+                url: appUrl,
                 dialogTitle: "Share Schedule",
             });
         } catch (_err) {
