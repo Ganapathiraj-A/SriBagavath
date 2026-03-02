@@ -142,11 +142,15 @@ const DailyZoomManagement = () => {
         e.preventDefault();
         try {
             if (editingId) {
-                await updateDoc(doc(db, 'daily_zoom_meetings', editingId), formData);
+                // eslint-disable-next-line no-unused-vars
+                const { name, image, ...saveData } = formData;
+                await updateDoc(doc(db, 'daily_zoom_meetings', editingId), saveData);
                 alert('Meeting updated!');
             } else {
+                // eslint-disable-next-line no-unused-vars
+                const { name, image, ...saveData } = formData;
                 await addDoc(collection(db, 'daily_zoom_meetings'), {
-                    ...formData,
+                    ...saveData,
                     createdAt: new Date().toISOString()
                 });
                 alert('Meeting added!');
@@ -463,54 +467,60 @@ const DailyZoomManagement = () => {
                                     No meetings found in {activeTab}.
                                 </div>
                             ) : (
-                                (activeTab === 'upcoming' ? meetings : historyMeetings).map((m) => (
-                                    <div
-                                        key={m.id}
-                                        style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            padding: '1rem',
-                                            backgroundColor: 'var(--color-card)',
-                                            borderRadius: '1rem',
-                                            boxShadow: 'var(--shadow-sm)',
-                                            border: '1px solid var(--color-border)',
-                                            gap: '1rem'
-                                        }}
-                                    >
-                                        <div style={{ width: '3.5rem', height: '3.5rem', borderRadius: '0.75rem', overflow: 'hidden', flexShrink: 0 }}>
-                                            {m.image ? <img src={m.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : <div style={{ width: '100%', height: '100%', backgroundColor: 'var(--color-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><User size={20} color="var(--color-text-light)" /></div>}
-                                        </div>
-                                        <div style={{ flex: 1, minWidth: 0 }}>
-                                            <div style={{
-                                                fontWeight: 600,
-                                                fontSize: '0.95rem',
-                                                color: 'var(--color-text)',
-                                                marginBottom: '0.1rem',
-                                                wordBreak: 'break-word',
-                                                overflowWrap: 'anywhere'
-                                            }}>{m.name}</div>
-                                            <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                                                <Calendar size={13} /> {m.date}
+                                (activeTab === 'upcoming' ? meetings : historyMeetings).map((m) => {
+                                    const teacher = teachers.find(t => t.id === m.teacherId);
+                                    const displayName = teacher?.name || m.name || 'Unknown Speaker';
+                                    const displayImage = teacher?.image || m.image;
+
+                                    return (
+                                        <div
+                                            key={m.id}
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                padding: '1rem',
+                                                backgroundColor: 'var(--color-card)',
+                                                borderRadius: '1rem',
+                                                boxShadow: 'var(--shadow-sm)',
+                                                border: '1px solid var(--color-border)',
+                                                gap: '1rem'
+                                            }}
+                                        >
+                                            <div style={{ width: '3.5rem', height: '3.5rem', borderRadius: '0.75rem', overflow: 'hidden', flexShrink: 0 }}>
+                                                {displayImage ? <img src={displayImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : <div style={{ width: '100%', height: '100%', backgroundColor: 'var(--color-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><User size={20} color="var(--color-text-light)" /></div>}
+                                            </div>
+                                            <div style={{ flex: 1, minWidth: 0 }}>
+                                                <div style={{
+                                                    fontWeight: 600,
+                                                    fontSize: '0.95rem',
+                                                    color: 'var(--color-text)',
+                                                    marginBottom: '0.1rem',
+                                                    wordBreak: 'break-word',
+                                                    overflowWrap: 'anywhere'
+                                                }}>{displayName}</div>
+                                                <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                                    <Calendar size={13} /> {m.date}
+                                                </div>
+                                            </div>
+                                            <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
+                                                <button
+                                                    onClick={() => handleEdit(m)}
+                                                    aria-label={`Edit ${displayName}`}
+                                                    style={{ padding: '0.6rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text-muted)', cursor: 'pointer' }}
+                                                >
+                                                    <Edit2 size={16} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(m.id)}
+                                                    aria-label={`Delete ${displayName}`}
+                                                    style={{ padding: '0.6rem', borderRadius: '0.5rem', border: '1px solid var(--color-error-transparent)', backgroundColor: 'var(--color-error-transparent)', color: 'var(--color-error)', cursor: 'pointer' }}
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
                                             </div>
                                         </div>
-                                        <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
-                                            <button
-                                                onClick={() => handleEdit(m)}
-                                                aria-label={`Edit ${m.name}`}
-                                                style={{ padding: '0.6rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text-muted)', cursor: 'pointer' }}
-                                            >
-                                                <Edit2 size={16} />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(m.id)}
-                                                aria-label={`Delete ${m.name}`}
-                                                style={{ padding: '0.6rem', borderRadius: '0.5rem', border: '1px solid var(--color-error-transparent)', backgroundColor: 'var(--color-error-transparent)', color: 'var(--color-error)', cursor: 'pointer' }}
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))
+                                    );
+                                })
                             )}
                         </div>
                     )}

@@ -10,9 +10,12 @@ import { collection, query, where, orderBy, getDocs, limit, startAfter } from '@
 import { getLocalDateString } from '@/utils/dateUtils';
 import { useAdminAuth } from '@/context/AdminAuthContext';
 
-const MeetingCard = ({ meeting, delay, isAdmin, onShare }) => {
+const MeetingCard = ({ meeting, teacher, delay, isAdmin, onShare }) => {
     const navigate = useNavigate();
     const date = new Date(meeting.date);
+
+    const displayName = teacher?.name || meeting.name || 'Unknown Speaker';
+    const displayImage = teacher?.image || meeting.image;
 
     return (
         <motion.div
@@ -34,8 +37,8 @@ const MeetingCard = ({ meeting, delay, isAdmin, onShare }) => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'center', width: '4.5rem', flexShrink: 0 }}>
                 {/* Photo Above Date */}
                 <LazyImage
-                    src={meeting.image}
-                    alt={meeting.name}
+                    src={displayImage}
+                    alt={displayName}
                     width="4.25rem"
                     height="4.25rem"
                     borderRadius="1rem"
@@ -76,11 +79,11 @@ const MeetingCard = ({ meeting, delay, isAdmin, onShare }) => {
                         wordBreak: 'break-word',
                         overflowWrap: 'anywhere'
                     }}>
-                        {meeting.name}
+                        {displayName}
                     </h3>
                     <button
-                        onClick={() => onShare(meeting)}
-                        aria-label={`Share ${meeting.name}`}
+                        onClick={() => onShare(meeting, displayName)}
+                        aria-label={`Share ${displayName}`}
                         style={{
                             background: 'none',
                             border: 'none',
@@ -289,7 +292,7 @@ const DailyZoomMeetings = () => {
         }
     };
 
-    const handleShareMeeting = async (meeting) => {
+    const handleShareMeeting = async (meeting, displayName) => {
         const date = new Date(meeting.date).toLocaleDateString(undefined, {
             weekday: 'long',
             year: 'numeric',
@@ -297,9 +300,11 @@ const DailyZoomMeetings = () => {
             day: 'numeric'
         });
 
+        const name = displayName || meeting.name || 'Unknown Speaker';
+
         const text = `
 *Daily Zoom Meeting*
-*${meeting.name}*
+*${name}*
 📅 ${date}
 
 🔗 *Zoom Link:* ${meeting.joinUrl}
@@ -311,7 +316,7 @@ Join us for our daily spiritual gathering.
 
         try {
             await Share.share({
-                title: `${meeting.name} - Daily Zoom Meeting`,
+                title: `${name} - Daily Zoom Meeting`,
                 text: text,
                 url: meeting.joinUrl
             });
@@ -341,7 +346,9 @@ Join us for our daily spiritual gathering.
 
         filtered.forEach(m => {
             const date = new Date(m.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-            text += `• ${date}: *${m.name}*\n  🔗 ${m.joinUrl}\n\n`;
+            const teacher = teachers.find(t => t.id === m.teacherId);
+            const name = teacher?.name || m.name || 'Unknown Speaker';
+            text += `• ${date}: *${name}*\n  🔗 ${m.joinUrl}\n\n`;
         });
 
         text += 'Join our daily spiritual gatherings online.';
@@ -525,6 +532,7 @@ Join us for our daily spiritual gathering.
                             <MeetingCard
                                 key={m.id}
                                 meeting={m}
+                                teacher={teachers.find(t => t.id === m.teacherId)}
                                 delay={idx * 0.05}
                                 isAdmin={isAdmin}
                                 onShare={handleShareMeeting}
