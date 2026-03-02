@@ -319,14 +319,17 @@ const DailyZoomMeetings = () => {
         const name = displayName || meeting.name || 'Unknown Speaker';
 
         const text = `
-*Daily Zoom Meeting*
-*${name}*
-📅 ${date}
+✨ *Daily Zoom Meeting* ✨
+━━━━━━━━━━━━━━━━━━━━
+👤 *Speaker:* ${name}
+📅 *Date:* ${date}
 
-🔗 *Zoom Link:* ${meeting.joinUrl}
-${meeting.youtubeUrl ? `🎥 *YouTube:* ${meeting.youtubeUrl}` : ''}
+🔗 *Join Link:*
+${meeting.joinUrl}
+${meeting.youtubeUrl ? `\n🎥 *YouTube Live:* \n${meeting.youtubeUrl}` : ''}
 
 ${meeting.description ? `\n_${meeting.description}_\n` : ''}
+━━━━━━━━━━━━━━━━━━━━
 Join us for our daily spiritual gathering.
         `.trim();
 
@@ -363,17 +366,17 @@ Join us for our daily spiritual gathering.
             return;
         }
 
-        const listTitle = activeTab === 'upcoming' ? '*Upcoming Daily Zoom Meetings*' : '*Past Daily Zoom Meetings*';
-        const teacherName = selectedTeacherId === 'all' ? '' : ` (Speaker: ${teachers.find(t => t.id === selectedTeacherId)?.name})`;
+        const listTitle = activeTab === 'upcoming' ? '🗓️ *Upcoming Daily Zoom Meetings*' : '⏳ *Past Daily Zoom Meetings*';
+        const teacherName = selectedTeacherId === 'all' ? '' : `\n(Speaker: ${teachers.find(t => t.id === selectedTeacherId)?.name})`;
 
-        let text = `${listTitle}${teacherName}\n\n`;
+        let text = `🌟 ${listTitle}${teacherName}\n━━━━━━━━━━━━━━━━━━━━\n\n`;
         let imagesToShare = new Map(); // Use Map to track unique images by speaker
 
         filtered.forEach(m => {
-            const date = new Date(m.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+            const date = new Date(m.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', weekday: 'short' });
             const teacher = teachers.find(t => t.id === m.teacherId);
             const name = teacher?.name || m.name || 'Unknown Speaker';
-            text += `• ${date}: *${name}*\n  🔗 ${m.joinUrl}\n\n`;
+            text += `🔹 *${date}* • ${name}\n🔗 ${m.joinUrl}\n\n`;
 
             if (teacher?.image && !imagesToShare.has(teacher.id)) {
                 imagesToShare.set(teacher.id, { id: teacher.id, image: teacher.image });
@@ -383,7 +386,7 @@ Join us for our daily spiritual gathering.
             }
         });
 
-        text += 'Join our daily spiritual gatherings online.';
+        text += '━━━━━━━━━━━━━━━━━━━━\nJoin our daily spiritual gatherings online.';
 
         try {
             let files = [];

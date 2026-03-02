@@ -2,9 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ChevronLeft, IndianRupee, Plus, Minus } from 'lucide-react';
+import { ChevronLeft, IndianRupee, Plus, Minus, Share2 } from 'lucide-react';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
+import { Share } from '@capacitor/share';
+import { Filesystem, Directory } from '@capacitor/filesystem';
 import { ensureGoogleAuthInitialized } from '@/utils/GoogleAuthUtils';
 import { auth, db } from '@/firebase';
 import { doc, getDocCacheFirst } from '@/utils/FirestoreProxy';
@@ -56,6 +58,48 @@ const BookDetails = () => {
     const handleAddToCart = async () => {
         if (await ensureAuth()) {
             addToCart(book);
+        }
+    };
+
+    const handleShare = async () => {
+        if (!book) return;
+
+        const text = `
+📙 *${book.title}*
+_${book.category}_
+
+💰 *Price:* ₹${book.price}
+
+📖 *Description:*
+${book.description || 'No description available.'}
+
+Download the Sri Bagavath App for more spiritual resources.
+        `.trim();
+
+        try {
+            let files = [];
+            if (cover) {
+                const cleanBase64 = cover.includes(',') ? cover.split(',')[1] : cover;
+                const fileName = `book_${book.id}_${Date.now()}.jpg`;
+                const result = await Filesystem.writeFile({
+                    path: fileName,
+                    data: cleanBase64,
+                    directory: Directory.Cache
+                });
+                files.push(result.uri);
+            }
+
+            await Share.share({
+                title: book.title,
+                text: text,
+                files: files.length > 0 ? files : undefined
+            });
+        } catch (_err) {
+            console.error('Error sharing book:', _err);
+            if (navigator.clipboard) {
+                await navigator.clipboard.writeText(text);
+                alert('Details copied to clipboard!');
+            }
         }
     };
 
@@ -128,7 +172,27 @@ const BookDetails = () => {
                             <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-text)', marginBottom: '8px' }}>{book.title}</h2>
                             <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', backgroundColor: 'var(--color-surface)', display: 'inline-block', padding: '4px 12px', borderRadius: '9999px', marginBottom: '16px' }}>{book.category}</p>
 
-                            <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--color-primary)', marginBottom: '20px' }}>₹{book.price}</div>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                                <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>₹{book.price}</div>
+                                <button
+                                    onClick={handleShare}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        padding: '8px 16px',
+                                        backgroundColor: 'var(--color-surface)',
+                                        color: 'var(--color-primary)',
+                                        border: '1px solid var(--color-primary)',
+                                        borderRadius: '12px',
+                                        fontWeight: 600,
+                                        fontSize: '0.9rem',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    <Share2 size={18} /> Share
+                                </button>
+                            </div>
 
                             <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '20px', marginBottom: '24px' }}>
                                 <p style={{ fontSize: '1rem', lineHeight: '1.6', color: 'var(--color-text)', whiteSpace: 'pre-line' }}>
@@ -159,7 +223,7 @@ const BookDetails = () => {
                                     <button
                                         onClick={handleAddToCart}
                                         disabled={authLoading}
-                                        style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '16px', backgroundColor: 'var(--color-primary)', color: 'var(--color-text-on-primary)', border: 'none', borderRadius: '12px', fontWeight: 'bold', fontSize: '1rem', cursor: authLoading ? 'wait' : 'pointer' }}
+                                        style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '16px', backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 'bold', fontSize: '1rem', cursor: authLoading ? 'wait' : 'pointer' }}
                                     >
                                         <IndianRupee size={20} /> {authLoading ? 'Signing in...' : 'Add to Cart'}
                                     </button>
