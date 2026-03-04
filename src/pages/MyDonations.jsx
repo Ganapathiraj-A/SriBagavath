@@ -197,7 +197,7 @@ const MyDonations = () => {
                                         </button>
                                     </div>
                                     <img
-                                        src={`data:image/jpeg;base64,${viewingImage.base64}`}
+                                        src={viewingImage.base64.startsWith('data:') ? viewingImage.base64 : `data:image/jpeg;base64,${viewingImage.base64}`}
                                         alt="Receipt"
                                         style={{ width: '100%', borderRadius: '8px', maxHeight: '65vh', objectFit: 'contain', border: '1px solid var(--color-border)' }}
                                     />
@@ -227,7 +227,7 @@ const MyDonations = () => {
                                             {formatDate(donation.timestamp)}
                                         </span>
                                         <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: 'var(--color-text)' }}>
-                                            General Donation
+                                            {donation.itemName || 'General Donation'}
                                         </h3>
                                     </div>
                                     <span style={{

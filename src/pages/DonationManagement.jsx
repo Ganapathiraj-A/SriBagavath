@@ -88,10 +88,13 @@ const DonationManagement = () => {
         if (activeStatus !== 'ALL' && donation.status !== activeStatus) return false;
 
         // Search Filter
+        const donorName = donation.name || donation.shippingAddress?.name || 'Anonymous';
+        const donorCity = donation.city || donation.shippingAddress?.city || '';
+
         const matchesSearch = !searchTerm.trim() ||
-            donation.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            donation.donationId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            donation.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            donorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            donation.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            donorCity.toLowerCase().includes(searchTerm.toLowerCase()) ||
             donation.utr?.toLowerCase().includes(searchTerm.toLowerCase());
 
         return matchesSearch;
@@ -467,8 +470,10 @@ const DonationManagement = () => {
                     >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                             <div>
-                                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--color-text)' }}>{donation.name}</h3>
-                                <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>ID: {donation.donationId}</p>
+                                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--color-text)' }}>
+                                    {donation.name || donation.shippingAddress?.name || 'Anonymous Donor'}
+                                </h3>
+                                <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>ID: {donation.id?.substring(0, 8)}</p>
                             </div>
                             <div style={{
                                 padding: '0.4rem 0.75rem',
@@ -498,7 +503,8 @@ const DonationManagement = () => {
                             <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '6px' }}>
                                 <MapPin size={14} color="var(--color-text-muted)" />
                                 <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                    {donation.city}, {donation.state}
+                                    {donation.city || donation.shippingAddress?.city || 'Location Unknown'}
+                                    {(donation.state || donation.shippingAddress?.state) ? `, ${donation.state || donation.shippingAddress?.state}` : ''}
                                 </span>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--color-primary)', fontWeight: 600, fontSize: '0.85rem' }}>
