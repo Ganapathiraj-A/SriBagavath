@@ -148,12 +148,21 @@ export const AdminAuthProvider = ({ children }) => {
             }
         });
 
+        // Safety timeout: ensure app initializes even if Auth/Firestore hangs
+        const safetyTimer = setTimeout(() => {
+            if (!isInitialized) {
+                console.warn("[AdminAuth] Safety timeout reached, forcing initialization");
+                setIsInitialized(true);
+            }
+        }, 5000);
+
         return () => {
+            clearTimeout(safetyTimer);
             authUnsubscribe();
             if (adminUnsubscribe) adminUnsubscribe();
             if (requestUnsubscribe) requestUnsubscribe();
         };
-    }, []);
+    }, [isInitialized]);
 
     return (
         <AdminAuthContext.Provider value={{

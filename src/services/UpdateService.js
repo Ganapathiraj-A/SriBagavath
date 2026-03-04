@@ -60,7 +60,7 @@ class UpdateService {
         }
 
         const prefSource = settings.updateSource || localStorage.getItem('settings_updateSource') || 'auto';
-        const serverUrl = settings.serverUrl || localStorage.getItem('settings_serverUrl') || "http://192.168.1.2:8080";
+        const serverUrl = settings.serverUrl || localStorage.getItem('settings_serverUrl') || "http://localhost:8080";
 
         console.log(`Checking for updates... Current: ${currentVer}, Source: ${prefSource}, Server: ${serverUrl}`);
 

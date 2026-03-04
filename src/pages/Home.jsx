@@ -90,7 +90,7 @@ const MenuButton = ({ title, icon: Icon, path, delay, badgeCount, skipAnimation 
 import { useUnseenCounts } from '@/hooks/useUnseenCounts';
 
 const Home = () => {
-    const { user, isAdmin } = useAdminAuth();
+    const { user, isAdmin, isInitialized } = useAdminAuth();
     const { serverUrl, appVersion, landingPage } = useGlobalSettings();
     const [authLoading, setAuthLoading] = React.useState(false);
     const navigate = useNavigate();
@@ -113,6 +113,8 @@ const Home = () => {
             StatsService.trackUserLogin().catch(() => { });
         }
     }, [user]);
+
+
 
     // Landing Page Redirection Logic
 
