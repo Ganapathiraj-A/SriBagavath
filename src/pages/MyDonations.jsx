@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { TransactionService } from '@/services/TransactionService';
 import PageHeader from '@/components/PageHeader';
-import { LogIn } from 'lucide-react';
+import { LogIn, Receipt, X } from 'lucide-react';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
 import { ensureGoogleAuthInitialized } from '@/utils/GoogleAuthUtils';
@@ -13,6 +13,7 @@ const MyDonations = () => {
     const [loading, setLoading] = useState(true);
     const [authLoading, setAuthLoading] = useState(false);
     const [currentUser, setCurrentUser] = useState(auth.currentUser);
+    const [viewingImage, setViewingImage] = useState(null);
 
     useEffect(() => {
         const unsubAuth = auth.onAuthStateChanged(user => {
@@ -50,6 +51,20 @@ const MyDonations = () => {
             return false;
         } finally {
             setAuthLoading(false);
+        }
+    };
+
+    const handleViewReceipt = async (id, utr) => {
+        try {
+            const base64 = await TransactionService.getImage(id);
+            if (base64) {
+                setViewingImage({ base64, utr });
+            } else {
+                alert("No receipt image found for this donation.");
+            }
+        } catch (_err) {
+            console.error("Error fetching receipt:", _err);
+            alert("Error loading receipt.");
         }
     };
 
@@ -158,6 +173,45 @@ const MyDonations = () => {
                             </div>
                         )}
 
+                        {/* Receipt Modal */}
+                        {viewingImage && (
+                            <div className="modal-overlay" onClick={() => setViewingImage(null)} style={{ zIndex: 1000 }}>
+                                <div className="modal-content" onClick={e => e.stopPropagation()} style={{
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    gap: '15px',
+                                    background: 'var(--color-card)',
+                                    padding: '15px',
+                                    borderRadius: '16px',
+                                    maxWidth: '90%',
+                                    boxShadow: 'var(--shadow-lg)',
+                                    border: '1px solid var(--color-border)'
+                                }}>
+                                    <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                                        <div>
+                                            <h2 style={{ margin: 0, fontSize: '18px', color: 'var(--color-text)' }}>Donation Receipt</h2>
+                                            {viewingImage.utr && <div style={{ fontSize: '12px', color: 'var(--color-primary)', fontWeight: 600 }}>UTR: {viewingImage.utr}</div>}
+                                        </div>
+                                        <button onClick={() => setViewingImage(null)} style={{ border: 'none', background: 'none', padding: '5px', cursor: 'pointer' }}>
+                                            <X size={24} color="var(--color-text-muted)" />
+                                        </button>
+                                    </div>
+                                    <img
+                                        src={`data:image/jpeg;base64,${viewingImage.base64}`}
+                                        alt="Receipt"
+                                        style={{ width: '100%', borderRadius: '8px', maxHeight: '65vh', objectFit: 'contain', border: '1px solid var(--color-border)' }}
+                                    />
+                                    <button
+                                        className="btn-primary"
+                                        onClick={() => setViewingImage(null)}
+                                        style={{ width: '100%', background: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: '8px', height: '48px', fontWeight: 600, cursor: 'pointer' }}
+                                    >
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
                         {donations.map(donation => (
                             <div key={donation.id} className="card" style={{
                                 marginBottom: '16px',
@@ -191,8 +245,18 @@ const MyDonations = () => {
                                 </div>
 
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--color-border)' }}>
-                                    <span style={{ color: 'var(--color-text-muted)', fontSize: '14px' }}>Amount Paid</span>
-                                    <span style={{ fontSize: '20px', fontWeight: '800', color: '#10b981' }}>₹{donation.amount}</span>
+                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                        <span style={{ color: 'var(--color-text-muted)', fontSize: '14px' }}>Amount Paid</span>
+                                        <span style={{ fontSize: '20px', fontWeight: '800', color: '#10b981' }}>₹{donation.amount}</span>
+                                    </div>
+                                    {donation.hasImage && (
+                                        <div
+                                            onClick={() => handleViewReceipt(donation.id, donation.utr)}
+                                            style={{ fontSize: '12px', color: 'var(--color-primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: '8px', borderRadius: '8px', backgroundColor: 'var(--color-primary-transparent)' }}
+                                        >
+                                            <Receipt size={16} /> View Receipt
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ))}

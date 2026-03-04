@@ -452,7 +452,7 @@ const DonationManagement = () => {
                     <motion.div
                         key={donation.id}
                         layout
-                        onClick={() => navigate(`/donation-management/${donation.id}`)}
+                        onClick={() => donation.hasImage ? handleViewImage(donation) : null}
                         style={{
                             backgroundColor: 'var(--color-surface)',
                             padding: '1.25rem',
@@ -461,7 +461,7 @@ const DonationManagement = () => {
                             display: 'flex',
                             flexDirection: 'column',
                             gap: '1rem',
-                            cursor: 'pointer',
+                            cursor: donation.hasImage ? 'pointer' : 'default',
                             boxShadow: 'var(--shadow-sm)'
                         }}
                     >

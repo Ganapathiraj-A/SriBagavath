@@ -519,7 +519,7 @@ const PaymentFlow = () => {
                             maxWidth: '90%'
                         }}>
                             <img
-                                src={`data: image / jpeg; base64, ${viewingImage} `}
+                                src={`data:image/jpeg;base64,${viewingImage}`}
                                 alt="Receipt"
                                 style={{ width: '100%', borderRadius: '8px', maxHeight: '75vh', objectFit: 'contain' }}
                             />
