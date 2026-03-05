@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Check, Trash2, Rewind, Package, Heart, X, Search, Calendar, MapPin, ChevronRight } from 'lucide-react';
+import { ChevronLeft, Check, Trash2, Rewind, Package, Heart, X, Search, Calendar, MapPin, ChevronRight, Phone } from 'lucide-react';
 import { TransactionService } from '@/services/TransactionService';
 import PageHeader from '@/components/PageHeader';
 import { compressImage } from '@/utils/imageUtils';
@@ -473,7 +473,18 @@ const DonationManagement = () => {
                                 <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--color-text)' }}>
                                     {donation.name || donation.shippingAddress?.name || 'Anonymous Donor'}
                                 </h3>
-                                <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>ID: {donation.id?.substring(0, 8)}</p>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                                    <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>ID: {donation.id?.substring(0, 8)}</p>
+                                    {(donation.mobile || donation.shippingAddress?.mobile) && (
+                                        <>
+                                            <span style={{ color: 'var(--color-border)', fontSize: '12px' }}>|</span>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', color: 'var(--color-text-secondary)', fontWeight: 600 }}>
+                                                <Phone size={12} />
+                                                {donation.mobile || donation.shippingAddress?.mobile}
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
                             </div>
                             <div style={{
                                 padding: '0.4rem 0.75rem',
