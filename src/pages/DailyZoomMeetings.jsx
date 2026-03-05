@@ -809,7 +809,7 @@ const DailyZoomMeetings = () => {
                         {/* Footer */}
                         <div style={{ textAlign: 'center', marginTop: '40px', paddingTop: '20px', borderTop: '2px solid #f3f4f6' }}>
                             <p style={{ margin: 0, color: '#f97316', fontSize: '16px', fontWeight: 800 }}>
-                                Download Sri Bagavath App for latest details
+                                Download Sri Bagavath App for latest updates
                             </p>
                         </div>
                     </div>

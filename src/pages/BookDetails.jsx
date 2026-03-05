@@ -112,7 +112,7 @@ const BookDetails = () => {
 
             await Share.share({
                 title: currentData.title,
-                text: `Check out this book: ${currentData.title}`,
+                text: `Check out this book: ${currentData.title}\n\nDownload Sri Bagavath App for latest updates`,
                 files: [result.uri]
             });
         } catch (error) {
@@ -355,7 +355,7 @@ const BookDetails = () => {
 
                         <div style={{ marginTop: '40px', textAlign: 'center', backgroundColor: '#f97316', padding: '20px', borderRadius: '15px', color: 'white' }}>
                             <p style={{ margin: 0, fontSize: '18px', fontWeight: 700 }}>
-                                📲 Download Sri Bagavath App from Play Store
+                                Download Sri Bagavath App for latest updates
                             </p>
                             <p style={{ margin: '5px 0 0 0', fontSize: '14px', opacity: 0.9 }}>
                                 For latest spiritual updates and publications

@@ -85,17 +85,14 @@ const AyyasSchedule = () => {
         const fromStr = fromDate.toLocaleDateString(undefined, dateOptions);
         const communitiesStr = toDate.toLocaleDateString(undefined, dateOptions);
 
-        const appUrl = 'https://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share';
         const shareText = `
-📲 *Download the Sri Bagavath App:* ${appUrl}
-
 *Ayya's Schedule*
 
 📍 *Place:* ${schedule.place}
 📅 ${fromStr}
 📅 ${communitiesStr}
 ━━━━━━━━━━━━━━━━━━━━
-Download the App for the latest updates`.trim();
+Download Sri Bagavath App for latest updates`.trim();
 
         try {
             await Share.share({
