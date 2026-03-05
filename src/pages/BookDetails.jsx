@@ -1,11 +1,12 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { IndianRupee, Plus, Minus, Share2 } from 'lucide-react';
+import { IndianRupee, Plus, Minus, Share2, Loader2 } from 'lucide-react';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
 import { Share } from '@capacitor/share';
 import { Filesystem, Directory } from '@capacitor/filesystem';
+import html2canvas from 'html2canvas';
 import { ensureGoogleAuthInitialized } from '@/utils/GoogleAuthUtils';
 import { auth, db } from '@/firebase';
 import { doc, getDocCacheFirst } from '@/utils/FirestoreProxy';
@@ -21,6 +22,9 @@ const BookDetails = () => {
     const [cover, setCover] = useState(null);
     const [loading, setLoading] = useState(true);
     const [authLoading, setAuthLoading] = useState(false);
+    const [isSharing, setIsSharing] = useState(false);
+    const shareRef = useRef(null);
+    const [sharingData, setSharingData] = useState(null);
 
     const ensureAuth = async () => {
         if (auth.currentUser && !auth.currentUser.isAnonymous) {
@@ -60,48 +64,82 @@ const BookDetails = () => {
         }
     };
 
-    const handleShare = async () => {
-        if (!book) return;
+    const fetchAsBase64 = async (url) => {
+        if (!url || !url.startsWith('http')) return url;
+        try {
+            const response = await fetch(url, { mode: 'cors', credentials: 'omit' });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const blob = await response.blob();
+            return await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.readAsDataURL(blob);
+            });
+        } catch (e) {
+            console.error("fetchAsBase64 failed:", e);
+            return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=";
+        }
+    };
 
-        const appUrl = 'https://play.google.com/store/apps/details?id=com.bhavathpathai.app&pcampaignid=web_share';
-        const text = `
-📲 *Download the Sri Bagavath App:* ${appUrl}
-
-📙 *${book.title}*
-_${book.category}_
-
-💰 *Price:* ₹${book.price}
-
-📖 *Description:*
-${book.description || 'No description available.'}
-━━━━━━━━━━━━━━━━━━━━
-Download the App for the latest updates`.trim();
+    const captureAndShare = async (dataOverride = null) => {
+        if (!shareRef.current) return;
+        const currentData = dataOverride || sharingData;
+        if (!currentData) return;
 
         try {
-            let files = [];
-            if (cover) {
-                const cleanBase64 = cover.includes(',') ? cover.split(',')[1] : cover;
-                const fileName = `book_${book.id}_${Date.now()}.jpg`;
-                const result = await Filesystem.writeFile({
-                    path: fileName,
-                    data: cleanBase64,
-                    directory: Directory.Cache,
-                    encoding: 'base64'
-                });
-                files.push(result.uri);
-            }
+            const canvas = await html2canvas(shareRef.current, {
+                useCORS: true,
+                scale: 3,
+                backgroundColor: '#ffffff',
+                width: 800,
+                onclone: (doc) => {
+                    const el = doc.getElementById('share-container-wrapper');
+                    if (el) {
+                        el.style.opacity = '1';
+                        el.style.visibility = 'visible';
+                    }
+                }
+            });
+
+            const finalData = canvas.toDataURL('image/jpeg', 0.95).split(',')[1];
+            const fileName = `book_share_${Date.now()}.jpg`;
+
+            const result = await Filesystem.writeFile({
+                path: fileName,
+                data: finalData,
+                directory: Directory.Cache
+            });
 
             await Share.share({
-                title: book.title,
-                text: text,
-                files: files.length > 0 ? files : undefined
+                title: currentData.title,
+                text: `Check out this book: ${currentData.title}`,
+                files: [result.uri]
             });
-        } catch (_err) {
-            console.error('Error sharing book:', _err);
-            if (navigator.clipboard) {
-                await navigator.clipboard.writeText(text);
-                alert('Details copied to clipboard!');
-            }
+        } catch (error) {
+            console.error("captureAndShare error:", error);
+        } finally {
+            setIsSharing(false);
+        }
+    };
+
+    const handleShare = async () => {
+        if (!book) return;
+        setIsSharing(true);
+
+        try {
+            const b64Cover = await fetchAsBase64(cover);
+            const shareInfo = {
+                title: book.title,
+                category: book.category,
+                price: book.price,
+                description: book.description,
+                cover: b64Cover
+            };
+            setSharingData(shareInfo);
+            setTimeout(() => captureAndShare(shareInfo), 1000);
+        } catch (error) {
+            console.error('Error sharing book:', error);
+            setIsSharing(false);
         }
     };
 
@@ -178,6 +216,7 @@ Download the App for the latest updates`.trim();
                                 <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>₹{book.price}</div>
                                 <button
                                     onClick={handleShare}
+                                    disabled={isSharing}
                                     style={{
                                         display: 'flex',
                                         alignItems: 'center',
@@ -189,10 +228,12 @@ Download the App for the latest updates`.trim();
                                         borderRadius: '12px',
                                         fontWeight: 600,
                                         fontSize: '0.9rem',
-                                        cursor: 'pointer'
+                                        cursor: isSharing ? 'wait' : 'pointer',
+                                        opacity: isSharing ? 0.7 : 1
                                     }}
                                 >
-                                    <Share2 size={18} /> Share
+                                    {isSharing ? <Loader2 size={18} className="animate-spin" /> : <Share2 size={18} />}
+                                    Share
                                 </button>
                             </div>
 
@@ -234,6 +275,94 @@ Download the App for the latest updates`.trim();
                         </div>
                     </div>
                 </div>
+            </div>
+
+            {/* Hidden Shareable Template */}
+            <div style={{
+                position: 'fixed',
+                top: '0',
+                left: '0',
+                width: '800px',
+                zIndex: -1000,
+                opacity: 0.01,
+                pointerEvents: 'none'
+            }}>
+                {sharingData && (
+                    <div
+                        id="share-container-wrapper"
+                        ref={shareRef}
+                        style={{
+                            width: '800px',
+                            backgroundColor: '#ffffff',
+                            padding: '40px',
+                            fontFamily: 'system-ui, -apple-system, sans-serif'
+                        }}
+                    >
+                        {/* Header */}
+                        <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+                            <h1 style={{ color: '#f97316', margin: '0 0 10px 0', fontSize: '28px', fontWeight: 800 }}>
+                                Sri Bagavath App
+                            </h1>
+                            <div style={{ height: '3px', width: '80px', backgroundColor: '#f97316', margin: '0 auto' }}></div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '40px', alignItems: 'flex-start' }}>
+                            {/* Left: Cover */}
+                            <div style={{ width: '300px', flexShrink: 0 }}>
+                                {sharingData.cover && (
+                                    <img
+                                        src={sharingData.cover}
+                                        style={{
+                                            width: '100%',
+                                            borderRadius: '20px',
+                                            boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
+                                            border: '1px solid #e5e7eb'
+                                        }}
+                                        alt=""
+                                    />
+                                )}
+                            </div>
+
+                            {/* Right: Details */}
+                            <div style={{ flex: 1 }}>
+                                <h2 style={{ fontSize: '32px', color: '#111827', margin: '0 0 10px 0', fontWeight: 800, lineHeight: 1.2 }}>
+                                    {sharingData.title}
+                                </h2>
+                                <p style={{
+                                    display: 'inline-block',
+                                    padding: '6px 16px',
+                                    backgroundColor: '#fff7ed',
+                                    color: '#ea580c',
+                                    borderRadius: '9999px',
+                                    fontSize: '18px',
+                                    fontWeight: 600,
+                                    marginBottom: '20px'
+                                }}>
+                                    {sharingData.category}
+                                </p>
+
+                                <div style={{ fontSize: '28px', fontWeight: 800, color: '#f97316', marginBottom: '24px' }}>
+                                    ₹{sharingData.price}
+                                </div>
+
+                                <div style={{ borderTop: '1px solid #f3f4f6', paddingTop: '20px' }}>
+                                    <p style={{ fontSize: '18px', lineHeight: 1.6, color: '#374151', margin: 0, whiteSpace: 'pre-line' }}>
+                                        {sharingData.description}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style={{ marginTop: '40px', textAlign: 'center', backgroundColor: '#f97316', padding: '20px', borderRadius: '15px', color: 'white' }}>
+                            <p style={{ margin: 0, fontSize: '18px', fontWeight: 700 }}>
+                                📲 Download Sri Bagavath App from Play Store
+                            </p>
+                            <p style={{ margin: '5px 0 0 0', fontSize: '14px', opacity: 0.9 }}>
+                                For latest spiritual updates and publications
+                            </p>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
