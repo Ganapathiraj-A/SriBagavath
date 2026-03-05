@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Share2, ChevronLeft } from 'lucide-react';
+import { Share2, ChevronLeft, Loader2 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import PageHeader from '@/components/PageHeader';
 import { Share } from '@capacitor/share';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import html2canvas from 'html2canvas';
 import { db } from '@/firebase';
 import { collection, query, orderBy } from '@/utils/FirestoreProxy';
 import { getLocalDateString } from '@/utils/dateUtils';
@@ -13,6 +15,8 @@ const AyyasSchedule = () => {
     const navigate = useNavigate();
     const [schedules, setSchedules] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isSharingAll, setIsSharingAll] = useState(false);
+    const shareAllRef = useRef(null);
     const location = useLocation();
     const { loading: authGlobalLoading, isAdmin, hasAccess } = useAdminAuth();
 
@@ -74,6 +78,48 @@ const AyyasSchedule = () => {
         localStorage.setItem('lastVisited_schedule', new Date().toISOString());
         fetchSchedules();
     }, [authGlobalLoading]);
+
+    const handleShareAll = async () => {
+        if (!shareAllRef.current || schedules.length === 0) return;
+        setIsSharingAll(true);
+        try {
+            const canvas = await html2canvas(shareAllRef.current, {
+                useCORS: true,
+                scale: 2,
+                backgroundColor: '#ffffff',
+                width: 800,
+                onclone: (doc) => {
+                    const el = doc.getElementById('full-schedule-share-template');
+                    if (el) {
+                        el.style.display = 'block';
+                        el.style.opacity = '1';
+                        el.style.visibility = 'visible';
+                    }
+                }
+            });
+
+            const fileName = `ayya_schedule_list_${Date.now()}.jpg`;
+            const base64Data = canvas.toDataURL('image/jpeg', 0.9).split(',')[1];
+
+            const result = await Filesystem.writeFile({
+                path: fileName,
+                data: base64Data,
+                directory: Directory.Cache
+            });
+
+            const shareText = `📅 *Ayya's Full Schedule*\n\nDownload Sri Bagavath App for latest updates`;
+
+            await Share.share({
+                title: "Ayya's Schedule",
+                text: shareText,
+                files: [result.uri]
+            });
+        } catch (error) {
+            console.error("[Schedule] Full list share failed:", error);
+        } finally {
+            setIsSharingAll(false);
+        }
+    };
 
     const handleShare = async (schedule) => {
         if (!schedule) return;
@@ -140,26 +186,48 @@ Download Sri Bagavath App for latest updates`.trim();
                     </button>
                 }
                 rightAction={
-                    (isAdmin || hasAccess('PROGRAM_MANAGEMENT')) && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <button
-                            onClick={() => navigate('/schedule/manage', { state: { returnPath: location.pathname } })}
+                            onClick={handleShareAll}
+                            disabled={isSharingAll || schedules.length === 0}
                             style={{
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '0.4rem',
-                                padding: '0.5rem 0.8rem',
-                                backgroundColor: 'var(--color-primary-transparent)',
-                                color: 'var(--color-primary)',
-                                border: '1px solid var(--color-primary-transparent)',
-                                borderRadius: '0.75rem',
-                                fontSize: '0.85rem',
-                                fontWeight: 600,
-                                cursor: 'pointer'
+                                justifyContent: 'center',
+                                width: '40px',
+                                height: '40px',
+                                backgroundColor: 'var(--color-card)',
+                                border: '1px solid var(--color-border)',
+                                borderRadius: '50%',
+                                cursor: isSharingAll ? 'default' : 'pointer',
+                                boxShadow: 'var(--shadow-sm)',
+                                color: 'var(--color-primary)'
                             }}
+                            title="Share Full List"
                         >
-                            Edit
+                            {isSharingAll ? <Loader2 size={20} className="animate-spin" /> : <Share2 size={20} />}
                         </button>
-                    )
+                        {(isAdmin || hasAccess('PROGRAM_MANAGEMENT')) && (
+                            <button
+                                onClick={() => navigate('/schedule/manage', { state: { returnPath: location.pathname } })}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.4rem',
+                                    padding: '0.5rem 0.8rem',
+                                    backgroundColor: 'var(--color-primary-transparent)',
+                                    color: 'var(--color-primary)',
+                                    border: '1px solid var(--color-primary-transparent)',
+                                    borderRadius: '0.75rem',
+                                    fontSize: '0.85rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Edit
+                            </button>
+                        )}
+                    </div>
                 }
             />
             <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
@@ -294,6 +362,104 @@ Download Sri Bagavath App for latest updates`.trim();
                     )}
                 </div>
             </div>
+
+            {/* Hidden Shareable Template for Full List */}
+            <div style={{
+                position: 'fixed',
+                top: '0',
+                left: '0',
+                width: '800px',
+                zIndex: -1000,
+                opacity: 0.01,
+                pointerEvents: 'none'
+            }}>
+                <div
+                    id="full-schedule-share-template"
+                    ref={shareAllRef}
+                    style={{
+                        width: '800px',
+                        backgroundColor: '#ffffff',
+                        padding: '60px 40px',
+                        fontFamily: 'system-ui, -apple-system, sans-serif'
+                    }}
+                >
+                    {/* Header branding */}
+                    <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+                        <h1 style={{ color: '#f97316', margin: '0 0 10px 0', fontSize: '32px', fontWeight: 800 }}>
+                            Ayya's Schedule
+                        </h1>
+                        <div style={{ height: '4px', width: '100px', backgroundColor: '#f97316', margin: '0 auto' }}></div>
+                    </div>
+
+                    {/* Schedule List */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                        {schedules.map((s) => (
+                            <div key={s.id} style={{
+                                backgroundColor: '#fff7ed',
+                                borderRadius: '20px',
+                                padding: '25px',
+                                border: '1px solid #ffedd5',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '30px'
+                            }}>
+                                {/* Date Section */}
+                                <div style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    backgroundColor: '#ffffff',
+                                    color: '#f97316',
+                                    padding: '15px',
+                                    borderRadius: '15px',
+                                    minWidth: '100px',
+                                    border: '1px solid #ffedd5'
+                                }}>
+                                    <span style={{ fontSize: '18px', fontWeight: 700, textTransform: 'uppercase' }}>
+                                        {new Date(s.fromDate).toLocaleDateString(undefined, { month: 'short' })}
+                                    </span>
+                                    <span style={{ fontSize: '36px', fontWeight: 800 }}>
+                                        {new Date(s.fromDate).getDate()}
+                                    </span>
+                                </div>
+
+                                {/* Content Section */}
+                                <div style={{ flex: 1 }}>
+                                    <h2 style={{ fontSize: '28px', fontWeight: 700, color: '#111827', margin: '0 0 8px 0' }}>
+                                        {s.place}
+                                    </h2>
+                                    <p style={{ fontSize: '20px', color: '#4b5563', margin: 0 }}>
+                                        {new Date(s.fromDate).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+                                        {' - '}
+                                        {new Date(s.toDate).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+                                    </p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Footer Branding */}
+                    <div style={{ marginTop: '50px', paddingTop: '30px', borderTop: '2px solid #f3f4f6', textAlign: 'center' }}>
+                        <p style={{ margin: 0, color: '#f97316', fontSize: '22px', fontWeight: 800 }}>
+                            Download Sri Bagavath App for latest updates
+                        </p>
+                        <p style={{ margin: '8px 0 0 0', color: '#6b7280', fontSize: '16px' }}>
+                            Available on Google Play Store
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <style>{`
+                @keyframes spin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
+                }
+                .animate-spin {
+                    animation: spin 1s linear infinite;
+                }
+            `}</style>
         </div>
     );
 };
