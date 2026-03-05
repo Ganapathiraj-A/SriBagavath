@@ -572,30 +572,27 @@ const DailyZoomMeetings = () => {
                             </select>
                         </div>
                     )}
-                </div>
-
-                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.25rem', flexWrap: 'wrap' }}>
                     <button
                         onClick={handleShareList}
                         disabled={isSharingList || loading}
                         style={{
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '0.5rem',
-                            padding: '0.6rem 1.25rem',
+                            justifyContent: 'center',
+                            width: '3.25rem',
+                            height: '3.25rem',
                             backgroundColor: ORANGE,
                             color: 'white',
                             border: 'none',
-                            borderRadius: '1rem',
-                            fontSize: '0.9rem',
-                            fontWeight: 700,
+                            borderRadius: '0.75rem',
                             cursor: 'pointer',
                             opacity: (isSharingList || loading) ? 0.6 : 1,
-                            boxShadow: 'var(--shadow-md)'
+                            boxShadow: 'var(--shadow-md)',
+                            flexShrink: 0
                         }}
+                        title="Share meetings list"
                     >
-                        {isSharingList ? <Loader2 size={18} className="animate-spin" /> : <Share2 size={18} />}
-                        Share meetings list
+                        {isSharingList ? <Loader2 size={20} className="animate-spin" /> : <Share2 size={20} />}
                     </button>
                 </div>
 
