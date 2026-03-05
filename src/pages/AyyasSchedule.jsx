@@ -107,7 +107,7 @@ const AyyasSchedule = () => {
                 directory: Directory.Cache
             });
 
-            const shareText = `📅 *Ayya's Full Schedule*\n\nDownload Sri Bagavath App for latest updates`;
+            const shareText = `📅 *Ayya's Full Schedule*`;
 
             await Share.share({
                 title: "Ayya's Schedule",

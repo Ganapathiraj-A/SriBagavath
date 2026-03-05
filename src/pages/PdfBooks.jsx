@@ -167,7 +167,7 @@ const PdfBooks = () => {
         directory: Directory.Cache
       });
 
-      const text = `📗 *${currentData.file.name}*\n🔗 *Book Link:* ${currentData.viewUrl}\n\nDownload Sri Bagavath App for latest updates`;
+      const text = `📗 *${currentData.file.name}*\n🔗 *Book Link:* ${currentData.viewUrl}`;
 
       await Share.share({
         title: currentData.file.name,

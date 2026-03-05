@@ -80,7 +80,7 @@ const AudioBooks = () => {
         directory: Directory.Cache
       });
 
-      const text = `🎧 *${currentData.book.title}*\n🔗 *Audio Link:* ${currentData.book.link}\n\nDownload Sri Bagavath App for latest updates`;
+      const text = `🎧 *${currentData.book.title}*\n🔗 *Audio Link:* ${currentData.book.link}`;
 
       await Share.share({
         title: currentData.book.title,

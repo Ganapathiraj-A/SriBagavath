@@ -112,7 +112,7 @@ const BookDetails = () => {
 
             await Share.share({
                 title: currentData.title,
-                text: `Check out this book: ${currentData.title}\n\nDownload Sri Bagavath App for latest updates`,
+                text: `Check out this book: ${currentData.title}`,
                 files: [result.uri]
             });
         } catch (error) {
