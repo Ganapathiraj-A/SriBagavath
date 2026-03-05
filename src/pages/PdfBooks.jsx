@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { FileText, Edit2, Upload, Link as LinkIcon, Trash2, X, Search, Share2, ChevronDown, Check, Settings as SettingsIcon } from 'lucide-react';
+import { FileText, Edit2, Upload, Link as LinkIcon, Trash2, X, Search, Share2, ChevronDown, Check, Settings as SettingsIcon, Loader2 } from 'lucide-react';
 import { Share } from '@capacitor/share';
+import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
+import html2canvas from 'html2canvas';
 import PageHeader from '@/components/PageHeader';
 import { useAdminAuth } from '@/context/AdminAuthContext';
 import { useGlobalSettings } from '@/context/GlobalSettingsContext';
@@ -28,6 +30,9 @@ const PdfBooks = () => {
   const [printedBooks, setPrintedBooks] = useState([]);
   const [booksLoading, setBooksLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSharingFileId, setIsSharingFileId] = useState(null);
+  const [sharingData, setSharingData] = useState(null);
+  const shareRef = useRef(null);
 
   const mainTabs = digitalBookLanguages ? digitalBookLanguages.slice(0, 2) : [];
   const otherLanguages = digitalBookLanguages ? digitalBookLanguages.slice(2) : [];
@@ -119,24 +124,82 @@ const PdfBooks = () => {
     }
   };
 
+  const fetchAsBase64 = async (url) => {
+    if (!url || !url.startsWith('http')) return url;
+    try {
+      const response = await fetch(url, { mode: 'cors', credentials: 'omit' });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const blob = await response.blob();
+      return await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(blob);
+      });
+    } catch (e) {
+      console.error("[PdfBooks] fetchAsBase64 failed:", e);
+      return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=";
+    }
+  };
+
+  const captureAndShare = async (currentData) => {
+    if (!shareRef.current || !currentData) return;
+    try {
+      const canvas = await html2canvas(shareRef.current, {
+        useCORS: true,
+        scale: 3,
+        backgroundColor: '#ffffff',
+        width: 800,
+        onclone: (doc) => {
+          const el = doc.getElementById('pdf-share-container-wrapper');
+          if (el) {
+            el.style.opacity = '1';
+            el.style.visibility = 'visible';
+          }
+        }
+      });
+
+      const finalData = canvas.toDataURL('image/jpeg', 0.95).split(',')[1];
+      const fileName = `share_pdf_${Date.now()}.jpg`;
+
+      const result = await Filesystem.writeFile({
+        path: fileName,
+        data: finalData,
+        directory: Directory.Cache
+      });
+
+      const text = `📗 *${currentData.file.name}*\n🔗 *Book Link:* ${currentData.viewUrl}\n\nDownload Sri Bagavath App for latest updates`;
+
+      await Share.share({
+        title: currentData.file.name,
+        text: text,
+        files: [result.uri]
+      });
+    } catch (error) {
+      console.error("[PdfBooks] captureAndShare error:", error);
+    } finally {
+      setIsSharingFileId(null);
+    }
+  };
+
   const handleShare = async (e, file) => {
     e.stopPropagation();
     e.preventDefault();
+    setIsSharingFileId(file.id);
     const viewUrl = file.webViewLink || `https://drive.google.com/file/d/${file.id}/view`;
+    const cover = getBookImage(file.id);
+
     try {
-      const text = `📗 *${file.name}*\n🔗 *Book Link:* ${viewUrl}\n\nDownload Sri Bagavath App for latest updates`;
-      await Share.share({
-        title: file.name,
-        text: text,
-        dialogTitle: 'Share Book'
-      });
+      const base64Img = await fetchAsBase64(cover);
+      const shareInfo = {
+        file,
+        viewUrl,
+        displayImage: base64Img || "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII="
+      };
+      setSharingData(shareInfo);
+      setTimeout(() => captureAndShare(shareInfo), 1000);
     } catch (err) {
       console.error("Sharing failed", err);
-      // Fallback for web if needed
-      if (!Capacitor.isNativePlatform()) {
-        navigator.clipboard.writeText(viewUrl);
-        alert("Link copied to clipboard!");
-      }
+      setIsSharingFileId(null);
     }
   };
 
@@ -251,7 +314,7 @@ const PdfBooks = () => {
                     onClick={(e) => {
                       e.stopPropagation();
                       e.preventDefault();
-                      handleShare(e, file);
+                      if (!isSharingFileId) handleShare(e, file);
                     }}
                     style={{
                       padding: '8px',
@@ -260,13 +323,17 @@ const PdfBooks = () => {
                       justifyContent: 'center',
                       borderRadius: '50%',
                       backgroundColor: 'var(--color-surface)',
-                      cursor: 'pointer',
+                      cursor: isSharingFileId ? 'default' : 'pointer',
                       border: 'none',
                       zIndex: 10,
                       flexShrink: 0
                     }}
                   >
-                    <Share2 size={18} color="var(--color-primary)" />
+                    {isSharingFileId === file.id ? (
+                      <Loader2 size={18} color="var(--color-primary)" className="animate-spin" />
+                    ) : (
+                      <Share2 size={18} color="var(--color-primary)" />
+                    )}
                   </button>
                 )}
               </motion.div>
@@ -571,6 +638,105 @@ const PdfBooks = () => {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Hidden Shareable Template */}
+      <div style={{
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        width: '800px',
+        zIndex: -1000,
+        opacity: 0.01,
+        pointerEvents: 'none'
+      }}>
+        {sharingData && (
+          <div
+            id="pdf-share-container-wrapper"
+            ref={shareRef}
+            style={{
+              width: '800px',
+              backgroundColor: '#ffffff',
+              padding: '60px 40px',
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+              textAlign: 'center'
+            }}
+          >
+            {/* Header branding */}
+            <div style={{ marginBottom: '40px' }}>
+              <h1 style={{ color: '#f97316', margin: '0 0 10px 0', fontSize: '28px', fontWeight: 800 }}>
+                Sri Bagavath Digital Library
+              </h1>
+              <div style={{ height: '4px', width: '80px', backgroundColor: '#f97316', margin: '0 auto' }}></div>
+            </div>
+
+            {/* Book Cover */}
+            <div style={{ marginBottom: '40px' }}>
+              {sharingData.displayImage !== "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=" ? (
+                <img
+                  src={sharingData.displayImage}
+                  style={{
+                    width: '320px',
+                    height: '450px',
+                    borderRadius: '20px',
+                    objectFit: 'cover',
+                    boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)',
+                    border: '8px solid #ffffff'
+                  }}
+                  crossOrigin="anonymous"
+                  alt=""
+                  onError={(e) => { e.target.style.display = 'none'; }}
+                />
+              ) : (
+                <div style={{
+                  width: '320px',
+                  height: '450px',
+                  borderRadius: '20px',
+                  backgroundColor: '#fff7ed',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto',
+                  border: '2px dashed #ffedd5'
+                }}>
+                  <FileText size={80} color="#f97316" />
+                </div>
+              )}
+            </div>
+
+            {/* Book Info */}
+            <div style={{ marginBottom: '40px' }}>
+              <h2 style={{ fontSize: '32px', color: '#111827', margin: '0 0 15px 0', fontWeight: 800, lineHeight: 1.2 }}>
+                {sharingData.file.name}
+              </h2>
+              <div style={{ display: 'inline-block', backgroundColor: '#fff7ed', padding: '12px 24px', borderRadius: '30px', border: '1px solid #ffedd5' }}>
+                <p style={{ margin: 0, color: '#f97316', fontWeight: 700, fontSize: '18px' }}>
+                  Read Online / Download PDF
+                </p>
+              </div>
+            </div>
+
+            {/* Footer Branding */}
+            <div style={{ marginTop: '40px', paddingTop: '30px', borderTop: '2px solid #f3f4f6' }}>
+              <p style={{ margin: 0, color: '#f97316', fontSize: '20px', fontWeight: 800 }}>
+                Download Sri Bagavath App for latest updates
+              </p>
+              <p style={{ margin: '8px 0 0 0', color: '#6b7280', fontSize: '14px' }}>
+                Available on Google Play Store
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .animate-spin {
+          animation: spin 1s linear infinite;
+        }
+      `}</style>
     </div>
   );
 };
