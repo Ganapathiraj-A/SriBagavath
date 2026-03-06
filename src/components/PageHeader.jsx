@@ -99,7 +99,8 @@ const PageHeader = ({
             '/conversations/recorded-programs': '/books',
             '/admin/audio-books': '/configuration',
             '/digital-books': '/books',
-            '/related-videos': '/books'
+            '/related-videos': '/books',
+            '/admin/media-migration': '/admin/settings'
         };
 
         if (location.state?.returnPath) {
