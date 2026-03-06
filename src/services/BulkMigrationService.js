@@ -8,6 +8,17 @@ import { TransactionService } from './TransactionService';
  */
 export const BulkMigrationService = {
     /**
+     * Shared helper to check if a document is already migrated.
+     * Checks storage_migrated flag, imageUrl field, and the data value itself.
+     */
+    isAlreadyMigrated: (data, value) => {
+        if (data.storage_migrated === true) return true;
+        if (data.imageUrl && typeof data.imageUrl === 'string' && data.imageUrl.startsWith('http')) return true;
+        if (value && typeof value === 'string' && value.startsWith('http')) return true;
+        return false;
+    },
+
+    /**
      * Common migration logic for a single item
      */
     migrateItem: async (id, base64, pathPrefix, fileName, parentDocRef, sourceDocRef = null, sourceFieldName = 'imageUrl') => {
@@ -24,7 +35,6 @@ export const BulkMigrationService = {
             await updateDoc(parentDocRef, parentUpdate);
 
             // 3. Update the source document if it's different or needs specific field update
-            // (e.g., updating 'banner' in 'program_banners' collection)
             if (sourceDocRef && sourceDocRef.path !== parentDocRef.path) {
                 await updateDoc(sourceDocRef, {
                     [sourceFieldName]: downloadUrl,
@@ -46,7 +56,6 @@ export const BulkMigrationService = {
 
     /**
      * Migrate Transaction Receipts
-     * Collection: transaction_images -> Storage: transactions/
      */
     migrateTransactions: async (onProgress) => {
         const snapshot = await getDocs(collection(db, 'transaction_images'));
@@ -59,14 +68,17 @@ export const BulkMigrationService = {
             const txId = docSnap.id;
             const base64 = data.base64;
 
-            if (base64 && !base64.startsWith('http')) {
+            if (base64 && !BulkMigrationService.isAlreadyMigrated(data, base64)) {
                 const parentRef = doc(db, 'transactions', txId);
                 const parentSnap = await getDoc(parentRef);
 
                 if (parentSnap.exists()) {
-                    // Update both parent and the image doc itself
-                    const res = await BulkMigrationService.migrateItem(txId, base64, 'transactions', 'image.jpg', parentRef, docSnap.ref, 'base64');
-                    results.push(res);
+                    const parentData = parentSnap.data();
+                    // Additional check on parent doc if needed
+                    if (!BulkMigrationService.isAlreadyMigrated(parentData, parentData.imageUrl)) {
+                        const res = await BulkMigrationService.migrateItem(txId, base64, 'transactions', 'image.jpg', parentRef, docSnap.ref, 'base64');
+                        results.push(res);
+                    }
                 } else {
                     results.push({ success: false, id: txId, error: 'Parent transaction document not found' });
                 }
@@ -80,7 +92,6 @@ export const BulkMigrationService = {
 
     /**
      * Migrate Program Banners
-     * Collection: program_banners -> Storage: banners/
      */
     migrateProgramBanners: async (onProgress) => {
         const snapshot = await getDocs(collection(db, 'program_banners'));
@@ -93,14 +104,16 @@ export const BulkMigrationService = {
             const progId = docSnap.id;
             const base64 = data.banner;
 
-            if (base64 && !base64.startsWith('http')) {
+            if (base64 && !BulkMigrationService.isAlreadyMigrated(data, base64)) {
                 const parentRef = doc(db, 'programs', progId);
                 const parentSnap = await getDoc(parentRef);
 
                 if (parentSnap.exists()) {
-                    // Update main program doc and the banner doc
-                    const res = await BulkMigrationService.migrateItem(progId, base64, 'banners', 'banner.jpg', parentRef, docSnap.ref, 'banner');
-                    results.push(res);
+                    const parentData = parentSnap.data();
+                    if (!BulkMigrationService.isAlreadyMigrated(parentData, parentData.imageUrl)) {
+                        const res = await BulkMigrationService.migrateItem(progId, base64, 'banners', 'banner.jpg', parentRef, docSnap.ref, 'banner');
+                        results.push(res);
+                    }
                 } else {
                     results.push({ success: false, id: progId, error: 'Parent program document not found' });
                 }
@@ -114,7 +127,6 @@ export const BulkMigrationService = {
 
     /**
      * Migrate Teacher Photos
-     * Collection: daily_zoom_teachers (internal field 'image') -> Storage: teachers/
      */
     migrateTeachers: async (onProgress) => {
         const snapshot = await getDocs(collection(db, 'daily_zoom_teachers'));
@@ -125,11 +137,10 @@ export const BulkMigrationService = {
         for (const docSnap of snapshot.docs) {
             const data = docSnap.data();
             const teacherId = docSnap.id;
-            const base64 = data.image; // Internal field name for teachers
+            const base64 = data.image;
 
-            if (base64 && !base64.startsWith('http')) {
+            if (base64 && !BulkMigrationService.isAlreadyMigrated(data, base64)) {
                 const parentRef = doc(db, 'daily_zoom_teachers', teacherId);
-                // Here parent == source, and field name is 'image'
                 const res = await BulkMigrationService.migrateItem(teacherId, base64, 'teachers', 'photo.jpg', parentRef, null, 'image');
                 results.push(res);
             }
@@ -142,7 +153,6 @@ export const BulkMigrationService = {
 
     /**
      * Migrate Satsang Banners
-     * Collection: satsang_banners -> Storage: satsang_banners/
      */
     migrateSatsangBanners: async (onProgress) => {
         const snapshot = await getDocs(collection(db, 'satsang_banners'));
@@ -155,13 +165,16 @@ export const BulkMigrationService = {
             const masterId = docSnap.id;
             const base64 = data.banner;
 
-            if (base64 && !base64.startsWith('http')) {
+            if (base64 && !BulkMigrationService.isAlreadyMigrated(data, base64)) {
                 const parentRef = doc(db, 'satsangs', masterId);
                 const parentSnap = await getDoc(parentRef);
 
                 if (parentSnap.exists()) {
-                    const res = await BulkMigrationService.migrateItem(masterId, base64, 'satsang_banners', 'banner.jpg', parentRef, docSnap.ref, 'banner');
-                    results.push(res);
+                    const parentData = parentSnap.data();
+                    if (!BulkMigrationService.isAlreadyMigrated(parentData, parentData.imageUrl)) {
+                        const res = await BulkMigrationService.migrateItem(masterId, base64, 'satsang_banners', 'banner.jpg', parentRef, docSnap.ref, 'banner');
+                        results.push(res);
+                    }
                 } else {
                     results.push({ success: false, id: masterId, error: 'Parent satsang document not found' });
                 }
@@ -175,7 +188,6 @@ export const BulkMigrationService = {
 
     /**
      * Migrate Online Meeting Banners
-     * Collection: online_meeting_banners -> Storage: online_meeting_banners/
      */
     migrateOnlineMeetingBanners: async (onProgress) => {
         const snapshot = await getDocs(collection(db, 'online_meeting_banners'));
@@ -188,13 +200,16 @@ export const BulkMigrationService = {
             const meetingId = docSnap.id;
             const base64 = data.banner;
 
-            if (base64 && !base64.startsWith('http')) {
+            if (base64 && !BulkMigrationService.isAlreadyMigrated(data, base64)) {
                 const parentRef = doc(db, 'online_meetings', meetingId);
                 const parentSnap = await getDoc(parentRef);
 
                 if (parentSnap.exists()) {
-                    const res = await BulkMigrationService.migrateItem(meetingId, base64, 'online_meeting_banners', 'banner.jpg', parentRef, docSnap.ref, 'banner');
-                    results.push(res);
+                    const parentData = parentSnap.data();
+                    if (!BulkMigrationService.isAlreadyMigrated(parentData, parentData.imageUrl)) {
+                        const res = await BulkMigrationService.migrateItem(meetingId, base64, 'online_meeting_banners', 'banner.jpg', parentRef, docSnap.ref, 'banner');
+                        results.push(res);
+                    }
                 } else {
                     results.push({ success: false, id: meetingId, error: 'Parent online meeting document not found' });
                 }
@@ -208,7 +223,6 @@ export const BulkMigrationService = {
 
     /**
      * Migrate Book Covers
-     * Collection: book_covers -> Storage: book_covers/
      */
     migrateBookCovers: async (onProgress) => {
         const snapshot = await getDocs(collection(db, 'book_covers'));
@@ -221,13 +235,16 @@ export const BulkMigrationService = {
             const bookId = docSnap.id;
             const base64 = data.cover;
 
-            if (base64 && !base64.startsWith('http')) {
+            if (base64 && !BulkMigrationService.isAlreadyMigrated(data, base64)) {
                 const parentRef = doc(db, 'books', bookId);
                 const parentSnap = await getDoc(parentRef);
 
                 if (parentSnap.exists()) {
-                    const res = await BulkMigrationService.migrateItem(bookId, base64, 'book_covers', 'cover.jpg', parentRef, docSnap.ref, 'cover');
-                    results.push(res);
+                    const parentData = parentSnap.data();
+                    if (!BulkMigrationService.isAlreadyMigrated(parentData, parentData.imageUrl)) {
+                        const res = await BulkMigrationService.migrateItem(bookId, base64, 'book_covers', 'cover.jpg', parentRef, docSnap.ref, 'cover');
+                        results.push(res);
+                    }
                 } else {
                     results.push({ success: false, id: bookId, error: 'Parent book document not found' });
                 }
@@ -238,5 +255,6 @@ export const BulkMigrationService = {
         }
         return results;
     }
+
 
 };
