@@ -5,9 +5,10 @@ import { Capacitor } from '@capacitor/core';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Plus, Trash2, Package, ChevronLeft, MapPin } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
-import { db, auth } from '@/firebase';
+import { db, auth, storage } from '@/firebase';
 import '../components/RegistrationStyles.css';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, setDoc, query, where, orderBy, limit, serverTimestamp } from '@/utils/FirestoreProxy';
+import { ref, getDownloadURL, deleteObject } from 'firebase/storage';
 import { signOut } from 'firebase/auth';
 import { bumpServerVersion } from '@/utils/SyncManager';
 // Removed storage imports as we are using Base64 in Firestore
@@ -349,15 +350,23 @@ const ProgramManagement = () => {
                 StatsService.recordProgram().catch(() => { });
             }
 
-            // Save Banner separately if present
+            // Save Banner separately if present (Move to Cloud Storage)
             if (bannerImage && bannerUrl) {
-                await setDoc(doc(db, 'program_banners', programId), {
-                    banner: bannerUrl,
-                    updatedAt: new Date().toISOString()
-                });
-                // Update Image Stats
-                const sizeInBytes = bannerUrl.length * 0.75;
-                StatsService.recordImage(sizeInBytes, 'BANNER').catch(() => { });
+                try {
+                    const downloadUrl = await TransactionService.uploadBase64ToStorage(programId, bannerUrl, 'banners');
+                    await updateDoc(doc(db, 'programs', programId), { programBanner: downloadUrl });
+
+                    // Update Image Stats
+                    const sizeInBytes = bannerUrl.length * 0.75;
+                    StatsService.recordImage(sizeInBytes, 'BANNER').catch(() => { });
+                } catch (storageErr) {
+                    console.error("Banner storage upload failed, falling back to Firestore", storageErr);
+                    // Legacy Fallback
+                    await setDoc(doc(db, 'program_banners', programId), {
+                        banner: bannerUrl,
+                        updatedAt: new Date().toISOString()
+                    });
+                }
             }
             setSearchParams({}, { replace: true });
             setBannerImage(null);
@@ -384,29 +393,32 @@ const ProgramManagement = () => {
         try {
             const hasRegs = await TransactionService.hasRegistrationsForProgram(programId);
             if (hasRegs) {
-                alert('Delete all registration pointing to this program before deleting this program');
+                alert("Cannot delete program with existing registrations. Archive it instead.");
                 return;
             }
 
-            if (window.confirm('Are you sure you want to delete this program?')) {
+            if (confirm("Delete this program?")) {
                 await deleteDoc(doc(db, 'programs', programId));
-                // Also delete banner if exists
-                await deleteDoc(doc(db, 'program_banners', programId)).catch(() => { });
-                // Update Stats
-                StatsService.recordProgram(false).catch(() => { });
-                alert('Program deleted successfully!');
 
-                // Refresh metadata for notifications
+                // Delete banner from storage
+                try {
+                    const storageRef = ref(storage, `banners/${programId}/receipt.jpg`);
+                    await deleteObject(storageRef);
+                } catch (e) {
+                    // Try legacy delete
+                    deleteDoc(doc(db, 'program_banners', programId)).catch(() => { });
+                }
+
+                alert('Program deleted successfully!');
+                loadPrograms();
                 await setDoc(doc(db, 'system', 'metadata'), {
                     lastUpdated_programs: serverTimestamp()
                 }, { merge: true });
-
                 await bumpServerVersion('programs');
-                loadPrograms();
             }
         } catch (_err) {
             console.error('Error deleting program:', _err);
-            alert('Error deleting program: ' + _err.message);
+            alert('Error deleting program');
         }
     };
 

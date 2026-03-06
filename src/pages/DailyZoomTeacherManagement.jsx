@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Edit2, Trash2, Save, ChevronLeft, User, Phone, Mail, Image as ImageIcon
+import {
+    Edit2, Trash2, Save, ChevronLeft, User, Phone, Mail, Image as ImageIcon
 } from 'lucide-react';
-import { db } from '@/firebase';
+import { db, storage } from '@/firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy } from '@/utils/FirestoreProxy';
+import { ref, deleteObject } from 'firebase/storage';
 import PageHeader from '@/components/PageHeader';
 import { compressImage } from '@/utils/imageUtils';
+import { TransactionService } from '@/services/TransactionService';
+import { StatsService } from '@/services/StatsService';
 import '../components/RegistrationStyles.css';
 
 const DailyZoomTeacherManagement = () => {
@@ -53,10 +57,10 @@ const DailyZoomTeacherManagement = () => {
             reader.onloadend = async () => {
                 try {
                     const compressedBase64 = await compressImage(reader.result, 400, 400, 0.7);
-                    setFormData(prev => ({ ...prev, image: compressedBase64 }));
+                    setFormData(prev => ({ ...prev, image: compressedBase64, newImageFile: file }));
                 } catch (_err) {
                     console.error("Compression failed:", _err);
-                    setFormData(prev => ({ ...prev, image: reader.result }));
+                    setFormData(prev => ({ ...prev, image: reader.result, newImageFile: file }));
                 }
             };
             reader.readAsDataURL(file);
@@ -66,16 +70,36 @@ const DailyZoomTeacherManagement = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            const { newImageFile, ...dataToSave } = formData;
+            let teacherId = editingId;
+            let finalImageUrl = dataToSave.image;
+
             if (editingId) {
-                await updateDoc(doc(db, 'daily_zoom_teachers', editingId), formData);
+                await updateDoc(doc(db, 'daily_zoom_teachers', editingId), dataToSave);
                 alert('Teacher updated!');
             } else {
-                await addDoc(collection(db, 'daily_zoom_teachers'), {
-                    ...formData,
+                const docRef = await addDoc(collection(db, 'daily_zoom_teachers'), {
+                    ...dataToSave,
                     createdAt: new Date().toISOString()
                 });
+                teacherId = docRef.id;
                 alert('Teacher added!');
             }
+
+            // Move image to Cloud Storage if it's new
+            if (newImageFile && finalImageUrl && finalImageUrl.startsWith('data:')) {
+                try {
+                    const downloadUrl = await TransactionService.uploadBase64ToStorage(teacherId, finalImageUrl, 'teachers', 'photo.jpg');
+                    await updateDoc(doc(db, 'daily_zoom_teachers', teacherId), { image: downloadUrl });
+
+                    // Update stats
+                    const sizeInBytes = finalImageUrl.length * 0.75;
+                    StatsService.recordImage(sizeInBytes).catch(() => { });
+                } catch (storageErr) {
+                    console.error("Teacher photo storage upload failed, keeping as Base64", storageErr);
+                }
+            }
+
             resetForm();
             loadTeachers();
         } catch (_err) {
@@ -99,6 +123,15 @@ const DailyZoomTeacherManagement = () => {
         if (window.confirm('Delete this teacher? This won\'t affect existing meetings.')) {
             try {
                 await deleteDoc(doc(db, 'daily_zoom_teachers', id));
+
+                // Delete photo from storage
+                try {
+                    const storageRef = ref(storage, `teachers/${id}/photo.jpg`);
+                    await deleteObject(storageRef);
+                } catch (e) {
+                    console.warn("Storage deletion failed or file didn't exist", e);
+                }
+
                 loadTeachers();
             } catch (_err) {
                 alert('Error deleting: ' + _err.message);

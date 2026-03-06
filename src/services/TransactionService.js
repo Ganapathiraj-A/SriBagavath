@@ -1,5 +1,6 @@
-import { db, auth } from '@/firebase';
+import { db, auth, storage } from '@/firebase';
 import { collection, doc, setDoc, updateDoc, deleteDoc, getDoc, getDocs, onSnapshot, query, orderBy, where, limit, Timestamp, writeBatch } from '@/utils/FirestoreProxy';
+import { ref, uploadString, getDownloadURL, deleteObject } from 'firebase/storage';
 import { StatsService } from './StatsService';
 
 export const TransactionService = {
@@ -11,6 +12,21 @@ export const TransactionService = {
             localStorage.setItem('sbb_device_id', id);
         }
         return id;
+    },
+
+    // Helper to upload base64 to storage
+    uploadBase64ToStorage: async (id, base64Image, pathPrefix = 'transactions', fileName = 'image.jpg') => {
+        if (!base64Image) return null;
+        try {
+            const storageRef = ref(storage, `${pathPrefix}/${id}/${fileName}`);
+            // uploadString supports data_url format
+            const uploadSnapshot = await uploadString(storageRef, base64Image, 'data_url');
+            const downloadUrl = await getDownloadURL(uploadSnapshot.ref);
+            return downloadUrl;
+        } catch (error) {
+            console.error("Storage upload failed", error);
+            throw error;
+        }
     },
 
     // Record a new transaction (Atomic Storage: Meta + Image)
@@ -56,24 +72,35 @@ export const TransactionService = {
 
         const batch = writeBatch(db);
 
-        // 1. Write Meta
+        // 1. Write Meta (Temporarily hasImage until upload succeeds)
         batch.set(newDocRef, txData);
 
-        // 2. Write Image (if present)
-        if (base64Image) {
-            const imgDocRef = doc(db, "transaction_images", txId);
-            batch.set(imgDocRef, {
-                id: txId,
-                base64: base64Image,
-                userId: userId
-            });
-            // Update Image Stats (Rough estimate)
-            const sizeInBytes = base64Image.length * 0.75;
-            StatsService.recordImage(sizeInBytes).catch(() => { });
-        }
-
-        // 3. Commit Batch
+        // 3. Commit Batch (Meta only)
         await batch.commit();
+
+        // 2. Write Image to Storage (if present)
+        if (base64Image) {
+            try {
+                const downloadUrl = await TransactionService.uploadBase64ToStorage(txId, base64Image);
+                await updateDoc(newDocRef, {
+                    imageUrl: downloadUrl,
+                    hasImage: true
+                });
+
+                // Update Image Stats (Rough estimate)
+                const sizeInBytes = base64Image.length * 0.75;
+                StatsService.recordImage(sizeInBytes).catch(() => { });
+            } catch (storageErr) {
+                console.error("Storage Error, falling back to Firestore collection (legacy)", storageErr);
+                // Fallback to legacy behavior if storage fails
+                const imgDocRef = doc(db, "transaction_images", txId);
+                await setDoc(imgDocRef, {
+                    id: txId,
+                    base64: base64Image,
+                    userId: userId
+                });
+            }
+        }
 
         // 4. Update Stats (Async / Non-atomic with TX)
         if (data.itemType === 'BOOK' || data.itemType === 'MAGAZINE_SUBSCRIPTION') {
@@ -136,8 +163,15 @@ export const TransactionService = {
         await updateDoc(ref, updates);
     },
 
-    // Fetch Base64 Image on demand
+    // Fetch Image URL or Base64 on demand
     getImage: async (id) => {
+        // 1. Check if it's already in the transaction meta as imageUrl
+        const txSnap = await getDoc(doc(db, "transactions", id));
+        if (txSnap.exists() && txSnap.data().imageUrl) {
+            return txSnap.data().imageUrl;
+        }
+
+        // 2. Fallback to legacy collection
         const ref = doc(db, "transaction_images", id);
         const snap = await getDoc(ref);
         if (snap.exists()) {
@@ -152,8 +186,16 @@ export const TransactionService = {
         const snap = await getDoc(docRef);
         if (snap.exists()) {
             await deleteDoc(docRef);
-            // Also try delete image (fire and forget)
-            deleteDoc(doc(db, "transaction_images", id)).catch(e => console.warn("Img delete failed", e));
+
+            // Delete from storage if exists
+            try {
+                const storageRef = ref(storage, `transactions/${id}/receipt.jpg`);
+                await deleteObject(storageRef);
+            } catch (e) {
+                // If not in storage, try legacy collection
+                deleteDoc(doc(db, "transaction_images", id)).catch(e => console.warn("Img delete failed", e));
+            }
+
             // Update Stats (Decrement)
             if (snap.data().itemType === 'BOOK' || snap.data().itemType === 'MAGAZINE_SUBSCRIPTION') {
                 StatsService.recordBookOrder(snap.data().amount, false).catch(() => { });
@@ -293,23 +335,24 @@ export const TransactionService = {
         const user = auth.currentUser;
         const userId = user ? user.uid : null;
 
-        const batch = writeBatch(db);
-
         // 1. Update Meta
-        batch.update(txRef, {
+        await updateDoc(txRef, {
             hasImage: true,
             updatedAt: new Date().toISOString()
         });
 
-        // 2. Write Image
-        batch.set(imgRef, {
-            id: id,
-            base64: base64Image,
-            userId: userId
-        });
-
-        // 3. Commit
-        await batch.commit();
+        // 2. Write Image to Storage
+        try {
+            const downloadUrl = await TransactionService.uploadBase64ToStorage(id, base64Image);
+            await updateDoc(txRef, { imageUrl: downloadUrl });
+        } catch (storageErr) {
+            console.error("Storage Error, falling back to Firestore (legacy)", storageErr);
+            await setDoc(imgRef, {
+                id: id,
+                base64: base64Image,
+                userId: userId
+            });
+        }
 
         // 4. Update Image Stats
         const sizeInBytes = base64Image.length * 0.75;

@@ -9,76 +9,9 @@ import { db } from '@/firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, setDoc, query, orderBy, serverTimestamp, getDoc, where } from '@/utils/FirestoreProxy';
 import { StatsService } from '@/services/StatsService';
 import { bumpServerVersion } from '@/utils/SyncManager';
+import { compressImage } from '@/utils/imageUtils';
+import { TransactionService } from '@/services/TransactionService';
 
-// Helper to compress image to Base64
-const compressImage = (file) => {
-    return new Promise((resolve, reject) => {
-        if (file.type === "image/heic" || file.type === "image/heif" || file.name.toLowerCase().endsWith('.heic')) {
-            reject(new Error("HEIC format is not supported by the browser. Please use a standard JPEG or PNG image."));
-            return;
-        }
-
-        const attemptLoad = (src, isBlob) => {
-            const img = new Image();
-            img.onload = () => {
-                if (isBlob) URL.revokeObjectURL(src);
-                try {
-                    const canvas = document.createElement('canvas');
-                    let width = img.width;
-                    let height = img.height;
-                    const MAX_WIDTH = 800;
-
-                    if (width > MAX_WIDTH) {
-                        height = (height * MAX_WIDTH) / width;
-                        width = MAX_WIDTH;
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
-
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-
-                    let quality = 0.8;
-                    let dataUrl = canvas.toDataURL('image/jpeg', quality);
-                    const TARGET_SIZE = 350000; // 350KB target
-
-                    while (dataUrl.length * 0.75 > TARGET_SIZE && quality > 0.3) {
-                        quality -= 0.1;
-                        dataUrl = canvas.toDataURL('image/jpeg', quality);
-                    }
-
-                    resolve(dataUrl);
-                } catch (_err) {
-                    reject(new Error("Image processing error: " + _err.message));
-                }
-            };
-
-            img.onerror = () => {
-                if (isBlob) {
-                    URL.revokeObjectURL(src);
-                    const reader = new FileReader();
-                    reader.onload = (re) => attemptLoad(re.target.result, false);
-                    reader.onerror = (err) => reject(new Error("Failed to read file: " + err.message));
-                    reader.readAsDataURL(file);
-                } else {
-                    reject(new Error("Unable to load image. Only JPEG/PNG are supported."));
-                }
-            };
-
-            img.src = src;
-        };
-
-        try {
-            const objectUrl = URL.createObjectURL(file);
-            attemptLoad(objectUrl, true);
-        } catch {
-            const reader = new FileReader();
-            reader.onload = (re) => attemptLoad(re.target.result, false);
-            reader.readAsDataURL(file);
-        }
-    });
-};
 
 const CATEGORIES = [
     'Tamil Books', 'English Books', 'Hindi Books', 'Telugu Books',
@@ -258,16 +191,48 @@ const AdminBookManagement = () => {
             }
 
             if (finalCoverUrl && (coverImage || finalCoverUrl !== editingBook?.coverUrl)) {
-                await setDoc(doc(db, 'book_covers', bookId), {
-                    cover: finalCoverUrl,
-                    updatedAt: serverTimestamp()
-                });
+                // If it's already a URL, don't re-upload
+                if (finalCoverUrl.startsWith('http')) {
+                    await setDoc(doc(db, 'book_covers', bookId), {
+                        cover: finalCoverUrl,
+                        updatedAt: serverTimestamp()
+                    });
+                } else {
+                    try {
+                        const filename = `book_${bookId}_${Date.now()}.jpg`;
+                        const coverUrl = await TransactionService.uploadBase64ToStorage(
+                            bookId,
+                            finalCoverUrl,
+                            'book_covers',
+                            filename
+                        );
 
-                // Record new size
-                const newSizeInBytes = finalCoverUrl.length * 0.75;
-                await StatsService.recordImage(newSizeInBytes, 'BOOK_COVER');
+                        if (coverUrl) {
+                            await setDoc(doc(db, 'book_covers', bookId), {
+                                cover: coverUrl,
+                                updatedAt: serverTimestamp()
+                            });
 
-                setCovers(prev => ({ ...prev, [bookId]: finalCoverUrl }));
+                            // Record storage size stats
+                            const sizeInBytes = finalCoverUrl.length * 0.75;
+                            await StatsService.recordImage(sizeInBytes, 'BOOK_COVER');
+
+                            setCovers(prev => ({ ...prev, [bookId]: coverUrl }));
+                        }
+                    } catch (uploadErr) {
+                        console.error("Cloud Storage upload failed, falling back to Firestore:", uploadErr);
+                        await setDoc(doc(db, 'book_covers', bookId), {
+                            cover: finalCoverUrl,
+                            updatedAt: serverTimestamp()
+                        });
+
+                        // Record legacy size stats
+                        const sizeInBytes = finalCoverUrl.length * 0.75;
+                        await StatsService.recordImage(sizeInBytes, 'BOOK_COVER');
+
+                        setCovers(prev => ({ ...prev, [bookId]: finalCoverUrl }));
+                    }
+                }
             }
 
             await bumpServerVersion(`bookstore_${formData.category}`);
@@ -286,13 +251,26 @@ const AdminBookManagement = () => {
     const handleDelete = async (bookId) => {
         if (window.confirm('Are you sure you want to delete this book?')) {
             try {
-                // Get cover size before deletion to decrement stats
-                if (covers[bookId]) {
-                    const sizeInBytes = covers[bookId].length * 0.75;
-                    await StatsService.recordImage(-sizeInBytes, 'BOOK_COVER');
-                }
-
                 await deleteDoc(doc(db, 'books', bookId));
+
+                // Try to delete from Cloud Storage if it's a URL
+                const coverDoc = await getDoc(doc(db, 'book_covers', bookId));
+                if (coverDoc.exists()) {
+                    const coverData = coverDoc.data().cover;
+                    if (coverData) {
+                        // Decrement stats based on whatever data it was
+                        const sizeInBytes = coverData.length * 0.75;
+                        await StatsService.recordImage(-sizeInBytes, 'BOOK_COVER');
+
+                        if (coverData.startsWith('http')) {
+                            try {
+                                await TransactionService.deleteFileFromStorage(coverData);
+                            } catch (delErr) {
+                                console.warn("Failed to delete cover from storage:", delErr);
+                            }
+                        }
+                    }
+                }
                 await deleteDoc(doc(db, 'book_covers', bookId)).catch(() => { });
 
                 const deletedBook = books.find(b => b.id === bookId);

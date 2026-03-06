@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';  
+import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
     ChevronLeft,
@@ -79,7 +79,7 @@ const CopyableInput = ({ label, value, onChange, placeholder, type = "text", sty
     );
 };
 
-const SettingItem = ({ title, subtitle, icon: Icon, delay, onClick, color = 'var(--color-primary)', bgColor = 'var(--color-primary-transparent)' }) => {  
+const SettingItem = ({ title, subtitle, icon: Icon, delay, onClick, color = 'var(--color-primary)', bgColor = 'var(--color-primary-transparent)' }) => {
     return (
         <motion.button
             initial={{ opacity: 0, x: -20 }}
@@ -233,6 +233,16 @@ const AdminSettings = () => {
                     permission: 'REPORTING',
                     color: 'var(--color-error)',
                     bgColor: 'var(--color-error-transparent)'
+                },
+                {
+                    id: 'STORAGE_TEST',
+                    title: 'Storage Integration Test',
+                    subtitle: 'Verify upload, download & rules',
+                    icon: Cloud,
+                    path: '/admin/test-storage',
+                    permission: 'REPORTING',
+                    color: 'var(--color-primary)',
+                    bgColor: 'var(--color-primary-transparent)'
                 }
             ]
         }

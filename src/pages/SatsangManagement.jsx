@@ -14,6 +14,7 @@ import {
 import { compressImage } from '@/utils/imageUtils';
 import { getLocalDateString } from '@/utils/dateUtils';
 import { bumpServerVersion } from '@/utils/SyncManager';
+import { TransactionService } from '@/services/TransactionService';
 
 // Helper to expand a master rule into its next upcoming instance
 const getNextOccurrence = (master, todayStr) => {
@@ -188,10 +189,33 @@ const SatsangManagement = () => {
             }
 
             if (formData.hasBanner && formData.banner) {
-                await setDoc(doc(db, 'satsang_banners', masterId), {
-                    banner: formData.banner,
-                    updatedAt: serverTimestamp()
-                }, { merge: true });
+                // If it's already a URL, don't re-upload
+                if (formData.banner.startsWith('http')) {
+                    // Already uploaded
+                } else {
+                    try {
+                        const filename = `satsang_${masterId}_${Date.now()}.jpg`;
+                        const bannerUrl = await TransactionService.uploadBase64ToStorage(
+                            masterId,
+                            formData.banner,
+                            'satsang_banners',
+                            filename
+                        );
+
+                        if (bannerUrl) {
+                            await setDoc(doc(db, 'satsang_banners', masterId), {
+                                banner: bannerUrl,
+                                updatedAt: serverTimestamp()
+                            }, { merge: true });
+                        }
+                    } catch (uploadErr) {
+                        console.error("Cloud Storage upload failed, falling back to Firestore:", uploadErr);
+                        await setDoc(doc(db, 'satsang_banners', masterId), {
+                            banner: formData.banner,
+                            updatedAt: serverTimestamp()
+                        }, { merge: true });
+                    }
+                }
             }
 
             setIsAdding(false);
@@ -247,6 +271,18 @@ const SatsangManagement = () => {
             if (type === 'series') {
                 await deleteDoc(doc(db, 'satsangs', masterId));
                 if (deleteTarget.hasBanner) {
+                    // Try to delete from Cloud Storage if it's a URL
+                    const bannerDoc = await getDoc(doc(db, 'satsang_banners', masterId));
+                    if (bannerDoc.exists()) {
+                        const bannerData = bannerDoc.data().banner;
+                        if (bannerData && bannerData.startsWith('http')) {
+                            try {
+                                await TransactionService.deleteFileFromStorage(bannerData);
+                            } catch (delErr) {
+                                console.warn("Failed to delete banner from storage:", delErr);
+                            }
+                        }
+                    }
                     await deleteDoc(doc(db, 'satsang_banners', masterId));
                 }
             } else if (type === 'instance') {

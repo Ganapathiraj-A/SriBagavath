@@ -14,6 +14,7 @@
     "publish:dev": "node scripts/cross_publish.js dev",
     "publish:prod": "node scripts/cross_publish.js prod",
     "publish:aab:prod": "node scripts/cross_publish.js prod-aab",
+    "deploy:storage": "firebase deploy --only storage",
     "lint": "eslint .",
     "test:smoke": "playwright test",
     "preview": "vite preview"
@@ -28,7 +29,7 @@
     "@capacitor/core": "^7.4.4",
     "@capacitor/filesystem": "^7.1.6",
     "@capacitor/share": "^7.0.3",
-    "@capacitor/toast": "^8.0.0",
+    "@capacitor/toast": "^7.0.3",
     "@codetrix-studio/capacitor-google-auth": "git+https://github.com/Ganapathiraj-A/capacitor-google-auth-fork.git#master",
     "firebase": "^12.6.0",
     "framer-motion": "^12.23.25",
@@ -52,6 +53,7 @@
     "eslint-plugin-react-refresh": "^0.4.24",
     "eslint-plugin-unused-imports": "^4.4.1",
     "firebase-admin": "^13.6.0",
+    "firebase-tools": "^13.31.1",
     "globals": "^16.5.0",
     "vite": "^5.4.11"
   }

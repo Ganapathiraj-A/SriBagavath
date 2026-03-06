@@ -1,0 +1,20 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Publicly readable assets
+    match /{path}/{uid}/{filename} {
+      allow read: if path in ['banners', 'teachers', 'satsang_banners', 'online_meeting_banners', 'book_covers', 'test'];
+      allow write: if request.auth != null;
+    }
+    
+    // Private/Sensitive assets (Donation Receipts)
+    match /transactions/{uid}/{filename} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Default: Deny all
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

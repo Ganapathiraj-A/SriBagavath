@@ -13,6 +13,7 @@ import {
 import { getLocalDateString } from '@/utils/dateUtils';
 import { compressImage } from '@/utils/imageUtils';
 import { bumpServerVersion } from '@/utils/SyncManager';
+import { TransactionService } from '@/services/TransactionService';
 import '../components/RegistrationStyles.css';
 
 // Helper to expand a master rule into its next upcoming instance
@@ -190,10 +191,33 @@ const OnlineMeetingManagement = () => {
             }
 
             if (formData.hasBanner && formData.banner) {
-                await setDoc(doc(db, 'online_meeting_banners', masterId), {
-                    banner: formData.banner,
-                    updatedAt: serverTimestamp()
-                }, { merge: true });
+                // If it's already a URL, don't re-upload
+                if (formData.banner.startsWith('http')) {
+                    // Already uploaded
+                } else {
+                    try {
+                        const filename = `online_meeting_${masterId}_${Date.now()}.jpg`;
+                        const bannerUrl = await TransactionService.uploadBase64ToStorage(
+                            masterId,
+                            formData.banner,
+                            'online_meeting_banners',
+                            filename
+                        );
+
+                        if (bannerUrl) {
+                            await setDoc(doc(db, 'online_meeting_banners', masterId), {
+                                banner: bannerUrl,
+                                updatedAt: serverTimestamp()
+                            }, { merge: true });
+                        }
+                    } catch (uploadErr) {
+                        console.error("Cloud Storage upload failed, falling back to Firestore:", uploadErr);
+                        await setDoc(doc(db, 'online_meeting_banners', masterId), {
+                            banner: formData.banner,
+                            updatedAt: serverTimestamp()
+                        }, { merge: true });
+                    }
+                }
             }
 
             setIsAdding(false);
@@ -247,6 +271,18 @@ const OnlineMeetingManagement = () => {
             if (type === 'series') {
                 await deleteDoc(doc(db, 'online_meetings', masterId));
                 if (deleteTarget.hasBanner) {
+                    // Try to delete from Cloud Storage if it's a URL
+                    const bannerDoc = await getDoc(doc(db, 'online_meeting_banners', masterId));
+                    if (bannerDoc.exists()) {
+                        const bannerData = bannerDoc.data().banner;
+                        if (bannerData && bannerData.startsWith('http')) {
+                            try {
+                                await TransactionService.deleteFileFromStorage(bannerData);
+                            } catch (delErr) {
+                                console.warn("Failed to delete banner from storage:", delErr);
+                            }
+                        }
+                    }
                     await deleteDoc(doc(db, 'online_meeting_banners', masterId));
                 }
             } else if (type === 'instance') {
