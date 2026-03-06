@@ -23,10 +23,17 @@ export const BulkMigrationService = {
      */
     migrateItem: async (id, base64, pathPrefix, fileName, parentDocRef, sourceDocRef = null, sourceFieldName = 'imageUrl') => {
         try {
-            // 1. Upload to Storage
-            const downloadUrl = await TransactionService.uploadBase64ToStorage(id, base64, pathPrefix, fileName);
+            // 1. Ensure base64 is in data_url format for Firebase Storage
+            let storageBase64 = base64;
+            if (base64 && !base64.startsWith('data:')) {
+                // Default to jpeg if prefix is missing
+                storageBase64 = `data:image/jpeg;base64,${base64}`;
+            }
 
-            // 2. Update the parent document (usually the main record)
+            // 2. Upload to Storage
+            const downloadUrl = await TransactionService.uploadBase64ToStorage(id, storageBase64, pathPrefix, fileName);
+
+            // 3. Update the parent document (usually the main record)
             const parentUpdate = {
                 imageUrl: downloadUrl,
                 hasImage: true,
@@ -34,7 +41,7 @@ export const BulkMigrationService = {
             };
             await updateDoc(parentDocRef, parentUpdate);
 
-            // 3. Update the source document if it's different or needs specific field update
+            // 4. Update the source document if it's different or needs specific field update
             if (sourceDocRef && sourceDocRef.path !== parentDocRef.path) {
                 await updateDoc(sourceDocRef, {
                     [sourceFieldName]: downloadUrl,
