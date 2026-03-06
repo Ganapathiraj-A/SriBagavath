@@ -130,14 +130,14 @@ const MediaMigration = () => {
                                 <button
                                     onClick={() => runMigration(task)}
                                     disabled={runningTask !== null}
-                                    className={`p-3 rounded-xl transition-all ${runningTask === task.id
+                                    className={`p-5 rounded-2xl transition-all ${runningTask === task.id
                                         ? 'bg-primary text-white cursor-not-allowed animate-pulse'
                                         : runningTask !== null
                                             ? 'bg-muted text-muted-foreground cursor-not-allowed'
-                                            : 'bg-primary text-white hover:scale-105 active:scale-95'
+                                            : 'bg-primary text-white hover:scale-105 active:scale-95 shadow-lg'
                                         }`}
                                 >
-                                    {runningTask === task.id ? <Loader2 className="w-5 h-5 animate-spin" /> : <Play className="w-5 h-5" />}
+                                    {runningTask === task.id ? <Loader2 className="w-7 h-7 animate-spin" /> : <Play className="w-7 h-7" />}
                                 </button>
                             </div>
 
@@ -171,12 +171,13 @@ const MediaMigration = () => {
                             </div>
                             <span className="text-zinc-400 font-mono text-sm uppercase tracking-wider font-bold">Live Migration Logs</span>
                         </div>
-                        <div className="flex gap-2">
-                            <button onClick={copyLogs} className="p-2 hover:bg-white/10 rounded-lg transition-colors text-zinc-400" title="Copy Logs">
-                                <Clipboard className="w-4 h-4" />
+                        <div className="flex gap-4">
+                            <button onClick={copyLogs} className="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors text-white flex items-center gap-2" title="Copy Logs">
+                                <Clipboard className="w-5 h-5" />
+                                <span className="text-xs font-bold hidden sm:inline">COPY LOGS</span>
                             </button>
-                            <button onClick={clearLogs} className="p-2 hover:bg-white/10 rounded-lg transition-colors text-zinc-400" title="Clear Console">
-                                <Trash2 className="w-4 h-4" />
+                            <button onClick={clearLogs} className="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors text-white" title="Clear Console">
+                                <Trash2 className="w-5 h-5" />
                             </button>
                         </div>
                     </div>
