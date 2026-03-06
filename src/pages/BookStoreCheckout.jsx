@@ -7,7 +7,7 @@ import '../components/RegistrationStyles.css';
 const BookStoreCheckout = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { items, totalPrice, isDonation } = location.state || { items: [], totalPrice: 0, isDonation: false };
+    const { items, totalPrice, isDonation, isMagazineSubscription } = location.state || { items: [], totalPrice: 0, isDonation: false, isMagazineSubscription: false };
 
     const [details, setDetails] = useState({
         name: '',
@@ -38,8 +38,9 @@ const BookStoreCheckout = () => {
     };
 
     const handleProceed = () => {
-        if (!details.name || !details.mobile || (!isDonation && (!details.address || !details.city || !details.pincode))) {
-            alert(isDonation ? "Please fill your name and mobile." : "Please fill all shipping details.");
+        const requiresAddress = !isDonation; // Both Books and Magazine Subscriptions require address
+        if (!details.name || !details.mobile || (requiresAddress && (!details.address || !details.city || !details.pincode))) {
+            alert(requiresAddress ? "Please fill all shipping details." : "Please fill your name and mobile.");
             return;
         }
 
@@ -51,13 +52,17 @@ const BookStoreCheckout = () => {
         }
 
         const orderSummary = items.map(p => `${p.title} x${p.quantity}`).join(", ");
+        let itemType = 'BOOK';
+        if (isDonation) itemType = 'DONATION';
+        if (isMagazineSubscription) itemType = 'MAGAZINE_SUBSCRIPTION';
+
         const paymentState = {
-            itemType: isDonation ? 'DONATION' : 'BOOK',
+            itemType: itemType,
             itemName: `Order: ${orderSummary.substring(0, 30)}${orderSummary.length > 30 ? '...' : ''}`,
             amount: totalPrice,
             orderItems: items,
             shippingAddress: details,
-            savedState: { items, totalPrice }
+            savedState: { items, totalPrice, isDonation, isMagazineSubscription }
         };
 
         // Save for recovery if app reloads during payment
@@ -79,7 +84,7 @@ const BookStoreCheckout = () => {
 
     return (
         <div style={{ backgroundColor: '#f9fafb', minHeight: '100vh', paddingBottom: '20px' }}>
-            <PageHeader title={isDonation ? "Donation Details" : "Shipping Details"} />
+            <PageHeader title={isDonation ? "Donation Details" : (isMagazineSubscription ? "Subscription Details" : "Shipping Details")} />
 
             <div style={{ padding: '16px' }}>
                 <div className="card">
@@ -120,7 +125,7 @@ const BookStoreCheckout = () => {
                 </div>
 
                 <div className="card" style={{ marginTop: '16px' }}>
-                    <h3>{isDonation ? 'Donor Details' : 'Delivery Address'}</h3>
+                    <h3>{isDonation ? 'Donor Details' : (isMagazineSubscription ? 'Subscription Details & Address' : 'Delivery Address')}</h3>
                     <div className="form-group">
                         <label>Full Name</label>
                         <input name="name" type="text" value={details.name} onChange={handleInput} placeholder={isDonation ? "Enter your name" : "Enter recipient name"} />

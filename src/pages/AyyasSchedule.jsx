@@ -16,7 +16,9 @@ const AyyasSchedule = () => {
     const [schedules, setSchedules] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isSharingAll, setIsSharingAll] = useState(false);
-    const shareAllRef = useRef(null);
+    const [sharingData, setSharingData] = useState(null);
+    const [isSharingScheduleId, setIsSharingScheduleId] = useState(null);
+    const shareRef = useRef(null);
     const location = useLocation();
     const { loading: authGlobalLoading, isAdmin, hasAccess } = useAdminAuth();
 
@@ -79,17 +81,16 @@ const AyyasSchedule = () => {
         fetchSchedules();
     }, [authGlobalLoading]);
 
-    const handleShareAll = async () => {
-        if (!shareAllRef.current || schedules.length === 0) return;
-        setIsSharingAll(true);
+    const captureAndShare = async (currentData) => {
+        if (!shareRef.current || !currentData) return;
         try {
-            const canvas = await html2canvas(shareAllRef.current, {
+            const canvas = await html2canvas(shareRef.current, {
                 useCORS: true,
-                scale: 2,
+                scale: 3,
                 backgroundColor: '#ffffff',
                 width: 800,
                 onclone: (doc) => {
-                    const el = doc.getElementById('full-schedule-share-template');
+                    const el = doc.getElementById('schedule-share-template');
                     if (el) {
                         el.style.display = 'block';
                         el.style.opacity = '1';
@@ -98,8 +99,8 @@ const AyyasSchedule = () => {
                 }
             });
 
-            const fileName = `ayya_schedule_list_${Date.now()}.jpg`;
-            const base64Data = canvas.toDataURL('image/jpeg', 0.9).split(',')[1];
+            const fileName = `ayya_schedule_${Date.now()}.jpg`;
+            const base64Data = canvas.toDataURL('image/jpeg', 0.95).split(',')[1];
 
             const result = await Filesystem.writeFile({
                 path: fileName,
@@ -107,55 +108,33 @@ const AyyasSchedule = () => {
                 directory: Directory.Cache
             });
 
-            const shareText = `📅 *Ayya's Full Schedule*`;
-
             await Share.share({
                 title: "Ayya's Schedule",
-                text: shareText,
+                text: "",
                 files: [result.uri]
             });
         } catch (error) {
-            console.error("[Schedule] Full list share failed:", error);
+            console.error("[Schedule] Sharing failed:", error);
         } finally {
             setIsSharingAll(false);
+            setIsSharingScheduleId(null);
         }
+    };
+
+    const handleShareAll = async () => {
+        if (schedules.length === 0) return;
+        setIsSharingAll(true);
+        const data = { type: 'list', schedules };
+        setSharingData(data);
+        setTimeout(() => captureAndShare(data), 1000);
     };
 
     const handleShare = async (schedule) => {
         if (!schedule) return;
-
-        const fromDate = new Date(schedule.fromDate);
-        const toDate = new Date(schedule.toDate);
-
-        const dateOptions = { weekday: 'short', month: 'short', day: 'numeric' };
-        const fromStr = fromDate.toLocaleDateString(undefined, dateOptions);
-        const communitiesStr = toDate.toLocaleDateString(undefined, dateOptions);
-
-        const shareText = `
-*Ayya's Schedule*
-
-📍 *Place:* ${schedule.place}
-📅 ${fromStr}
-📅 ${communitiesStr}
-━━━━━━━━━━━━━━━━━━━━
-Download Sri Bagavath App for latest updates`.trim();
-
-        try {
-            await Share.share({
-                title: "Ayya's Schedule",
-                text: shareText,
-                dialogTitle: "Share Schedule",
-            });
-        } catch (_err) {
-            console.error('Error sharing:', _err);
-            // Fallback for web or if share fails
-            try {
-                await navigator.clipboard.writeText(shareText);
-                alert('Schedule details copied to clipboard!');
-            } catch (clipError) {
-                console.error('Clipboard failed:', clipError);
-            }
-        }
+        setIsSharingScheduleId(schedule.id);
+        const data = { type: 'single', schedule };
+        setSharingData(data);
+        setTimeout(() => captureAndShare(data), 1000);
     };
 
     if (loading) {
@@ -199,9 +178,10 @@ Download Sri Bagavath App for latest updates`.trim();
                                 backgroundColor: 'var(--color-card)',
                                 border: '1px solid var(--color-border)',
                                 borderRadius: '50%',
-                                cursor: isSharingAll ? 'default' : 'pointer',
+                                cursor: (isSharingAll || isSharingScheduleId) ? 'default' : 'pointer',
                                 boxShadow: 'var(--shadow-sm)',
-                                color: 'var(--color-primary)'
+                                color: 'var(--color-primary)',
+                                opacity: isSharingAll ? 0.6 : 1
                             }}
                             title="Share Full List"
                         >
@@ -341,20 +321,21 @@ Download Sri Bagavath App for latest updates`.trim();
 
                                     <button
                                         onClick={() => handleShare(schedule)}
+                                        disabled={isSharingScheduleId === schedule.id}
                                         style={{
                                             padding: '0.5rem',
                                             color: 'var(--color-primary)',
                                             background: 'none',
                                             border: 'none',
-                                            cursor: 'pointer',
+                                            cursor: isSharingScheduleId === schedule.id ? 'default' : 'pointer',
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
-                                            opacity: 0.8
+                                            opacity: isSharingScheduleId === schedule.id ? 0.5 : 0.8
                                         }}
                                         title="Share Schedule"
                                     >
-                                        <Share2 size={20} />
+                                        {isSharingScheduleId === schedule.id ? <Loader2 size={20} className="animate-spin" /> : <Share2 size={20} />}
                                     </button>
                                 </motion.div>
                             ))}
@@ -363,7 +344,7 @@ Download Sri Bagavath App for latest updates`.trim();
                 </div>
             </div>
 
-            {/* Hidden Shareable Template for Full List */}
+            {/* Hidden Shareable Template */}
             <div style={{
                 position: 'fixed',
                 top: '0',
@@ -373,82 +354,121 @@ Download Sri Bagavath App for latest updates`.trim();
                 opacity: 0.01,
                 pointerEvents: 'none'
             }}>
-                <div
-                    id="full-schedule-share-template"
-                    ref={shareAllRef}
-                    style={{
-                        width: '800px',
-                        backgroundColor: '#ffffff',
-                        padding: '60px 40px',
-                        fontFamily: 'system-ui, -apple-system, sans-serif'
-                    }}
-                >
-                    {/* Header branding */}
-                    <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-                        <h1 style={{ color: '#f97316', margin: '0 0 10px 0', fontSize: '32px', fontWeight: 800 }}>
-                            Ayya's Schedule
-                        </h1>
-                        <div style={{ height: '4px', width: '100px', backgroundColor: '#f97316', margin: '0 auto' }}></div>
-                    </div>
+                {sharingData && (
+                    <div
+                        id="schedule-share-template"
+                        ref={shareRef}
+                        style={{
+                            width: '800px',
+                            backgroundColor: '#ffffff',
+                            padding: '60px 40px',
+                            fontFamily: 'system-ui, -apple-system, sans-serif'
+                        }}
+                    >
+                        {/* Header branding */}
+                        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+                            <h1 style={{ color: '#f97316', margin: '0 0 10px 0', fontSize: '32px', fontWeight: 800 }}>
+                                Ayya's Schedule
+                            </h1>
+                            <div style={{ height: '4px', width: '100px', backgroundColor: '#f97316', margin: '0 auto' }}></div>
+                        </div>
 
-                    {/* Schedule List */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                        {schedules.map((s) => (
-                            <div key={s.id} style={{
+                        {/* Content */}
+                        {sharingData.type === 'single' ? (
+                            <div style={{
                                 backgroundColor: '#fff7ed',
-                                borderRadius: '20px',
-                                padding: '25px',
+                                borderRadius: '25px',
+                                padding: '40px',
                                 border: '1px solid #ffedd5',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '30px'
+                                textAlign: 'center'
                             }}>
-                                {/* Date Section */}
-                                <div style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    backgroundColor: '#ffffff',
-                                    color: '#f97316',
-                                    padding: '15px',
-                                    borderRadius: '15px',
-                                    minWidth: '100px',
-                                    border: '1px solid #ffedd5'
-                                }}>
-                                    <span style={{ fontSize: '18px', fontWeight: 700, textTransform: 'uppercase' }}>
-                                        {new Date(s.fromDate).toLocaleDateString(undefined, { month: 'short' })}
-                                    </span>
-                                    <span style={{ fontSize: '36px', fontWeight: 800 }}>
-                                        {new Date(s.fromDate).getDate()}
-                                    </span>
-                                </div>
-
-                                {/* Content Section */}
-                                <div style={{ flex: 1 }}>
-                                    <h2 style={{ fontSize: '28px', fontWeight: 700, color: '#111827', margin: '0 0 8px 0' }}>
-                                        {s.place}
-                                    </h2>
-                                    <p style={{ fontSize: '20px', color: '#4b5563', margin: 0 }}>
-                                        {new Date(s.fromDate).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
-                                        {' - '}
-                                        {new Date(s.toDate).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
-                                    </p>
+                                <h2 style={{ fontSize: '36px', fontWeight: 800, color: '#111827', margin: '0 0 15px 0' }}>
+                                    {sharingData.schedule.place}
+                                </h2>
+                                <div style={{ height: '2px', width: '50px', backgroundColor: '#f97316', margin: '0 auto 25px auto' }}></div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                                        <div style={{ backgroundColor: '#ffffff', padding: '10px 20px', borderRadius: '15px', border: '1px solid #ffedd5' }}>
+                                            <p style={{ margin: 0, fontSize: '20px', color: '#f97316', fontWeight: 700 }}>FROM</p>
+                                            <p style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#111827' }}>
+                                                {new Date(sharingData.schedule.fromDate).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+                                            </p>
+                                        </div>
+                                        <div style={{ height: '1px', width: '20px', backgroundColor: '#f97316' }}></div>
+                                        <div style={{ backgroundColor: '#ffffff', padding: '10px 20px', borderRadius: '15px', border: '1px solid #ffedd5' }}>
+                                            <p style={{ margin: 0, fontSize: '20px', color: '#f97316', fontWeight: 700 }}>TO</p>
+                                            <p style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#111827' }}>
+                                                {new Date(sharingData.schedule.toDate).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    {sharingData.schedule.description && (
+                                        <p style={{ fontSize: '20px', color: '#4b5563', margin: '20px 0 0 0', fontStyle: 'italic', lineHeight: 1.5 }}>
+                                            {sharingData.schedule.description}
+                                        </p>
+                                    )}
                                 </div>
                             </div>
-                        ))}
-                    </div>
+                        ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                {sharingData.schedules.map((s) => (
+                                    <div key={s.id} style={{
+                                        backgroundColor: '#fff7ed',
+                                        borderRadius: '20px',
+                                        padding: '25px',
+                                        border: '1px solid #ffedd5',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '30px'
+                                    }}>
+                                        {/* Date Section */}
+                                        <div style={{
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            backgroundColor: '#ffffff',
+                                            color: '#f97316',
+                                            padding: '15px',
+                                            borderRadius: '15px',
+                                            minWidth: '100px',
+                                            border: '1px solid #ffedd5'
+                                        }}>
+                                            <span style={{ fontSize: '18px', fontWeight: 700, textTransform: 'uppercase' }}>
+                                                {new Date(s.fromDate).toLocaleDateString(undefined, { month: 'short' })}
+                                            </span>
+                                            <span style={{ fontSize: '36px', fontWeight: 800 }}>
+                                                {new Date(s.fromDate).getDate()}
+                                            </span>
+                                        </div>
 
-                    {/* Footer Branding */}
-                    <div style={{ marginTop: '50px', paddingTop: '30px', borderTop: '2px solid #f3f4f6', textAlign: 'center' }}>
-                        <p style={{ margin: 0, color: '#f97316', fontSize: '22px', fontWeight: 800 }}>
-                            Download Sri Bagavath App for latest updates
-                        </p>
-                        <p style={{ margin: '8px 0 0 0', color: '#6b7280', fontSize: '16px' }}>
-                            Available on Google Play Store
-                        </p>
+                                        {/* Content Section */}
+                                        <div style={{ flex: 1 }}>
+                                            <h2 style={{ fontSize: '28px', fontWeight: 700, color: '#111827', margin: '0 0 8px 0' }}>
+                                                {s.place}
+                                            </h2>
+                                            <p style={{ fontSize: '20px', color: '#4b5563', margin: 0 }}>
+                                                {new Date(s.fromDate).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+                                                {' - '}
+                                                {new Date(s.toDate).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Footer Branding */}
+                        <div style={{ marginTop: '50px', paddingTop: '30px', borderTop: '2px solid #f3f4f6', textAlign: 'center' }}>
+                            <p style={{ margin: 0, color: '#f97316', fontSize: '22px', fontWeight: 800 }}>
+                                Download Sri Bagavath App for latest updates
+                            </p>
+                            <p style={{ margin: '8px 0 0 0', color: '#6b7280', fontSize: '14px' }}>
+                                Available on Google Play Store
+                            </p>
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
 
             <style>{`
@@ -463,5 +483,6 @@ Download Sri Bagavath App for latest updates`.trim();
         </div>
     );
 };
+
 
 export default AyyasSchedule;

@@ -77,7 +77,7 @@ export const StatsService = {
 
             const processTxDoc = (doc) => {
                 const d = doc.data();
-                if (d.itemType === 'BOOK') {
+                if (d.itemType === 'BOOK' || d.itemType === 'MAGAZINE_SUBSCRIPTION') {
                     totalBookOrders++;
                     totalBookRevenue += (d.amount || 0);
                 } else {

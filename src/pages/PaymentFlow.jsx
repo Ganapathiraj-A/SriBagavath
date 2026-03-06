@@ -217,6 +217,10 @@ const PaymentFlow = () => {
                 clearCart();
                 targetPage = '/my-orders';
             }
+            if (location.state?.itemType === 'MAGAZINE_SUBSCRIPTION') {
+                clearCart();
+                targetPage = '/monthly-magazine?tab=subscriptions';
+            }
             if (location.state?.itemType === 'DONATION') targetPage = '/my-donations';
 
             navigate(targetPage, { replace: true });

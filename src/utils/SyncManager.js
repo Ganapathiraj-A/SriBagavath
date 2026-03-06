@@ -1,6 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
-import { doc, updateDoc, increment, setDoc, getDocCacheFirst } from '@/utils/FirestoreProxy.js';
+import { doc, updateDoc, increment, setDoc, getDocFromServer } from '@/utils/FirestoreProxy.js';
 import { db } from '@/firebase.js';
 
 /**
@@ -52,8 +52,8 @@ export const initializeSyncManager = async (force = false) => {
                 return;
             }
 
-            console.log("[SyncManager] Fetching registry (Cache-First)...");
-            const registryDoc = await getDocCacheFirst(doc(db, 'app_settings', 'sync_registry'));
+            console.log("[SyncManager] Fetching registry (Server-Only)...");
+            const registryDoc = await getDocFromServer(doc(db, 'app_settings', 'sync_registry'));
             if (registryDoc.exists()) {
                 syncState.serverRegistry = registryDoc.data();
                 localStorage.setItem(REGISTRY_CACHE_KEY, JSON.stringify(syncState.serverRegistry));

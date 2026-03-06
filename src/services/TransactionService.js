@@ -76,7 +76,7 @@ export const TransactionService = {
         await batch.commit();
 
         // 4. Update Stats (Async / Non-atomic with TX)
-        if (data.itemType === 'BOOK') {
+        if (data.itemType === 'BOOK' || data.itemType === 'MAGAZINE_SUBSCRIPTION') {
             StatsService.recordBookOrder(data.amount, true).catch(() => { });
         } else {
             const pCount = data.participantCount || (data.participants?.length) || 1;
@@ -155,7 +155,7 @@ export const TransactionService = {
             // Also try delete image (fire and forget)
             deleteDoc(doc(db, "transaction_images", id)).catch(e => console.warn("Img delete failed", e));
             // Update Stats (Decrement)
-            if (snap.data().itemType === 'BOOK') {
+            if (snap.data().itemType === 'BOOK' || snap.data().itemType === 'MAGAZINE_SUBSCRIPTION') {
                 StatsService.recordBookOrder(snap.data().amount, false).catch(() => { });
             } else {
                 const count = snap.data().participantCount || (snap.data().participants?.length) || 1;

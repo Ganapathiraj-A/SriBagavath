@@ -34,7 +34,7 @@ const BookStoreManagement = () => {
         localStorage.setItem('badge_transactions', '0');
 
         const unsubscribe = TransactionService.streamTransactions((data) => {
-            const relevantTransactions = data.filter(tx => tx.itemType === 'BOOK');
+            const relevantTransactions = (data || []).filter(tx => tx.itemType === 'BOOK' || tx.itemType === 'MAGAZINE_SUBSCRIPTION');
             setAllOrders(relevantTransactions);
             setLoading(false);
         });
