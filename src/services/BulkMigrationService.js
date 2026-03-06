@@ -10,18 +10,32 @@ export const BulkMigrationService = {
     /**
      * Common migration logic for a single item
      */
-    migrateItem: async (id, base64, pathPrefix, fileName, updateDocRef) => {
+    migrateItem: async (id, base64, pathPrefix, fileName, parentDocRef, sourceDocRef = null, sourceFieldName = 'imageUrl') => {
         try {
             // 1. Upload to Storage
             const downloadUrl = await TransactionService.uploadBase64ToStorage(id, base64, pathPrefix, fileName);
 
-            // 2. Update the parent document
-            await updateDoc(updateDocRef, {
+            // 2. Update the parent document (usually the main record)
+            const parentUpdate = {
                 imageUrl: downloadUrl,
                 hasImage: true,
-                // We keep the legacy field for a while for safety, but mark it as migrated
                 storage_migrated: true
-            });
+            };
+            await updateDoc(parentDocRef, parentUpdate);
+
+            // 3. Update the source document if it's different or needs specific field update
+            // (e.g., updating 'banner' in 'program_banners' collection)
+            if (sourceDocRef && sourceDocRef.path !== parentDocRef.path) {
+                await updateDoc(sourceDocRef, {
+                    [sourceFieldName]: downloadUrl,
+                    storage_migrated: true
+                });
+            } else if (!sourceDocRef && sourceFieldName !== 'imageUrl') {
+                // If sourceDocRef is null but fieldName is custom, it means parent == source
+                await updateDoc(parentDocRef, {
+                    [sourceFieldName]: downloadUrl
+                });
+            }
 
             return { success: true, id };
         } catch (error) {
@@ -45,12 +59,13 @@ export const BulkMigrationService = {
             const txId = docSnap.id;
             const base64 = data.base64;
 
-            if (base64) {
+            if (base64 && !base64.startsWith('http')) {
                 const parentRef = doc(db, 'transactions', txId);
                 const parentSnap = await getDoc(parentRef);
 
                 if (parentSnap.exists()) {
-                    const res = await BulkMigrationService.migrateItem(txId, base64, 'transactions', 'image.jpg', parentRef);
+                    // Update both parent and the image doc itself
+                    const res = await BulkMigrationService.migrateItem(txId, base64, 'transactions', 'image.jpg', parentRef, docSnap.ref, 'base64');
                     results.push(res);
                 } else {
                     results.push({ success: false, id: txId, error: 'Parent transaction document not found' });
@@ -76,14 +91,15 @@ export const BulkMigrationService = {
         for (const docSnap of snapshot.docs) {
             const data = docSnap.data();
             const progId = docSnap.id;
-            const base64 = data.base64;
+            const base64 = data.banner;
 
-            if (base64) {
+            if (base64 && !base64.startsWith('http')) {
                 const parentRef = doc(db, 'programs', progId);
                 const parentSnap = await getDoc(parentRef);
 
                 if (parentSnap.exists()) {
-                    const res = await BulkMigrationService.migrateItem(progId, base64, 'banners', 'banner.jpg', parentRef);
+                    // Update main program doc and the banner doc
+                    const res = await BulkMigrationService.migrateItem(progId, base64, 'banners', 'banner.jpg', parentRef, docSnap.ref, 'banner');
                     results.push(res);
                 } else {
                     results.push({ success: false, id: progId, error: 'Parent program document not found' });
@@ -113,7 +129,8 @@ export const BulkMigrationService = {
 
             if (base64 && !base64.startsWith('http')) {
                 const parentRef = doc(db, 'daily_zoom_teachers', teacherId);
-                const res = await BulkMigrationService.migrateItem(teacherId, base64, 'teachers', 'photo.jpg', parentRef);
+                // Here parent == source, and field name is 'image'
+                const res = await BulkMigrationService.migrateItem(teacherId, base64, 'teachers', 'photo.jpg', parentRef, null, 'image');
                 results.push(res);
             }
 
@@ -136,14 +153,14 @@ export const BulkMigrationService = {
         for (const docSnap of snapshot.docs) {
             const data = docSnap.data();
             const masterId = docSnap.id;
-            const base64 = data.base64;
+            const base64 = data.banner;
 
-            if (base64) {
+            if (base64 && !base64.startsWith('http')) {
                 const parentRef = doc(db, 'satsangs', masterId);
                 const parentSnap = await getDoc(parentRef);
 
                 if (parentSnap.exists()) {
-                    const res = await BulkMigrationService.migrateItem(masterId, base64, 'satsang_banners', 'banner.jpg', parentRef);
+                    const res = await BulkMigrationService.migrateItem(masterId, base64, 'satsang_banners', 'banner.jpg', parentRef, docSnap.ref, 'banner');
                     results.push(res);
                 } else {
                     results.push({ success: false, id: masterId, error: 'Parent satsang document not found' });
@@ -169,14 +186,14 @@ export const BulkMigrationService = {
         for (const docSnap of snapshot.docs) {
             const data = docSnap.data();
             const meetingId = docSnap.id;
-            const base64 = data.base64;
+            const base64 = data.banner;
 
-            if (base64) {
+            if (base64 && !base64.startsWith('http')) {
                 const parentRef = doc(db, 'online_meetings', meetingId);
                 const parentSnap = await getDoc(parentRef);
 
                 if (parentSnap.exists()) {
-                    const res = await BulkMigrationService.migrateItem(meetingId, base64, 'online_meeting_banners', 'banner.jpg', parentRef);
+                    const res = await BulkMigrationService.migrateItem(meetingId, base64, 'online_meeting_banners', 'banner.jpg', parentRef, docSnap.ref, 'banner');
                     results.push(res);
                 } else {
                     results.push({ success: false, id: meetingId, error: 'Parent online meeting document not found' });
@@ -202,14 +219,14 @@ export const BulkMigrationService = {
         for (const docSnap of snapshot.docs) {
             const data = docSnap.data();
             const bookId = docSnap.id;
-            const base64 = data.base64;
+            const base64 = data.cover;
 
-            if (base64) {
+            if (base64 && !base64.startsWith('http')) {
                 const parentRef = doc(db, 'books', bookId);
                 const parentSnap = await getDoc(parentRef);
 
                 if (parentSnap.exists()) {
-                    const res = await BulkMigrationService.migrateItem(bookId, base64, 'book_covers', 'cover.jpg', parentRef);
+                    const res = await BulkMigrationService.migrateItem(bookId, base64, 'book_covers', 'cover.jpg', parentRef, docSnap.ref, 'cover');
                     results.push(res);
                 } else {
                     results.push({ success: false, id: bookId, error: 'Parent book document not found' });
@@ -221,4 +238,5 @@ export const BulkMigrationService = {
         }
         return results;
     }
+
 };
