@@ -436,7 +436,7 @@ const DailyZoomMeetings = () => {
                     meeting: meeting,
                     displayName: displayName,
                     displayImage: base64Img,
-                    caption: `🎦 *Daily Zoom Meeting*\n\n👤 *Speaker:* ${displayName}\n📅 *Date:* ${new Date(meeting.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}\n\n🔗 *Join Link:*\n${meeting.joinUrl}`
+                    caption: `🎦 *Daily Zoom Meeting*\n\n👤 *Speaker:* ${displayName}`
                 };
                 setSharingData(shareInfo);
                 // Use a much longer timeout to guarantee the DOM is fully constructed and painted with the new Base64 string
@@ -450,7 +450,7 @@ const DailyZoomMeetings = () => {
                     meeting: meeting,
                     displayName: displayName,
                     displayImage: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=", // Transparent 1x1 PNG
-                    caption: `🎦 *Daily Zoom Meeting*\n\n👤 *Speaker:* ${displayName}\n📅 *Date:* ${new Date(meeting.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}\n\n🔗 *Join Link:*\n${meeting.joinUrl}`
+                    caption: `🎦 *Daily Zoom Meeting*\n\n👤 *Speaker:* ${displayName}`
                 };
                 setSharingData(shareInfo);
                 setTimeout(() => captureAndShare(shareInfo), 1500);
@@ -501,8 +501,7 @@ const DailyZoomMeetings = () => {
             type: 'list',
             meetings: meetingsWithBase64Images,
             title: activeTab === 'upcoming' ? 'Upcoming Daily Zoom Meetings' : 'Past Daily Zoom Meetings',
-            caption: `🎦 *Daily Zoom Meetings (${activeTab === 'upcoming' ? 'Upcoming' : 'Past'})*\n\n` +
-                meetingsWithBase64Images.map(m => `📅 *${new Date(m.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}* - ${m._displayName}\n🔗 ${m.joinUrl}`).join('\n\n')
+            caption: `🎦 *Daily Zoom Meetings (${activeTab === 'upcoming' ? 'Upcoming' : 'Past'})*`
         };
 
         setSharingData(shareInfo);
@@ -739,72 +738,90 @@ const DailyZoomMeetings = () => {
                         style={{
                             width: '800px',
                             backgroundColor: '#ffffff',
-                            padding: '40px',
                             fontFamily: 'system-ui, -apple-system, sans-serif'
                         }}
                     >
-                        {/* Header */}
-                        <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-                            <h1 style={{ color: '#f97316', margin: '0 0 10px 0', fontSize: '24px', fontWeight: 800 }}>
-                                {sharingData.type === 'single' ? 'Daily Zoom Meeting' : sharingData.title}
-                            </h1>
-                            <div style={{ height: '3px', width: '60px', backgroundColor: '#f97316', margin: '0 auto' }}></div>
+                        <div style={{ padding: '40px' }}>
+                            {/* Header */}
+                            <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+                                <h1 style={{ color: '#f97316', margin: '0 0 10px 0', fontSize: '24px', fontWeight: 800 }}>
+                                    {sharingData.type === 'single' ? 'Daily Zoom Meeting' : sharingData.title}
+                                </h1>
+                                <div style={{ height: '3px', width: '60px', backgroundColor: '#f97316', margin: '0 auto' }}></div>
+                            </div>
+
+                            {/* Content */}
+                            {sharingData.type === 'single' ? (
+                                <div style={{ textAlign: 'center' }}>
+                                    {sharingData.displayImage !== "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=" && (
+                                        <img
+                                            src={sharingData.displayImage}
+                                            style={{ width: '200px', height: '200px', borderRadius: '20px', objectFit: 'cover', marginBottom: '20px', border: '5px solid #fff7ed', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                                            crossOrigin="anonymous"
+                                            alt=""
+                                            onError={(e) => { e.target.style.display = 'none'; }}
+                                        />
+                                    )}
+                                    <h2 style={{ fontSize: '22px', color: '#1f2937', margin: '0 0 10px 0', fontWeight: 750 }}>
+                                        {sharingData.displayName}
+                                    </h2>
+                                    <p style={{ color: '#f97316', fontSize: '18px', fontWeight: 600, margin: '0 0 15px 0' }}>
+                                        {new Date(sharingData.meeting.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                                    </p>
+                                    <p style={{ color: '#4b5563', fontSize: '15px', lineHeight: 1.6, margin: '0 0 20px 0', fontStyle: 'italic' }}>
+                                        {sharingData.meeting.description || ''}
+                                    </p>
+                                </div>
+                            ) : (
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
+                                    {sharingData.meetings.map((m, idx) => {
+                                        return (
+                                            <div key={m.id} style={{ display: 'flex', gap: '15px', padding: '15px', backgroundColor: '#fcfcfc', borderRadius: '15px', border: '1px solid #f3f4f6' }}>
+                                                {m._displayImageB64 !== "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=" && (
+                                                    <img
+                                                        src={m._displayImageB64}
+                                                        style={{ width: '50px', height: '50px', borderRadius: '10px', objectFit: 'cover', flexShrink: 0 }}
+                                                        crossOrigin="anonymous"
+                                                        alt=""
+                                                        onError={(e) => { e.target.style.display = 'none'; }}
+                                                    />
+                                                )}
+                                                <div style={{ flex: 1, minWidth: 0 }}>
+                                                    <p style={{ margin: '0 0 2px 0', fontSize: '12px', color: '#f97316', fontWeight: 700 }}>
+                                                        {new Date(m.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+                                                    </p>
+                                                    <p style={{ margin: '0 0 4px 0', fontSize: '14px', color: '#111827', fontWeight: 750, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                        {m._displayName}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
 
-                        {/* Content */}
-                        {sharingData.type === 'single' ? (
-                            <div style={{ textAlign: 'center' }}>
-                                {sharingData.displayImage !== "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=" && (
-                                    <img
-                                        src={sharingData.displayImage}
-                                        style={{ width: '200px', height: '200px', borderRadius: '20px', objectFit: 'cover', marginBottom: '20px', border: '5px solid #fff7ed', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
-                                        crossOrigin="anonymous"
-                                        alt=""
-                                        onError={(e) => { e.target.style.display = 'none'; }}
-                                    />
-                                )}
-                                <h2 style={{ fontSize: '22px', color: '#1f2937', margin: '0 0 10px 0', fontWeight: 750 }}>
-                                    {sharingData.displayName}
-                                </h2>
-                                <p style={{ color: '#f97316', fontSize: '18px', fontWeight: 600, margin: '0 0 15px 0' }}>
-                                    {new Date(sharingData.meeting.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                        {/* Orange Footer with Zoom Link */}
+                        <div style={{
+                            backgroundColor: '#f97316',
+                            padding: '30px',
+                            color: 'white',
+                            textAlign: 'center'
+                        }}>
+                            <div style={{ marginBottom: '15px' }}>
+                                <p style={{ margin: '0 0 5px 0', fontSize: '18px', fontWeight: 800, opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                    Zoom Join Link
                                 </p>
-                                <p style={{ color: '#4b5563', fontSize: '15px', lineHeight: 1.6, margin: '0 0 20px 0', fontStyle: 'italic' }}>
-                                    {sharingData.meeting.description || ''}
+                                <p style={{ margin: 0, fontSize: '15px', fontWeight: 600, wordBreak: 'break-all' }}>
+                                    {sharingData.type === 'single' ? sharingData.meeting.joinUrl : sharingData.meetings[0]?.joinUrl}
                                 </p>
                             </div>
-                        ) : (
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
-                                {sharingData.meetings.map((m, idx) => {
-                                    return (
-                                        <div key={m.id} style={{ display: 'flex', gap: '15px', padding: '15px', backgroundColor: '#fcfcfc', borderRadius: '15px', border: '1px solid #f3f4f6' }}>
-                                            {m._displayImageB64 !== "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=" && (
-                                                <img
-                                                    src={m._displayImageB64}
-                                                    style={{ width: '50px', height: '50px', borderRadius: '10px', objectFit: 'cover', flexShrink: 0 }}
-                                                    crossOrigin="anonymous"
-                                                    alt=""
-                                                    onError={(e) => { e.target.style.display = 'none'; }}
-                                                />
-                                            )}
-                                            <div style={{ flex: 1, minWidth: 0 }}>
-                                                <p style={{ margin: '0 0 2px 0', fontSize: '12px', color: '#f97316', fontWeight: 700 }}>
-                                                    {new Date(m.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
-                                                </p>
-                                                <p style={{ margin: '0 0 4px 0', fontSize: '14px', color: '#111827', fontWeight: 750, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                                    {m._displayName}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
-
-                        {/* Footer */}
-                        <div style={{ textAlign: 'center', marginTop: '40px', paddingTop: '20px', borderTop: '2px solid #f3f4f6' }}>
-                            <p style={{ margin: 0, color: '#f97316', fontSize: '16px', fontWeight: 800 }}>
+                            <div style={{ height: '1px', backgroundColor: 'rgba(255,255,255,0.2)', margin: '20px 0' }}></div>
+                            <p style={{ margin: 0, fontSize: '20px', fontWeight: 700 }}>
                                 Download Sri Bagavath App for latest updates
+                            </p>
+                            <p style={{ margin: '8px 0 0 0', fontSize: '14px', opacity: 0.9 }}>
+                                For latest spiritual updates and publications
                             </p>
                         </div>
                     </div>
