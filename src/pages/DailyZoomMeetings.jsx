@@ -375,7 +375,7 @@ const DailyZoomMeetings = () => {
 
             await Share.share({
                 title: shareTitle,
-                text: 'Meeting Details attached',
+                text: currentData.caption || 'Meeting Details attached',
                 files: [result.uri]
             });
             console.log("[Share] Share complete");
@@ -428,13 +428,15 @@ const DailyZoomMeetings = () => {
                     type: 'single',
                     title: meeting.title || meeting.topic,
                     displayImage: base64Img?.substring(0, 50) + "...",
-                    speakerName: displayName
+                    speakerName: displayName,
+                    caption: `Zoom Meeting: ${displayName}\nDate: ${new Date(meeting.date).toLocaleDateString()}\n\nJoin link: ${meeting.joinUrl}`
                 });
                 const shareInfo = {
                     type: 'single',
                     meeting: meeting,
                     displayName: displayName,
-                    displayImage: base64Img
+                    displayImage: base64Img,
+                    caption: `🎦 *Daily Zoom Meeting*\n\n👤 *Speaker:* ${displayName}\n📅 *Date:* ${new Date(meeting.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}\n\n🔗 *Join Link:*\n${meeting.joinUrl}`
                 };
                 setSharingData(shareInfo);
                 // Use a much longer timeout to guarantee the DOM is fully constructed and painted with the new Base64 string
@@ -447,7 +449,8 @@ const DailyZoomMeetings = () => {
                     type: 'single',
                     meeting: meeting,
                     displayName: displayName,
-                    displayImage: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=" // Transparent 1x1 PNG
+                    displayImage: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=", // Transparent 1x1 PNG
+                    caption: `🎦 *Daily Zoom Meeting*\n\n👤 *Speaker:* ${displayName}\n📅 *Date:* ${new Date(meeting.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}\n\n🔗 *Join Link:*\n${meeting.joinUrl}`
                 };
                 setSharingData(shareInfo);
                 setTimeout(() => captureAndShare(shareInfo), 1500);
@@ -497,7 +500,9 @@ const DailyZoomMeetings = () => {
         const shareInfo = {
             type: 'list',
             meetings: meetingsWithBase64Images,
-            title: activeTab === 'upcoming' ? 'Upcoming Daily Zoom Meetings' : 'Past Daily Zoom Meetings'
+            title: activeTab === 'upcoming' ? 'Upcoming Daily Zoom Meetings' : 'Past Daily Zoom Meetings',
+            caption: `🎦 *Daily Zoom Meetings (${activeTab === 'upcoming' ? 'Upcoming' : 'Past'})*\n\n` +
+                meetingsWithBase64Images.map(m => `📅 *${new Date(m.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}* - ${m._displayName}\n🔗 ${m.joinUrl}`).join('\n\n')
         };
 
         setSharingData(shareInfo);
@@ -767,10 +772,6 @@ const DailyZoomMeetings = () => {
                                 <p style={{ color: '#4b5563', fontSize: '15px', lineHeight: 1.6, margin: '0 0 20px 0', fontStyle: 'italic' }}>
                                     {sharingData.meeting.description || ''}
                                 </p>
-                                <div style={{ backgroundColor: '#fff7ed', padding: '15px', borderRadius: '15px', border: '1px solid #ffedd5' }}>
-                                    <p style={{ margin: '0 0 5px 0', fontSize: '14px', color: '#9a3412', fontWeight: 700 }}>ZOOM JOIN LINK</p>
-                                    <p style={{ margin: 0, fontSize: '13px', color: '#1f2937', wordBreak: 'break-all' }}>{sharingData.meeting.joinUrl}</p>
-                                </div>
                             </div>
                         ) : (
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
@@ -792,9 +793,6 @@ const DailyZoomMeetings = () => {
                                                 </p>
                                                 <p style={{ margin: '0 0 4px 0', fontSize: '14px', color: '#111827', fontWeight: 750, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                                     {m._displayName}
-                                                </p>
-                                                <p style={{ margin: 0, fontSize: '11px', color: '#4b5563', wordBreak: 'break-all', opacity: 0.8 }}>
-                                                    {m.joinUrl}
                                                 </p>
                                             </div>
                                         </div>

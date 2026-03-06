@@ -294,70 +294,72 @@ const BookDetails = () => {
                         style={{
                             width: '800px',
                             backgroundColor: '#ffffff',
-                            padding: '40px',
+                            padding: '0',
                             fontFamily: 'system-ui, -apple-system, sans-serif'
                         }}
                     >
-                        {/* Header */}
-                        <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-                            <h1 style={{ color: '#f97316', margin: '0 0 10px 0', fontSize: '28px', fontWeight: 800 }}>
-                                Sri Bagavath App
-                            </h1>
-                            <div style={{ height: '3px', width: '80px', backgroundColor: '#f97316', margin: '0 auto' }}></div>
-                        </div>
-
-                        <div style={{ display: 'flex', gap: '40px', alignItems: 'flex-start' }}>
-                            {/* Left: Cover */}
-                            <div style={{ width: '300px', flexShrink: 0 }}>
-                                {sharingData.cover && (
-                                    <img
-                                        src={sharingData.cover}
-                                        style={{
-                                            width: '100%',
-                                            borderRadius: '20px',
-                                            boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
-                                            border: '1px solid #e5e7eb'
-                                        }}
-                                        alt=""
-                                    />
-                                )}
+                        <div style={{ padding: '40px' }}>
+                            {/* Header */}
+                            <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+                                <h1 style={{ color: '#f97316', margin: '0 0 10px 0', fontSize: '28px', fontWeight: 800 }}>
+                                    Sri Bagavath App
+                                </h1>
+                                <div style={{ height: '3px', width: '80px', backgroundColor: '#f97316', margin: '0 auto' }}></div>
                             </div>
 
-                            {/* Right: Details */}
-                            <div style={{ flex: 1 }}>
-                                <h2 style={{ fontSize: '32px', color: '#111827', margin: '0 0 10px 0', fontWeight: 800, lineHeight: 1.2 }}>
-                                    {sharingData.title}
-                                </h2>
-                                <p style={{
-                                    display: 'inline-block',
-                                    padding: '6px 16px',
-                                    backgroundColor: '#fff7ed',
-                                    color: '#ea580c',
-                                    borderRadius: '9999px',
-                                    fontSize: '18px',
-                                    fontWeight: 600,
-                                    marginBottom: '20px'
-                                }}>
-                                    {sharingData.category}
-                                </p>
-
-                                <div style={{ fontSize: '28px', fontWeight: 800, color: '#f97316', marginBottom: '24px' }}>
-                                    ₹{sharingData.price}
+                            <div style={{ display: 'flex', gap: '40px', alignItems: 'flex-start' }}>
+                                {/* Left: Cover */}
+                                <div style={{ width: '300px', flexShrink: 0 }}>
+                                    {sharingData.cover && (
+                                        <img
+                                            src={sharingData.cover}
+                                            style={{
+                                                width: '100%',
+                                                borderRadius: '20px',
+                                                boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
+                                                border: '1px solid #e5e7eb'
+                                            }}
+                                            alt=""
+                                        />
+                                    )}
                                 </div>
 
-                                <div style={{ borderTop: '1px solid #f3f4f6', paddingTop: '20px' }}>
-                                    <p style={{ fontSize: '18px', lineHeight: 1.6, color: '#374151', margin: 0, whiteSpace: 'pre-line' }}>
-                                        {sharingData.description}
+                                {/* Right: Details */}
+                                <div style={{ flex: 1 }}>
+                                    <h2 style={{ fontSize: '32px', color: '#111827', margin: '0 0 10px 0', fontWeight: 800, lineHeight: 1.2 }}>
+                                        {sharingData.title}
+                                    </h2>
+                                    <p style={{
+                                        display: 'inline-block',
+                                        padding: '6px 16px',
+                                        backgroundColor: '#fff7ed',
+                                        color: '#ea580c',
+                                        borderRadius: '9999px',
+                                        fontSize: '18px',
+                                        fontWeight: 600,
+                                        marginBottom: '20px'
+                                    }}>
+                                        {sharingData.category}
                                     </p>
+
+                                    <div style={{ fontSize: '28px', fontWeight: 800, color: '#f97316', marginBottom: '24px' }}>
+                                        ₹{sharingData.price}
+                                    </div>
+
+                                    <div style={{ borderTop: '1px solid #f3f4f6', paddingTop: '20px' }}>
+                                        <p style={{ fontSize: '18px', lineHeight: 1.6, color: '#374151', margin: 0, whiteSpace: 'pre-line' }}>
+                                            {sharingData.description}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div style={{ marginTop: '40px', textAlign: 'center', backgroundColor: '#f97316', padding: '20px', borderRadius: '15px', color: 'white' }}>
-                            <p style={{ margin: 0, fontSize: '18px', fontWeight: 700 }}>
+                        <div style={{ textAlign: 'center', backgroundColor: '#f97316', padding: '30px', color: 'white' }}>
+                            <p style={{ margin: 0, fontSize: '20px', fontWeight: 700 }}>
                                 Download Sri Bagavath App for latest updates
                             </p>
-                            <p style={{ margin: '5px 0 0 0', fontSize: '14px', opacity: 0.9 }}>
+                            <p style={{ margin: '8px 0 0 0', fontSize: '14px', opacity: 0.9 }}>
                                 For latest spiritual updates and publications
                             </p>
                         </div>

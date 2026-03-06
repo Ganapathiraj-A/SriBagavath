@@ -366,58 +366,6 @@ const DonationManagement = () => {
                 </div>
             </div>
 
-            {/* Search and Filters */}
-            <div style={{ padding: '0.75rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', backgroundColor: 'var(--color-background)' }}>
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    padding: '0.4rem 0.875rem',
-                    borderRadius: '0.75rem',
-                    backgroundColor: 'var(--color-surface)',
-                    border: '1px solid var(--color-border)',
-                }}>
-                    <Search size={16} color="var(--color-text-muted)" />
-                    <input
-                        type="text"
-                        placeholder="Search name, ID or city..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        style={{
-                            width: '100%',
-                            padding: '0.5rem 0',
-                            border: 'none',
-                            outline: 'none',
-                            fontSize: '0.875rem',
-                            backgroundColor: 'transparent',
-                            color: 'var(--color-text)'
-                        }}
-                    />
-                </div>
-
-                <div style={{ display: 'flex', gap: '0.4rem', overflowX: 'auto', paddingBottom: '0.2rem', msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
-                    {getStatusFilterOptions().map(({ id, label }) => (
-                        <button
-                            key={id}
-                            onClick={() => setActiveStatus(id)}
-                            style={{
-                                padding: '0.4rem 0.875rem',
-                                borderRadius: '0.6rem',
-                                fontSize: '0.8rem',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                border: '1px solid var(--color-border)',
-                                backgroundColor: activeStatus === id ? 'var(--color-primary)' : 'var(--color-surface)',
-                                color: activeStatus === id ? 'white' : 'var(--color-text-secondary)',
-                                transition: 'all 0.2s',
-                                flexShrink: 0
-                            }}
-                        >
-                            {label}
-                        </button>
-                    ))}
-                </div>
-            </div>
 
             {/* Sub-Header Actions */}
             {activeTab === 'ACCEPTED' && getCount('ACCEPTED') > 0 && (

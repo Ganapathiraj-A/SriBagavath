@@ -269,7 +269,7 @@ const AudioBooks = () => {
                   borderRadius: '50%',
                   border: 'none',
                   backgroundColor: 'var(--color-surface)',
-                  color: 'var(--color-text-muted)',
+                  color: 'var(--color-primary)',
                   cursor: isSharingAudioBookId ? 'default' : 'pointer',
                   display: 'flex',
                   alignItems: 'center',

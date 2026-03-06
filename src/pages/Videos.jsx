@@ -142,43 +142,6 @@ const Videos = () => {
                                             animate={{ opacity: 1, x: 0 }}
                                             transition={{ delay: 0.1 }}
                                             whileHover={{ scale: 1.01, backgroundColor: 'var(--color-surface)' }}
-                                            onClick={() => window.open('https://t.me/Bagavath_conversations', '_blank')}
-                                            style={{
-                                                width: '100%',
-                                                padding: '1.25rem',
-                                                backgroundColor: 'var(--color-background)',
-                                                borderRadius: '0.75rem',
-                                                border: '1px solid var(--color-border)',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'space-between',
-                                                textAlign: 'left',
-                                                cursor: 'pointer'
-                                            }}
-                                        >
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                                <div style={{
-                                                    padding: '0.5rem',
-                                                    borderRadius: '9999px',
-                                                    backgroundColor: 'var(--color-primary-transparent)',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center'
-                                                }}>
-                                                    <Send size={20} color="var(--color-primary)" />
-                                                </div>
-                                                <span style={{ fontSize: '1rem', color: 'var(--color-text)', fontWeight: 500 }}>
-                                                    Telegram
-                                                </span>
-                                            </div>
-                                            <ExternalLink size={18} color="var(--color-text-light)" />
-                                        </motion.button>
-
-                                        <motion.button
-                                            initial={{ opacity: 0, x: -20 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: 0.2 }}
-                                            whileHover={{ scale: 1.01, backgroundColor: 'var(--color-surface)' }}
                                             onClick={() => window.open('https://youtube.com/@bagavathpathai?si=F2JEXlLNpDngYujc', '_blank')}
                                             style={{
                                                 width: '100%',
@@ -206,6 +169,43 @@ const Videos = () => {
                                                 </div>
                                                 <span style={{ fontSize: '1rem', color: 'var(--color-text)', fontWeight: 500 }}>
                                                     YouTube
+                                                </span>
+                                            </div>
+                                            <ExternalLink size={18} color="var(--color-text-light)" />
+                                        </motion.button>
+
+                                        <motion.button
+                                            initial={{ opacity: 0, x: -20 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: 0.2 }}
+                                            whileHover={{ scale: 1.01, backgroundColor: 'var(--color-surface)' }}
+                                            onClick={() => window.open('https://t.me/Bagavath_conversations', '_blank')}
+                                            style={{
+                                                width: '100%',
+                                                padding: '1.25rem',
+                                                backgroundColor: 'var(--color-background)',
+                                                borderRadius: '0.75rem',
+                                                border: '1px solid var(--color-border)',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'space-between',
+                                                textAlign: 'left',
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                                <div style={{
+                                                    padding: '0.5rem',
+                                                    borderRadius: '9999px',
+                                                    backgroundColor: 'var(--color-primary-transparent)',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center'
+                                                }}>
+                                                    <Send size={20} color="var(--color-primary)" />
+                                                </div>
+                                                <span style={{ fontSize: '1rem', color: 'var(--color-text)', fontWeight: 500 }}>
+                                                    Telegram
                                                 </span>
                                             </div>
                                             <ExternalLink size={18} color="var(--color-text-light)" />
