@@ -72,7 +72,7 @@ const BankReconciliation = lazy(() => import('./pages/BankReconciliation'));
 const BankStatementUpload = lazy(() => import('./pages/BankStatementUpload'));
 const BankReconciliationRegs = lazy(() => import('./pages/BankReconciliationRegs'));
 const BankStatementView = lazy(() => import('./pages/BankStatementView'));
-const StorageTest = lazy(() => import('./pages/StorageTest'));
+const MediaMigration = lazy(() => import('./pages/MediaMigration'));
 import ProtectedRoute from './components/ProtectedRoute';
 import { AdminAuthProvider } from './context/AdminAuthContext';
 import { NotificationProvider } from './context/NotificationContext';
@@ -332,7 +332,7 @@ function AnimatedRoutes() {
           <Route path="/admin-review" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><AdminReview /></ProtectedRoute>} />
           <Route path="/admin-dashboard" element={<ProtectedRoute requiredPermission="REPORTING"><AdminDashboard /></ProtectedRoute>} />
           <Route path="/admin/settings" element={<ProtectedRoute><AdminSettings /></ProtectedRoute>} />
-          <Route path="/admin/test-storage" element={<ProtectedRoute requiredRole="SUPER_ADMIN"><StorageTest /></ProtectedRoute>} />
+          <Route path="/admin/media-migration" element={<ProtectedRoute requiredRole="SUPER_ADMIN"><MediaMigration /></ProtectedRoute>} />
 
           {/* Back Office Routes */}
           <Route path="/admin/back-office" element={<ProtectedRoute requiredPermission="REPORTING"><BackOffice /></ProtectedRoute>} />

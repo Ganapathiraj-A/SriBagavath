@@ -17,6 +17,7 @@ import {
     Cpu,
     Cloud,
     Landmark,
+    Database,
     Link as LinkIcon,
     Eye,
     EyeOff
@@ -235,11 +236,11 @@ const AdminSettings = () => {
                     bgColor: 'var(--color-error-transparent)'
                 },
                 {
-                    id: 'STORAGE_TEST',
-                    title: 'Storage Integration Test',
-                    subtitle: 'Verify upload, download & rules',
-                    icon: Cloud,
-                    path: '/admin/test-storage',
+                    id: 'MEDIA_MIGRATION',
+                    title: 'Media Migration Utility',
+                    subtitle: 'Bulk update legacy images to Cloud Storage',
+                    icon: Database,
+                    path: '/admin/media-migration',
                     permission: 'REPORTING',
                     color: 'var(--color-primary)',
                     bgColor: 'var(--color-primary-transparent)'
