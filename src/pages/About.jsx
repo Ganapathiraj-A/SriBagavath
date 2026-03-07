@@ -26,7 +26,7 @@ const About = () => {
                             justifyContent: 'center'
                         }}>
                             <img
-                                src="https://firebasestorage.googleapis.com/v0/b/antigravity-app-5c1ff.firebasestorage.app/o/branding%2Fbagavath_ayya.png?alt=media"
+                                src="/images/bagavath_ayya.png"
                                 alt="Bagavath Ayya"
                                 loading="lazy"
                                 style={{

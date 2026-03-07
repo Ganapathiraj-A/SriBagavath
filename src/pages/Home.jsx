@@ -412,7 +412,7 @@ const Home = () => {
                         position: 'relative'
                     }}>
                         <img
-                            src="https://firebasestorage.googleapis.com/v0/b/antigravity-app-5c1ff.firebasestorage.app/o/branding%2Fbagavath_ayya.png?alt=media"
+                            src="/images/bagavath_ayya.png"
                             alt="Bagavath Ayya"
                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                             onError={(e) => {
