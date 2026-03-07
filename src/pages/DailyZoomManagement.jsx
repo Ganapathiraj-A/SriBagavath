@@ -7,6 +7,7 @@ import {
 import { db } from '@/firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy, limit, where } from '@/utils/FirestoreProxy';
 import PageHeader from '@/components/PageHeader';
+import LazyImage from '@/components/LazyImage';
 import { getLocalDateString } from '@/utils/dateUtils';
 import '../components/RegistrationStyles.css';
 
@@ -141,15 +142,15 @@ const DailyZoomManagement = () => {
         e.preventDefault();
         try {
             if (editingId) {
-                 
-                const { name, image, ...saveData } = formData;
-                await updateDoc(doc(db, 'daily_zoom_meetings', editingId), saveData);
+                // eslint-disable-next-line no-unused-vars
+                const { image, ...persistData } = formData;
+                await updateDoc(doc(db, 'daily_zoom_meetings', editingId), persistData);
                 alert('Meeting updated!');
             } else {
-                 
-                const { name, image, ...saveData } = formData;
+                // eslint-disable-next-line no-unused-vars
+                const { image, ...persistData } = formData;
                 await addDoc(collection(db, 'daily_zoom_meetings'), {
-                    ...saveData,
+                    ...persistData,
                     createdAt: new Date().toISOString()
                 });
                 alert('Meeting added!');
@@ -373,7 +374,18 @@ const DailyZoomManagement = () => {
                                 {formData.teacherId && (
                                     <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', padding: '0.75rem', backgroundColor: 'var(--color-surface)', borderRadius: '0.75rem', border: '1px solid var(--color-border)' }}>
                                         <div style={{ width: '3rem', height: '3rem', borderRadius: '50%', overflow: 'hidden', flexShrink: 0 }}>
-                                            {formData.image ? <img src={formData.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <User size={20} color="var(--color-text-light)" />}
+                                            {formData.image ? (
+                                                <LazyImage
+                                                    src={formData.image}
+                                                    alt=""
+                                                    width="100%"
+                                                    height="100%"
+                                                    objectFit="cover"
+                                                    borderRadius="50%"
+                                                />
+                                            ) : (
+                                                <User size={20} color="var(--color-text-light)" />
+                                            )}
                                         </div>
                                         <div>
                                             <div style={{ fontWeight: 600, color: 'var(--color-text)' }}>{formData.name}</div>
@@ -501,7 +513,20 @@ const DailyZoomManagement = () => {
                                             }}
                                         >
                                             <div style={{ width: '3.5rem', height: '3.5rem', borderRadius: '0.75rem', overflow: 'hidden', flexShrink: 0 }}>
-                                                {displayImage ? <img src={displayImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : <div style={{ width: '100%', height: '100%', backgroundColor: 'var(--color-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><User size={20} color="var(--color-text-light)" /></div>}
+                                                {displayImage ? (
+                                                    <LazyImage
+                                                        src={displayImage}
+                                                        width="100%"
+                                                        height="100%"
+                                                        objectFit="cover"
+                                                        borderRadius="0.75rem"
+                                                        alt={displayName}
+                                                    />
+                                                ) : (
+                                                    <div style={{ width: '100%', height: '100%', backgroundColor: 'var(--color-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                        <User size={20} color="var(--color-text-light)" />
+                                                    </div>
+                                                )}
                                             </div>
                                             <div style={{ flex: 1, minWidth: 0 }}>
                                                 <div style={{

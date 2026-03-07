@@ -5,6 +5,7 @@ import {
     Calendar, Clock, Video, Plus, Edit2, Trash2, AlertCircle, Save, X, ExternalLink, RefreshCw, Info
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
+import LazyImage from '@/components/LazyImage';
 import { db } from '@/firebase';
 import {
     collection, addDoc, getDocs, deleteDoc, doc,
@@ -644,7 +645,14 @@ const OnlineMeetingManagement = () => {
                                         />
                                         {formData.banner && (
                                             <div style={{ position: 'relative', width: '200px' }}>
-                                                <img src={formData.banner} alt="Banner Preview" style={{ width: '100%', borderRadius: '0.5rem' }} />
+                                                <LazyImage
+                                                    src={formData.banner}
+                                                    alt="Banner Preview"
+                                                    width="100%"
+                                                    height="120px"
+                                                    borderRadius="0.5rem"
+                                                    objectFit="cover"
+                                                />
                                                 <button
                                                     type="button"
                                                     onClick={() => setFormData({ ...formData, banner: null, hasBanner: false })}

@@ -10,6 +10,7 @@ import {
 } from '@/utils/FirestoreProxy';
 import { db } from '@/firebase';
 import PageHeader from '@/components/PageHeader';
+import LazyImage from '@/components/LazyImage';
 import { compressImage } from '@/utils/imageUtils';
 
 const AdminAudioBookManagement = () => {
@@ -220,7 +221,14 @@ const AdminAudioBookManagement = () => {
                                     border: '1px solid #e5e7eb'
                                 }}>
                                     {book.image ? (
-                                        <img src={book.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        <LazyImage
+                                            src={book.image}
+                                            width="100%"
+                                            height="100%"
+                                            objectFit="cover"
+                                            borderRadius="10px"
+                                            alt={book.title}
+                                        />
                                     ) : (
                                         <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                             <Music size={24} color="#9ca3af" />
@@ -305,7 +313,18 @@ const AdminAudioBookManagement = () => {
                                     </label>
                                     <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
                                         <div style={{ width: '60px', height: '60px', borderRadius: '10px', backgroundColor: 'var(--color-background)', overflow: 'hidden', border: '1px solid var(--color-border)', flexShrink: 0 }}>
-                                            {formData.image ? <img src={formData.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Music size={24} style={{ margin: '18px' }} color="var(--color-text-muted)" />}
+                                            {formData.image ? (
+                                                <LazyImage
+                                                    src={formData.image}
+                                                    width="100%"
+                                                    height="100%"
+                                                    objectFit="cover"
+                                                    borderRadius="10px"
+                                                    alt="Preview"
+                                                />
+                                            ) : (
+                                                <Music size={24} style={{ margin: '18px' }} color="var(--color-text-muted)" />
+                                            )}
                                         </div>
                                         <label style={{
                                             flex: '1 1 150px',

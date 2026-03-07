@@ -183,6 +183,20 @@ const DailyZoomMeetings = () => {
         const loadTeachers = async () => {
             if (teachersCache) {
                 setTeachers(teachersCache);
+                // Background refresh to pick up new teachers
+                (async () => {
+                    try {
+                        const { collection, query, orderBy, getDocsFromServer } = await import('@/utils/FirestoreProxy');
+                        const ref = collection(db, 'daily_zoom_teachers');
+                        const q = query(ref, orderBy('name', 'asc'));
+                        const snap = await getDocsFromServer(q);
+                        const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                        teachersCache = data;
+                        setTeachers(data);
+                    } catch (err) {
+                        console.error("Background teacher refresh failed:", err);
+                    }
+                })();
                 return;
             }
 

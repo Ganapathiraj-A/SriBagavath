@@ -8,6 +8,7 @@ import { db, storage } from '@/firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy } from '@/utils/FirestoreProxy';
 import { ref, deleteObject } from 'firebase/storage';
 import PageHeader from '@/components/PageHeader';
+import LazyImage from '@/components/LazyImage';
 import { compressImage } from '@/utils/imageUtils';
 import { TransactionService } from '@/services/TransactionService';
 import { StatsService } from '@/services/StatsService';
@@ -201,7 +202,18 @@ const DailyZoomTeacherManagement = () => {
                                 <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Photo</label>
                                 <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center', backgroundColor: 'var(--color-surface)', padding: '1rem', borderRadius: '0.75rem', border: '1px dashed var(--color-border)' }}>
                                     <div style={{ width: '4.5rem', height: '4.5rem', borderRadius: '1rem', backgroundColor: 'var(--color-surface)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--color-border)', boxShadow: 'var(--shadow-sm)', flexShrink: 0 }}>
-                                        {formData.image ? <img src={formData.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <User size={28} color="var(--color-text-muted)" />}
+                                        {formData.image ? (
+                                            <LazyImage
+                                                src={formData.image}
+                                                alt=""
+                                                width="100%"
+                                                height="100%"
+                                                objectFit="cover"
+                                                borderRadius="1rem"
+                                            />
+                                        ) : (
+                                            <User size={28} color="var(--color-text-muted)" />
+                                        )}
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
                                         <input
@@ -253,7 +265,20 @@ const DailyZoomTeacherManagement = () => {
                             teachers.map(t => (
                                 <div key={t.id} style={{ backgroundColor: 'var(--color-card)', padding: '1rem', borderRadius: '0.75rem', display: 'flex', alignItems: 'center', gap: '1rem', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)' }}>
                                     <div style={{ width: '3rem', height: '3rem', borderRadius: '50%', overflow: 'hidden', border: '1px solid var(--color-border)' }}>
-                                        {t.image ? <img src={t.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ width: '100%', height: '100%', backgroundColor: 'var(--color-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><User size={20} color="var(--color-text-muted)" /></div>}
+                                        {t.image ? (
+                                            <LazyImage
+                                                src={t.image}
+                                                alt={t.name}
+                                                width="100%"
+                                                height="100%"
+                                                objectFit="cover"
+                                                borderRadius="50%"
+                                            />
+                                        ) : (
+                                            <div style={{ width: '100%', height: '100%', backgroundColor: 'var(--color-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                <User size={20} color="var(--color-text-muted)" />
+                                            </div>
+                                        )}
                                     </div>
                                     <div style={{ flex: 1 }}>
                                         <div style={{ fontWeight: 600, color: 'var(--color-text)' }}>{t.name}</div>

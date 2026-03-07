@@ -132,7 +132,7 @@ const showTrackingToast = () => {
  * @param {string} src - The image source being loaded.
  */
 export const trackImageSource = (src) => {
-  if (!src) return;
+  if (!src || !window.showImageVerificationAlert) return;
 
   showTrackingToast();
 

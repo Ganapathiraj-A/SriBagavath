@@ -19,7 +19,8 @@ const DEFAULT_USER_SETTINGS = {
     serverUrl: '',
     landingPage: '/',
     showApiCounter: false,
-    showDiagnosticLogs: false
+    showDiagnosticLogs: false,
+    showImageVerificationAlert: false
 };
 
 export const GlobalSettingsProvider = ({ children }) => {
@@ -141,7 +142,8 @@ export const GlobalSettingsProvider = ({ children }) => {
                             serverUrl: localServerUrl,
                             landingPage: localLandingPage,
                             showApiCounter: false,
-                            showDiagnosticLogs: false
+                            showDiagnosticLogs: false,
+                            showImageVerificationAlert: false
                         };
                         setDoc(userDocRef, initData);
                         setUserSettings(initData);
@@ -305,6 +307,7 @@ export const GlobalSettingsProvider = ({ children }) => {
             landingPage: userSettings.landingPage ?? DEFAULT_USER_SETTINGS.landingPage,
             showApiCounter: isDeviceAuthorized || (userSettings.showApiCounter ?? DEFAULT_USER_SETTINGS.showApiCounter),
             showDiagnosticLogs: isDeviceAuthorized || (userSettings.showDiagnosticLogs ?? DEFAULT_USER_SETTINGS.showDiagnosticLogs),
+            showImageVerificationAlert: userSettings.showImageVerificationAlert ?? DEFAULT_USER_SETTINGS.showImageVerificationAlert,
             isDeviceAuthorized,
             deviceId,
 
@@ -317,6 +320,7 @@ export const GlobalSettingsProvider = ({ children }) => {
             setLandingPage: (val) => updateUser({ landingPage: val }),
             setShowApiCounter: (val) => updateUser({ showApiCounter: val }),
             setShowDiagnosticLogs: (val) => updateUser({ showDiagnosticLogs: val }),
+            setShowImageVerificationAlert: (val) => updateUser({ showImageVerificationAlert: val }),
             toggleDeviceAuthorization,
             setPublicSettings,
 

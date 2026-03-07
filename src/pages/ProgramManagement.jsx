@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Capacitor } from '@capacitor/core';
+import LazyImage from '@/components/LazyImage';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Plus, Trash2, Package, ChevronLeft, MapPin } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
@@ -961,16 +962,13 @@ const ProgramManagement = () => {
                                             <div style={{ fontSize: '0.875rem', fontWeight: 500, color: '#374151', marginBottom: '0.5rem' }}>
                                                 {bannerImage ? 'New Banner Preview:' : 'Current Banner:'}
                                             </div>
-                                            <img
+                                            <LazyImage
                                                 src={bannerImage ? URL.createObjectURL(bannerImage) : formData.programBanner}
                                                 alt="Banner preview"
-                                                style={{
-                                                    width: '100%',
-                                                    maxHeight: '200px',
-                                                    objectFit: 'contain',
-                                                    borderRadius: '0.5rem',
-                                                    border: '1px solid var(--color-border)'
-                                                }}
+                                                width="100%"
+                                                height="200px"
+                                                borderRadius="0.5rem"
+                                                objectFit="contain"
                                             />
                                         </div>
                                     )}

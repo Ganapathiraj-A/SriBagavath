@@ -609,7 +609,14 @@ const AdminBookManagement = () => {
 
                                     {(coverImage || formData.coverUrl) && (
                                         <div style={{ position: 'relative', width: '100px', marginTop: '0.5rem' }}>
-                                            <img src={coverImage ? URL.createObjectURL(coverImage) : formData.coverUrl} alt="Cover Preview" style={{ width: '100%', borderRadius: '0.75rem', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }} />
+                                            <LazyImage
+                                                src={coverImage ? URL.createObjectURL(coverImage) : formData.coverUrl}
+                                                alt="Cover Preview"
+                                                width="100%"
+                                                height="150px"
+                                                borderRadius="0.75rem"
+                                                objectFit="cover"
+                                            />
                                             <button type="button" onClick={() => { setCoverImage(null); setFormData(p => ({ ...p, coverUrl: '' })); }} style={{ position: 'absolute', top: '-8px', right: '-8px', backgroundColor: 'var(--color-error)', color: 'white', borderRadius: '50%', width: '24px', height: '24px', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}><X size={14} /></button>
                                         </div>
                                     )}

@@ -5,6 +5,7 @@ import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
 import { TransactionService } from '@/services/TransactionService';
 import PageHeader from '@/components/PageHeader';
+import LazyImage from '@/components/LazyImage';
 import { compressImage, normalizeImageSrc } from '@/utils/imageUtils';
 import OCR from '@/plugins/OCRPlugin';
 import '../components/RegistrationStyles.css';
@@ -483,10 +484,11 @@ const AdminReview = () => {
 
                         {/* Receipt Image */}
                         <div style={{ position: 'relative', borderRadius: '1rem', overflowY: 'auto', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', maxHeight: '400px', display: 'flex', flexDirection: 'column' }}>
-                            <img
+                            <LazyImage
                                 src={normalizeImageSrc(viewingImage.base64)}
                                 alt="Receipt"
-                                style={{ width: '100%', display: 'block' }}
+                                width="100%"
+                                display="block"
                             />
                             <div style={{ position: 'absolute', top: '0.75rem', right: '0.75rem', backgroundColor: 'var(--color-card)', padding: '4px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, color: 'var(--color-text)', backdropFilter: 'blur(4px)', border: '1px solid var(--color-border)' }}>
                                 Receipt Image
