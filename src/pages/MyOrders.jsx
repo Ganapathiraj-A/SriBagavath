@@ -8,6 +8,7 @@ import { ensureGoogleAuthInitialized } from '@/utils/GoogleAuthUtils';
 import { auth } from '@/firebase';
 import { GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
 import { normalizeImageSrc } from '@/utils/imageUtils';
+import LazyImage from '@/components/LazyImage';
 
 const MyOrders = () => {
     const [orders, setOrders] = useState([]);
@@ -196,8 +197,8 @@ const MyOrders = () => {
                                             <X size={24} color="var(--color-text-muted)" />
                                         </button>
                                     </div>
-                                    <img
-                                        src={normalizeImageSrc(viewingImage.base64)}
+                                    <LazyImage
+                                        src={viewingImage.base64}
                                         alt="Receipt"
                                         style={{ width: '100%', borderRadius: '8px', maxHeight: '65vh', objectFit: 'contain', border: '1px solid var(--color-border)' }}
                                     />

@@ -13,6 +13,7 @@ import { doc, getDocCacheFirst } from '@/utils/FirestoreProxy';
 import { GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
 import PageHeader from '@/components/PageHeader';
 import { useCart } from '@/context/CartContext';
+import LazyImage from '@/components/LazyImage';
 
 const BookDetails = () => {
     const { bookId } = useParams();
@@ -202,7 +203,7 @@ const BookDetails = () => {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'center' }}>
                         <div style={{ width: '100%', maxWidth: '300px', aspectRatio: '3/4', backgroundColor: 'var(--color-surface)', borderRadius: '12px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-md)' }}>
                             {cover ? (
-                                <img src={cover} alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                <LazyImage src={cover} alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             ) : (
                                 <div style={{ color: 'var(--color-text-light)' }}>No Cover Available</div>
                             )}

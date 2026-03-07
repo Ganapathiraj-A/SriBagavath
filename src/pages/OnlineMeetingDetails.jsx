@@ -6,6 +6,7 @@ import { Share } from '@capacitor/share';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import PageHeader from '@/components/PageHeader';
 import { db } from '@/firebase';
+import LazyImage from '@/components/LazyImage';
 import { doc, getDoc } from '@/utils/FirestoreProxy';
 
 const OnlineMeetingDetails = () => {
@@ -123,7 +124,7 @@ Download Sri Bagavath App for latest updates`.trim();
                     style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', overflow: 'hidden', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)' }}
                 >
                     {banner && (
-                        <img src={banner} alt="Meeting Banner" loading="lazy" style={{ width: '100%', display: 'block' }} />
+                        <LazyImage src={banner} alt="Meeting Banner" style={{ width: '100%', display: 'block' }} />
                     )}
 
                     <div style={{ padding: '2rem' }}>

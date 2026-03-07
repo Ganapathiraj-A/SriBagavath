@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { TransactionService } from '@/services/TransactionService';
 import PageHeader from '@/components/PageHeader';
 import { normalizeImageSrc } from '@/utils/imageUtils';
+import LazyImage from '@/components/LazyImage';
 import { LogIn, Receipt, X } from 'lucide-react';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
@@ -197,8 +198,8 @@ const MyDonations = () => {
                                             <X size={24} color="var(--color-text-muted)" />
                                         </button>
                                     </div>
-                                    <img
-                                        src={normalizeImageSrc(viewingImage.base64)}
+                                    <LazyImage
+                                        src={viewingImage.base64}
                                         alt="Receipt"
                                         style={{ width: '100%', borderRadius: '8px', maxHeight: '65vh', objectFit: 'contain', border: '1px solid var(--color-border)' }}
                                     />

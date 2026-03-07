@@ -10,6 +10,7 @@ import { compressImage, normalizeImageSrc } from '@/utils/imageUtils';
 import OCR from '@/plugins/OCRPlugin';
 import { Image } from 'lucide-react';
 import { useGlobalSettings } from '@/context/GlobalSettingsContext';
+import LazyImage from '@/components/LazyImage';
 
 const BankReconciliationRegs = () => {
     const navigate = useNavigate();
@@ -478,8 +479,8 @@ const BankReconciliationRegs = () => {
                                     </div>
                                 </div>
                                 <div style={{ width: '100%', overflowY: 'auto', maxHeight: '50vh', border: '1px solid var(--color-border)', borderRadius: '8px' }}>
-                                    <img
-                                        src={normalizeImageSrc(viewingImage.base64)}
+                                    <LazyImage
+                                        src={viewingImage.base64}
                                         alt="Receipt"
                                         style={{ width: '100%', display: 'block' }}
                                     />

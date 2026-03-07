@@ -7,6 +7,7 @@ import { collection, getDocs, query, orderBy, getDoc, doc } from '@/utils/Firest
 import { TransactionService } from '@/services/TransactionService';
 import { Camera as CameraPlugin, CameraResultType } from '@capacitor/camera';
 import { motion } from 'framer-motion';
+import LazyImage from '@/components/LazyImage';
 
 const BackOfficeOfflineBooks = () => {
     const navigate = useNavigate();
@@ -334,7 +335,7 @@ const BackOfficeOfflineBooks = () => {
                             >
                                 <div style={{ width: '50px', height: '70px', backgroundColor: 'var(--color-surface-alt)', borderRadius: '6px', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                     {covers[book.id] ? (
-                                        <img src={covers[book.id]} alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        <LazyImage src={covers[book.id]} alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                     ) : (
                                         <div style={{ fontSize: '9px', color: 'var(--color-text-muted)' }}>No Cover</div>
                                     )}
