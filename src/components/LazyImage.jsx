@@ -31,10 +31,11 @@ const LazyImage = ({
     const [loading, setLoading] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
     const containerRef = useRef(null);
+    const hasTracked = useRef(false);
 
     useEffect(() => {
         // If we already have it in memory, no need to observe
-        if (currentSrc) return;
+        if (currentSrc && isVisible) return; // Optimization: if already visible and has source, stays visible
 
         const observer = new IntersectionObserver(
             ([entry]) => {
@@ -51,41 +52,48 @@ const LazyImage = ({
         }
 
         return () => observer.disconnect();
-    }, [currentSrc]);
+    }, [currentSrc, isVisible]);
 
     useEffect(() => {
-        // Fetch from Firestore if needed
-        if (isVisible) {
-            if (firestorePath && !currentSrc && !loading) {
-                const fetchData = async () => {
-                    setLoading(true);
-                    try {
-                        const [collection, docId] = firestorePath.split('/');
-                        const snap = await getDocCacheFirst(doc(db, collection, docId));
-                        if (snap.exists()) {
-                            const data = snap.data().cover || snap.data().image || snap.data().banner;
-                            if (data) {
-                                setCurrentSrc(data);
-                                imageCache.set(cacheKey, data);
-                                trackImageSource(data);
-                            }
-                        }
-                    } catch (_err) {
-                        console.error("LazyImage fetch failed:", firestorePath, _err);
-                    } finally {
-                        setLoading(false);
-                    }
-                };
-                fetchData();
-            } else if (src && !imageCache.has(src)) {
-                // If direct src provided, cache it and track it only when it becomes visible
-                imageCache.set(src, src);
-                trackImageSource(src);
-            } else if (src && imageCache.has(src) && !currentSrc) {
-                // If it was already cached but currentSrc is null (shouldn't happen with initial state but safe)
-                setCurrentSrc(src);
-                trackImageSource(src);
+        if (!isVisible) return;
+
+        // TRACKING LOGIC: Track once per component instance when it becomes visible
+        const doTrack = (data) => {
+            if (!hasTracked.current && data) {
+                trackImageSource(data);
+                hasTracked.current = true;
             }
+        };
+
+        // Fetch from Firestore if needed
+        if (firestorePath && !currentSrc && !loading) {
+            const fetchData = async () => {
+                setLoading(true);
+                try {
+                    const [collection, docId] = firestorePath.split('/');
+                    const snap = await getDocCacheFirst(doc(db, collection, docId));
+                    if (snap.exists()) {
+                        const data = snap.data().cover || snap.data().image || snap.data().banner;
+                        if (data) {
+                            setCurrentSrc(data);
+                            imageCache.set(cacheKey, data);
+                            doTrack(data);
+                        }
+                    }
+                } catch (_err) {
+                    console.error("LazyImage fetch failed:", firestorePath, _err);
+                } finally {
+                    setLoading(false);
+                }
+            };
+            fetchData();
+        } else if (currentSrc) {
+            // If it's already in state (either from cache or direct src), 
+            // track it now that it's visible.
+            doTrack(currentSrc);
+        } else if (src) {
+            // Fallback for direct src if not in currentSrc yet
+            doTrack(src);
         }
     }, [isVisible, firestorePath, src, currentSrc, cacheKey]);
 

@@ -83,8 +83,47 @@ export const compressImage = (input, maxWidth = 800, maxHeight = 800, quality = 
  * @returns {string} - A valid image source for an <img> tag.
  */
 
-let imageStats = { storage: 0, legacy: 0, local: 0 };
+let imageStats = { storage: 0, legacy: 0, local: 0, total: 0 };
 let alertTimeout = null;
+let toastElement = null;
+
+const showTrackingToast = () => {
+  if (!toastElement) {
+    toastElement = document.createElement('div');
+    toastElement.id = 'image-tracking-toast';
+    toastElement.style.cssText = `
+      position: fixed;
+      top: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.75);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 13px;
+      font-weight: 600;
+      z-index: 999999;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    `;
+    document.body.appendChild(toastElement);
+  }
+
+  imageStats.total++;
+  toastElement.innerHTML = `📸 Image loading tracked (${imageStats.total})`;
+  toastElement.style.opacity = '1';
+  toastElement.style.transform = 'translateX(-50%) translateY(0)';
+
+  if (window._toastTimer) clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => {
+    toastElement.style.opacity = '0';
+    toastElement.style.transform = 'translateX(-50%) translateY(-10px)';
+  }, 3000);
+};
 
 /**
  * Tracks and alerts the source of loaded images.
@@ -94,6 +133,8 @@ let alertTimeout = null;
  */
 export const trackImageSource = (src) => {
   if (!src) return;
+
+  showTrackingToast();
 
   if (typeof src === 'string' && src.startsWith('http')) {
     imageStats.storage++;
@@ -107,13 +148,15 @@ export const trackImageSource = (src) => {
   if (alertTimeout) clearTimeout(alertTimeout);
 
   alertTimeout = setTimeout(() => {
-    alert(`📸 Image Source Report (Last 5s):
+    const msg = `📸 Image Source Report (Last 5s):
 🌐 Cloud Storage (URL): ${imageStats.storage}
 📦 Legacy (Base64): ${imageStats.legacy}
-🏠 Local Assets: ${imageStats.local}`);
+🏠 Local Assets: ${imageStats.local}`;
+
+    alert(msg);
 
     // Reset stats for next window
-    imageStats = { storage: 0, legacy: 0, local: 0 };
+    imageStats = { storage: 0, legacy: 0, local: 0, total: 0 };
     alertTimeout = null;
   }, 5000);
 };
