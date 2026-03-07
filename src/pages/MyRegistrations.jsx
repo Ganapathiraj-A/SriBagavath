@@ -8,6 +8,7 @@ import { Capacitor } from '@capacitor/core';
 import { ensureGoogleAuthInitialized } from '@/utils/GoogleAuthUtils';
 import { auth } from '@/firebase';
 import { GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
+import { normalizeImageSrc } from '@/utils/imageUtils';
 
 const MyRegistrations = () => {
     const navigate = useNavigate();
@@ -145,11 +146,11 @@ const MyRegistrations = () => {
         return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     };
 
-    const handleViewReceipt = async (id, utr) => {
+    const handleViewReceipt = async (tx) => {
         try {
-            const base64 = await TransactionService.getImage(id);
+            const base64 = tx.imageUrl || await TransactionService.getImage(tx.id);
             if (base64) {
-                setViewingImage({ base64, utr });
+                setViewingImage({ base64, utr: tx.utr });
             } else {
                 alert("No receipt image found for this registration.");
             }
@@ -255,7 +256,7 @@ const MyRegistrations = () => {
                                         </button>
                                     </div>
                                     <img
-                                        src={`data:image/jpeg;base64,${viewingImage.base64}`}
+                                        src={normalizeImageSrc(viewingImage.base64)}
                                         alt="Receipt"
                                         style={{ width: '100%', borderRadius: '8px', maxHeight: '65vh', objectFit: 'contain', border: '1px solid var(--color-border)' }}
                                     />
@@ -358,7 +359,7 @@ const MyRegistrations = () => {
                                                 {tx.hasImage && (
                                                     <button
                                                         className="btn-secondary"
-                                                        onClick={() => handleViewReceipt(tx.id, tx.utr)}
+                                                        onClick={() => handleViewReceipt(tx)}
                                                         style={{ flex: 1, fontSize: '14px', padding: '8px', border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', cursor: 'pointer' }}
                                                     >
                                                         Verify Receipt

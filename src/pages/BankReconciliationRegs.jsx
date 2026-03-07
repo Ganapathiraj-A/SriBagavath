@@ -6,7 +6,7 @@ import PageHeader from '@/components/PageHeader';
 import { db } from '@/firebase';
 import { collection, query, orderBy, limit, getDocs, getCountFromServer, where, startAfter } from '@/utils/FirestoreProxy';
 import { TransactionService } from '@/services/TransactionService';
-import { compressImage } from '@/utils/imageUtils';
+import { compressImage, normalizeImageSrc } from '@/utils/imageUtils';
 import OCR from '@/plugins/OCRPlugin';
 import { Image } from 'lucide-react';
 import { useGlobalSettings } from '@/context/GlobalSettingsContext';
@@ -123,7 +123,7 @@ const BankReconciliationRegs = () => {
 
     const handleViewReceipt = async (tx) => {
         try {
-            const base64 = await TransactionService.getImage(tx.id);
+            const base64 = tx.imageUrl || await TransactionService.getImage(tx.id);
             if (base64) {
                 setViewingImage({
                     base64,
@@ -479,7 +479,7 @@ const BankReconciliationRegs = () => {
                                 </div>
                                 <div style={{ width: '100%', overflowY: 'auto', maxHeight: '50vh', border: '1px solid var(--color-border)', borderRadius: '8px' }}>
                                     <img
-                                        src={viewingImage.base64.startsWith('data:') ? viewingImage.base64 : `data:image/jpeg;base64,${viewingImage.base64}`}
+                                        src={normalizeImageSrc(viewingImage.base64)}
                                         alt="Receipt"
                                         style={{ width: '100%', display: 'block' }}
                                     />

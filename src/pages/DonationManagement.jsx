@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Check, Trash2, Rewind, Package, Heart, X, Search, Calendar, MapPin, ChevronRight, Phone } from 'lucide-react';
 import { TransactionService } from '@/services/TransactionService';
 import PageHeader from '@/components/PageHeader';
-import { compressImage } from '@/utils/imageUtils';
+import { compressImage, normalizeImageSrc } from '@/utils/imageUtils';
 import { formatDate } from '@/utils/dateUtils';
 import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 import '../components/RegistrationStyles.css';
@@ -123,7 +123,7 @@ const DonationManagement = () => {
 
     const handleViewImage = async (donation) => {
         try {
-            const base64 = await TransactionService.getImage(donation.id);
+            const base64 = donation.imageUrl || await TransactionService.getImage(donation.id);
             if (base64) {
                 setViewingImage({
                     base64,
@@ -220,7 +220,7 @@ const DonationManagement = () => {
 
                         <div style={{ width: '100%', overflowY: 'auto', maxHeight: '40vh', border: '1px solid var(--color-border)', borderRadius: '8px' }}>
                             <img
-                                src={viewingImage.base64.startsWith('data:') ? viewingImage.base64 : `data:image/jpeg;base64,${viewingImage.base64}`}
+                                src={normalizeImageSrc(viewingImage.base64)}
                                 alt="Receipt"
                                 style={{ width: '100%', display: 'block' }}
                             />

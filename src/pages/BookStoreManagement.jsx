@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Check, Trash2, Rewind, X, Package, Truck, User, Search } from 'lucide-react';
 import { TransactionService } from '@/services/TransactionService';
 import PageHeader from '@/components/PageHeader';
-import { compressImage } from '@/utils/imageUtils';
+import { compressImage, normalizeImageSrc } from '@/utils/imageUtils';
 import '../components/RegistrationStyles.css';
 
 const TABS = ['PENDING', 'PROCESSING', 'SHIPPED', 'COMPLETED'];
@@ -84,7 +84,7 @@ const BookStoreManagement = () => {
 
     const handleViewImage = async (order) => {
         try {
-            const base64 = await TransactionService.getImage(order.id);
+            const base64 = order.imageUrl || await TransactionService.getImage(order.id);
             if (base64) {
                 setViewingImage({
                     base64,
@@ -181,7 +181,7 @@ const BookStoreManagement = () => {
 
                         <div style={{ width: '100%', overflowY: 'auto', maxHeight: '40vh', border: '1px solid var(--color-border)', borderRadius: '8px' }}>
                             <img
-                                src={viewingImage.base64.startsWith('data:') ? viewingImage.base64 : `data:image/jpeg;base64,${viewingImage.base64}`}
+                                src={normalizeImageSrc(viewingImage.base64)}
                                 alt="Receipt"
                                 style={{ width: '100%', display: 'block' }}
                             />

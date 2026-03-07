@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { TransactionService } from '@/services/TransactionService';
 import PageHeader from '@/components/PageHeader';
+import { normalizeImageSrc } from '@/utils/imageUtils';
 import { LogIn, Receipt, X } from 'lucide-react';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
@@ -54,11 +55,11 @@ const MyDonations = () => {
         }
     };
 
-    const handleViewReceipt = async (id, utr) => {
+    const handleViewReceipt = async (donation) => {
         try {
-            const base64 = await TransactionService.getImage(id);
+            const base64 = donation.imageUrl || await TransactionService.getImage(donation.id);
             if (base64) {
-                setViewingImage({ base64, utr });
+                setViewingImage({ base64, utr: donation.utr });
             } else {
                 alert("No receipt image found for this donation.");
             }
@@ -197,7 +198,7 @@ const MyDonations = () => {
                                         </button>
                                     </div>
                                     <img
-                                        src={viewingImage.base64.startsWith('data:') ? viewingImage.base64 : `data:image/jpeg;base64,${viewingImage.base64}`}
+                                        src={normalizeImageSrc(viewingImage.base64)}
                                         alt="Receipt"
                                         style={{ width: '100%', borderRadius: '8px', maxHeight: '65vh', objectFit: 'contain', border: '1px solid var(--color-border)' }}
                                     />
@@ -251,7 +252,7 @@ const MyDonations = () => {
                                     </div>
                                     {donation.hasImage && (
                                         <div
-                                            onClick={() => handleViewReceipt(donation.id, donation.utr)}
+                                            onClick={() => handleViewReceipt(donation)}
                                             style={{ fontSize: '12px', color: 'var(--color-primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: '8px', borderRadius: '8px', backgroundColor: 'var(--color-primary-transparent)' }}
                                         >
                                             <Receipt size={16} /> View Receipt
@@ -263,7 +264,7 @@ const MyDonations = () => {
                     </>
                 )}
             </div>
-        </div>
+        </div >
     );
 };
 

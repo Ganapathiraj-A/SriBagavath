@@ -5,7 +5,7 @@ import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
 import { TransactionService } from '@/services/TransactionService';
 import PageHeader from '@/components/PageHeader';
-import { compressImage } from '@/utils/imageUtils';
+import { compressImage, normalizeImageSrc } from '@/utils/imageUtils';
 import OCR from '@/plugins/OCRPlugin';
 import '../components/RegistrationStyles.css';
 
@@ -252,7 +252,9 @@ const AdminReview = () => {
 
     const handleViewImage = async (tx) => {
         try {
-            const base64 = await TransactionService.getImage(tx.id);
+            // Optimization: If imageUrl already exists in the record, use it directly
+            // Avoids a redundant Firestore Get in TransactionService.getImage
+            const base64 = tx.imageUrl || await TransactionService.getImage(tx.id);
             if (base64) {
                 setViewingImage({
                     base64,
@@ -482,7 +484,7 @@ const AdminReview = () => {
                         {/* Receipt Image */}
                         <div style={{ position: 'relative', borderRadius: '1rem', overflowY: 'auto', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', maxHeight: '400px', display: 'flex', flexDirection: 'column' }}>
                             <img
-                                src={viewingImage.base64.startsWith('data:') ? viewingImage.base64 : `data:image/jpeg;base64,${viewingImage.base64}`}
+                                src={normalizeImageSrc(viewingImage.base64)}
                                 alt="Receipt"
                                 style={{ width: '100%', display: 'block' }}
                             />

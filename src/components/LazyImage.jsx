@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { db } from '@/firebase';
 import { doc, getDocCacheFirst } from '@/utils/FirestoreProxy';
+import { trackImageSource } from '@/utils/imageUtils';
 
 // Global Memory Cache for images (URLs or Base64)
 const imageCache = new Map();
@@ -65,6 +66,7 @@ const LazyImage = ({
                         if (data) {
                             setCurrentSrc(data);
                             imageCache.set(cacheKey, data);
+                            trackImageSource(data);
                         }
                     }
                 } catch (_err) {
@@ -77,6 +79,7 @@ const LazyImage = ({
         } else if (src && !imageCache.has(src)) {
             // If direct src provided, cache it once it's used
             imageCache.set(src, src);
+            trackImageSource(src);
         }
     }, [isVisible, firestorePath, src, currentSrc, cacheKey]);
 

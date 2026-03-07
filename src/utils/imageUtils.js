@@ -73,3 +73,56 @@ export const compressImage = (input, maxWidth = 800, maxHeight = 800, quality = 
 
   return Promise.reject(new Error('compressImage expects a File, Blob, or a base64 string.'));
 };
+/**
+ * Safely handles image sources from Firestore.
+ * If the source is a URL (starts with http), it returns it as is.
+ * If it's a base64 string without a prefix, it prepends the data:image/jpeg;base64, prefix.
+ * If it's already a data URL, it returns it as is.
+ *
+ * @param {string} src - The raw image source from Firestore.
+ * @returns {string} - A valid image source for an <img> tag.
+ */
+
+let imageStats = { storage: 0, legacy: 0, local: 0 };
+let alertTimeout = null;
+
+/**
+ * Tracks and alerts the source of loaded images.
+ * Bunches alerts into a 5-second window.
+ * 
+ * @param {string} src - The image source being loaded.
+ */
+export const trackImageSource = (src) => {
+  if (!src) return;
+
+  if (src.startsWith('http')) {
+    imageStats.storage++;
+  } else if (src.startsWith('data:')) {
+    imageStats.legacy++;
+  } else {
+    // Anything else (relative paths, /src/assets, etc.) is considered local
+    imageStats.local++;
+  }
+
+  if (alertTimeout) clearTimeout(alertTimeout);
+
+  alertTimeout = setTimeout(() => {
+    alert(`📸 Image Load Summary (5s window):\n✅ Cloud Storage: ${imageStats.storage}\n⚠️ Base64/Legacy: ${imageStats.legacy}\n🏠 Local: ${imageStats.local}`);
+    // Reset stats for next window
+    imageStats = { storage: 0, legacy: 0, local: 0 };
+    alertTimeout = null;
+  }, 5000);
+};
+
+export const normalizeImageSrc = (src) => {
+  if (!src) return '';
+  let finalSrc = src;
+  if (!src.startsWith('http') && !src.startsWith('data:')) {
+    finalSrc = `data:image/jpeg;base64,${src}`;
+  }
+
+  // Track the source
+  trackImageSource(finalSrc);
+
+  return finalSrc;
+};

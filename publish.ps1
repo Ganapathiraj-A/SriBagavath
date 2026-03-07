@@ -68,7 +68,7 @@ if ($DoTagging) {
     git add .
     git commit -m "$CommitMsg" 2>$null
     git tag -a "$VersionTag" -m "Release $VersionTag"
-    git push origin main --tags
+    git push origin main "$VersionTag"
 }
 
 # 4. GitHub Publish

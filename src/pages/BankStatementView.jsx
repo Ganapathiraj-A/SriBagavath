@@ -19,6 +19,7 @@ import { TransactionService } from '@/services/TransactionService';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { Capacitor } from '@capacitor/core';
+import { normalizeImageSrc } from '@/utils/imageUtils';
 
 const BankStatementView = () => {
     const navigate = useNavigate();
@@ -116,11 +117,11 @@ const BankStatementView = () => {
         }
     };
 
-    const handleViewReceipt = async (id, utr) => {
+    const handleViewReceipt = async (tx) => {
         try {
-            const base64 = await TransactionService.getImage(id);
+            const base64 = tx.imageUrl || await TransactionService.getImage(tx.id);
             if (base64) {
-                setViewingImage({ base64, utr });
+                setViewingImage({ base64, utr: tx.utr });
             } else {
                 alert("No receipt image found for this transaction.");
             }
@@ -351,7 +352,7 @@ const BankStatementView = () => {
                                     </button>
                                 </div>
                                 <img
-                                    src={`data:image/jpeg;base64,${viewingImage.base64}`}
+                                    src={normalizeImageSrc(viewingImage.base64)}
                                     alt="Receipt"
                                     style={{ width: '100%', borderRadius: '8px', maxHeight: '65vh', objectFit: 'contain', border: '1px solid var(--color-border)' }}
                                 />
@@ -696,7 +697,7 @@ const BankStatementView = () => {
 
                             {selectedEntry.status === 'MATCHED' && selectedEntry.matchedTransactionId && (
                                 <button
-                                    onClick={() => handleViewReceipt(selectedEntry.matchedTransactionId, selectedEntry.matchedUtr)}
+                                    onClick={() => handleViewReceipt({ id: selectedEntry.matchedTransactionId, utr: selectedEntry.matchedUtr })}
                                     style={{
                                         width: '100%',
                                         marginTop: '0.5rem',

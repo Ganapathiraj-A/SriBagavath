@@ -13,6 +13,7 @@ import qrImage from '@/assets/qr_code.jpg';
 import instructionGif from '@/assets/payment_instruction.gif';
 import '../components/RegistrationStyles.css';
 import { useCart } from '@/context/CartContext';
+import { normalizeImageSrc } from '@/utils/imageUtils';
 
 // Type Steps matching SBB App
 // SELECTION is skipped as we come from Registration
@@ -523,7 +524,7 @@ const PaymentFlow = () => {
                             maxWidth: '90%'
                         }}>
                             <img
-                                src={`data:image/jpeg;base64,${viewingImage}`}
+                                src={normalizeImageSrc(viewingImage)}
                                 alt="Receipt"
                                 style={{ width: '100%', borderRadius: '8px', maxHeight: '75vh', objectFit: 'contain' }}
                             />
