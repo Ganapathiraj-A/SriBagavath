@@ -10,6 +10,7 @@ import PageHeader from '@/components/PageHeader';
 import { collection, query, orderBy, onSnapshot } from '@/utils/FirestoreProxy';
 import { db } from '@/firebase';
 import { useAdminAuth } from '@/context/AdminAuthContext';
+import LazyImage from '@/components/LazyImage';
 
 const AudioBooks = () => {
   const navigate = useNavigate();
@@ -190,7 +191,7 @@ const AudioBooks = () => {
                 {/* Image Aspect Ratio Container */}
                 <div style={{ position: 'relative', paddingTop: '140%', backgroundColor: 'var(--color-surface)' }}>
                   {book.image ? (
-                    <img
+                    <LazyImage
                       src={book.image}
                       alt={book.title}
                       style={{
@@ -198,9 +199,9 @@ const AudioBooks = () => {
                         top: 0,
                         left: 0,
                         width: '100%',
-                        height: '100%',
-                        objectFit: 'cover'
+                        height: '100%'
                       }}
+                      objectFit="cover"
                     />
                   ) : (
                     <div style={{

@@ -95,9 +95,9 @@ let alertTimeout = null;
 export const trackImageSource = (src) => {
   if (!src) return;
 
-  if (src.startsWith('http')) {
+  if (typeof src === 'string' && src.startsWith('http')) {
     imageStats.storage++;
-  } else if (src.startsWith('data:')) {
+  } else if (typeof src === 'string' && src.startsWith('data:')) {
     imageStats.legacy++;
   } else {
     // Anything else (relative paths, /src/assets, etc.) is considered local
@@ -107,7 +107,11 @@ export const trackImageSource = (src) => {
   if (alertTimeout) clearTimeout(alertTimeout);
 
   alertTimeout = setTimeout(() => {
-    alert(`📸 Image Load Summary (5s window):\n✅ Cloud Storage: ${imageStats.storage}\n⚠️ Base64/Legacy: ${imageStats.legacy}\n🏠 Local: ${imageStats.local}`);
+    alert(`📸 Image Source Report (Last 5s):
+🌐 Cloud Storage (URL): ${imageStats.storage}
+📦 Legacy (Base64): ${imageStats.legacy}
+🏠 Local Assets: ${imageStats.local}`);
+
     // Reset stats for next window
     imageStats = { storage: 0, legacy: 0, local: 0 };
     alertTimeout = null;

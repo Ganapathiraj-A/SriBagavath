@@ -7,6 +7,7 @@ import { Filesystem, Directory } from '@capacitor/filesystem';
 import PageHeader from '@/components/PageHeader';
 import { db } from '@/firebase';
 import { doc, getDocCacheFirst } from '@/utils/FirestoreProxy';
+import LazyImage from '@/components/LazyImage';
 
 const SatsangDetails = () => {
     const { id: rawId } = useParams();
@@ -127,7 +128,7 @@ Download Sri Bagavath App for latest updates`.trim();
                     style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', overflow: 'hidden', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)' }}
                 >
                     {banner && (
-                        <img src={banner} alt="Satsang Banner" loading="lazy" style={{ width: '100%', display: 'block' }} />
+                        <LazyImage src={banner} alt="Satsang Banner" height="auto" />
                     )}
 
                     <div style={{ padding: '2rem' }}>

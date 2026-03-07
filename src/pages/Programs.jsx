@@ -15,6 +15,7 @@ import { collection, query, where, orderBy } from '@/utils/FirestoreProxy';
 import { useAdminAuth } from '@/context/AdminAuthContext';
 import { getLocalDateString } from '@/utils/dateUtils';
 import { useGlobalSettings } from '@/context/GlobalSettingsContext';
+import LazyImage from '@/components/LazyImage';
 
 const Programs = () => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -398,12 +399,13 @@ Download Sri Bagavath App for latest updates`.trim();
                                         style={{ marginBottom: '1.5rem', cursor: 'pointer' }}
                                         onClick={() => setShowTextDetails(true)}
                                     >
-                                        <img
+                                        <LazyImage
                                             src={viewingBanner}
                                             alt="Program Banner"
+                                            height="auto"
+                                            borderRadius="0.5rem"
                                             style={{
                                                 width: '100%',
-                                                borderRadius: '0.5rem',
                                                 boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
                                             }}
                                         />

@@ -55,31 +55,37 @@ const LazyImage = ({
 
     useEffect(() => {
         // Fetch from Firestore if needed
-        if (isVisible && firestorePath && !currentSrc && !loading) {
-            const fetchData = async () => {
-                setLoading(true);
-                try {
-                    const [collection, docId] = firestorePath.split('/');
-                    const snap = await getDocCacheFirst(doc(db, collection, docId));
-                    if (snap.exists()) {
-                        const data = snap.data().cover || snap.data().image || snap.data().banner;
-                        if (data) {
-                            setCurrentSrc(data);
-                            imageCache.set(cacheKey, data);
-                            trackImageSource(data);
+        if (isVisible) {
+            if (firestorePath && !currentSrc && !loading) {
+                const fetchData = async () => {
+                    setLoading(true);
+                    try {
+                        const [collection, docId] = firestorePath.split('/');
+                        const snap = await getDocCacheFirst(doc(db, collection, docId));
+                        if (snap.exists()) {
+                            const data = snap.data().cover || snap.data().image || snap.data().banner;
+                            if (data) {
+                                setCurrentSrc(data);
+                                imageCache.set(cacheKey, data);
+                                trackImageSource(data);
+                            }
                         }
+                    } catch (_err) {
+                        console.error("LazyImage fetch failed:", firestorePath, _err);
+                    } finally {
+                        setLoading(false);
                     }
-                } catch (_err) {
-                    console.error("LazyImage fetch failed:", firestorePath, _err);
-                } finally {
-                    setLoading(false);
-                }
-            };
-            fetchData();
-        } else if (src && !imageCache.has(src)) {
-            // If direct src provided, cache it once it's used
-            imageCache.set(src, src);
-            trackImageSource(src);
+                };
+                fetchData();
+            } else if (src && !imageCache.has(src)) {
+                // If direct src provided, cache it and track it only when it becomes visible
+                imageCache.set(src, src);
+                trackImageSource(src);
+            } else if (src && imageCache.has(src) && !currentSrc) {
+                // If it was already cached but currentSrc is null (shouldn't happen with initial state but safe)
+                setCurrentSrc(src);
+                trackImageSource(src);
+            }
         }
     }, [isVisible, firestorePath, src, currentSrc, cacheKey]);
 

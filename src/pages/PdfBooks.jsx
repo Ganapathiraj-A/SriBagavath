@@ -13,6 +13,7 @@ import { db } from '@/firebase';
 import { collection, onSnapshot, doc, setDoc, getDocs, query, orderBy, getDoc } from '@/utils/FirestoreProxy';
 import { compressImage } from '@/utils/imageUtils';
 import { useDriveFiles } from '@/hooks/useDriveFiles';
+import LazyImage from '@/components/LazyImage';
 
 const PdfBooks = () => {
   const navigate = useNavigate();
@@ -296,7 +297,7 @@ const PdfBooks = () => {
                     border: '1px solid var(--color-border)'
                   }}>
                     {cover ? (
-                      <img src={cover} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <LazyImage src={cover} alt="" objectFit="cover" />
                     ) : (
                       <FileText size={20} />
                     )}
@@ -622,7 +623,7 @@ const PdfBooks = () => {
                       >
                         <div style={{ width: '35px', height: '45px', borderRadius: '4px', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--color-border)' }}>
                           {book.cover ? (
-                            <img src={book.cover} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <LazyImage src={book.cover} alt="" objectFit="cover" />
                           ) : (
                             <div style={{ width: '100%', height: '100%', backgroundColor: 'var(--color-surface)' }} />
                           )}
