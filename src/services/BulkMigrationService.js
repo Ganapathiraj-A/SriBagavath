@@ -25,9 +25,15 @@ export const BulkMigrationService = {
         try {
             // 1. Ensure base64 is in data_url format for Firebase Storage
             let storageBase64 = base64;
-            if (base64 && !base64.startsWith('data:')) {
+
+            // Normalize base64url characters if present (Fixes storage/invalid-format)
+            if (typeof storageBase64 === 'string') {
+                storageBase64 = storageBase64.replace(/-/g, '+').replace(/_/g, '/');
+            }
+
+            if (storageBase64 && !storageBase64.startsWith('data:')) {
                 // Default to jpeg if prefix is missing
-                storageBase64 = `data:image/jpeg;base64,${base64}`;
+                storageBase64 = `data:image/jpeg;base64,${storageBase64}`;
             }
 
             // 2. Upload to Storage
@@ -275,11 +281,16 @@ export const BulkMigrationService = {
         for (const docSnap of snapshot.docs) {
             const data = docSnap.data();
             const configId = docSnap.id;
-            const base64 = data.cover;
 
-            if (base64 && !BulkMigrationService.isAlreadyMigrated(data, base64)) {
-                const parentRef = doc(db, 'digital_book_configs', configId);
-                const res = await BulkMigrationService.migrateItem(configId, base64, 'digital_books', 'cover.jpg', parentRef, null, 'cover');
+            // 1. Migrate main cover
+            if (data.cover && !BulkMigrationService.isAlreadyMigrated(data, data.cover)) {
+                const res = await BulkMigrationService.migrateItem(configId, data.cover, 'digital_books', 'cover.jpg', docSnap.ref, null, 'cover');
+                results.push(res);
+            }
+
+            // 2. Migrate linked book cover (often a copy of a printed book cover)
+            if (data.linkedBookCover && !BulkMigrationService.isAlreadyMigrated(data, data.linkedBookCover)) {
+                const res = await BulkMigrationService.migrateItem(configId, data.linkedBookCover, 'digital_books', 'cover.jpg', docSnap.ref, null, 'linkedBookCover');
                 results.push(res);
             }
 
