@@ -14,7 +14,11 @@ export const BulkMigrationService = {
     isAlreadyMigrated: (data, value) => {
         if (data.storage_migrated === true) return true;
         if (data.imageUrl && typeof data.imageUrl === 'string' && data.imageUrl.startsWith('http')) return true;
-        if (value && typeof value === 'string' && value.startsWith('http')) return true;
+        if (value && typeof value === 'string') {
+            if (value.startsWith('http')) return true;
+            if (value.startsWith('/assets/')) return true;
+            if (value.startsWith('/')) return true;
+        }
         return false;
     },
 
@@ -26,14 +30,19 @@ export const BulkMigrationService = {
             // 1. Ensure base64 is in data_url format for Firebase Storage
             let storageBase64 = base64;
 
-            // Normalize base64url characters if present (Fixes storage/invalid-format)
             if (typeof storageBase64 === 'string') {
-                storageBase64 = storageBase64.replace(/-/g, '+').replace(/_/g, '/');
-            }
-
-            if (storageBase64 && !storageBase64.startsWith('data:')) {
-                // Default to jpeg if prefix is missing
-                storageBase64 = `data:image/jpeg;base64,${storageBase64}`;
+                if (storageBase64.startsWith('data:')) {
+                    // Normalize only the data portion of the data URI
+                    const [prefix, data] = storageBase64.split(',');
+                    if (data) {
+                        const normalizedData = data.replace(/-/g, '+').replace(/_/g, '/');
+                        storageBase64 = `${prefix},${normalizedData}`;
+                    }
+                } else {
+                    // Raw base64: normalize and add prefix
+                    storageBase64 = storageBase64.replace(/-/g, '+').replace(/_/g, '/');
+                    storageBase64 = `data:image/jpeg;base64,${storageBase64}`;
+                }
             }
 
             // 2. Upload to Storage
