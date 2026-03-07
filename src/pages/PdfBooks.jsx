@@ -207,7 +207,7 @@ const PdfBooks = () => {
   const getBookImage = (fileId) => {
     const config = configs[fileId];
     if (!config) return null;
-    return config.cover || config.linkedBookCover;
+    return config.imageUrl || config.cover || config.linkedBookCover;
   };
 
   const renderPdfLinks = () => {

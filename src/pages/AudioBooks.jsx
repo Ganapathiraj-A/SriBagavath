@@ -190,9 +190,9 @@ const AudioBooks = () => {
               >
                 {/* Image Aspect Ratio Container */}
                 <div style={{ position: 'relative', paddingTop: '140%', backgroundColor: 'var(--color-surface)' }}>
-                  {book.image ? (
+                  {book.image || book.imageUrl ? (
                     <LazyImage
-                      src={book.image}
+                      src={book.imageUrl || book.image}
                       alt={book.title}
                       style={{
                         position: 'absolute',

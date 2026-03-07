@@ -17,7 +17,7 @@ const MeetingCard = ({ meeting, teacher, delay, isAdmin, onShare, isSharing }) =
     const date = new Date(meeting.date);
 
     const displayName = teacher?.name || meeting.name || 'Unknown Speaker';
-    const displayImage = teacher?.image || meeting.image;
+    const displayImage = teacher?.imageUrl || teacher?.image || meeting.imageUrl || meeting.image;
 
     return (
         <motion.div

@@ -23,6 +23,9 @@ const MIGRATION_TASKS = [
     { id: 'satsangs', title: 'Satsang Banners', description: 'Migrate banners from satsang_banners collection.', service: 'migrateSatsangBanners' },
     { id: 'online_meetings', title: 'Online Meeting Banners', description: 'Migrate banners from online_meeting_banners collection.', service: 'migrateOnlineMeetingBanners' },
     { id: 'books', title: 'Book Covers', description: 'Migrate covers from book_covers collection.', service: 'migrateBookCovers' },
+    { id: 'digital_books', title: 'Digital Book Covers', description: 'Migrate covers from digital_book_configs collection.', service: 'migrateDigitalBooks' },
+    { id: 'audio_books', title: 'Audio Book Covers', description: 'Migrate covers from audio_books collection.', service: 'migrateAudioBooks' },
+    { id: 'daily_zoom_meetings', title: 'Daily Zoom Meeting Images', description: 'Migrate direct meeting images from daily_zoom_meetings collection.', service: 'migrateDailyZoomMeetings' },
     { id: 'transactions', title: 'Transaction Receipts', description: 'Migrate payment receipts from transaction_images collection (High Volume).', service: 'migrateTransactions' },
 ];
 

@@ -261,6 +261,85 @@ export const BulkMigrationService = {
             if (onProgress) onProgress({ processed, total, id: bookId });
         }
         return results;
+    },
+
+    /**
+     * Migrate Digital Book Covers
+     */
+    migrateDigitalBooks: async (onProgress) => {
+        const snapshot = await getDocs(collection(db, 'digital_book_configs'));
+        const total = snapshot.size;
+        let processed = 0;
+        const results = [];
+
+        for (const docSnap of snapshot.docs) {
+            const data = docSnap.data();
+            const configId = docSnap.id;
+            const base64 = data.cover;
+
+            if (base64 && !BulkMigrationService.isAlreadyMigrated(data, base64)) {
+                const parentRef = doc(db, 'digital_book_configs', configId);
+                const res = await BulkMigrationService.migrateItem(configId, base64, 'digital_books', 'cover.jpg', parentRef, null, 'cover');
+                results.push(res);
+            }
+
+            processed++;
+            if (onProgress) onProgress({ processed, total, id: configId });
+        }
+        return results;
+    },
+
+    /**
+     * Migrate Audio Book Covers
+     */
+    migrateAudioBooks: async (onProgress) => {
+        const snapshot = await getDocs(collection(db, 'audio_books'));
+        const total = snapshot.size;
+        let processed = 0;
+        const results = [];
+
+        for (const docSnap of snapshot.docs) {
+            const data = docSnap.data();
+            const bookId = docSnap.id;
+            const base64 = data.image;
+
+            if (base64 && !BulkMigrationService.isAlreadyMigrated(data, base64)) {
+                const parentRef = doc(db, 'audio_books', bookId);
+                const res = await BulkMigrationService.migrateItem(bookId, base64, 'audio_books', 'cover.jpg', parentRef, null, 'image');
+                results.push(res);
+            }
+
+            processed++;
+            if (onProgress) onProgress({ processed, total, id: bookId });
+        }
+        return results;
+    },
+
+    /**
+     * Migrate Daily Zoom Meeting Images
+     */
+    migrateDailyZoomMeetings: async (onProgress) => {
+        const snapshot = await getDocs(collection(db, 'daily_zoom_meetings'));
+        const total = snapshot.size;
+        let processed = 0;
+        const results = [];
+
+        for (const docSnap of snapshot.docs) {
+            const data = docSnap.data();
+            const meetingId = docSnap.id;
+            const base64 = data.image;
+
+            // Only migrate if image exists and is not already a URL
+            if (base64 && !BulkMigrationService.isAlreadyMigrated(data, base64)) {
+                const parentRef = doc(db, 'daily_zoom_meetings', meetingId);
+                const res = await BulkMigrationService.migrateItem(meetingId, base64, 'daily_zoom_meetings', 'image.jpg', parentRef, null, 'image');
+                results.push(res);
+            }
+
+            processed++;
+            if (onProgress) onProgress({ processed, total, id: meetingId });
+        }
+        return results;
     }
 
 
