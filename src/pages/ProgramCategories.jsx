@@ -4,6 +4,8 @@ import { motion } from 'framer-motion';
 import { ChevronLeft, Calendar, Video, Users, MessageCircle } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { useUnseenCounts } from '@/hooks/useUnseenCounts';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
+import { useAdminAuth } from '@/context/AdminAuthContext';
 
 const CategoryButton = ({ title, icon: Icon, path, delay, hasNew }) => {
     const navigate = useNavigate();
@@ -66,6 +68,11 @@ const ProgramCategories = () => {
     const [loading, setLoading] = useState(true);
     const [searchParams] = useSearchParams();
     const counts = useUnseenCounts();
+    const { hiddenScreens, devMode } = useGlobalSettings();
+    const { isAdmin } = useAdminAuth();
+
+    const effectiveRole = isAdmin ? (devMode ? 'dev' : 'admin') : 'public';
+    const currentHiddenScreens = hiddenScreens?.[effectiveRole] || [];
 
     // Deep Link Redirection: If an 'id' is present, go straight to Retreat details
     useEffect(() => {
@@ -97,47 +104,59 @@ const ProgramCategories = () => {
                 <p style={{ color: 'var(--color-text-muted)', textAlign: 'center', marginBottom: '0.5rem', fontSize: '0.95rem' }}>
                     Select a category to view upcoming programs
                 </p>
-                <CategoryButton
-                    title="Programs"
-                    icon={Calendar}
-                    path="/programs/retreat"
-                    delay={0.1}
-                    hasNew={counts.hasNewPrograms}
-                />
-                <CategoryButton
-                    title="Ayya's Schedule"
-                    icon={Calendar}
-                    path="/schedule"
-                    delay={0.2}
-                    hasNew={counts.hasNewSchedule}
-                />
-                <CategoryButton
-                    title="Daily Zoom Meeting"
-                    icon={Video}
-                    path="/programs/online/daily"
-                    delay={0.25}
-                />
-                <CategoryButton
-                    title="Other Online Meetings"
-                    icon={Video}
-                    path="/programs/online"
-                    delay={0.3}
-                    hasNew={counts.hasNewMeetings}
-                />
-                <CategoryButton
-                    title="Satsang"
-                    subtitle="City-wide spiritual gatherings"
-                    icon={Users}
-                    path="/programs/satsang"
-                    delay={0.4}
-                    hasNew={counts.hasNewSatsangs}
-                />
-                <CategoryButton
-                    title="Consultation"
-                    icon={MessageCircle}
-                    path="/programs/consultation"
-                    delay={0.5}
-                />
+                {!currentHiddenScreens.includes('/programs/retreat') && (
+                    <CategoryButton
+                        title="Programs"
+                        icon={Calendar}
+                        path="/programs/retreat"
+                        delay={0.1}
+                        hasNew={counts.hasNewPrograms}
+                    />
+                )}
+                {!currentHiddenScreens.includes('/schedule') && (
+                    <CategoryButton
+                        title="Ayya's Schedule"
+                        icon={Calendar}
+                        path="/schedule"
+                        delay={0.2}
+                        hasNew={counts.hasNewSchedule}
+                    />
+                )}
+                {!currentHiddenScreens.includes('/programs/online/daily') && (
+                    <CategoryButton
+                        title="Daily Zoom Meeting"
+                        icon={Video}
+                        path="/programs/online/daily"
+                        delay={0.25}
+                    />
+                )}
+                {!currentHiddenScreens.includes('/programs/online') && (
+                    <CategoryButton
+                        title="Other Online Meetings"
+                        icon={Video}
+                        path="/programs/online"
+                        delay={0.3}
+                        hasNew={counts.hasNewMeetings}
+                    />
+                )}
+                {!currentHiddenScreens.includes('/programs/satsang') && (
+                    <CategoryButton
+                        title="Satsang"
+                        subtitle="City-wide spiritual gatherings"
+                        icon={Users}
+                        path="/programs/satsang"
+                        delay={0.4}
+                        hasNew={counts.hasNewSatsangs}
+                    />
+                )}
+                {!currentHiddenScreens.includes('/programs/consultation') && (
+                    <CategoryButton
+                        title="Consultation"
+                        icon={MessageCircle}
+                        path="/programs/consultation"
+                        delay={0.5}
+                    />
+                )}
             </div>
         </div>
     );

@@ -57,6 +57,7 @@ const MyOrders = lazy(() => import('./pages/MyOrders'));
 const Donations = lazy(() => import('./pages/Donations'));
 const MyDonations = lazy(() => import('./pages/MyDonations'));
 const AdminSettings = lazy(() => import('./pages/AdminSettings'));
+const HideScreens = lazy(() => import('./pages/HideScreens'));
 const AdminBookManagement = lazy(() => import('./pages/AdminBookManagement'));
 const AdminAudioBookManagement = lazy(() => import('./pages/AdminAudioBookManagement'));
 const BookDetails = lazy(() => import('./pages/BookDetails'));
@@ -170,6 +171,7 @@ function AnimatedRoutes() {
         const parentMappings = {
           '/admin/back-office': '/configuration',
           '/admin/settings': '/configuration',
+          '/admin/hide-screens': '/admin/settings',
           '/admin/url-settings': '/admin/settings',
           '/admin/digital-books-settings': '/admin/settings',
           '/admin/related-videos': '/admin/settings',
@@ -332,6 +334,7 @@ function AnimatedRoutes() {
           <Route path="/admin-review" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><AdminReview /></ProtectedRoute>} />
           <Route path="/admin-dashboard" element={<ProtectedRoute requiredPermission="REPORTING"><AdminDashboard /></ProtectedRoute>} />
           <Route path="/admin/settings" element={<ProtectedRoute><AdminSettings /></ProtectedRoute>} />
+          <Route path="/admin/hide-screens" element={<ProtectedRoute requiredRole="SUPER_ADMIN"><HideScreens /></ProtectedRoute>} />
           <Route path="/admin/media-migration" element={<ProtectedRoute requiredRole="SUPER_ADMIN"><MediaMigration /></ProtectedRoute>} />
 
           {/* Back Office Routes */}

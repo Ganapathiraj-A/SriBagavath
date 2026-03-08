@@ -42,7 +42,12 @@ export const GlobalSettingsProvider = ({ children }) => {
         driveMagazineId: '152NrOoCD56T9hUK-KLGF7ULwlnDvoVY0',
         driveAudioBooksId: '1L65ifCQ_bAQauymMH5JyDgul7LIL3cnL',
         onlineRegistrationContact: '',
-        offlineRegistrationContact: ''
+        offlineRegistrationContact: '',
+        hiddenScreens: {
+            public: [],
+            admin: [],
+            dev: []
+        }
     });
 
     const [adminSettings, setAdminSettings] = useState({
@@ -285,6 +290,7 @@ export const GlobalSettingsProvider = ({ children }) => {
             driveAudioBooksId: publicSettings.driveAudioBooksId,
             onlineRegistrationContact: publicSettings.onlineRegistrationContact,
             offlineRegistrationContact: publicSettings.offlineRegistrationContact,
+            hiddenScreens: publicSettings.hiddenScreens || { public: [], admin: [], dev: [] },
 
             toggleOnlineTransactions: (val) => updatePublic({ onlineTransactionsEnabled: val }),
             setMinAppVersion: (val) => updatePublic({ minAppVersion: val }),
@@ -305,6 +311,7 @@ export const GlobalSettingsProvider = ({ children }) => {
             setDriveAudioBooksId: (val) => updatePublic({ driveAudioBooksId: val }),
             setOnlineRegistrationContact: (val) => updatePublic({ onlineRegistrationContact: val }),
             setOfflineRegistrationContact: (val) => updatePublic({ offlineRegistrationContact: val }),
+            setHiddenScreens: (val) => updatePublic({ hiddenScreens: val }),
 
             // Developer Settings (Per-User)
             devMode: userSettings.devMode ?? DEFAULT_USER_SETTINGS.devMode,

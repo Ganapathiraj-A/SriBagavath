@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { Headphones, BookOpen, Video, FileText, Youtube } from 'lucide-react';
 import { collection, query, getDocs, orderBy } from '@/utils/FirestoreProxy';
 import { db } from '@/firebase';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
+import { useAdminAuth } from '@/context/AdminAuthContext';
 
 const BookTypeButton = ({ title, icon: Icon, path, delay }) => {
     const navigate = useNavigate();
@@ -51,6 +53,11 @@ const BookTypeButton = ({ title, icon: Icon, path, delay }) => {
 const Books = () => {
     const [relatedVideos, setRelatedVideos] = useState([]);
     const [loadingVideos, setLoadingVideos] = useState(true);
+    const { hiddenScreens, devMode } = useGlobalSettings();
+    const { isAdmin } = useAdminAuth();
+
+    const effectiveRole = isAdmin ? (devMode ? 'dev' : 'admin') : 'public';
+    const currentHiddenScreens = hiddenScreens?.[effectiveRole] || [];
 
     useEffect(() => {
         const fetchVideos = async () => {
@@ -90,12 +97,12 @@ const Books = () => {
                     </h1>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        <BookTypeButton title="Print Books" icon={BookOpen} path="/bookstore" delay={0.1} />
-                        <BookTypeButton title="Digital Books" icon={BookOpen} path="/pdf-books" delay={0.2} />
-                        <BookTypeButton title="Audio Books" icon={Headphones} path="/audio-books" delay={0.3} />
-                        <BookTypeButton title="Recorded Programs" icon={Video} path="/conversations/recorded-programs" delay={0.4} />
-                        <BookTypeButton title="Monthly Magazine" icon={FileText} path="/monthly-magazine" delay={0.5} />
-                        <BookTypeButton title="Related Videos" icon={Youtube} path="/videos" delay={0.6} />
+                        {!currentHiddenScreens.includes('/bookstore') && <BookTypeButton title="Print Books" icon={BookOpen} path="/bookstore" delay={0.1} />}
+                        {!currentHiddenScreens.includes('/digital-books') && <BookTypeButton title="Digital Books" icon={BookOpen} path="/pdf-books" delay={0.2} />}
+                        {!currentHiddenScreens.includes('/audio-books') && <BookTypeButton title="Audio Books" icon={Headphones} path="/audio-books" delay={0.3} />}
+                        {!currentHiddenScreens.includes('/videos') && <BookTypeButton title="Recorded Programs" icon={Video} path="/conversations/recorded-programs" delay={0.4} />}
+                        {!currentHiddenScreens.includes('/monthly-magazine') && <BookTypeButton title="Monthly Magazine" icon={FileText} path="/monthly-magazine" delay={0.5} />}
+                        {!currentHiddenScreens.includes('/videos') && <BookTypeButton title="Related Videos" icon={Youtube} path="/videos" delay={0.6} />}
                     </div>
                 </motion.div>
             </div>

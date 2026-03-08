@@ -91,11 +91,15 @@ import { useUnseenCounts } from '@/hooks/useUnseenCounts';
 
 const Home = () => {
     const { user, isAdmin, isInitialized } = useAdminAuth();
-    const { serverUrl, appVersion, landingPage } = useGlobalSettings();
+    const { serverUrl, appVersion, landingPage, hiddenScreens, devMode } = useGlobalSettings();
     const [authLoading, setAuthLoading] = React.useState(false);
     const navigate = useNavigate();
     const counts = useUnseenCounts();
     const totalPending = (counts.registrations || 0) + (counts.transactions || 0);
+
+    // Determine current effective role for screen hiding
+    const effectiveRole = isAdmin ? (devMode ? 'dev' : 'admin') : 'public';
+    const currentHiddenScreens = hiddenScreens?.[effectiveRole] || [];
 
     // Capture the current startup state before we clear it
     const isFirstRender = isStartupLoad;
@@ -268,13 +272,13 @@ const Home = () => {
         { title: "Books & Media", icon: BookOpen, path: "/books", delay: 0.3 },
         { title: "Donations", icon: Heart, path: "/donations", delay: 0.4 },
         { title: "Contact", icon: Mail, path: "/contact", delay: 0.5 }
-    ];
+    ].filter(item => !currentHiddenScreens.includes(item.path));
 
 
     let menuItems = isAdmin
         ? [
-            { title: "Admin", icon: LayoutDashboard, path: "/configuration", delay: 0.1, isAdmin: true },
-            ...baseMenu.slice(1)
+            ...(!currentHiddenScreens.includes("/configuration") ? [{ title: "Admin", icon: LayoutDashboard, path: "/configuration", delay: 0.1, isAdmin: true }] : []),
+            ...baseMenu
         ]
         : [...baseMenu];
 

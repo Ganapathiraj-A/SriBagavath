@@ -148,8 +148,11 @@ const AdminSettings = () => {
         showDiagnosticLogs, setShowDiagnosticLogs,
         showImageVerificationAlert, setShowImageVerificationAlert,
         deviceId, isDeviceAuthorized, toggleDeviceAuthorization,
-        setPublicSettings
+        setPublicSettings, hiddenScreens
     } = useGlobalSettings();
+
+    const effectiveRole = devMode ? 'dev' : 'admin';
+    const currentHiddenScreens = hiddenScreens?.[effectiveRole] || [];
 
     const [showBankPassword, setShowBankPassword] = React.useState(false);
 
@@ -237,6 +240,16 @@ const AdminSettings = () => {
                     bgColor: 'var(--color-error-transparent)'
                 },
                 {
+                    id: 'HIDE_SCREENS',
+                    title: 'Hide Screens',
+                    subtitle: 'Manage visibility of App modules',
+                    icon: EyeOff,
+                    path: '/admin/hide-screens',
+                    permission: 'SUPER_ADMIN',
+                    color: 'var(--color-warning)',
+                    bgColor: 'var(--color-warning-transparent)'
+                },
+                {
                     id: 'MEDIA_MIGRATION',
                     title: 'Media Migration Utility',
                     subtitle: 'Bulk update legacy images to Cloud Storage',
@@ -276,6 +289,7 @@ const AdminSettings = () => {
 
                 {sections.map((section, sIdx) => {
                     const visibleItems = section.items.filter(item => {
+                        if (item.path && currentHiddenScreens.includes(item.path)) return false;
                         if (Array.isArray(item.permission)) {
                             return item.permission.some(p => hasAccess(p));
                         }
