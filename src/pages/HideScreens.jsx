@@ -47,64 +47,7 @@ const HideScreens = () => {
         }
     ];
 
-    const adminPagesHierarchy = [
-        ...publicPagesHierarchy,
-        {
-            id: '/configuration', title: 'Admin Home (Configuration)',
-            children: [
-                {
-                    id: '/configuration-reviews', title: 'Reviews & Tracking',
-                    children: [
-                        { id: '/admin-review', title: 'Registration Review' },
-                        { id: '/admin/purchases', title: 'Purchases Review' },
-                        { id: '/admin/donations', title: 'Donations Review' }
-                    ]
-                },
-                {
-                    id: '/admin/back-office', title: 'Back Office',
-                    children: [
-                        { id: '/admin/back-office/programs', title: 'Attendance' },
-                        { id: '/admin/back-office/reconciliation', title: 'Reconciliation' },
-                        { id: '/admin/back-office/reporting', title: 'Reporting' },
-                        { id: '/admin/back-office/import-export', title: 'Import/Export' }
-                    ]
-                },
-                {
-                    id: '/configuration-programs', title: 'Program Management',
-                    children: [
-                        { id: '/program', title: 'Retreats Management' },
-                        { id: '/admin/online-meetings', title: 'Online Meetings Management' },
-                        { id: '/admin/satsang', title: 'Satsangs Management' },
-                        { id: '/admin/daily-zoom', title: 'Daily Zoom Management' },
-                        { id: '/admin/consultation', title: 'Consultation Management' },
-                        { id: '/schedule/manage', title: 'Schedules Management' },
-                        { id: '/admin/related-videos', title: 'Related Videos Management' },
-                        { id: '/configuration/program-types', title: 'Program Types Management' }
-                    ]
-                },
-                {
-                    id: '/configuration-offline', title: 'Offline Entry',
-                    children: [
-                        { id: '/admin/back-office/offline-registration', title: 'Offline Registration' },
-                        { id: '/admin/back-office/offline-books', title: 'Offline Books' },
-                        { id: '/admin/back-office/offline-donation', title: 'Offline Donation' }
-                    ]
-                },
-                {
-                    id: '/configuration-system', title: 'System & Books',
-                    children: [
-                        { id: '/admin/books', title: 'Book Management' },
-                        { id: '/manage-users', title: 'Manage Admins' },
-                        { id: '/admin-dashboard', title: 'Analytics & Health' },
-                        { id: '/admin/settings', title: 'Settings' },
-                        { id: '/admin/personal-profile', title: 'Personal Profile' },
-                        { id: '/admin/cloud-settings', title: 'Cloud Global Settings' },
-                        { id: '/admin/url-settings', title: 'URL Settings' }
-                    ]
-                }
-            ]
-        }
-    ];
+    const adminPagesHierarchy = [...publicPagesHierarchy];
 
     const getPagesForTab = (tab) => {
         if (tab === 'Public') return publicPagesHierarchy;

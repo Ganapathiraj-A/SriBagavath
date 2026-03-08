@@ -277,8 +277,8 @@ const Home = () => {
 
     let menuItems = isAdmin
         ? [
-            ...(!currentHiddenScreens.includes("/configuration") ? [{ title: "Admin", icon: LayoutDashboard, path: "/configuration", delay: 0.1, isAdmin: true }] : []),
-            ...baseMenu
+            { title: "Admin", icon: LayoutDashboard, path: "/configuration", delay: 0.1, isAdmin: true },
+            ...baseMenu.filter(item => item.path !== '/about')
         ]
         : [...baseMenu];
 

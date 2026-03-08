@@ -280,7 +280,6 @@ const AdminSettings = () => {
 
                 {sections.map((section, sIdx) => {
                     const visibleItems = section.items.filter(item => {
-                        if (item.path && currentHiddenScreens.includes(item.path)) return false;
                         if (Array.isArray(item.permission)) {
                             return item.permission.some(p => hasAccess(p));
                         }

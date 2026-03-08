@@ -223,12 +223,12 @@ const Configuration = () => {
                         {!isPowerUser ? (
                             // Hierarchical View for Admin/SuperAdmin
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                {hasAccess('ADMIN_REVIEW') && !currentHiddenScreens.includes('/configuration-reviews') && !currentHiddenScreens.includes('/admin-review') && <ConfigButton title="Registration" icon={Shield} path="/admin-review" delay={0.1} badgeCount={counts.registrations} />}
-                                {hasAccess('ADMIN_REVIEW') && !currentHiddenScreens.includes('/configuration-reviews') && !currentHiddenScreens.includes('/admin/purchases') && <ConfigButton title="Purchases" icon={IndianRupee} path="/admin/purchases" delay={0.15} color="var(--color-success)" bgColor="var(--color-success-transparent)" badgeCount={counts.purchases} />}
-                                {hasAccess('ADMIN_REVIEW') && !currentHiddenScreens.includes('/configuration-reviews') && !currentHiddenScreens.includes('/admin/donations') && <ConfigButton title="Donations" icon={Heart} path="/admin/donations" delay={0.17} color="var(--color-error)" bgColor="var(--color-error-transparent)" badgeCount={counts.donations} />}
+                                {hasAccess('ADMIN_REVIEW') && <ConfigButton title="Registration" icon={Shield} path="/admin-review" delay={0.1} badgeCount={counts.registrations} />}
+                                {hasAccess('ADMIN_REVIEW') && <ConfigButton title="Purchases" icon={IndianRupee} path="/admin/purchases" delay={0.15} color="var(--color-success)" bgColor="var(--color-success-transparent)" badgeCount={counts.purchases} />}
+                                {hasAccess('ADMIN_REVIEW') && <ConfigButton title="Donations" icon={Heart} path="/admin/donations" delay={0.17} color="var(--color-error)" bgColor="var(--color-error-transparent)" badgeCount={counts.donations} />}
 
                                 <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                    {hasAccess('ADMIN_REVIEW') && !currentHiddenScreens.includes('/admin/back-office') && (
+                                    {hasAccess('ADMIN_REVIEW') && (
                                         <ConfigButton
                                             title="Back Office"
                                             subtitle="Reporting, Attendance & Recon"
@@ -239,7 +239,7 @@ const Configuration = () => {
                                             bgColor="var(--color-warning-transparent)"
                                         />
                                     )}
-                                    {(hasAccess('PROGRAM_MANAGEMENT') || hasAccess('ADMIN_REVIEW') || hasAccess('MANAGE_USERS') || hasAccess('CONFIGURATION') || hasAccess('DAILY_ZOOM_MANAGEMENT')) && !currentHiddenScreens.includes('/configuration-system') && !currentHiddenScreens.includes('/admin/settings') && (
+                                    {(hasAccess('PROGRAM_MANAGEMENT') || hasAccess('ADMIN_REVIEW') || hasAccess('MANAGE_USERS') || hasAccess('CONFIGURATION') || hasAccess('DAILY_ZOOM_MANAGEMENT')) && (
                                         <ConfigButton
                                             title="Settings"
                                             subtitle="Management Hub & App Preferences"
@@ -256,19 +256,7 @@ const Configuration = () => {
                             // Flattened Categorized View for Power Users
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                                 {powerUserCategories.map((category, catIdx) => {
-                                    // Map category titles to their parent IDs from the hierarchy
-                                    let parentId = null;
-                                    if (category.title === 'Reviews & Tracking') parentId = '/configuration-reviews';
-                                    if (category.title === 'Back Office') parentId = '/admin/back-office';
-                                    if (category.title === 'Program Management') parentId = '/configuration-programs';
-                                    if (category.title === 'Offline Entry') parentId = '/configuration-offline';
-                                    if (category.title === 'System & Books') parentId = '/configuration-system';
-
-                                    // If the entire parent category is hidden, skip it entirely
-                                    if (parentId && currentHiddenScreens.includes(parentId)) return null;
-
                                     const visibleItems = category.items.filter(item => {
-                                        if (item.path && currentHiddenScreens.includes(item.path)) return false;
                                         if (item.permission === 'SUPER_ADMIN') return role === 'SUPER_ADMIN';
                                         return hasAccess(item.permission);
                                     });
