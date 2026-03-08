@@ -171,6 +171,12 @@ export const GlobalSettingsProvider = ({ children }) => {
         return () => unsubscribePublic();
     }, [currentUser]);
 
+    // Sync image verification setting to window object for non-React utilities
+    useEffect(() => {
+        window.showImageVerificationAlert = userSettings.showImageVerificationAlert ?? DEFAULT_USER_SETTINGS.showImageVerificationAlert;
+    }, [userSettings.showImageVerificationAlert]);
+
+
     // 4. Admin Settings Sync (Private)
     useEffect(() => {
         if (!currentUser) {
