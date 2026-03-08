@@ -57,6 +57,8 @@ const MyOrders = lazy(() => import('./pages/MyOrders'));
 const Donations = lazy(() => import('./pages/Donations'));
 const MyDonations = lazy(() => import('./pages/MyDonations'));
 const AdminSettings = lazy(() => import('./pages/AdminSettings'));
+const PersonalProfile = lazy(() => import('./pages/PersonalProfile'));
+const CloudGlobalSettings = lazy(() => import('./pages/CloudGlobalSettings'));
 const HideScreens = lazy(() => import('./pages/HideScreens'));
 const AdminBookManagement = lazy(() => import('./pages/AdminBookManagement'));
 const AdminAudioBookManagement = lazy(() => import('./pages/AdminAudioBookManagement'));
@@ -172,6 +174,8 @@ function AnimatedRoutes() {
           '/admin/back-office': '/configuration',
           '/admin/settings': '/configuration',
           '/admin/hide-screens': '/admin/settings',
+          '/admin/personal-profile': '/admin/settings',
+          '/admin/cloud-settings': '/admin/settings',
           '/admin/url-settings': '/admin/settings',
           '/admin/digital-books-settings': '/admin/settings',
           '/admin/related-videos': '/admin/settings',
@@ -334,6 +338,8 @@ function AnimatedRoutes() {
           <Route path="/admin-review" element={<ProtectedRoute requiredPermission="ADMIN_REVIEW"><AdminReview /></ProtectedRoute>} />
           <Route path="/admin-dashboard" element={<ProtectedRoute requiredPermission="REPORTING"><AdminDashboard /></ProtectedRoute>} />
           <Route path="/admin/settings" element={<ProtectedRoute><AdminSettings /></ProtectedRoute>} />
+          <Route path="/admin/personal-profile" element={<ProtectedRoute><PersonalProfile /></ProtectedRoute>} />
+          <Route path="/admin/cloud-settings" element={<ProtectedRoute requiredRole="SUPER_ADMIN"><CloudGlobalSettings /></ProtectedRoute>} />
           <Route path="/admin/hide-screens" element={<ProtectedRoute requiredRole="SUPER_ADMIN"><HideScreens /></ProtectedRoute>} />
           <Route path="/admin/media-migration" element={<ProtectedRoute requiredRole="SUPER_ADMIN"><MediaMigration /></ProtectedRoute>} />
 

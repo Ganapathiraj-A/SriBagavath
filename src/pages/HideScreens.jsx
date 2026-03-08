@@ -97,6 +97,8 @@ const HideScreens = () => {
                         { id: '/manage-users', title: 'Manage Admins' },
                         { id: '/admin-dashboard', title: 'Analytics & Health' },
                         { id: '/admin/settings', title: 'Settings' },
+                        { id: '/admin/personal-profile', title: 'Personal Profile' },
+                        { id: '/admin/cloud-settings', title: 'Cloud Global Settings' },
                         { id: '/admin/url-settings', title: 'URL Settings' }
                     ]
                 }
