@@ -257,7 +257,8 @@ const Programs = () => {
             const result = await Filesystem.writeFile({
                 path: fileName,
                 data: cleanBase64,
-                directory: Directory.Cache
+                directory: Directory.Cache,
+                encoding: 'base64'
             });
 
             // Share the file URI

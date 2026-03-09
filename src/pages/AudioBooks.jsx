@@ -78,7 +78,8 @@ const AudioBooks = () => {
       const result = await Filesystem.writeFile({
         path: fileName,
         data: finalData,
-        directory: Directory.Cache
+        directory: Directory.Cache,
+        encoding: 'base64'
       });
 
       const text = `🎧 *${currentData.book.title}*\n🔗 *Audio Link:* ${currentData.book.link}`;

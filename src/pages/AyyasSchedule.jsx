@@ -105,7 +105,8 @@ const AyyasSchedule = () => {
             const result = await Filesystem.writeFile({
                 path: fileName,
                 data: base64Data,
-                directory: Directory.Cache
+                directory: Directory.Cache,
+                encoding: 'base64'
             });
 
             await Share.share({

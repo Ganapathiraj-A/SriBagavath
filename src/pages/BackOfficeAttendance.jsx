@@ -158,10 +158,9 @@ const BackOfficeAttendance = () => {
             const filename = `attendance_${program?.programName || 'export'}_${getLocalDateString()}.csv`.replace(/\s+/g, '_');
 
             if (Capacitor.isNativePlatform()) {
-                const base64Data = btoa(unescape(encodeURIComponent(csvContent)));
                 const result = await Filesystem.writeFile({
                     path: filename,
-                    data: base64Data,
+                    data: csvContent,
                     directory: Directory.Cache,
                     encoding: Encoding.UTF8
                 });
