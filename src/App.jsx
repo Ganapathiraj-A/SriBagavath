@@ -62,6 +62,7 @@ const CloudGlobalSettings = lazy(() => import('./pages/CloudGlobalSettings'));
 const BooksAndMediaManagement = lazy(() => import('./pages/BooksAndMediaManagement'));
 const AnalyticsAndSystem = lazy(() => import('./pages/AnalyticsAndSystem'));
 const HideScreens = lazy(() => import('./pages/HideScreens'));
+const PageAndUserManagement = lazy(() => import('./pages/PageAndUserManagement.jsx'));
 const AdminBookManagement = lazy(() => import('./pages/AdminBookManagement'));
 const AdminAudioBookManagement = lazy(() => import('./pages/AdminAudioBookManagement'));
 const BookDetails = lazy(() => import('./pages/BookDetails'));
@@ -175,10 +176,11 @@ function AnimatedRoutes() {
         const parentMappings = {
           '/admin/back-office': '/configuration',
           '/admin/settings': '/configuration',
-          '/admin/hide-screens': '/admin/settings',
+          '/admin/page-user-management': '/configuration',
+          '/admin/hide-screens': '/admin/page-user-management',
           '/admin/personal-profile': '/admin/settings',
           '/admin/cloud-settings': '/admin/settings',
-          '/admin/books-media': '/admin/settings',
+          '/admin/books-media': '/admin/page-user-management',
           '/admin/analytics-system': '/admin/settings',
           '/admin/url-settings': '/admin/settings',
           '/admin/digital-books-settings': '/admin/settings',
@@ -187,7 +189,8 @@ function AnimatedRoutes() {
           '/admin/purchases': '/configuration',
           '/admin/donations': '/configuration',
           '/admin/books': '/configuration',
-          '/admin/program-management': '/configuration',
+          '/admin/books': '/configuration',
+          '/admin/program-management': '/admin/page-user-management',
           '/admin/online-meetings': '/admin/program-management',
           '/admin/satsang': '/admin/program-management',
           '/admin/consultation': '/admin/program-management',
@@ -347,6 +350,7 @@ function AnimatedRoutes() {
           <Route path="/admin/books-media" element={<ProtectedRoute requiredAdmin={true} allowedPermissions={['BANKING', 'DIGITAL_BOOKS_MANAGEMENT', 'RELATED_VIDEO_MANAGEMENT']}><BooksAndMediaManagement /></ProtectedRoute>} />
           <Route path="/admin/analytics-system" element={<ProtectedRoute requiredAdmin={true} allowedPermissions={['REPORTING']}><AnalyticsAndSystem /></ProtectedRoute>} />
           <Route path="/admin/hide-screens" element={<ProtectedRoute requiredRole="SUPER_ADMIN"><HideScreens /></ProtectedRoute>} />
+          <Route path="/admin/page-user-management" element={<ProtectedRoute requiredAdmin={true} allowedPermissions={['PROGRAM_MANAGEMENT', 'CONSULTATION_MANAGEMENT', 'DAILY_ZOOM_MANAGEMENT', 'BANKING', 'DIGITAL_BOOKS_MANAGEMENT', 'RELATED_VIDEO_MANAGEMENT', 'MANAGE_USERS', 'SUPER_ADMIN']}><PageAndUserManagement /></ProtectedRoute>} />
           <Route path="/admin/media-migration" element={<ProtectedRoute requiredRole="SUPER_ADMIN"><MediaMigration /></ProtectedRoute>} />
 
           {/* Back Office Routes */}

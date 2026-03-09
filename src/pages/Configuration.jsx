@@ -200,23 +200,9 @@ const Configuration = () => {
                         border: '1px solid var(--color-border)'
                     }}
                 >
-                    <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: 'var(--color-text)', marginBottom: '0.25rem', textAlign: 'center' }}>
+                    <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: 'var(--color-text)', marginBottom: '2rem', textAlign: 'center' }}>
                         Admin
                     </h1>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', textAlign: 'center', marginBottom: '0.5rem' }}>
-                        {user?.email}
-                    </div>
-                    <div style={{
-                        fontSize: '0.75rem',
-                        fontWeight: '700',
-                        color: 'var(--color-primary)',
-                        textAlign: 'center',
-                        marginBottom: '2rem',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.05em'
-                    }}>
-                        {import.meta.env.MODE} | v{appVersion}
-                    </div>
 
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -226,6 +212,17 @@ const Configuration = () => {
                                 {hasAccess('ADMIN_REVIEW') && <ConfigButton title="Registration" icon={Shield} path="/admin-review" delay={0.1} badgeCount={counts.registrations} />}
                                 {hasAccess('ADMIN_REVIEW') && <ConfigButton title="Purchases" icon={IndianRupee} path="/admin/purchases" delay={0.15} color="var(--color-success)" bgColor="var(--color-success-transparent)" badgeCount={counts.purchases} />}
                                 {hasAccess('ADMIN_REVIEW') && <ConfigButton title="Donations" icon={Heart} path="/admin/donations" delay={0.17} color="var(--color-error)" bgColor="var(--color-error-transparent)" badgeCount={counts.donations} />}
+                                {(hasAccess('PROGRAM_MANAGEMENT') || hasAccess('MANAGE_USERS') || hasAccess('SUPER_ADMIN')) && (
+                                    <ConfigButton
+                                        title="Page and User Management"
+                                        subtitle="Programs, Media, Admins & Visibility"
+                                        icon={Layers}
+                                        path="/admin/page-user-management"
+                                        delay={0.175}
+                                        color="var(--color-primary)"
+                                        bgColor="var(--color-primary-transparent)"
+                                    />
+                                )}
 
                                 <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                     {hasAccess('ADMIN_REVIEW') && (
@@ -292,12 +289,22 @@ const Configuration = () => {
                     >
                         <LogOut size={18} /> Logout
                     </button>
-                    <button
-                        onClick={() => navigate('/')}
-                        style={{ background: 'none', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer', fontSize: '1rem' }}
-                    >
-                        Back to Home
-                    </button>
+
+
+                    <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.25rem', opacity: 0.7 }}>
+                        <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
+                            {user?.email}
+                        </div>
+                        <div style={{
+                            fontSize: '0.75rem',
+                            fontWeight: '600',
+                            color: 'var(--color-text-muted)',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.05em'
+                        }}>
+                            {import.meta.env.MODE} | v{appVersion}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

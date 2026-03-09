@@ -58,35 +58,44 @@ const ScreenTreeNode = ({ node, level = 0, hiddenArray, onToggle }) => {
                 </div>
 
                 {/* Toggle Switch */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: isHidden ? 'var(--color-error)' : 'var(--color-success)' }}>
-                        {isHidden ? 'Hidden' : 'Visible'}
-                    </span>
-                    <div 
-                        onClick={handleNodeToggle} 
-                        style={{ 
-                            width: '40px', 
-                            height: '22px', 
-                            backgroundColor: !isHidden ? 'var(--color-success)' : 'var(--color-border)', 
-                            borderRadius: '12px', 
-                            position: 'relative', 
-                            cursor: 'pointer', 
-                            transition: 'background-color 0.2s' 
-                        }}
-                    >
-                        <div style={{ 
-                            width: '18px', 
-                            height: '18px', 
-                            backgroundColor: 'white', 
-                            borderRadius: '50%', 
-                            position: 'absolute', 
-                            top: '2px', 
-                            left: !isHidden ? '20px' : '2px', 
-                            transition: 'left 0.2s, box-shadow 0.2s', 
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)' 
-                        }} />
+                {!node.nonHiddable && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: isHidden ? 'var(--color-error)' : 'var(--color-success)' }}>
+                            {isHidden ? 'Hidden' : 'Visible'}
+                        </span>
+                        <div 
+                            onClick={handleNodeToggle} 
+                            style={{ 
+                                width: '40px', 
+                                height: '22px', 
+                                backgroundColor: !isHidden ? 'var(--color-success)' : 'var(--color-border)', 
+                                borderRadius: '12px', 
+                                position: 'relative', 
+                                cursor: 'pointer', 
+                                transition: 'background-color 0.2s' 
+                            }}
+                        >
+                            <div style={{ 
+                                width: '18px', 
+                                height: '18px', 
+                                backgroundColor: 'white', 
+                                borderRadius: '50%', 
+                                position: 'absolute', 
+                                top: '2px', 
+                                left: !isHidden ? '20px' : '2px', 
+                                transition: 'left 0.2s, box-shadow 0.2s', 
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)' 
+                            }} />
+                        </div>
                     </div>
-                </div>
+                )}
+                {node.nonHiddable && (
+                    <div style={{ padding: '4px 8px', backgroundColor: 'var(--color-surface)', borderRadius: '4px' }}>
+                        <span style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>
+                            Permanent
+                        </span>
+                    </div>
+                )}
             </div>
 
             {/* Children render */}

@@ -132,41 +132,7 @@ const AdminSettings = () => {
     const [showBankPassword, setShowBankPassword] = React.useState(false);
 
     const sections = [
-        {
-            title: 'Management Hubs',
-            items: [
-                {
-                    id: 'PROGRAM_MANAGEMENT',
-                    title: 'Program Management',
-                    subtitle: 'Retreats, Meetings, Satsang, Types & Consultation',
-                    icon: Layers,
-                    path: '/admin/program-management',
-                    permission: ['PROGRAM_MANAGEMENT', 'CONSULTATION_MANAGEMENT', 'DAILY_ZOOM_MANAGEMENT'],
-                    color: 'var(--color-primary)',
-                    bgColor: 'var(--color-primary-transparent)'
-                },
-                {
-                    id: 'books-and-media',
-                    title: 'Books & Media Management',
-                    subtitle: 'Books, digital content & related videos',
-                    icon: BookOpen,
-                    path: '/admin/books-media',
-                    permission: ['BANKING', 'DIGITAL_BOOKS_MANAGEMENT', 'RELATED_VIDEO_MANAGEMENT'],
-                    color: 'var(--color-accent)',
-                    bgColor: 'var(--color-accent-transparent)'
-                },
-                {
-                    id: 'MANAGE_USERS',
-                    title: 'Manage Admins',
-                    subtitle: 'Permission & Access Control',
-                    icon: Users,
-                    path: '/manage-users',
-                    permission: 'MANAGE_USERS',
-                    color: 'var(--color-error)',
-                    bgColor: 'var(--color-error-transparent)'
-                }
-            ]
-        },
+
         {
             title: 'Personal Settings',
             items: [
@@ -209,16 +175,6 @@ const AdminSettings = () => {
                     permission: 'REPORTING',
                     color: 'var(--color-info)',
                     bgColor: 'var(--color-info-transparent)'
-                },
-                {
-                    id: 'HIDE_SCREENS',
-                    title: 'Hide Screens',
-                    subtitle: 'Manage visibility of App modules',
-                    icon: EyeOff,
-                    path: '/admin/hide-screens',
-                    permission: 'SUPER_ADMIN',
-                    color: 'var(--color-warning)',
-                    bgColor: 'var(--color-warning-transparent)'
                 }
             ]
         }

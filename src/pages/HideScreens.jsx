@@ -15,11 +15,9 @@ const HideScreens = () => {
 
     // Define the full hierarchical list of manageable pages
     const publicPagesHierarchy = [
+        { id: '/about', title: 'About Bagavath Ayya' },
         {
-            id: '/about', title: 'About Bagavath Ayya'
-        },
-        {
-            id: '/programs', title: 'Programs Hub',
+            id: 'programs_hub', title: 'Programs Hub',
             children: [
                 { id: '/programs/retreat', title: 'Retreats' },
                 { id: '/schedule', title: "Ayya's Schedule" },
@@ -30,7 +28,7 @@ const HideScreens = () => {
             ]
         },
         {
-            id: '/books', title: 'Books & Media Hub',
+            id: 'books_hub', title: 'Books & Media Hub',
             children: [
                 { id: '/bookstore', title: 'Physical Books' },
                 { id: '/digital-books', title: 'Digital Books' },
@@ -39,24 +37,50 @@ const HideScreens = () => {
                 { id: '/monthly-magazine', title: 'Monthly Magazine' }
             ]
         },
-        {
-            id: '/donations', title: 'Donations'
-        },
-        {
-            id: '/contact', title: 'Contact'
-        }
+        { id: '/donations', title: 'Donations' },
+        { id: '/contact', title: 'Contact' }
     ];
 
     const adminPagesHierarchy = [
-        ...publicPagesHierarchy,
+        { id: '/admin-review', title: 'Registration Hub', nonHiddable: true },
+        { id: '/admin/purchases', title: 'Purchases Hub', nonHiddable: true },
+        { id: '/admin/donations', title: 'Donations Hub', nonHiddable: true },
         {
-            id: 'admin_management', title: 'Admin Tools & Settings',
+            id: '/admin/back-office', title: 'Back Office Hub', nonHiddable: true,
+            children: [
+                { id: '/admin/back-office/programs', title: 'Attendance Tracking' },
+                { id: '/admin/back-office/reconciliation', title: 'Bank Reconciliation' },
+                { id: '/admin/back-office/reporting', title: 'Reporting & Analytics' },
+                { id: '/admin/back-office/import-export', title: 'Import / Export Data' }
+            ]
+        },
+        {
+            id: '/admin/page-user-management', title: 'Page and User Management Hub', nonHiddable: true,
+            children: [
+                {
+                    id: '/admin/program-management', title: 'Program Management',
+                    children: [
+                        { id: '/program', title: 'Retreats' },
+                        { id: '/admin/online-meetings', title: 'Online Meetings' },
+                        { id: '/admin/satsang', title: 'Satsangs' },
+                        { id: '/configuration/program-types', title: 'Program Types' },
+                        { id: '/admin/daily-zoom', title: 'Daily Zoom' },
+                        { id: '/admin/consultation', title: 'Consultation' },
+                        { id: '/schedule/manage', title: 'Schedules' },
+                        { id: '/admin/related-videos', title: 'Related Videos' }
+                    ]
+                },
+                { id: '/admin/books-media', title: 'Books & Media Management' },
+                { id: '/manage-users', title: 'Manage Admins' }
+                // Hide Pages is omitted
+            ]
+        },
+        {
+            id: '/admin/settings', title: 'App Settings Hub', nonHiddable: true,
             children: [
                 { id: '/admin/personal-profile', title: 'Personal Settings' },
                 { id: '/admin/cloud-settings', title: 'Cloud Global Settings' },
-                { id: '/admin/books-media', title: 'Books & Media Management' },
                 { id: '/admin/analytics-system', title: 'Analytics & Tools' }
-                // Notice: 'Hide Screens' is deliberately omitted so it can never be hidden
             ]
         }
     ];
@@ -106,7 +130,7 @@ const HideScreens = () => {
     return (
         <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)', display: 'flex', flexDirection: 'column' }}>
             <PageHeader
-                title="Hide Screens"
+                title="Hide Pages"
                 leftAction={
                     <button onClick={() => navigate('/admin/settings')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', color: 'var(--color-text)' }}>
                         <ChevronLeft size={24} />

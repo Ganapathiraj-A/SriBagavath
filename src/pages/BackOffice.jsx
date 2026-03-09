@@ -84,20 +84,20 @@ const BackOffice = () => {
             bgColor: 'rgba(236, 72, 153, 0.1)'
         },
         {
-            title: 'Attendance Tracking',
-            subtitle: 'Manage participants & mark presence',
-            icon: Layers,
-            path: '/admin/back-office/programs',
-            color: '#f97316',
-            bgColor: 'rgba(249, 115, 22, 0.1)'
-        },
-        {
             title: 'Import / Export Data',
             subtitle: 'Manage offline records',
             icon: ArrowRightLeft,
             path: '/admin/back-office/import-export',
             color: 'var(--color-success)',
             bgColor: 'var(--color-success-transparent)'
+        },
+        {
+            title: 'Attendance Tracking',
+            subtitle: 'Manage participants & mark presence',
+            icon: Layers,
+            path: '/admin/back-office/programs',
+            color: '#f97316',
+            bgColor: 'rgba(249, 115, 22, 0.1)'
         },
         {
             title: 'Bank Reconciliation',
