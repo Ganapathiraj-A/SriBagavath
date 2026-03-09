@@ -33,8 +33,9 @@ const HideScreens = () => {
                 { id: '/bookstore', title: 'Physical Books' },
                 { id: '/digital-books', title: 'Digital Books' },
                 { id: '/audio-books', title: 'Audio Books' },
-                { id: '/videos', title: 'Videos' },
-                { id: '/monthly-magazine', title: 'Monthly Magazine' }
+                { id: '/conversations/recorded-programs', title: 'Recorded Programs' },
+                { id: '/monthly-magazine', title: 'Monthly Magazine' },
+                { id: '/videos', title: 'Related Videos' }
             ]
         },
         { id: '/donations', title: 'Donations' },
@@ -51,11 +52,14 @@ const HideScreens = () => {
                 { id: '/admin/back-office/programs', title: 'Attendance Tracking' },
                 { id: '/admin/back-office/reconciliation', title: 'Bank Reconciliation' },
                 { id: '/admin/back-office/reporting', title: 'Reporting & Analytics' },
-                { id: '/admin/back-office/import-export', title: 'Import / Export Data' }
+                { id: '/admin/back-office/import-export', title: 'Import / Export Data' },
+                { id: '/admin/back-office/offline-registration', title: 'Program Registration' },
+                { id: '/admin/back-office/offline-books', title: 'Book Purchase' },
+                { id: '/admin/back-office/offline-donation', title: 'Donation Entry' }
             ]
         },
         {
-            id: '/admin/page-user-management', title: 'Page and User Management Hub', nonHiddable: true,
+            id: '/admin/page-user-management', title: 'Page & User', nonHiddable: true,
             children: [
                 {
                     id: '/admin/program-management', title: 'Program Management',
@@ -66,11 +70,17 @@ const HideScreens = () => {
                         { id: '/configuration/program-types', title: 'Program Types' },
                         { id: '/admin/daily-zoom', title: 'Daily Zoom' },
                         { id: '/admin/consultation', title: 'Consultation' },
-                        { id: '/schedule/manage', title: 'Schedules' },
+                        { id: '/schedule/manage', title: 'Schedules' }
+                    ]
+                },
+                {
+                    id: '/admin/books-media', title: 'Books & Media Management',
+                    children: [
+                        { id: '/admin/books', title: 'Book Management' },
+                        { id: '/admin/digital-books-settings', title: 'Digital Books Languages' },
                         { id: '/admin/related-videos', title: 'Related Videos' }
                     ]
                 },
-                { id: '/admin/books-media', title: 'Books & Media Management' },
                 { id: '/manage-users', title: 'Manage Admins' }
                 // Hide Pages is omitted
             ]

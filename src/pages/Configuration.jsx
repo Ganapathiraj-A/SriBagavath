@@ -214,7 +214,7 @@ const Configuration = () => {
                                 {hasAccess('ADMIN_REVIEW') && <ConfigButton title="Donations" icon={Heart} path="/admin/donations" delay={0.17} color="var(--color-error)" bgColor="var(--color-error-transparent)" badgeCount={counts.donations} />}
                                 {(hasAccess('PROGRAM_MANAGEMENT') || hasAccess('MANAGE_USERS') || hasAccess('SUPER_ADMIN')) && (
                                     <ConfigButton
-                                        title="Page and User Management"
+                                        title="Page & User"
                                         subtitle="Programs, Media, Admins & Visibility"
                                         icon={Layers}
                                         path="/admin/page-user-management"

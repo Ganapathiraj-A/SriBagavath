@@ -100,7 +100,7 @@ const Books = () => {
                         {!currentHiddenScreens.includes('/bookstore') && <BookTypeButton title="Print Books" icon={BookOpen} path="/bookstore" delay={0.1} />}
                         {!currentHiddenScreens.includes('/digital-books') && <BookTypeButton title="Digital Books" icon={BookOpen} path="/pdf-books" delay={0.2} />}
                         {!currentHiddenScreens.includes('/audio-books') && <BookTypeButton title="Audio Books" icon={Headphones} path="/audio-books" delay={0.3} />}
-                        {!currentHiddenScreens.includes('/videos') && <BookTypeButton title="Recorded Programs" icon={Video} path="/conversations/recorded-programs" delay={0.4} />}
+                        {!currentHiddenScreens.includes('/conversations/recorded-programs') && <BookTypeButton title="Recorded Programs" icon={Video} path="/conversations/recorded-programs" delay={0.4} />}
                         {!currentHiddenScreens.includes('/monthly-magazine') && <BookTypeButton title="Monthly Magazine" icon={FileText} path="/monthly-magazine" delay={0.5} />}
                         {!currentHiddenScreens.includes('/videos') && <BookTypeButton title="Related Videos" icon={Youtube} path="/videos" delay={0.6} />}
                     </div>
