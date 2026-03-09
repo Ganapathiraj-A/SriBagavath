@@ -99,7 +99,12 @@ const Home = () => {
 
     // Determine current effective role for screen hiding
     const effectiveRole = isAdmin ? (devMode ? 'dev' : 'admin') : 'public';
-    const currentHiddenScreens = hiddenScreens?.[effectiveRole] || [];
+    let currentHiddenScreens = [...(hiddenScreens?.[effectiveRole] || [])];
+    
+    // For Home, if we are an admin, we still want to respect what's hidden for the public
+    if (isAdmin && hiddenScreens?.public) {
+        currentHiddenScreens = [...new Set([...currentHiddenScreens, ...hiddenScreens.public])];
+    }
 
     // Capture the current startup state before we clear it
     const isFirstRender = isStartupLoad;

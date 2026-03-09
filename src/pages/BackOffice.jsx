@@ -13,6 +13,8 @@ import {
     Heart
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
+import { useAdminAuth } from '@/context/AdminAuthContext';
 
 const BackOfficeItem = ({ title, subtitle, icon: Icon, path, delay, color = 'var(--color-primary)', bgColor = 'var(--color-primary-transparent)' }) => {
     const navigate = useNavigate();
@@ -57,6 +59,11 @@ const BackOfficeItem = ({ title, subtitle, icon: Icon, path, delay, color = 'var
 
 const BackOffice = () => {
     const navigate = useNavigate();
+    const { hiddenScreens, devMode } = useGlobalSettings();
+    const { isAdmin } = useAdminAuth();
+
+    const effectiveRole = isAdmin ? (devMode ? 'dev' : 'admin') : 'public';
+    const currentHiddenScreens = hiddenScreens?.[effectiveRole] || [];
 
     const tools = [
         {
@@ -115,7 +122,7 @@ const BackOffice = () => {
             color: '#8b5cf6',
             bgColor: 'rgba(139, 92, 246, 0.1)'
         },
-    ];
+    ].filter(tool => !currentHiddenScreens.includes(tool.path));
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>

@@ -57,7 +57,11 @@ const Books = () => {
     const { isAdmin } = useAdminAuth();
 
     const effectiveRole = isAdmin ? (devMode ? 'dev' : 'admin') : 'public';
-    const currentHiddenScreens = hiddenScreens?.[effectiveRole] || [];
+    let currentHiddenScreens = [...(hiddenScreens?.[effectiveRole] || [])];
+    
+    if (isAdmin && hiddenScreens?.public) {
+        currentHiddenScreens = [...new Set([...currentHiddenScreens, ...hiddenScreens.public])];
+    }
 
     useEffect(() => {
         const fetchVideos = async () => {

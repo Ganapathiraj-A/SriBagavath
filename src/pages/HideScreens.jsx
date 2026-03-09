@@ -17,7 +17,7 @@ const HideScreens = () => {
     const publicPagesHierarchy = [
         { id: '/about', title: 'About Bagavath Ayya' },
         {
-            id: 'programs_hub', title: 'Programs Hub',
+            id: '/programs', title: 'Programs Hub',
             children: [
                 { id: '/programs/retreat', title: 'Retreats' },
                 { id: '/schedule', title: "Ayya's Schedule" },
@@ -28,7 +28,7 @@ const HideScreens = () => {
             ]
         },
         {
-            id: 'books_hub', title: 'Books & Media Hub',
+            id: '/books', title: 'Books & Media Hub',
             children: [
                 { id: '/bookstore', title: 'Physical Books' },
                 { id: '/digital-books', title: 'Digital Books' },

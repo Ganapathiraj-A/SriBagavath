@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { useAdminAuth } from '@/context/AdminAuthContext';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 import '../components/RegistrationStyles.css';
 
 import { useUnseenCounts } from '@/hooks/useUnseenCounts';
@@ -79,8 +80,12 @@ const ManagementButton = ({ title, subtitle, icon: Icon, path, delay, color = 'v
 
 const AdminProgramManagement = () => {
     const navigate = useNavigate();
-    const { hasAccess } = useAdminAuth();
+    const { hasAccess, isAdmin } = useAdminAuth();
+    const { hiddenScreens, devMode } = useGlobalSettings();
     const counts = useUnseenCounts();
+
+    const effectiveRole = isAdmin ? (devMode ? 'dev' : 'admin') : 'public';
+    const currentHiddenScreens = hiddenScreens?.[effectiveRole] || [];
 
     const sections = [
         {
@@ -133,7 +138,7 @@ const AdminProgramManagement = () => {
             path: '/configuration/program-types',
             permission: 'PROGRAM_TYPES'
         }
-    ].filter(section => hasAccess(section.permission));
+    ].filter(section => hasAccess(section.permission) && !currentHiddenScreens.includes(section.path));
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>

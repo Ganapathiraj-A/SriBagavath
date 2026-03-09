@@ -209,10 +209,10 @@ const Configuration = () => {
                         {!isPowerUser ? (
                             // Hierarchical View for Admin/SuperAdmin
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                {hasAccess('ADMIN_REVIEW') && <ConfigButton title="Registration" icon={Shield} path="/admin-review" delay={0.1} badgeCount={counts.registrations} />}
-                                {hasAccess('ADMIN_REVIEW') && <ConfigButton title="Purchases" icon={IndianRupee} path="/admin/purchases" delay={0.15} color="var(--color-success)" bgColor="var(--color-success-transparent)" badgeCount={counts.purchases} />}
-                                {hasAccess('ADMIN_REVIEW') && <ConfigButton title="Donations" icon={Heart} path="/admin/donations" delay={0.17} color="var(--color-error)" bgColor="var(--color-error-transparent)" badgeCount={counts.donations} />}
-                                {(hasAccess('PROGRAM_MANAGEMENT') || hasAccess('MANAGE_USERS') || hasAccess('SUPER_ADMIN')) && (
+                                {hasAccess('ADMIN_REVIEW') && !currentHiddenScreens.includes('/admin-review') && <ConfigButton title="Registration" icon={Shield} path="/admin-review" delay={0.1} badgeCount={counts.registrations} />}
+                                {hasAccess('ADMIN_REVIEW') && !currentHiddenScreens.includes('/admin/purchases') && <ConfigButton title="Purchases" icon={IndianRupee} path="/admin/purchases" delay={0.15} color="var(--color-success)" bgColor="var(--color-success-transparent)" badgeCount={counts.purchases} />}
+                                {hasAccess('ADMIN_REVIEW') && !currentHiddenScreens.includes('/admin/donations') && <ConfigButton title="Donations" icon={Heart} path="/admin/donations" delay={0.17} color="var(--color-error)" bgColor="var(--color-error-transparent)" badgeCount={counts.donations} />}
+                                {(hasAccess('PROGRAM_MANAGEMENT') || hasAccess('MANAGE_USERS') || hasAccess('SUPER_ADMIN')) && !currentHiddenScreens.includes('/admin/page-user-management') && (
                                     <ConfigButton
                                         title="Page & User"
                                         subtitle="Programs, Media, Admins & Visibility"
@@ -225,7 +225,7 @@ const Configuration = () => {
                                 )}
 
                                 <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                    {hasAccess('ADMIN_REVIEW') && (
+                                    {hasAccess('ADMIN_REVIEW') && !currentHiddenScreens.includes('/admin/back-office') && (
                                         <ConfigButton
                                             title="Back Office"
                                             subtitle="Reporting, Attendance & Recon"
@@ -236,7 +236,7 @@ const Configuration = () => {
                                             bgColor="var(--color-warning-transparent)"
                                         />
                                     )}
-                                    {(hasAccess('PROGRAM_MANAGEMENT') || hasAccess('ADMIN_REVIEW') || hasAccess('MANAGE_USERS') || hasAccess('CONFIGURATION') || hasAccess('DAILY_ZOOM_MANAGEMENT')) && (
+                                    {(hasAccess('PROGRAM_MANAGEMENT') || hasAccess('ADMIN_REVIEW') || hasAccess('MANAGE_USERS') || hasAccess('CONFIGURATION') || hasAccess('DAILY_ZOOM_MANAGEMENT')) && !currentHiddenScreens.includes('/admin/settings') && (
                                         <ConfigButton
                                             title="Settings"
                                             subtitle="Management Hub & App Preferences"
@@ -254,8 +254,8 @@ const Configuration = () => {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                                 {powerUserCategories.map((category, catIdx) => {
                                     const visibleItems = category.items.filter(item => {
-                                        if (item.permission === 'SUPER_ADMIN') return role === 'SUPER_ADMIN';
-                                        return hasAccess(item.permission);
+                                        if (item.permission === 'SUPER_ADMIN') return role === 'SUPER_ADMIN' && !currentHiddenScreens.includes(item.path);
+                                        return hasAccess(item.permission) && (!item.path || !currentHiddenScreens.includes(item.path));
                                     });
 
                                     if (visibleItems.length === 0) return null;

@@ -2,6 +2,8 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { BookOpen, PlaySquare, ChevronLeft } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
+import { useAdminAuth } from '@/context/AdminAuthContext';
 
 const HubButton = ({ title, icon: Icon, path, delay }) => {
     const navigate = useNavigate();
@@ -17,10 +19,10 @@ const HubButton = ({ title, icon: Icon, path, delay }) => {
             style={{
                 width: '100%',
                 padding: '1.25rem',
-                backgroundColor: 'white',
+                backgroundColor: 'var(--color-card)',
                 borderRadius: '0.75rem',
-                boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-                border: '1px solid #f3f4f6',
+                boxShadow: 'var(--shadow-sm)',
+                border: '1px solid var(--color-border)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'flex-start',
@@ -32,7 +34,7 @@ const HubButton = ({ title, icon: Icon, path, delay }) => {
             <div style={{
                 padding: '0.75rem',
                 borderRadius: '9999px',
-                backgroundColor: '#fff7ed',
+                backgroundColor: 'var(--color-primary-transparent)',
                 color: 'var(--color-primary)',
                 display: 'flex',
                 alignItems: 'center',
@@ -41,13 +43,23 @@ const HubButton = ({ title, icon: Icon, path, delay }) => {
             }}>
                 <Icon size={24} color="var(--color-primary)" />
             </div>
-            <span style={{ fontSize: '1.125rem', fontWeight: 500, color: '#1f2937' }}>{title}</span>
+            <span style={{ fontSize: '1.125rem', fontWeight: 500, color: 'var(--color-text)' }}>{title}</span>
         </motion.button>
     );
 };
 
 const DigitalBooksHub = () => {
     const navigate = useNavigate();
+    const { hiddenScreens, devMode } = useGlobalSettings();
+    const { isAdmin } = useAdminAuth();
+
+    const effectiveRole = isAdmin ? (devMode ? 'dev' : 'admin') : 'public';
+    let currentHiddenScreens = [...(hiddenScreens?.[effectiveRole] || [])];
+    
+    if (isAdmin && hiddenScreens?.public) {
+        currentHiddenScreens = [...new Set([...currentHiddenScreens, ...hiddenScreens.public])];
+    }
+
     return (
         <div style={{
             minHeight: '100vh',
@@ -74,8 +86,8 @@ const DigitalBooksHub = () => {
                     }}
                 >
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        <HubButton title="PDF Books" icon={BookOpen} path="/pdf-books" delay={0.1} />
-                        <HubButton title="Recorded Programs" icon={PlaySquare} path="/conversations/recorded-programs" delay={0.2} />
+                        {!currentHiddenScreens.includes('/digital-books') && <HubButton title="PDF Books" icon={BookOpen} path="/pdf-books" delay={0.1} />}
+                        {!currentHiddenScreens.includes('/conversations/recorded-programs') && <HubButton title="Recorded Programs" icon={PlaySquare} path="/conversations/recorded-programs" delay={0.2} />}
                     </div>
                 </motion.div>
             </div>

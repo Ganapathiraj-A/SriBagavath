@@ -5,10 +5,15 @@ import { BookOpen, Video } from 'lucide-react';
 import { useAdminAuth } from '@/context/AdminAuthContext';
 import PageHeader from '@/components/PageHeader';
 import { SettingItem } from './AdminSettings';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 
 const BooksAndMediaManagement = () => {
     const navigate = useNavigate();
-    const { hasAccess } = useAdminAuth();
+    const { hasAccess, isAdmin } = useAdminAuth();
+    const { hiddenScreens, devMode } = useGlobalSettings();
+
+    const effectiveRole = isAdmin ? (devMode ? 'dev' : 'admin') : 'public';
+    const currentHiddenScreens = hiddenScreens?.[effectiveRole] || [];
 
     const items = [
         {
@@ -45,9 +50,9 @@ const BooksAndMediaManagement = () => {
 
     const visibleItems = items.filter(item => {
         if (Array.isArray(item.permission)) {
-            return item.permission.some(p => hasAccess(p));
+            return item.permission.some(p => hasAccess(p)) && !currentHiddenScreens.includes(item.path);
         }
-        return hasAccess(item.permission);
+        return hasAccess(item.permission) && !currentHiddenScreens.includes(item.path);
     });
 
     return (

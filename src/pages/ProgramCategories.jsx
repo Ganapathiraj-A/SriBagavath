@@ -72,7 +72,11 @@ const ProgramCategories = () => {
     const { isAdmin } = useAdminAuth();
 
     const effectiveRole = isAdmin ? (devMode ? 'dev' : 'admin') : 'public';
-    const currentHiddenScreens = hiddenScreens?.[effectiveRole] || [];
+    let currentHiddenScreens = [...(hiddenScreens?.[effectiveRole] || [])];
+    
+    if (isAdmin && hiddenScreens?.public) {
+        currentHiddenScreens = [...new Set([...currentHiddenScreens, ...hiddenScreens.public])];
+    }
 
     // Deep Link Redirection: If an 'id' is present, go straight to Retreat details
     useEffect(() => {
