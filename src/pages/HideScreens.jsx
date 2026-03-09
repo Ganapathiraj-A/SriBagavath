@@ -47,7 +47,19 @@ const HideScreens = () => {
         }
     ];
 
-    const adminPagesHierarchy = [...publicPagesHierarchy];
+    const adminPagesHierarchy = [
+        ...publicPagesHierarchy,
+        {
+            id: 'admin_management', title: 'Admin Tools & Settings',
+            children: [
+                { id: '/admin/personal-profile', title: 'Personal Settings' },
+                { id: '/admin/cloud-settings', title: 'Cloud Global Settings' },
+                { id: '/admin/books-media', title: 'Books & Media Management' },
+                { id: '/admin/analytics-system', title: 'Analytics & Tools' }
+                // Notice: 'Hide Screens' is deliberately omitted so it can never be hidden
+            ]
+        }
+    ];
 
     const getPagesForTab = (tab) => {
         if (tab === 'Public') return publicPagesHierarchy;

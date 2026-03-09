@@ -59,6 +59,8 @@ const MyDonations = lazy(() => import('./pages/MyDonations'));
 const AdminSettings = lazy(() => import('./pages/AdminSettings'));
 const PersonalProfile = lazy(() => import('./pages/PersonalProfile'));
 const CloudGlobalSettings = lazy(() => import('./pages/CloudGlobalSettings'));
+const BooksAndMediaManagement = lazy(() => import('./pages/BooksAndMediaManagement'));
+const AnalyticsAndSystem = lazy(() => import('./pages/AnalyticsAndSystem'));
 const HideScreens = lazy(() => import('./pages/HideScreens'));
 const AdminBookManagement = lazy(() => import('./pages/AdminBookManagement'));
 const AdminAudioBookManagement = lazy(() => import('./pages/AdminAudioBookManagement'));
@@ -176,6 +178,8 @@ function AnimatedRoutes() {
           '/admin/hide-screens': '/admin/settings',
           '/admin/personal-profile': '/admin/settings',
           '/admin/cloud-settings': '/admin/settings',
+          '/admin/books-media': '/admin/settings',
+          '/admin/analytics-system': '/admin/settings',
           '/admin/url-settings': '/admin/settings',
           '/admin/digital-books-settings': '/admin/settings',
           '/admin/related-videos': '/admin/settings',
@@ -340,6 +344,8 @@ function AnimatedRoutes() {
           <Route path="/admin/settings" element={<ProtectedRoute><AdminSettings /></ProtectedRoute>} />
           <Route path="/admin/personal-profile" element={<ProtectedRoute><PersonalProfile /></ProtectedRoute>} />
           <Route path="/admin/cloud-settings" element={<ProtectedRoute requiredRole="SUPER_ADMIN"><CloudGlobalSettings /></ProtectedRoute>} />
+          <Route path="/admin/books-media" element={<ProtectedRoute requiredAdmin={true} allowedPermissions={['BANKING', 'DIGITAL_BOOKS_MANAGEMENT', 'RELATED_VIDEO_MANAGEMENT']}><BooksAndMediaManagement /></ProtectedRoute>} />
+          <Route path="/admin/analytics-system" element={<ProtectedRoute requiredAdmin={true} allowedPermissions={['REPORTING']}><AnalyticsAndSystem /></ProtectedRoute>} />
           <Route path="/admin/hide-screens" element={<ProtectedRoute requiredRole="SUPER_ADMIN"><HideScreens /></ProtectedRoute>} />
           <Route path="/admin/media-migration" element={<ProtectedRoute requiredRole="SUPER_ADMIN"><MediaMigration /></ProtectedRoute>} />
 

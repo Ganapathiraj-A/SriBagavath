@@ -11,7 +11,7 @@ import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 const OCR = registerPlugin('SBBOCR');
 
 const UpdateIcon = () => {
-    const { devMode: visible, updateSource, serverUrl } = useGlobalSettings();
+    const { devMode: visible, updateSource, serverUrl, showRightPanel } = useGlobalSettings();
     const { isAdmin, user } = useAdminAuth();
 
     // Feature Flag for Play Store builds
@@ -97,7 +97,7 @@ const UpdateIcon = () => {
     const isVisible = (import.meta.env.DEV || isUpdaterEnabled) && (visible || isDevBuild);
     const isAuthorized = isDevBuild || (isAdmin && user && !user.isAnonymous);
 
-    if (!isAuthorized || !isVisible) return null;
+    if (!isAuthorized || (!isVisible && !showRightPanel) || !showRightPanel) return null;
 
     const handleUpdate = async () => {
         if (!updateInfo) return;

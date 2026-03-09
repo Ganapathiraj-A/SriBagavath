@@ -15,6 +15,7 @@ const PersonalProfile = () => {
         showApiCounter, setShowApiCounter,
         showDiagnosticLogs, setShowDiagnosticLogs,
         showImageVerificationAlert, setShowImageVerificationAlert,
+        showRightPanel, setShowRightPanel,
         deviceId, isDeviceAuthorized, toggleDeviceAuthorization
     } = useGlobalSettings();
 
@@ -25,7 +26,7 @@ const PersonalProfile = () => {
     return (
         <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>
             <PageHeader
-                title="Personal Profile"
+                title="Personal Settings"
                 leftAction={
                     <button onClick={() => navigate('/admin/settings')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
                         <ChevronLeft size={24} />
@@ -93,24 +94,9 @@ const PersonalProfile = () => {
                     {/* Dev Sub-options */}
                     {devMode && (
                         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', paddingTop: '0.5rem', borderTop: '1px dashed var(--color-border)' }}>
-                            <div>
-                                <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Update Source</div>
-                                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                    {['auto', 'laptop', 'github'].map(source => (
-                                        <button key={source} onClick={() => setUpdateSource(source)} style={{ flex: 1, padding: '0.4rem', fontSize: '0.75rem', borderRadius: '0.375rem', border: '1px solid', borderColor: updateSource === source ? 'var(--color-primary)' : 'var(--color-border)', backgroundColor: updateSource === source ? 'var(--color-primary-transparent)' : 'var(--color-surface)', color: updateSource === source ? 'var(--color-primary)' : 'var(--color-text)', textTransform: 'capitalize' }}>
-                                            {source}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                                <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Local Server IP</div>
-                                <input type="text" value={serverUrl || ''} onChange={(e) => setServerUrl(e.target.value)} placeholder="http://192.168.1.X:8080" style={{ padding: '0.625rem', fontSize: '0.875rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', outline: 'none' }} />
-                            </div>
-
                             {/* API Counter Toggle */}
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--color-background)', padding: '0.5rem', borderRadius: '0.5rem' }}>
-                                <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Show API Counter</div>
+                                <div style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--color-text-muted)' }}>Show API Counter</div>
                                 <label style={{ position: 'relative', display: 'inline-block', width: '36px', height: '20px' }}>
                                     <input
                                         type="checkbox"
@@ -125,7 +111,7 @@ const PersonalProfile = () => {
 
                             {/* Diagnostic Logs Toggle */}
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--color-background)', padding: '0.5rem', borderRadius: '0.5rem' }}>
-                                <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Show Diagnostic Logs</div>
+                                <div style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--color-text-muted)' }}>Show Diagnostic Logs</div>
                                 <label style={{ position: 'relative', display: 'inline-block', width: '36px', height: '20px' }}>
                                     <input
                                         type="checkbox"
@@ -140,7 +126,7 @@ const PersonalProfile = () => {
 
                             {/* Image Verification Alert Toggle */}
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--color-background)', padding: '0.5rem', borderRadius: '0.5rem' }}>
-                                <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Image Verification Alert</div>
+                                <div style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--color-text-muted)' }}>Image Verification Alert</div>
                                 <label style={{ position: 'relative', display: 'inline-block', width: '36px', height: '20px' }}>
                                     <input
                                         type="checkbox"
@@ -151,6 +137,54 @@ const PersonalProfile = () => {
                                     <span style={{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: showImageVerificationAlert ? 'var(--color-primary)' : 'var(--color-border)', borderRadius: '34px', transition: '.4s' }}></span>
                                     <span style={{ position: 'absolute', height: '14px', width: '14px', left: '3px', bottom: '3px', backgroundColor: 'white', borderRadius: '50%', transition: '.4s', transform: showImageVerificationAlert ? 'translateX(16px)' : 'translateX(0)' }}></span>
                                 </label>
+                            </div>
+
+                            {/* Hide Right Toolbar Panel Toggle */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--color-background)', padding: '0.5rem', borderRadius: '0.5rem' }}>
+                                <div style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--color-text-muted)' }}>Show Right Toolbar Panel</div>
+                                <label style={{ position: 'relative', display: 'inline-block', width: '36px', height: '20px' }}>
+                                    <input
+                                        type="checkbox"
+                                        style={{ opacity: 0, width: 0, height: 0 }}
+                                        checked={showRightPanel}
+                                        onChange={(e) => setShowRightPanel(e.target.checked)}
+                                    />
+                                    <span style={{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: showRightPanel ? 'var(--color-success)' : 'var(--color-border)', borderRadius: '34px', transition: '.4s' }}></span>
+                                    <span style={{ position: 'absolute', height: '14px', width: '14px', left: '3px', bottom: '3px', backgroundColor: 'white', borderRadius: '50%', transition: '.4s', transform: showRightPanel ? 'translateX(16px)' : 'translateX(0)' }}></span>
+                                </label>
+                            </div>
+
+                            {/* Anonymous Debugging Toggle */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--color-background)', padding: '0.5rem', borderRadius: '0.5rem' }}>
+                                <div>
+                                    <div style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--color-text)' }}>Anonymous Debugging</div>
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>Keep debug tools visible after logout</div>
+                                </div>
+                                <label style={{ position: 'relative', display: 'inline-block', width: '36px', height: '20px' }}>
+                                    <input
+                                        type="checkbox"
+                                        style={{ opacity: 0, width: 0, height: 0 }}
+                                        checked={isDeviceAuthorized}
+                                        onChange={(e) => toggleDeviceAuthorization(e.target.checked)}
+                                    />
+                                    <span style={{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: isDeviceAuthorized ? 'var(--color-primary)' : 'var(--color-border)', borderRadius: '34px', transition: '.4s' }}></span>
+                                    <span style={{ position: 'absolute', height: '14px', width: '14px', left: '3px', bottom: '3px', backgroundColor: 'white', borderRadius: '50%', transition: '.4s', transform: isDeviceAuthorized ? 'translateX(16px)' : 'translateX(0)' }}></span>
+                                </label>
+                            </div>
+
+                            <div style={{ marginTop: '0.25rem', padding: '0.5rem', borderRadius: '0.5rem', backgroundColor: 'var(--color-background)' }}>
+                                <div style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--color-text)', marginBottom: '0.5rem' }}>Apk Update Source</div>
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    {['auto', 'laptop', 'github'].map(source => (
+                                        <button key={source} onClick={() => setUpdateSource(source)} style={{ flex: 1, padding: '0.4rem', fontSize: '0.75rem', borderRadius: '0.375rem', border: '1px solid', borderColor: updateSource === source ? 'var(--color-primary)' : 'var(--color-border)', backgroundColor: updateSource === source ? 'var(--color-primary-transparent)' : 'var(--color-surface)', color: updateSource === source ? 'var(--color-primary)' : 'var(--color-text)', textTransform: 'capitalize' }}>
+                                            {source}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', padding: '0.5rem', borderRadius: '0.5rem', backgroundColor: 'var(--color-background)', marginTop: '0.25rem' }}>
+                                <div style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--color-text)' }}>Local Server IP</div>
+                                <input type="text" value={serverUrl || ''} onChange={(e) => setServerUrl(e.target.value)} placeholder="http://192.168.1.X:8080" style={{ padding: '0.625rem', fontSize: '0.875rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', outline: 'none' }} />
                             </div>
                         </motion.div>
                     )}
@@ -174,7 +208,7 @@ const PersonalProfile = () => {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <Cpu size={16} color="var(--color-text-muted)" />
                             <h4 style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
-                                This Device Authorization
+                                This Device Id
                             </h4>
                         </div>
 
@@ -189,23 +223,6 @@ const PersonalProfile = () => {
                             >
                                 <Copy size={14} />
                             </button>
-                        </div>
-
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div>
-                                <div style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--color-text)' }}>Anonymous Debugging</div>
-                                <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>Keep debug tools visible after logout</div>
-                            </div>
-                            <label style={{ position: 'relative', display: 'inline-block', width: '40px', height: '22px' }}>
-                                <input
-                                    type="checkbox"
-                                    style={{ opacity: 0, width: 0, height: 0 }}
-                                    checked={isDeviceAuthorized}
-                                    onChange={(e) => toggleDeviceAuthorization(e.target.checked)}
-                                />
-                                <span style={{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: isDeviceAuthorized ? 'var(--color-primary)' : 'var(--color-border)', borderRadius: '34px', transition: '.4s' }}></span>
-                                <span style={{ position: 'absolute', height: '16px', width: '16px', left: '3px', bottom: '3px', backgroundColor: 'white', borderRadius: '50%', transition: '.4s', transform: isDeviceAuthorized ? 'translateX(18px)' : 'translateX(0)' }}></span>
-                            </label>
                         </div>
                     </motion.div>
                 )}

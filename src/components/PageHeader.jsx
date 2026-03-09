@@ -60,6 +60,9 @@ const PageHeader = ({
             '/admin/settings': '/configuration',
             '/admin/url-settings': '/admin/settings',
             '/admin/related-videos': '/admin/settings',
+            '/admin/personal-profile': '/admin/settings',
+            '/admin/cloud-settings': '/admin/settings',
+            '/admin/hide-screens': '/admin/settings',
             '/admin-review': '/configuration',
             '/admin/purchases': '/configuration',
             '/admin/donations': '/configuration',
@@ -100,7 +103,9 @@ const PageHeader = ({
             '/admin/audio-books': '/configuration',
             '/digital-books': '/books',
             '/related-videos': '/books',
-            '/admin/media-migration': '/admin/settings'
+            '/admin/media-migration': '/admin/settings',
+            '/admin/books-media': '/admin/settings',
+            '/admin/analytics-system': '/admin/settings'
         };
 
         if (location.state?.returnPath) {

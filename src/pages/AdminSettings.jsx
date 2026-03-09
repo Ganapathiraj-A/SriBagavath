@@ -80,7 +80,7 @@ export const CopyableInput = ({ label, value, onChange, placeholder, type = "tex
     );
 };
 
-const SettingItem = ({ title, subtitle, icon: Icon, delay, onClick, color = 'var(--color-primary)', bgColor = 'var(--color-primary-transparent)' }) => {
+export const SettingItem = ({ title, subtitle, icon: Icon, delay, onClick, color = 'var(--color-primary)', bgColor = 'var(--color-primary-transparent)' }) => {
     return (
         <motion.button
             initial={{ opacity: 0, x: -20 }}
@@ -146,24 +146,14 @@ const AdminSettings = () => {
                     bgColor: 'var(--color-primary-transparent)'
                 },
                 {
-                    id: 'BOOK_MANAGEMENT',
-                    title: 'Book Management',
-                    subtitle: 'Add books, descriptions & covers',
+                    id: 'books-and-media',
+                    title: 'Books & Media Management',
+                    subtitle: 'Books, digital content & related videos',
                     icon: BookOpen,
-                    path: '/admin/books',
-                    permission: 'BANKING',
+                    path: '/admin/books-media',
+                    permission: ['BANKING', 'DIGITAL_BOOKS_MANAGEMENT', 'RELATED_VIDEO_MANAGEMENT'],
                     color: 'var(--color-accent)',
                     bgColor: 'var(--color-accent-transparent)'
-                },
-                {
-                    id: 'DIGITAL_BOOKS_LANGUAGES',
-                    title: 'Digital Books Languages',
-                    subtitle: 'Manage languages & folder IDs',
-                    icon: BookOpen,
-                    path: '/admin/digital-books-settings',
-                    permission: 'DIGITAL_BOOKS_MANAGEMENT',
-                    color: 'var(--color-primary)',
-                    bgColor: 'var(--color-primary-transparent)'
                 },
                 {
                     id: 'MANAGE_USERS',
@@ -174,41 +164,51 @@ const AdminSettings = () => {
                     permission: 'MANAGE_USERS',
                     color: 'var(--color-error)',
                     bgColor: 'var(--color-error-transparent)'
-                },
-                {
-                    id: 'RELATED_VIDEO_MANAGEMENT',
-                    title: 'Related Videos',
-                    subtitle: 'YouTube playlist links',
-                    icon: Video,
-                    path: '/admin/related-videos',
-                    permission: 'RELATED_VIDEO_MANAGEMENT',
-                    color: 'var(--color-error)',
-                    bgColor: 'var(--color-error-transparent)'
                 }
             ]
         },
         {
-            title: 'Analytics & System',
+            title: 'Personal Settings',
             items: [
                 {
-                    id: 'ANALYTICS',
-                    title: 'Analytics & Health',
-                    subtitle: 'Usage stats, storage & system status',
+                    id: 'PERSONAL_PROFILE',
+                    title: 'Personal Settings',
+                    subtitle: 'Device settings & dev tools',
+                    icon: Settings,
+                    path: '/admin/personal-profile',
+                    permission: [], // Accessible by any admin
+                    color: 'var(--color-accent)',
+                    bgColor: 'var(--color-accent-transparent)'
+                }
+            ]
+        },
+        {
+            title: 'System Settings',
+            items: [
+                {
+                    id: 'CLOUD_GLOBAL_SETTINGS',
+                    title: 'Cloud Global Settings',
+                    subtitle: 'App version, payments & URLs',
+                    icon: Cloud,
+                    path: '/admin/cloud-settings',
+                    permission: 'SUPER_ADMIN',
+                    color: 'var(--color-primary)',
+                    bgColor: 'var(--color-primary-transparent)'
+                }
+            ]
+        },
+        {
+            title: 'Tools',
+            items: [
+                {
+                    id: 'analytics-system',
+                    title: 'Analytics & Tools',
+                    subtitle: 'Dashboard, tools & maintenance',
                     icon: LayoutDashboard,
-                    path: '/admin-dashboard',
+                    path: '/admin/analytics-system',
                     permission: 'REPORTING',
                     color: 'var(--color-info)',
                     bgColor: 'var(--color-info-transparent)'
-                },
-                {
-                    id: 'SYSTEM_MAINTENANCE',
-                    title: 'System Maintenance',
-                    subtitle: 'Clear local cache & reset sync registry',
-                    icon: RefreshCw,
-                    action: 'CLEAR_CACHE',
-                    permission: 'REPORTING',
-                    color: 'var(--color-error)',
-                    bgColor: 'var(--color-error-transparent)'
                 },
                 {
                     id: 'HIDE_SCREENS',
@@ -219,36 +219,6 @@ const AdminSettings = () => {
                     permission: 'SUPER_ADMIN',
                     color: 'var(--color-warning)',
                     bgColor: 'var(--color-warning-transparent)'
-                },
-                {
-                    id: 'MEDIA_MIGRATION',
-                    title: 'Media Migration Utility',
-                    subtitle: 'Bulk update legacy images to Cloud Storage',
-                    icon: Database,
-                    path: '/admin/media-migration',
-                    permission: 'REPORTING',
-                    color: 'var(--color-primary)',
-                    bgColor: 'var(--color-primary-transparent)'
-                },
-                {
-                    id: 'PERSONAL_PROFILE',
-                    title: 'Personal Profile',
-                    subtitle: 'Device settings & dev tools',
-                    icon: User,
-                    path: '/admin/personal-profile',
-                    permission: [], // Accessible by any admin
-                    color: 'var(--color-accent)',
-                    bgColor: 'var(--color-accent-transparent)'
-                },
-                {
-                    id: 'CLOUD_GLOBAL_SETTINGS',
-                    title: 'Cloud Global Settings',
-                    subtitle: 'App version, payments & URLs',
-                    icon: Cloud,
-                    path: '/admin/cloud-settings',
-                    permission: 'SUPER_ADMIN',
-                    color: 'var(--color-primary)',
-                    bgColor: 'var(--color-primary-transparent)'
                 }
             ]
         }
@@ -281,9 +251,9 @@ const AdminSettings = () => {
                 {sections.map((section, sIdx) => {
                     const visibleItems = section.items.filter(item => {
                         if (Array.isArray(item.permission)) {
-                            return item.permission.some(p => hasAccess(p));
+                            return item.permission.length === 0 || item.permission.some(p => hasAccess(p));
                         }
-                        return hasAccess(item.permission);
+                        return !item.permission || hasAccess(item.permission);
                     });
 
                     if (visibleItems.length === 0) return null;
