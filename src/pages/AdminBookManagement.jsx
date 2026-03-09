@@ -226,6 +226,12 @@ const AdminBookManagement = () => {
                             updatedAt: serverTimestamp()
                         });
 
+                        // Important: Reset flags on the main book document so migration utility can see it
+                        await updateDoc(doc(db, 'books', bookId), {
+                            imageUrl: '',
+                            storage_migrated: false
+                        });
+
                         // Record legacy size stats
                         const sizeInBytes = finalCoverUrl.length * 0.75;
                         await StatsService.recordImage(sizeInBytes, 'BOOK_COVER');

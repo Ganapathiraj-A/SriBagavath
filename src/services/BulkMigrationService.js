@@ -12,6 +12,9 @@ export const BulkMigrationService = {
      * Checks storage_migrated flag, imageUrl field, and the data value itself.
      */
     isAlreadyMigrated: (data, value) => {
+        // If the value is a base64 string, it is NOT migrated (or needs re-migration)
+        if (value && typeof value === 'string' && value.startsWith('data:image')) return false;
+
         if (data.storage_migrated === true) return true;
         if (data.imageUrl && typeof data.imageUrl === 'string' && data.imageUrl.startsWith('http')) return true;
         if (value && typeof value === 'string') {
@@ -132,7 +135,10 @@ export const BulkMigrationService = {
 
                 if (parentSnap.exists()) {
                     const parentData = parentSnap.data();
-                    if (!BulkMigrationService.isAlreadyMigrated(parentData, parentData.imageUrl)) {
+                    const sourceIsBase64 = typeof base64 === 'string' && base64.startsWith('data:image');
+                    const parentNeedsMigration = !BulkMigrationService.isAlreadyMigrated(parentData, parentData.imageUrl);
+
+                    if (sourceIsBase64 || parentNeedsMigration) {
                         const res = await BulkMigrationService.migrateItem(progId, base64, 'banners', 'banner.jpg', parentRef, docSnap.ref, 'banner');
                         results.push(res);
                     }
@@ -193,7 +199,10 @@ export const BulkMigrationService = {
 
                 if (parentSnap.exists()) {
                     const parentData = parentSnap.data();
-                    if (!BulkMigrationService.isAlreadyMigrated(parentData, parentData.imageUrl)) {
+                    const sourceIsBase64 = typeof base64 === 'string' && base64.startsWith('data:image');
+                    const parentNeedsMigration = !BulkMigrationService.isAlreadyMigrated(parentData, parentData.imageUrl);
+
+                    if (sourceIsBase64 || parentNeedsMigration) {
                         const res = await BulkMigrationService.migrateItem(masterId, base64, 'satsang_banners', 'banner.jpg', parentRef, docSnap.ref, 'banner');
                         results.push(res);
                     }
@@ -228,7 +237,10 @@ export const BulkMigrationService = {
 
                 if (parentSnap.exists()) {
                     const parentData = parentSnap.data();
-                    if (!BulkMigrationService.isAlreadyMigrated(parentData, parentData.imageUrl)) {
+                    const sourceIsBase64 = typeof base64 === 'string' && base64.startsWith('data:image');
+                    const parentNeedsMigration = !BulkMigrationService.isAlreadyMigrated(parentData, parentData.imageUrl);
+
+                    if (sourceIsBase64 || parentNeedsMigration) {
                         const res = await BulkMigrationService.migrateItem(meetingId, base64, 'online_meeting_banners', 'banner.jpg', parentRef, docSnap.ref, 'banner');
                         results.push(res);
                     }
@@ -263,7 +275,12 @@ export const BulkMigrationService = {
 
                 if (parentSnap.exists()) {
                     const parentData = parentSnap.data();
-                    if (!BulkMigrationService.isAlreadyMigrated(parentData, parentData.imageUrl)) {
+                    
+                    // If source is base64, we migrate even if parent claims to be migrated
+                    const sourceIsBase64 = typeof base64 === 'string' && base64.startsWith('data:image');
+                    const parentNeedsMigration = !BulkMigrationService.isAlreadyMigrated(parentData, parentData.imageUrl);
+
+                    if (sourceIsBase64 || parentNeedsMigration) {
                         const res = await BulkMigrationService.migrateItem(bookId, base64, 'book_covers', 'cover.jpg', parentRef, docSnap.ref, 'cover');
                         results.push(res);
                     }
