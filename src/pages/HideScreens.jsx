@@ -59,7 +59,7 @@ const HideScreens = () => {
             ]
         },
         {
-            id: '/admin/page-user-management', title: 'Page & User', nonHiddable: true,
+            id: '/admin/page-user-management', title: 'Page & Users Mgmt', nonHiddable: true,
             children: [
                 {
                     id: '/admin/program-management', title: 'Program Management',

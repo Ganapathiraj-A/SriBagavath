@@ -87,7 +87,7 @@ const PageAndUserManagement = () => {
     return (
         <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>
             <PageHeader
-                title="Page & User"
+                title="Page & Users Mgmt"
                 leftAction={
                     <button onClick={() => navigate('/configuration')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
                         <ChevronLeft size={24} />
