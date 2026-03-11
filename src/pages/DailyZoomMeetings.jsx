@@ -11,6 +11,7 @@ import { db } from '@/firebase';
 import { collection, query, where, orderBy, getDocs, limit, startAfter } from '@/utils/FirestoreProxy';
 import { getLocalDateString } from '@/utils/dateUtils';
 import { useAdminAuth } from '@/context/AdminAuthContext';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 
 const MeetingCard = ({ meeting, teacher, delay, isAdmin, onShare, isSharing }) => {
     const navigate = useNavigate();
@@ -164,6 +165,11 @@ const DailyZoomMeetings = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { isAdmin, hasAccess, loading: authLoading } = useAdminAuth();
+    const { hiddenScreens, devMode } = useGlobalSettings();
+
+    const effectiveRole = isAdmin ? (devMode ? 'dev' : 'admin') : 'public';
+    const currentHiddenScreens = hiddenScreens?.[effectiveRole] || [];
+
     const [activeTab, setActiveTab] = useState('upcoming');
     const [upcomingMeetings, setUpcomingMeetings] = useState([]);
     const [pastMeetings, setPastMeetings] = useState([]);
@@ -532,7 +538,7 @@ const DailyZoomMeetings = () => {
             <PageHeader
                 title="Daily Zoom Meeting"
                 rightAction={
-                    (isAdmin || hasAccess('DAILY_ZOOM_MANAGEMENT')) && (
+                    (isAdmin || hasAccess('DAILY_ZOOM_MANAGEMENT')) && !currentHiddenScreens.includes('/admin/daily-zoom') && (
                         <button
                             onClick={() => navigate('/admin/daily-zoom', { state: { returnPath: location.pathname } })}
                             style={{

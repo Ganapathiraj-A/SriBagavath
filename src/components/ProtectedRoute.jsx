@@ -5,7 +5,7 @@ import { useLocation, Navigate } from 'react-router-dom';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
 
-const ProtectedRoute = ({ children, requiredPermission }) => {
+const ProtectedRoute = ({ children, requiredPermission, requiredRole, requiredAdmin, allowedPermissions }) => {
     const { isAdmin, role, hasAccess, loading } = useAdminAuth();
     const location = useLocation();
 
@@ -28,9 +28,32 @@ const ProtectedRoute = ({ children, requiredPermission }) => {
         return <Navigate to="/admin-login" state={{ from: location }} replace />;
     }
 
-    // Check specific permission if required
+    // Perform security checks
+    let accessDenied = false;
+
+    // 1. Check strict role if required (e.g. SUPER_ADMIN routes)
+    if (requiredRole && role !== requiredRole) {
+        accessDenied = true;
+    }
+
+    // 2. Check individual permission if required
     if (requiredPermission && !hasAccess(requiredPermission)) {
-        console.warn(`Access Denied. Role: ${role}, Required: ${requiredPermission}`);
+        accessDenied = true;
+    }
+
+    // 3. Check if any of a set of permissions are allowed
+    if (allowedPermissions && Array.isArray(allowedPermissions) && allowedPermissions.length > 0) {
+        const hasAny = allowedPermissions.some(perm => hasAccess(perm));
+        if (!hasAny) accessDenied = true;
+    }
+
+    // 4. Check if admin status is explicitly required (redundant with !isAdmin but safe)
+    if (requiredAdmin && !isAdmin) {
+        accessDenied = true;
+    }
+
+    if (accessDenied) {
+        console.warn(`Access Denied to ${location.pathname}. Role: ${role}, Required: ${requiredRole || requiredPermission || allowedPermissions?.join(',')}`);
 
         const handleLogout = async () => {
             if (confirm("Logout?")) {

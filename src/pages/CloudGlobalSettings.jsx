@@ -11,7 +11,8 @@ const CloudGlobalSettings = () => {
     const {
         onlineTransactionsEnabled, toggleOnlineTransactions,
         bankPassword, setBankPassword,
-        minAppVersion, setMinAppVersion
+        minAppVersion, setMinAppVersion,
+        appVersion
     } = useGlobalSettings();
 
     const [showBankPassword, setShowBankPassword] = useState(false);
@@ -31,16 +32,6 @@ const CloudGlobalSettings = () => {
                 <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '1rem' }}>
                     Manage application-wide settings synchronized globally via the cloud.
                 </p>
-
-                {/* Minimum App Version */}
-                <div style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '1.25rem', border: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    <CopyableInput
-                        label="Force Update Version"
-                        value={minAppVersion || ''}
-                        onChange={(e) => setMinAppVersion(e.target.value)}
-                        placeholder="e.g. 3.0.0"
-                    />
-                </div>
 
                 {/* Online Transactions */}
                 <div style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '1.25rem', border: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -113,6 +104,33 @@ const CloudGlobalSettings = () => {
                         onChange={(e) => setBankPassword(e.target.value)}
                         placeholder="Statement decryption key"
                         style={{ padding: '0.625rem', fontSize: '0.875rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', outline: 'none' }}
+                    />
+                </div>
+
+                {/* Minimum App Version (Now at the bottom) */}
+                <div style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '1.25rem', border: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Mandatory Version</label>
+                        <button
+                            onClick={() => setMinAppVersion(appVersion)}
+                            style={{
+                                padding: '4px 12px',
+                                fontSize: '0.75rem',
+                                fontWeight: 600,
+                                borderRadius: '6px',
+                                backgroundColor: 'var(--color-primary-transparent)',
+                                color: 'var(--color-primary)',
+                                border: 'none',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            Use current v{appVersion}
+                        </button>
+                    </div>
+                    <CopyableInput
+                        value={minAppVersion || ''}
+                        onChange={(e) => setMinAppVersion(e.target.value)}
+                        placeholder="e.g. 3.0.0"
                     />
                 </div>
 

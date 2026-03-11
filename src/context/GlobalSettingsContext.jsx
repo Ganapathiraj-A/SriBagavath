@@ -68,6 +68,7 @@ export const GlobalSettingsProvider = ({ children }) => {
 
     // Firestore Per-User Settings (Developer Options)
     const [userSettings, setUserSettings] = useState(DEFAULT_USER_SETTINGS);
+    const [globalServerUrl, setGlobalServerUrl] = useState('');
 
     // Injected by Vite via package.json
     const APP_VERSION_TAG = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '3.0.0';
@@ -114,7 +115,11 @@ export const GlobalSettingsProvider = ({ children }) => {
 
     // 2. Auth state Listener + User Settings Sync
     useEffect(() => {
+        let unsubscribeUserSub = () => { };
         const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+            // Unsubscribe previous user settings listener
+            unsubscribeUserSub();
+
             setCurrentUser(user);
             if (user) {
                 const userDocRef = doc(db, 'users', user.uid, 'settings', 'preferences');
@@ -132,7 +137,7 @@ export const GlobalSettingsProvider = ({ children }) => {
                     console.error("Initial preferences fetch failed:", _err);
                 }
 
-                const unsubscribeUserSub = onSnapshot(userDocRef, (docSnap) => {
+                unsubscribeUserSub = onSnapshot(userDocRef, (docSnap) => {
                     if (docSnap.exists()) {
                         setUserSettings(docSnap.data());
                     } else if (!user.isAnonymous) {
@@ -156,13 +161,14 @@ export const GlobalSettingsProvider = ({ children }) => {
                         setUserSettings(initData);
                     }
                 }, () => console.log("Preference listener restricted (Expected for anonymous)"));
-
-                return () => unsubscribeUserSub();
             } else {
                 setUserSettings(DEFAULT_USER_SETTINGS);
             }
         });
-        return () => unsubscribeAuth();
+        return () => {
+            unsubscribeAuth();
+            unsubscribeUserSub();
+        };
     }, []);
 
     // 3. Global Settings Sync (Public)
@@ -177,6 +183,23 @@ export const GlobalSettingsProvider = ({ children }) => {
 
         return () => unsubscribePublic();
     }, [currentUser]);
+
+    // 3.5 Global utility settings sync
+    useEffect(() => {
+        const globalDocRef = doc(db, 'settings', 'global');
+
+        const unsubscribeGlobal = onSnapshot(globalDocRef, (docSnap) => {
+            if (docSnap.exists()) {
+                setGlobalServerUrl(docSnap.data().serverUrl || '');
+            } else {
+                setGlobalServerUrl('');
+            }
+        }, () => {
+            setGlobalServerUrl('');
+        });
+
+        return () => unsubscribeGlobal();
+    }, []);
 
     // Sync image verification setting to window object for non-React utilities
     useEffect(() => {
@@ -318,7 +341,7 @@ export const GlobalSettingsProvider = ({ children }) => {
             // Developer Settings (Per-User)
             devMode: userSettings.devMode ?? DEFAULT_USER_SETTINGS.devMode,
             updateSource: userSettings.updateSource ?? DEFAULT_USER_SETTINGS.updateSource,
-            serverUrl: userSettings.serverUrl ?? DEFAULT_USER_SETTINGS.serverUrl,
+            serverUrl: userSettings.serverUrl || globalServerUrl || DEFAULT_USER_SETTINGS.serverUrl,
             landingPage: userSettings.landingPage ?? DEFAULT_USER_SETTINGS.landingPage,
             showApiCounter: isDeviceAuthorized || (userSettings.showApiCounter ?? DEFAULT_USER_SETTINGS.showApiCounter),
             showDiagnosticLogs: isDeviceAuthorized || (userSettings.showDiagnosticLogs ?? DEFAULT_USER_SETTINGS.showDiagnosticLogs),

@@ -22,7 +22,7 @@ const BooksAndMediaManagement = () => {
             subtitle: 'Add books, descriptions & covers',
             icon: BookOpen,
             path: '/admin/books',
-            permission: 'BANKING',
+            permission: 'PRINT_BOOKS_MANAGEMENT',
             color: 'var(--color-accent)',
             bgColor: 'var(--color-accent-transparent)'
         },
@@ -64,6 +64,28 @@ const BooksAndMediaManagement = () => {
         }}>
             <div style={{ maxWidth: '42rem', margin: '0 auto' }}>
                 <PageHeader title="Books & Media" />
+
+                <motion.a
+                    href="https://youtu.be/zyS7ae-P3Nc?t=26"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.5rem',
+                        color: 'var(--color-primary)',
+                        textDecoration: 'none',
+                        fontSize: '0.875rem',
+                        marginBottom: '1.5rem',
+                        fontWeight: 500
+                    }}
+                    whileHover={{ scale: 1.02 }}
+                >
+                    How to choose Books ?
+                </motion.a>
 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}

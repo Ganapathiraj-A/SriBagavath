@@ -96,9 +96,32 @@ const Books = () => {
                         boxShadow: 'var(--shadow-sm)'
                     }}
                 >
-                    <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: 'var(--color-text)', marginBottom: '2rem', textAlign: 'center' }}>
+                    <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: 'var(--color-text)', marginBottom: '1rem', textAlign: 'center' }}>
                         Books & Media
                     </h1>
+
+                    <motion.a
+                        href="https://youtu.be/zyS7ae-P3Nc?t=26"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '0.5rem',
+                            color: 'var(--color-primary)',
+                            textDecoration: 'none',
+                            fontSize: '0.875rem',
+                            marginBottom: '1.5rem',
+                            fontWeight: 500
+                        }}
+                        whileHover={{ scale: 1.02 }}
+                    >
+                        <Youtube size={18} />
+                        How to choose Books ?
+                    </motion.a>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         {!currentHiddenScreens.includes('/bookstore') && <BookTypeButton title="Print Books" icon={BookOpen} path="/bookstore" delay={0.1} />}

@@ -189,7 +189,6 @@ function AnimatedRoutes() {
           '/admin/purchases': '/configuration',
           '/admin/donations': '/configuration',
           '/admin/books': '/configuration',
-          '/admin/books': '/configuration',
           '/admin/program-management': '/admin/page-user-management',
           '/admin/online-meetings': '/admin/program-management',
           '/admin/satsang': '/admin/program-management',

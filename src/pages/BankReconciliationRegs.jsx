@@ -478,10 +478,12 @@ const BankReconciliationRegs = () => {
                                         </button>
                                     </div>
                                 </div>
-                                <div style={{ width: '100%', overflowY: 'auto', maxHeight: '50vh', border: '1px solid var(--color-border)', borderRadius: '8px' }}>
+                                <div style={{ width: '100%', overflowY: 'auto', maxHeight: '65vh', border: '1px solid var(--color-border)', borderRadius: '8px', flexShrink: 0 }}>
                                     <LazyImage
-                                        src={viewingImage.base64}
+                                        src={normalizeImageSrc(viewingImage.base64)}
                                         alt="Receipt"
+                                        height="auto"
+                                        objectFit="contain"
                                         style={{ width: '100%', display: 'block' }}
                                     />
                                 </div>

@@ -136,7 +136,7 @@ const AdminProgramManagement = () => {
             subtitle: 'Configure registration formats and fees',
             icon: Code,
             path: '/configuration/program-types',
-            permission: 'PROGRAM_TYPES'
+            permission: 'PROGRAM_MANAGEMENT'
         }
     ].filter(section => hasAccess(section.permission) && !currentHiddenScreens.includes(section.path));
 

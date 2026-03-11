@@ -174,6 +174,20 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
+    // Agent Companion Collections
+    match /agent_commands/{document=**} {
+      allow read, write: if true;
+    }
+    match /agent_requests/{document=**} {
+      allow read, write: if true;
+    }
+    match /agent_uploads/{document=**} {
+      allow read, write: if true;
+    }
+    match /agent_monitor/{document=**} {
+      allow read, write: if true;
+    }
+
     // Global fallback: Deny everything else
     match /{document=**} {
       allow read, write: if isAdmin();

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Phone, Copy, Check } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { useAdminAuth } from '@/context/AdminAuthContext';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 
 const ContactCard = ({ name, number, delay }) => {
     const [copied, setCopied] = React.useState(false);
@@ -91,6 +92,10 @@ const Consultation = () => {
     const [consultants, setConsultants] = React.useState([]);
     const [loading, setLoading] = React.useState(true);
     const { isInitialized, isAdmin, hasAccess } = useAdminAuth();
+    const { hiddenScreens, devMode } = useGlobalSettings();
+
+    const effectiveRole = isAdmin ? (devMode ? 'dev' : 'admin') : 'public';
+    const currentHiddenScreens = hiddenScreens?.[effectiveRole] || [];
 
     React.useEffect(() => {
         const fetchConsultants = async () => {
@@ -131,7 +136,7 @@ const Consultation = () => {
             <PageHeader
                 title="Consultation"
                 rightAction={
-                    (isAdmin || (typeof hasAccess === 'function' && (hasAccess('PROGRAM_MANAGEMENT') || hasAccess('CONSULTATION_MANAGEMENT')))) && (
+                    (isAdmin || (typeof hasAccess === 'function' && (hasAccess('PROGRAM_MANAGEMENT') || hasAccess('CONSULTATION_MANAGEMENT')))) && !currentHiddenScreens.includes('/admin/consultation') && (
                         <button
                             onClick={() => navigate('/admin/consultation', { state: { returnPath: location.pathname } })}
                             style={{

@@ -447,11 +447,6 @@ public class SBBOCRPlugin extends Plugin {
 
     @PluginMethod
     public void launchApp(PluginCall call) {
-        if (!getContext().getPackageName().endsWith(".dev")) {
-            call.reject("Feature not available in this build");
-            return;
-        }
-
         String packageName = call.getString("packageName");
         if (packageName == null) {
             call.reject("Package name required");

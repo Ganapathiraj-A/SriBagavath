@@ -156,3 +156,133 @@ fi
 echo "======================================"
 echo "✅ BUILD COMPLETE: $FINAL_NAME"
 echo "======================================"
+
+# 8. Automatic ADB Installation (Silent)
+if [[ $FINAL_NAME == *.apk ]]; then
+    # Attempt to reconnect if property file exists
+    ADB_PROP="secrets/adb_connection.properties"
+    if [ -f "$ADB_PROP" ]; then
+        KNOWN_DEVICE=$(grep "LAST_CONNECTED_DEVICE=" "$ADB_PROP" | cut -d'=' -f2)
+        if [ ! -z "$KNOWN_DEVICE" ]; then
+            # Only try to connect if it's not already in the list
+            if ! adb devices | grep -q "$KNOWN_DEVICE"; then
+                echo "🔌 Attempting to reconnect to saved device: $KNOWN_DEVICE..."
+                adb connect "$KNOWN_DEVICE" || echo "⚠️ Reconnect failed."
+            fi
+        fi
+    fi
+
+    # Extract list of connected devices
+    DEVICES=$(adb devices | grep -w "device" | cut -f1)
+
+    # Auto-Discovery Fallback (Enhanced with Avahi/MDNS)
+    if [ -z "$DEVICES" ]; then
+        echo "🔍 Device not found. Attempting auto-discovery..."
+        
+        # 1. Try Avahi (MDNS) for Wireless Debugging (_adb-tls-connect._tcp)
+        if command -v avahi-browse >/dev/null 2>&1; then
+            echo "📡 Scanning for _adb-tls-connect._tcp via Avahi..."
+            # Try once with persistent resolution
+            AVAHI_OUT=$(avahi-browse -rt _adb-tls-connect._tcp --terminate 2>/dev/null)
+            
+            DISCOVERED_IP=$(echo "$AVAHI_OUT" | grep "address =" | head -n1 | cut -d'[' -f2 | cut -d']' -f1)
+            DISCOVERED_PORT=$(echo "$AVAHI_OUT" | grep "port =" | head -n1 | cut -d'[' -f2 | cut -d']' -f1)
+            
+            # Fallback: If service found but not resolved, try to resolve the hostname manually
+            if [ -z "$DISCOVERED_IP" ]; then
+                SERVICE_NAME=$(echo "$AVAHI_OUT" | grep "^+" | grep "_adb-tls-connect._tcp" | head -n1 | awk '{print $4}')
+                if [ ! -z "$SERVICE_NAME" ]; then
+                    echo "🔍 Found service '$SERVICE_NAME' but resolution timed out. Trying manual resolve..."
+                    # Try a few times because mDNS can be flaky
+                    for i in {1..2}; do
+                        DISCOVERED_IP=$(avahi-resolve -n "$SERVICE_NAME.local" -4 2>/dev/null | awk '{print $2}')
+                        [ ! -z "$DISCOVERED_IP" ] && break
+                        sleep 1
+                    done
+                fi
+            fi
+
+            if [ ! -z "$DISCOVERED_IP" ]; then
+                if [ ! -z "$DISCOVERED_PORT" ]; then
+                    echo "🔌 Found device at $DISCOVERED_IP:$DISCOVERED_PORT. Connecting..."
+                    if adb connect "$DISCOVERED_IP:$DISCOVERED_PORT" | grep -qE "connected|already connected"; then
+                        echo "✅ Connected to $DISCOVERED_IP:$DISCOVERED_PORT"
+                        echo "# ADB Connection Details" > "$ADB_PROP"
+                        echo "# Last used/verified: $(date +%Y-%m-%d)" >> "$ADB_PROP"
+                        echo "LAST_CONNECTED_DEVICE=$DISCOVERED_IP:$DISCOVERED_PORT" >> "$ADB_PROP"
+                        DEVICES=$(adb devices | grep -w "device" | cut -f1)
+                    fi
+                else
+                    # IP found but port missing? Scan typical wireless debugging range
+                    echo "🔍 IP found ($DISCOVERED_IP) but port missing. Scanning 30000-65535..."
+                    FOUND_PORT=$(nmap -Pn -T4 -p 30000-65535 "$DISCOVERED_IP" --open -oG - | grep "/open/" | head -n1 | awk '{for(i=1;i<=NF;i++)if($i~/\/open\//)print $i}' | cut -d'/' -f1)
+                    if [ ! -z "$FOUND_PORT" ]; then
+                         echo "🔌 Potential port found: $FOUND_PORT. Connecting..."
+                         if adb connect "$DISCOVERED_IP:$FOUND_PORT" | grep -qE "connected|already connected"; then
+                            echo "✅ Connected to $DISCOVERED_IP:$FOUND_PORT"
+                            echo "# ADB Connection Details" > "$ADB_PROP"
+                            echo "# Last used/verified: $(date +%Y-%m-%d)" >> "$ADB_PROP"
+                            echo "LAST_CONNECTED_DEVICE=$DISCOVERED_IP:$FOUND_PORT" >> "$ADB_PROP"
+                            DEVICES=$(adb devices | grep -w "device" | cut -f1)
+                         fi
+                    fi
+                fi
+            fi
+        fi
+
+        # 2. Last-Known IP Port-Change Fallback
+        if [ -z "$DEVICES" ] && [ ! -z "$KNOWN_DEVICE" ]; then
+            OLD_IP=$(echo "$KNOWN_DEVICE" | cut -d':' -f1)
+            echo "🔍 Discovery failed. Checking if last known IP ($OLD_IP) has a new wireless port..."
+            # Scan typical range on the same IP in case mDNS failed but station is there
+            FOUND_PORT=$(nmap -Pn -T4 -p 30000-65535 "$OLD_IP" --open -oG - | grep "/open/" | head -n1 | awk '{for(i=1;i<=NF;i++)if($i~/\/open\//)print $i}' | cut -d'/' -f1)
+            if [ ! -z "$FOUND_PORT" ]; then
+                echo "🔌 Found open port $FOUND_PORT on $OLD_IP. Connecting..."
+                if adb connect "$OLD_IP:$FOUND_PORT" | grep -qE "connected|already connected"; then
+                    echo "✅ Connected to $OLD_IP:$FOUND_PORT"
+                    echo "# ADB Connection Details" > "$ADB_PROP"
+                    echo "# Last used/verified: $(date +%Y-%m-%d)" >> "$ADB_PROP"
+                    echo "LAST_CONNECTED_DEVICE=$OLD_IP:$FOUND_PORT" >> "$ADB_PROP"
+                    DEVICES=$(adb devices | grep -w "device" | cut -f1)
+                fi
+            fi
+        fi
+
+        # 2. Subnet Scan Fallback (Legacy port 5555)
+        if [ -z "$DEVICES" ]; then
+            INTERFACE_IP=$(hostname -I | awk '{print $1}')
+            if [ ! -z "$INTERFACE_IP" ]; then
+                SUBNET=$(echo "$INTERFACE_IP" | cut -d. -f1,2,3).0/24
+                echo "📡 Scanning subnet: $SUBNET for ADB devices (port 5555)..."
+                POTENTIAL_IPS=$(nmap -n -p 5555 --open "$SUBNET" -oG - | awk '/Up$/{print $2}')
+                
+                for POTENTIAL_IP in $POTENTIAL_IPS; do
+                    echo "🔌 Found potential device at $POTENTIAL_IP. Attempting to connect..."
+                    if adb connect "$POTENTIAL_IP:5555" | grep -qE "connected|already connected"; then
+                        echo "✅ Connected to $POTENTIAL_IP"
+                        echo "# ADB Connection Details" > "$ADB_PROP"
+                        echo "# Last used/verified: $(date +%Y-%m-%d)" >> "$ADB_PROP"
+                        echo "LAST_CONNECTED_DEVICE=$POTENTIAL_IP:5555" >> "$ADB_PROP"
+                        break
+                    fi
+                done
+                DEVICES=$(adb devices | grep -w "device" | cut -f1)
+            fi
+        fi
+    fi
+
+    if [ ! -z "$DEVICES" ]; then
+        echo "🚀 Found connected device(s). Starting silent installation..."
+        for DEVICE in $DEVICES; do
+            echo "Installing to $DEVICE..."
+            if ! adb -s "$DEVICE" install -r -g "$FINAL_NAME"; then
+                echo "⚠️ Installation failed (possibly signature mismatch). Attempting clean install..."
+                adb -s "$DEVICE" uninstall "$PACKAGE_ID"
+                adb -s "$DEVICE" install -r -g "$FINAL_NAME"
+            fi
+        done
+        echo "✅ Silent installation complete!"
+    else
+        echo "ℹ️ No ADB devices connected. Skipping installation."
+    fi
+fi

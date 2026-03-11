@@ -8,6 +8,7 @@ import {
     collection, getDocs
 } from '@/utils/FirestoreProxy';
 import { useAdminAuth } from '@/context/AdminAuthContext';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 import { getLocalDateString } from '@/utils/dateUtils';
 
 const formatRecurrenceRule = (master) => {
@@ -68,6 +69,10 @@ const OnlineMeetings = () => {
     const [meetings, setMeetings] = useState([]);
     const [loading, setLoading] = useState(true);
     const { loading: authLoading, isAdmin, hasAccess } = useAdminAuth();
+    const { hiddenScreens, devMode } = useGlobalSettings();
+
+    const effectiveRole = isAdmin ? (devMode ? 'dev' : 'admin') : 'public';
+    const currentHiddenScreens = hiddenScreens?.[effectiveRole] || [];
 
     useEffect(() => {
         localStorage.setItem('lastVisited_online_meetings', new Date().toISOString());
@@ -137,7 +142,7 @@ const OnlineMeetings = () => {
             <PageHeader
                 title="Online Meetings"
                 rightAction={
-                    (isAdmin || hasAccess('PROGRAM_MANAGEMENT')) && (
+                    (isAdmin || hasAccess('PROGRAM_MANAGEMENT')) && !currentHiddenScreens.includes('/admin/online-meetings') && (
                         <button
                             onClick={() => navigate('/admin/online-meetings', { state: { returnPath: location.pathname } })}
                             style={{

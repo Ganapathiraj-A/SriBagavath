@@ -3,24 +3,12 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
     ChevronLeft,
-    Layers,
-    User,
-    RefreshCw,
-    BookOpen,
-    Users,
+    ChevronRight,
     LayoutDashboard,
     Settings,
-    Check,
-    Video,
-    Copy,
-    ChevronRight,
-    Cpu,
     Cloud,
-    Landmark,
-    Database,
-    Link as LinkIcon,
-    Eye,
-    EyeOff
+    Check,
+    Copy
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { useAdminAuth } from '@/context/AdminAuthContext';
@@ -51,8 +39,8 @@ export const CopyableInput = ({ label, value, onChange, placeholder, type = "tex
                         fontSize: '0.875rem',
                         borderRadius: '0.5rem',
                         border: '1px solid var(--color-border)',
-                        backgroundColor: 'var(--color-surface)',
                         color: 'var(--color-text)',
+                        backgroundColor: 'var(--color-card)',
                         outline: 'none',
                         transition: 'border-color 0.2s'
                     }}
@@ -122,17 +110,13 @@ export const SettingItem = ({ title, subtitle, icon: Icon, delay, onClick, color
 
 const AdminSettings = () => {
     const navigate = useNavigate();
-    const { hasAccess, role } = useAdminAuth();
+    const { hasAccess, isAdmin } = useAdminAuth();
+    const { hiddenScreens, devMode } = useGlobalSettings();
 
-    const {
-        deviceId, isDeviceAuthorized, toggleDeviceAuthorization,
-        setPublicSettings, hiddenScreens
-    } = useGlobalSettings();
-
-    const [showBankPassword, setShowBankPassword] = React.useState(false);
+    const effectiveRole = isAdmin ? (devMode ? 'dev' : 'admin') : 'public';
+    const currentHiddenScreens = hiddenScreens?.[effectiveRole] || [];
 
     const sections = [
-
         {
             title: 'Personal Settings',
             items: [
@@ -206,10 +190,18 @@ const AdminSettings = () => {
 
                 {sections.map((section, sIdx) => {
                     const visibleItems = section.items.filter(item => {
+                        // 1. Permission check
+                        let hasPermission = false;
                         if (Array.isArray(item.permission)) {
-                            return item.permission.length === 0 || item.permission.some(p => hasAccess(p));
+                            hasPermission = item.permission.length === 0 || item.permission.some(p => hasAccess(p));
+                        } else {
+                            hasPermission = !item.permission || hasAccess(item.permission);
                         }
-                        return !item.permission || hasAccess(item.permission);
+
+                        if (!hasPermission) return false;
+
+                        // 2. Visibility check
+                        return !currentHiddenScreens.includes(item.path);
                     });
 
                     if (visibleItems.length === 0) return null;

@@ -256,11 +256,15 @@ const MyRegistrations = () => {
                                             <LogIn size={24} color="var(--color-text-muted)" style={{ transform: 'rotate(90deg)' }} />
                                         </button>
                                     </div>
-                                    <LazyImage
-                                        src={viewingImage.base64}
-                                        alt="Receipt"
-                                        style={{ width: '100%', borderRadius: '8px', maxHeight: '65vh', objectFit: 'contain', border: '1px solid var(--color-border)' }}
-                                    />
+                                    <div style={{ width: '100%', overflowY: 'auto', maxHeight: '65vh', border: '1px solid var(--color-border)', borderRadius: '8px', flexShrink: 0 }}>
+                                        <LazyImage
+                                            src={normalizeImageSrc(viewingImage.base64)}
+                                            alt="Receipt"
+                                            height="auto"
+                                            objectFit="contain"
+                                            style={{ width: '100%', display: 'block' }}
+                                        />
+                                    </div>
                                     <button
                                         className="btn-primary"
                                         onClick={() => setViewingImage(null)}

@@ -10,6 +10,7 @@ import { db } from '@/firebase';
 import { collection, query, orderBy } from '@/utils/FirestoreProxy';
 import { getLocalDateString } from '@/utils/dateUtils';
 import { useAdminAuth } from '@/context/AdminAuthContext';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 
 const AyyasSchedule = () => {
     const navigate = useNavigate();
@@ -21,6 +22,10 @@ const AyyasSchedule = () => {
     const shareRef = useRef(null);
     const location = useLocation();
     const { loading: authGlobalLoading, isAdmin, hasAccess } = useAdminAuth();
+    const { hiddenScreens, devMode } = useGlobalSettings();
+
+    const effectiveRole = isAdmin ? (devMode ? 'dev' : 'admin') : 'public';
+    const currentHiddenScreens = hiddenScreens?.[effectiveRole] || [];
 
     useEffect(() => {
         const fetchSchedules = async () => {
@@ -188,7 +193,7 @@ const AyyasSchedule = () => {
                         >
                             {isSharingAll ? <Loader2 size={20} className="animate-spin" /> : <Share2 size={20} />}
                         </button>
-                        {(isAdmin || hasAccess('PROGRAM_MANAGEMENT')) && (
+                        {(isAdmin || hasAccess('PROGRAM_MANAGEMENT')) && !currentHiddenScreens.includes('/schedule/manage') && (
                             <button
                                 onClick={() => navigate('/schedule/manage', { state: { returnPath: location.pathname } })}
                                 style={{

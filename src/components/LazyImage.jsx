@@ -116,7 +116,7 @@ const LazyImage = ({
                     src={currentSrc}
                     alt={alt}
                     loading="lazy"
-                    style={{ width: '100%', height: '100%', objectFit }}
+                    style={{ width: '100%', height, objectFit }}
                 />
             ) : (
                 Placeholder ? <Placeholder /> : <div style={{ color: '#9ca3af' }}>...</div>

@@ -1,0 +1,39 @@
+- [x] Fix Settings Visibility Filtering
+- [x] Fix visibility filtering in `AdminSettings.jsx`
+- [x] Audit all other hub and management pages for consistency
+- [x] Implement visibility filtering in identified hub/secondary pages
+- [x] Fix reported build and runtime errors (imports/exports/variable scope)
+- [x] Fix missing `useGlobalSettings` imports:
+    - [x] `OnlineMeetings.jsx`
+    - [x] `SatsangListing.jsx`
+    - [x] `DailyZoomMeetings.jsx`
+- [x] Fix memory leak in `GlobalSettingsContext.jsx` (subscriber handling)
+- [x] Align permission wiring:
+    - [x] `BooksAndMediaManagement.jsx` vs `App.jsx` (Print Books)
+    - [x] `AdminProgramManagement.jsx` vs `App.jsx` (Program Types)
+    - [x] `ManageUsers.jsx` permission definitions
+- [x] Address critical lint/runtime defects:
+    - [x] `SyncManager.js` missing `getDocCacheFirst`
+    - [x] General cleanup of undefined hooks and unused imports
+- [x] Verify all fixes across the application
+- [x] Fix Navigation Flow Bugs
+    - [x] Update `PageHeader.jsx` mappings for Books & Media hub
+    - [x] Standardize back buttons in `DigitalBookSettings.jsx`
+    - [x] Verify hierarchical navigation across all admin pages
+- [x] Enforce Route Security
+    - [x] Update `ProtectedRoute.jsx` to handle roles and permission arrays
+    - [x] Verify restricted access for non-super-admin accounts
+- [x] Automate APK Installation
+    - [x] Update `build.sh` with ADB install logic
+    - [x] Verify installation on connected device
+- [x] Version & Deployment
+    - [x] Increment version to 3.1.28
+    - [x] Build and deploy to phone
+- [x] Receipt Verification & Deployment
+    - [x] Verify Storage handling in TransactionService
+    - [x] Increment version to 3.1.29
+    - [x] Deploy v3.1.29 to phone (IP 192.168.1.12)
+- [/] ADB Auto-Discovery
+    - [x] Verify nmap availability
+    - [ ] Update `build.sh` with nmap fallback logic
+    - [ ] Verify discovery on local network

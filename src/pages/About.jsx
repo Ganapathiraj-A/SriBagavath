@@ -47,13 +47,13 @@ const About = () => {
 
                     <div style={{ textAlign: 'center', color: 'var(--color-text-muted)', lineHeight: '1.75' }}>
                         <p style={{ marginBottom: '1.5rem', fontSize: '1.125rem' }}>
-                            <strong style={{ color: 'var(--color-primary-dark)' }}>SRI BAGAVATH</strong> Completely newly evolved shining revelations of understanding by Shri Bagavath, are for the ‘Seekers of Truth’.
+                            The newly evolved, profound revelations of understanding by Shri Bagavath are for the 'Seekers of Truth'.
                         </p>
                         <p style={{ marginBottom: '1.5rem', fontSize: '1.125rem' }}>
-                            Sri Bagavath, our Satguru defined enlightenment in the simplest way. He showed the right way to attain enlightenment. He assured that any one can get enlightenment who has the ability to understand.
+                            Sri Bagavath, our Satguru, defined enlightenment in the simplest way. He showed the right path to enlightenment and assured that anyone with the ability to understand can attain it.
                         </p>
                         <p style={{ fontSize: '1.125rem' }}>
-                            Enlightenment is the only way to get liberated from our grief and sorrows. When the mind is liberated from the sorrows, our energy does not go waste in the turmoil within our mind. We save more energy, so that we can work effectively in the outside world – where real the solutions to our real problems can be found.
+                            Enlightenment is the only way to be liberated from our grief and sorrows. When the mind is liberated from sorrows, our energy is no longer wasted on inner turmoil. By conserving our energy, we can work more effectively in the outside world—where solutions to our real problems can be found.
                         </p>
                     </div>
                 </motion.div>

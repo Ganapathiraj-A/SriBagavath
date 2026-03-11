@@ -7,7 +7,7 @@ import shutil
 import time
 from datetime import datetime
 
-PORT = 8080
+PORT = 8088
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
 
@@ -43,7 +43,12 @@ def discover_apks():
     """Finds all APKs in scripts, project root, and CWD."""
     apks = []
     
-    search_dirs = [SCRIPT_DIR, PROJECT_ROOT, os.getcwd()]
+    search_dirs = [
+        SCRIPT_DIR, 
+        PROJECT_ROOT, 
+        os.path.join(PROJECT_ROOT, "..", "AgentCompanion", "app", "build", "outputs", "apk", "debug"),
+        os.getcwd()
+    ]
     seen_apks = set()
     found_info = []
 
@@ -111,7 +116,7 @@ class ApkHandler(http.server.SimpleHTTPRequestHandler):
                 })
             
             manifest = {
-                "server": "SriBagavath-ApkServer",
+                "server": "Agent-Companion-Update-Server",
                 "ip": get_ip(),
                 "timestamp": datetime.now().isoformat() + "Z",
                 "apks": apks
@@ -223,7 +228,7 @@ if __name__ == "__main__":
     primary_ip = get_ip()
     all_ips = get_all_ips()
     
-    print(f"[{datetime.now().strftime('%H:%M:%S')}] starting APK Server...")
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] starting Agent Update Server...")
     print(f"--- Primary IP (Guess): {primary_ip}")
     if len(all_ips) > 1:
         print(f"--- All Available IPs: {', '.join(all_ips)}")

@@ -163,6 +163,13 @@ const Configuration = () => {
                 { title: 'Book Management', icon: BookOpen, path: '/admin/books', permission: 'BANKING', color: 'var(--color-success)', bgColor: 'var(--color-success-transparent)' },
                 { title: 'Manage Admins', icon: Users, path: '/manage-users', permission: 'MANAGE_USERS', color: 'var(--color-error)', bgColor: 'var(--color-error-transparent)' },
                 { title: 'Analytics & Health', icon: LayoutDashboard, path: '/admin-dashboard', permission: 'REPORTING', color: 'var(--color-info)', bgColor: 'var(--color-info-transparent)' },
+                { title: 'URL Settings', icon: LinkIcon, path: '/admin/url-settings', permission: 'SUPER_ADMIN', color: 'var(--color-info)', bgColor: 'var(--color-info-transparent)' },
+            ]
+        },
+        {
+            title: 'System & Profile',
+            items: [
+                { title: 'Personal Settings', icon: Settings, path: '/admin/settings', permission: [], color: 'var(--color-accent)', bgColor: 'var(--color-accent-transparent)' },
                 {
                     title: 'Maintenance',
                     icon: RefreshCw,
@@ -175,8 +182,7 @@ const Configuration = () => {
                     permission: 'REPORTING',
                     color: 'var(--color-error)',
                     bgColor: 'var(--color-error-transparent)'
-                },
-                { title: 'URL Settings', icon: LinkIcon, path: '/admin/url-settings', permission: 'SUPER_ADMIN', color: 'var(--color-info)', bgColor: 'var(--color-info-transparent)' },
+                }
             ]
         }
     ];
@@ -236,7 +242,7 @@ const Configuration = () => {
                                             bgColor="var(--color-warning-transparent)"
                                         />
                                     )}
-                                    {(hasAccess('PROGRAM_MANAGEMENT') || hasAccess('ADMIN_REVIEW') || hasAccess('MANAGE_USERS') || hasAccess('CONFIGURATION') || hasAccess('DAILY_ZOOM_MANAGEMENT')) && !currentHiddenScreens.includes('/admin/settings') && (
+                                    {(hasAccess('PROGRAM_MANAGEMENT') || hasAccess('ADMIN_REVIEW') || hasAccess('MANAGE_USERS') || hasAccess('CONFIGURATION') || hasAccess('DAILY_ZOOM_MANAGEMENT')) && (
                                         <ConfigButton
                                             title="Settings"
                                             subtitle="Management Hub & App Preferences"

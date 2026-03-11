@@ -71,11 +71,6 @@ const DigitalBookSettings = () => {
         <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>
             <PageHeader
                 title="Digital Books Settings"
-                leftAction={
-                    <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
-                        <ChevronLeft size={24} color="var(--color-text)" />
-                    </button>
-                }
                 rightAction={
                     <button
                         onClick={() => navigate('/pdf-books')}

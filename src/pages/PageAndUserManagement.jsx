@@ -1,14 +1,19 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ChevronLeft, Layers, BookOpen, Users, EyeOff } from 'lucide-react';
+import { ChevronLeft, Layers, BookOpen, Users, EyeOff, Layout, MessageSquare, Hash, Settings, BarChart } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { SettingItem } from './AdminSettings';
 import { useAdminAuth } from '@/context/AdminAuthContext';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 
 const PageAndUserManagement = () => {
     const navigate = useNavigate();
-    const { hasAccess } = useAdminAuth();
+    const { hasAccess, isAdmin } = useAdminAuth();
+    const { hiddenScreens, devMode } = useGlobalSettings();
+
+    const effectiveRole = isAdmin ? (devMode ? 'dev' : 'admin') : 'public';
+    const currentHiddenScreens = hiddenScreens?.[effectiveRole] || [];
 
     const items = [
         {
@@ -50,14 +55,33 @@ const PageAndUserManagement = () => {
             permission: 'SUPER_ADMIN',
             color: 'var(--color-warning)',
             bgColor: 'var(--color-warning-transparent)'
+        },
+        {
+            id: 'CLOUD_GLOBAL_SETTINGS',
+            title: 'Cloud Global Settings',
+            subtitle: 'Manage remote app configurations',
+            icon: Settings,
+            path: '/admin/cloud-settings',
+            permission: 'SUPER_ADMIN',
+            color: 'var(--color-tertiary)',
+            bgColor: 'var(--color-tertiary-transparent)'
+        },
+        {
+            id: 'ANALYTICS_TOOLS',
+            title: 'Analytics & Tools',
+            subtitle: 'System performance and data tools',
+            icon: BarChart,
+            path: '/admin/analytics-system',
+            permission: 'SUPER_ADMIN',
+            color: 'var(--color-quaternary)',
+            bgColor: 'var(--color-quaternary-transparent)'
         }
-    ];
-
-    const visibleItems = items.filter(item => {
-        if (Array.isArray(item.permission)) {
-            return item.permission.length === 0 || item.permission.some(p => hasAccess(p));
-        }
-        return !item.permission || hasAccess(item.permission);
+    ].filter(item => {
+        const hasPermission = Array.isArray(item.permission)
+            ? item.permission.length === 0 || item.permission.some(p => hasAccess(p))
+            : !item.permission || hasAccess(item.permission);
+        const isHidden = currentHiddenScreens.includes(item.path);
+        return hasPermission && !isHidden;
     });
 
     return (
@@ -72,7 +96,7 @@ const PageAndUserManagement = () => {
             />
 
             <div style={{ padding: '1.5rem', maxWidth: '32rem', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {visibleItems.map((item, idx) => (
+                {items.map((item, idx) => (
                     <SettingItem
                         key={item.id}
                         {...item}

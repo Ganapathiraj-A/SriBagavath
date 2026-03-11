@@ -10,6 +10,7 @@ import { doc, getDoc, collection, getDocs, query, where, getCountFromServer } fr
 import { useUnseenCounts } from '@/hooks/useUnseenCounts';
 import { getLocalDateString } from '@/utils/dateUtils';
 import { useGlobalSettings } from '@/context/GlobalSettingsContext';
+import { useAdminAuth } from '@/context/AdminAuthContext';
 
 const SystemHealthCard = ({ health, onClick }) => (
     <div
@@ -60,7 +61,12 @@ const SystemHealthCard = ({ health, onClick }) => (
 const AdminDashboard = () => {
     const navigate = useNavigate();
     const { counts } = useUnseenCounts();
-    const { appVersion } = useGlobalSettings();
+    const { appVersion, hiddenScreens, devMode } = useGlobalSettings();
+    const { isAdmin } = useAdminAuth();
+
+    const effectiveRole = isAdmin ? (devMode ? 'dev' : 'admin') : 'public';
+    const currentHiddenScreens = hiddenScreens?.[effectiveRole] || [];
+
     const [stats, setStats] = useState(null);
     const [geoStats, setGeoStats] = useState(null);
     const [geoView, setGeoView] = useState('overall'); // 'overall' or 'monthly'
@@ -272,7 +278,7 @@ Otherwise, it stays 'Good'.`;
 
     const NotificationBanner = () => {
         const totalPending = counts.registrations + counts.transactions;
-        if (totalPending === 0) return null;
+        if (totalPending === 0 || currentHiddenScreens.includes('/admin-review')) return null;
 
         return (
             <motion.div

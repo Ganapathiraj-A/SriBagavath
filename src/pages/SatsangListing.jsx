@@ -6,6 +6,7 @@ import PageHeader from '@/components/PageHeader';
 import { db } from '@/firebase';
 import { collection, getDocs } from '@/utils/FirestoreProxy';
 import { useAdminAuth } from '@/context/AdminAuthContext';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 import { getLocalDateString } from '@/utils/dateUtils';
 
 const formatRecurrenceRule = (master) => {
@@ -68,6 +69,10 @@ const SatsangListing = () => {
     const [meetings, setMeetings] = useState([]);
     const [loading, setLoading] = useState(true);
     const { loading: authGlobalLoading, isAdmin, hasAccess } = useAdminAuth();
+    const { hiddenScreens, devMode } = useGlobalSettings();
+
+    const effectiveRole = isAdmin ? (devMode ? 'dev' : 'admin') : 'public';
+    const currentHiddenScreens = hiddenScreens?.[effectiveRole] || [];
 
 
     useEffect(() => {
@@ -138,7 +143,7 @@ const SatsangListing = () => {
             <PageHeader
                 title="Satsang"
                 rightAction={
-                    (isAdmin || (typeof hasAccess === 'function' && hasAccess('PROGRAM_MANAGEMENT'))) && (
+                    (isAdmin || (typeof hasAccess === 'function' && hasAccess('PROGRAM_MANAGEMENT'))) && !currentHiddenScreens.includes('/admin/satsang') && (
                         <button
                             onClick={() => navigate('/admin/satsang', { state: { returnPath: location.pathname } })}
                             style={{
