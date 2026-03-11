@@ -230,8 +230,7 @@ const Configuration = () => {
                                     />
                                 )}
 
-                                <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                    {hasAccess('ADMIN_REVIEW') && !currentHiddenScreens.includes('/admin/back-office') && (
+                                {hasAccess('ADMIN_REVIEW') && !currentHiddenScreens.includes('/admin/back-office') && (
                                         <ConfigButton
                                             title="Back Office"
                                             subtitle="Reporting, Attendance & Recon"
@@ -253,7 +252,6 @@ const Configuration = () => {
                                             bgColor="var(--color-accent-transparent)"
                                         />
                                     )}
-                                </div>
                             </div>
                         ) : (
                             // Flattened Categorized View for Power Users
