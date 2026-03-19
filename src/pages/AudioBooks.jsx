@@ -23,6 +23,10 @@ const AudioBooks = () => {
   const shareRef = useRef(null);
 
   useEffect(() => {
+    localStorage.setItem('lastVisited_audio_books', Date.now().toString());
+  }, []);
+
+  useEffect(() => {
     const q = query(collection(db, 'audio_books'), orderBy('order', 'asc'));
     const unsub = onSnapshot(q, (snapshot) => {
       const books = snapshot.docs.map(doc => ({

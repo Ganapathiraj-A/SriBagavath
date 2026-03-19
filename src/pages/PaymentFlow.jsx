@@ -242,9 +242,13 @@ const PaymentFlow = () => {
             <div
                 className="qr-container"
                 onClick={async () => {
-                    await Clipboard.write({
-                        string: "sribagavathmission.63022941@hdfcbank"
-                    });
+                    try {
+                        await Clipboard.write({
+                            string: "sribagavathmission.63022941@hdfcbank"
+                        });
+                    } catch (e) {
+                        console.warn("Clipboard write failed", e);
+                    }
                     GPayUtils.saveQRCode(qrImage);
 
                     // Track UPI Copy
@@ -348,7 +352,7 @@ const PaymentFlow = () => {
             </button>
 
             {/* Manual Upload Button in case Share fails */}
-            <button className="btn-secondary full-width" style={{ marginTop: '12px' }} onClick={() => setCurrentStep('SUBMISSION')}>
+            <button data-testid="payment-proceed-manual" className="btn-secondary full-width" style={{ marginTop: '12px' }} onClick={() => setCurrentStep('SUBMISSION')}>
                 I have paid & have screenshot
             </button>
 
@@ -466,11 +470,29 @@ const PaymentFlow = () => {
                         <button className="btn-icon" onClick={() => setImage(null)} style={{ background: 'var(--color-error-transparent)', color: 'var(--color-error)' }}><Trash2 size={20} /></button>
                     </div>
                 ) : (
-                    <div className="placeholder-img" onClick={captureImage} style={{ height: '100px', border: '2px dashed var(--color-border)' }}>
+                    <div data-testid="screenshot-placeholder" className="placeholder-img" onClick={captureImage} style={{ height: '100px', border: '2px dashed var(--color-border)' }}>
                         <CameraIcon size={40} color="var(--color-text-muted)" />
                         <span style={{ color: 'var(--color-text-muted)', marginTop: '8px', fontSize: '14px' }}>Tap to Scan/Upload Screenshot</span>
                     </div>
                 )}
+                <input
+                    data-testid="screenshot-input"
+                    type="file"
+                    accept="image/*"
+                    style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: '1px', height: '1px' }}
+                    onChange={async (e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                                const base64 = reader.result;
+                                setImage(base64);
+                                processOCR(base64);
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    }}
+                />
             </div>
 
             {
@@ -499,6 +521,7 @@ const PaymentFlow = () => {
             }
 
             <button
+                data-testid="payment-submit-button"
                 className="btn-primary full-width"
                 onClick={handleSubmit}
                 disabled={!image || loading}

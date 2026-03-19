@@ -15,6 +15,16 @@
 - [x] Address critical lint/runtime defects:
     - [x] `SyncManager.js` missing `getDocCacheFirst`
     - [x] General cleanup of undefined hooks and unused imports
+    - [x] Hide app-specific floating overlays (side panel buttons) on web routes.
+- [x] Remove redundant 'Sri Bagavath' text from the header.
+
+### 7. Web-Only Experience (Store, Donations, Checkout)
+- [x] Create `WebBookStore.jsx` with grid layout. <!-- id: 26 -->
+- [x] Create `WebDonations.jsx` with grid layout. <!-- id: 27 -->
+- [x] Create `WebCheckout.jsx` with web-optimized navigation. <!-- id: 28 -->
+- [x] Create `WebBookDetails.jsx`. <!-- id: 29 -->
+- [x] Update `App.jsx` routes for `/web`. <!-- id: 30 -->
+- [x] Verify strictly scoped navigation within `/web`. <!-- id: 31 -->
 - [x] Verify all fixes across the application
 - [x] Fix Navigation Flow Bugs
     - [x] Update `PageHeader.jsx` mappings for Books & Media hub

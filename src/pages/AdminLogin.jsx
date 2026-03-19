@@ -158,6 +158,7 @@ const AdminLogin = () => {
                                         type="email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
+                                        data-testid="admin-email"
                                         style={{ border: 'none', boxShadow: 'none', background: 'none', color: 'var(--color-text)' }}
                                         required
                                     />
@@ -172,6 +173,7 @@ const AdminLogin = () => {
                                         type="password"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
+                                        data-testid="admin-password"
                                         style={{ border: 'none', boxShadow: 'none', background: 'none', color: 'var(--color-text)' }}
                                         required
                                     />
@@ -180,7 +182,7 @@ const AdminLogin = () => {
 
                             <button
                                 type="submit"
-                                className="btn-primary full-width"
+                                data-testid="admin-login-button"
                                 style={{ marginTop: '20px' }}
                                 disabled={loading}
                             >

@@ -225,11 +225,6 @@ const AdminSettings = () => {
                     );
                 })}
 
-                <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-                    <p style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
-                        <Cloud size={12} /> Cloud Synchronized Settings & Profile
-                    </p>
-                </div>
             </div>
         </div>
     );

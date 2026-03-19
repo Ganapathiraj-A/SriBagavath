@@ -94,6 +94,10 @@ const MonthlyMagazine = () => {
     const [authLoading, setAuthLoading] = useState(false);
 
     useEffect(() => {
+        localStorage.setItem('lastVisited_magazines', Date.now().toString());
+    }, []);
+
+    useEffect(() => {
         const tab = searchParams.get('tab');
         if (tab) setActiveTab(tab);
     }, [searchParams]);

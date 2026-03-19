@@ -1,0 +1,87 @@
+{
+  "cookies": [
+    {
+      "name": "_ga",
+      "value": "GA1.1.1359168693.1773272354",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1807832356.011869,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_ga_6D7JC3KBF5",
+      "value": "GS2.1.s1773272353$o1$g1$t1773272360$j53$l0$h0",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1807832360.07701,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "http://localhost:5173",
+      "localStorage": [
+        {
+          "name": "firestore_targets_firestore/[DEFAULT]/antigravity-app-5c1ff/_2",
+          "value": "{\"state\":\"current\",\"updateTimeMs\":1773272360018}"
+        },
+        {
+          "name": "firestore_targets_firestore/[DEFAULT]/antigravity-app-5c1ff/_6",
+          "value": "{\"state\":\"current\",\"updateTimeMs\":1773272360018}"
+        },
+        {
+          "name": "bookstore_cart",
+          "value": "{}"
+        },
+        {
+          "name": "lastVisited_registrations",
+          "value": "2026-03-11T23:39:20.073Z"
+        },
+        {
+          "name": "firestore_online_state_firestore/[DEFAULT]/antigravity-app-5c1ff/",
+          "value": "{\"clientId\":\"dAWMOGHHFTauajjZr3B7\",\"onlineState\":\"Online\"}"
+        },
+        {
+          "name": "firestore_targets_firestore/[DEFAULT]/antigravity-app-5c1ff/_10",
+          "value": "{\"state\":\"current\",\"updateTimeMs\":1773272360018}"
+        },
+        {
+          "name": "firestore_sequence_number_firestore/[DEFAULT]/antigravity-app-5c1ff/",
+          "value": "126"
+        },
+        {
+          "name": "firestore_targets_firestore/[DEFAULT]/antigravity-app-5c1ff/_14",
+          "value": "{\"state\":\"current\",\"updateTimeMs\":1773272360018}"
+        },
+        {
+          "name": "firestore_clients_firestore/[DEFAULT]/antigravity-app-5c1ff/_dAWMOGHHFTauajjZr3B7",
+          "value": "{\"activeTargetIds\":[2,4,6,10,14,16,18,20,22],\"updateTimeMs\":1773272360103}"
+        },
+        {
+          "name": "badge_registrations",
+          "value": "0"
+        },
+        {
+          "name": "firestore_targets_firestore/[DEFAULT]/antigravity-app-5c1ff/_8",
+          "value": "{\"state\":\"rejected\",\"updateTimeMs\":1773272356894,\"error\":{\"code\":\"permission-denied\",\"message\":\"Missing or insufficient permissions.\"}}"
+        },
+        {
+          "name": "debug_api_stats",
+          "value": "{\"serverReads\":7,\"cacheReads\":7,\"writes\":0,\"fetches\":8}"
+        },
+        {
+          "name": "sbb_device_id",
+          "value": "dev_1773272353283_n18rzvsiy"
+        },
+        {
+          "name": "firestore_targets_firestore/[DEFAULT]/antigravity-app-5c1ff/_4",
+          "value": "{\"state\":\"current\",\"updateTimeMs\":1773272360018}"
+        }
+      ]
+    }
+  ]
+}

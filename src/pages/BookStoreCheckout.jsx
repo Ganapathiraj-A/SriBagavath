@@ -128,26 +128,26 @@ const BookStoreCheckout = () => {
                     <h3>{isDonation ? 'Donor Details' : (isMagazineSubscription ? 'Subscription Details & Address' : 'Delivery Address')}</h3>
                     <div className="form-group">
                         <label>Full Name</label>
-                        <input name="name" type="text" value={details.name} onChange={handleInput} placeholder={isDonation ? "Enter your name" : "Enter recipient name"} />
+                        <input name="name" type="text" value={details.name} onChange={handleInput} placeholder={isDonation ? "Enter your name" : "Enter recipient name"} data-testid="checkout-name" />
                     </div>
                     <div className="form-group">
                         <label>Mobile Number</label>
-                        <input name="mobile" type="tel" value={details.mobile} onChange={handleInput} placeholder="Enter mobile for contact" />
+                        <input name="mobile" type="tel" value={details.mobile} onChange={handleInput} placeholder="Enter mobile for contact" data-testid="checkout-mobile" />
                     </div>
                     {!isDonation && (
                         <>
                             <div className="form-group">
                                 <label>Full Address</label>
-                                <textarea name="address" value={details.address} onChange={handleInput} placeholder="House No, Street, Landmark" style={{ width: '100%', minHeight: '80px', padding: '8px', border: '1px solid #ddd', borderRadius: '8px' }} />
+                                <textarea name="address" value={details.address} onChange={handleInput} placeholder="House No, Street, Landmark" style={{ width: '100%', minHeight: '80px', padding: '8px', border: '1px solid #ddd', borderRadius: '8px' }} data-testid="checkout-address" />
                             </div>
                             <div style={{ display: 'flex', gap: '8px' }}>
                                 <div className="form-group" style={{ flex: 1 }}>
                                     <label>City</label>
-                                    <input name="city" type="text" value={details.city} onChange={handleInput} />
+                                    <input name="city" type="text" value={details.city} onChange={handleInput} data-testid="checkout-city" />
                                 </div>
                                 <div className="form-group" style={{ flex: 1 }}>
                                     <label>Pincode</label>
-                                    <input name="pincode" type="number" value={details.pincode} onChange={handleInput} />
+                                    <input name="pincode" type="number" value={details.pincode} onChange={handleInput} data-testid="checkout-pincode" />
                                 </div>
                             </div>
                         </>
@@ -158,6 +158,7 @@ const BookStoreCheckout = () => {
                     className="btn-primary"
                     style={{ width: '100%', marginTop: '24px', height: '54px', fontSize: '1.125rem' }}
                     onClick={handleProceed}
+                    data-testid="checkout-proceed"
                 >
                     Proceed to Payment
                 </button>

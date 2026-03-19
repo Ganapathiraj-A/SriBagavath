@@ -12,6 +12,7 @@ const BookTypeButton = ({ title, icon: Icon, path, delay }) => {
 
     return (
         <motion.button
+            data-testid={`category-button-${path.split('/').pop()}`}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay, duration: 0.5 }}

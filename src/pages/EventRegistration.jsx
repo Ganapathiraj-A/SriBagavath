@@ -276,6 +276,7 @@ const EventRegistration = () => {
 
                         <div style={{ display: 'grid', gap: '1rem', marginTop: '0.5rem' }}>
                             <button
+                                data-testid="consent-agree-button"
                                 onClick={() => setConsentAccepted(true)}
                                 className="btn-primary"
                                 style={{ width: '100%', padding: '1rem', fontSize: '1.125rem' }}
@@ -381,6 +382,7 @@ const EventRegistration = () => {
                         type="text"
                         value={place}
                         onChange={(e) => setPlace(e.target.value)}
+                        data-testid="reg-place"
                         placeholder="e.g. Chennai"
                     />
                 </div>
@@ -407,6 +409,7 @@ const EventRegistration = () => {
                             type="text"
                             value={p.name}
                             onChange={(e) => handleParticipantChange(index, 'name', e.target.value)}
+                            data-testid={`reg-name-${index}`}
                         />
                     </div>
 
@@ -417,6 +420,7 @@ const EventRegistration = () => {
                                 type="number"
                                 value={p.age}
                                 onChange={(e) => handleParticipantChange(index, 'age', e.target.value)}
+                                data-testid={`reg-age-${index}`}
                             />
                         </div>
                         <div className="form-group" style={{ flex: 1 }}>
@@ -445,6 +449,7 @@ const EventRegistration = () => {
                             type="tel"
                             value={p.mobile}
                             onChange={(e) => handleParticipantChange(index, 'mobile', e.target.value)}
+                            data-testid={`reg-mobile-${index}`}
                         />
                     </div>
 
@@ -525,7 +530,7 @@ const EventRegistration = () => {
                 )}
 
                 {onlineTransactionsEnabled && (
-                    <button className="btn-primary" style={{ marginTop: '10px' }} onClick={handleProceed}>
+                    <button className="btn-primary" style={{ marginTop: '10px' }} onClick={handleProceed} data-testid="reg-proceed">
                         Proceed to Payment
                     </button>
                 )}

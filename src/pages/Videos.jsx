@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Youtube, ExternalLink, Send } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
-import { collection, query, getDocs } from '@/utils/FirestoreProxy';
+import { collection, query, onSnapshot } from '@/utils/FirestoreProxy';
 import { db } from '@/firebase';
 import { useAdminAuth } from '@/context/AdminAuthContext';
 import { Edit2 } from 'lucide-react';
@@ -17,30 +17,31 @@ const Videos = () => {
     const [activeTab, setActiveTab] = useState('general');
 
     useEffect(() => {
-        const fetchVideos = async () => {
-            try {
-                console.log("Fetching related videos (unordered for migration safety)...");
-                const q = query(collection(db, 'relatedVideos'));
-                const snapshot = await getDocs(q);
-                console.log("Public Videos Snapshot:", snapshot.docs.length);
+        // Clear notification badge
+        localStorage.setItem('lastVisited_videos', Date.now().toString());
 
-                const fetched = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        console.log("Subscribing to related videos (unordered for migration safety)...");
+        const q = query(collection(db, 'relatedVideos'));
+        
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            console.log("Public Videos Snapshot:", snapshot.docs.length);
+            const fetched = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 
-                // Sort in memory to ensure visibility of legacy items
-                fetched.sort((a, b) => {
-                    const orderA = a.order ?? 999;
-                    const orderB = b.order ?? 999;
-                    return orderA - orderB;
-                });
+            // Sort in memory to ensure visibility of legacy items
+            fetched.sort((a, b) => {
+                const orderA = a.order ?? 999;
+                const orderB = b.order ?? 999;
+                return orderA - orderB;
+            });
 
-                setVideos(fetched);
-            } catch (error) {
-                console.error("Error fetching related videos on public page:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchVideos();
+            setVideos(fetched);
+            setLoading(false);
+        }, (error) => {
+            console.error("Error subscribing to related videos:", error);
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
     }, []);
 
     return (

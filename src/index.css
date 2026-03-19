@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+Tamil:wght@400;700;800&display=swap');
 
 :root {
   color-scheme: light;
@@ -48,6 +48,15 @@
   --color-info-dark: #0369A1;
   --color-info-transparent: rgba(14, 165, 233, 0.1);
   --color-shadow: rgba(0, 0, 0, 0.1);
+
+  /* Website Replica Theme (Earthy) */
+  --web-bg: #FDFBFA;
+  --web-header-bg: #5A2D26; /* Deep Brown */
+  --web-nav-bg: #FFB347;    /* Warm Orange/Yellow */
+  --web-footer-bg: #3E1F1A;
+  --web-accent: #C05621;
+  --web-text: #2D1A16;
+  --web-cream-light: #FDF6E3;
 }
 
 /* 

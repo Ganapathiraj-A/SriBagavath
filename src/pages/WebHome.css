@@ -1,0 +1,198 @@
+.web-home {
+  background-color: var(--web-bg);
+}
+
+/* Hero Section */
+.web-hero {
+  background-color: var(--web-footer-bg);
+  padding: 40px 0;
+}
+
+.web-hero-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+}
+
+.web-hero-image-wrapper {
+  max-width: 1000px;
+  width: 90%;
+  border: 5px solid rgba(255,255,255,0.1);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.web-hero-image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.web-hero-quotes {
+  text-align: center;
+  padding: 0 20px;
+  max-width: 800px;
+}
+
+.tamil-quote {
+  font-size: 1.8rem;
+  color: var(--web-nav-bg);
+  font-weight: 700;
+  margin-bottom: 15px;
+  line-height: 1.4;
+}
+
+.english-quote {
+  font-size: 1.2rem;
+  color: #fff;
+  opacity: 0.8;
+  font-style: italic;
+  line-height: 1.6;
+}
+
+/* Mission Section */
+.web-mission {
+  padding: 80px 0;
+}
+
+.web-section-header {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.web-section-header h2 {
+  font-size: 2.2rem;
+  color: var(--web-header-bg);
+  margin-bottom: 15px;
+}
+
+.web-divider {
+  width: 100px;
+  height: 4px;
+  background-color: var(--web-nav-bg);
+  margin: 0 auto;
+}
+
+.web-mission-content > p {
+  text-align: center;
+  max-width: 900px;
+  margin: 0 auto 60px;
+  font-size: 1.15rem;
+  color: #555;
+  line-height: 1.8;
+}
+
+.web-mission-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+}
+
+.web-mission-card {
+  background-color: #fff;
+  padding: 40px 30px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  transition: transform 0.3s ease;
+  border-bottom: 4px solid transparent;
+}
+
+.web-mission-card:hover {
+  transform: translateY(-10px);
+  border-bottom-color: var(--web-nav-bg);
+}
+
+.card-icon {
+  font-size: 3rem;
+  color: var(--web-nav-bg);
+  margin-bottom: 25px;
+}
+
+.web-mission-card h3 {
+  font-size: 1.4rem;
+  color: var(--web-header-bg);
+  margin-bottom: 15px;
+}
+
+.web-mission-card p {
+  color: #777;
+  line-height: 1.6;
+  margin-bottom: 25px;
+}
+
+.web-btn-text {
+  color: var(--web-accent);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+}
+
+/* CTA Section */
+.web-cta {
+  background-color: var(--web-cream-light);
+  padding: 100px 0;
+  text-align: center;
+}
+
+.web-cta-box h2 {
+  font-size: 2.5rem;
+  color: var(--web-header-bg);
+  margin-bottom: 20px;
+}
+
+.web-cta-box p {
+  font-size: 1.2rem;
+  color: #555;
+  margin-bottom: 40px;
+}
+
+.web-cta-btns {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.web-btn {
+  padding: 14px 35px;
+  border-radius: 50px;
+  font-weight: 700;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+}
+
+.web-btn.primary {
+  background-color: var(--web-header-bg);
+  color: #fff;
+}
+
+.web-btn.primary:hover {
+  background-color: var(--web-footer-bg);
+}
+
+.web-btn.secondary {
+  background-color: #fff;
+  color: var(--web-header-bg);
+  border: 2px solid var(--web-header-bg);
+}
+
+.web-btn.secondary:hover {
+  background-color: var(--web-header-bg);
+  color: #fff;
+}
+
+@media (max-width: 768px) {
+  .web-hero {
+    padding: 30px 0;
+  }
+  
+  .tamil-quote {
+    font-size: 1.4rem;
+  }
+  
+  .web-section-header h2 {
+    font-size: 1.8rem;
+  }
+}

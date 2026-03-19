@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { db } from '@/firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy, limit, where } from '@/utils/FirestoreProxy';
+import { bumpServerVersion } from '@/utils/SyncManager';
 import PageHeader from '@/components/PageHeader';
 import LazyImage from '@/components/LazyImage';
 import { getLocalDateString } from '@/utils/dateUtils';
@@ -155,6 +156,21 @@ const DailyZoomManagement = () => {
                 });
                 alert('Meeting added!');
             }
+
+            // --- SYNC IMPROVEMENTS ---
+            // 1. Bump server version to force clients to refresh
+            await bumpServerVersion('daily_zoom_meetings');
+            
+            // 2. Update global metadata for notification badges
+            try {
+                await updateDoc(doc(db, 'system', 'metadata'), {
+                    lastUpdated_daily_zoom: new Date().toISOString()
+                });
+            } catch (mErr) {
+                console.warn("Failed to update system metadata:", mErr);
+            }
+            // -------------------------
+
             resetForm();
             loadData();
             setActiveTab('upcoming');
@@ -206,6 +222,11 @@ const DailyZoomManagement = () => {
             try {
                 setLoading(true);
                 await deleteDoc(doc(db, 'daily_zoom_meetings', id));
+                
+                // --- SYNC IMPROVEMENTS ---
+                await bumpServerVersion('daily_zoom_meetings');
+                // -------------------------
+
                 alert('Meeting deleted successfully.');
                 loadData();
             } catch (err) {

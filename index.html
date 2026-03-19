@@ -14,6 +14,11 @@
   <div id="error-trap" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:white; color:red; z-index:99999; padding:20px; overflow:auto; font-family:monospace; white-space:pre-wrap;"></div>
   <script>
     window.onerror = function (msg, url, lineNo, columnNo, error) {
+      // Ignore benign cross-origin script errors (e.g., from Google Auth / AdBlockers)
+      if (msg === 'Script error.' || !url || url.includes('apis.google.com')) {
+        console.warn('Ignored cross-origin script error from:', url);
+        return false;
+      }
       var trap = document.getElementById('error-trap');
       trap.style.display = 'block';
       trap.innerText += "Error: " + msg + "\nURL: " + url + "\nLine: " + lineNo + "\nStack: " + (error ? error.stack : 'N/A') + "\n\n";

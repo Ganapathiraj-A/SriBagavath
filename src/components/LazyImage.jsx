@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { db } from '@/firebase';
 import { doc, getDocCacheFirst } from '@/utils/FirestoreProxy';
-import { trackImageSource } from '@/utils/imageUtils';
+import { trackImageSource, normalizeImageSrc } from '@/utils/imageUtils';
+import { getCachedImage } from '@/utils/PersistentImageCache';
 
 // Global Memory Cache for images (URLs or Base64)
 const imageCache = new Map();
@@ -16,6 +17,7 @@ const imageCache = new Map();
 const LazyImage = ({
     src,
     firestorePath,
+    version = '',
     alt = "",
     placeholder: Placeholder,
     className = "",
@@ -29,30 +31,10 @@ const LazyImage = ({
     const cacheKey = firestorePath || src;
     const [currentSrc, setCurrentSrc] = useState(imageCache.get(cacheKey) || (firestorePath ? null : src));
     const [loading, setLoading] = useState(false);
-    const [isVisible, setIsVisible] = useState(false);
+    // Set to true immediately so images start loading as soon as the component renders
+    const [isVisible, setIsVisible] = useState(true); 
     const containerRef = useRef(null);
     const hasTracked = useRef(false);
-
-    useEffect(() => {
-        // If we already have it in memory, no need to observe
-        if (currentSrc && isVisible) return; // Optimization: if already visible and has source, stays visible
-
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (entry.isIntersecting) {
-                    setIsVisible(true);
-                    observer.disconnect();
-                }
-            },
-            { threshold: 0.1 }
-        );
-
-        if (containerRef.current) {
-            observer.observe(containerRef.current);
-        }
-
-        return () => observer.disconnect();
-    }, [currentSrc, isVisible]);
 
     useEffect(() => {
         if (!isVisible) return;
@@ -73,11 +55,11 @@ const LazyImage = ({
                     const [collection, docId] = firestorePath.split('/');
                     const snap = await getDocCacheFirst(doc(db, collection, docId));
                     if (snap.exists()) {
-                        const data = snap.data().cover || snap.data().image || snap.data().banner;
-                        if (data) {
-                            setCurrentSrc(data);
-                            imageCache.set(cacheKey, data);
-                            doTrack(data);
+                        const rawData = snap.data().cover || snap.data().image || snap.data().banner || snap.data().imageUrl || snap.data().base64;
+                        if (rawData) {
+                            const normalized = normalizeImageSrc(rawData);
+                            setCurrentSrc(normalized);
+                            imageCache.set(cacheKey, normalized);
                         }
                     }
                 } catch (_err) {
@@ -92,8 +74,18 @@ const LazyImage = ({
             // track it now that it's visible.
             doTrack(currentSrc);
         } else if (src) {
-            // Fallback for direct src if not in currentSrc yet
-            doTrack(src);
+            const loadWithCache = async () => {
+                // If it's a remote URL, check/populate persistent cache
+                const finalSrc = await getCachedImage(src, version);
+                const normalized = normalizeImageSrc(finalSrc);
+                
+                if (normalized !== currentSrc) {
+                    setCurrentSrc(normalized);
+                    imageCache.set(cacheKey, normalized);
+                }
+                doTrack(normalized);
+            };
+            loadWithCache();
         }
     }, [isVisible, firestorePath, src, currentSrc, cacheKey]);
 
@@ -115,7 +107,7 @@ const LazyImage = ({
                 <img
                     src={currentSrc}
                     alt={alt}
-                    loading="lazy"
+                    loading="eager"
                     style={{ width: '100%', height, objectFit }}
                 />
             ) : (

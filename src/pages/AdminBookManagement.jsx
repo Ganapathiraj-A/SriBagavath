@@ -241,7 +241,11 @@ const AdminBookManagement = () => {
                 }
             }
 
-            await bumpServerVersion(`bookstore_${formData.category}`);
+            await bumpServerVersion('books');
+            await updateDoc(doc(db, 'system', 'metadata'), {
+                lastUpdated_books: serverTimestamp()
+            });
+
             alert(editingBook ? 'Book updated!' : 'Book added!');
             setSearchParams({}, { replace: true });
             resetForm();
@@ -279,10 +283,11 @@ const AdminBookManagement = () => {
                 }
                 await deleteDoc(doc(db, 'book_covers', bookId)).catch(() => { });
 
-                const deletedBook = books.find(b => b.id === bookId);
-                if (deletedBook) {
-                    await bumpServerVersion(`bookstore_${deletedBook.category}`);
-                }
+                // No need for deletedBook check, bumpServerVersion and updateDoc should always run
+                await bumpServerVersion('books');
+                await updateDoc(doc(db, 'system', 'metadata'), {
+                    lastUpdated_books: serverTimestamp()
+                });
 
                 alert('Book deleted!');
                 setSearchParams({}, { replace: true });

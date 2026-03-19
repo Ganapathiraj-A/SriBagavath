@@ -18,7 +18,7 @@ export const GET_GOOGLE_CLIENT_ID = () => {
 let isInitialized = false;
 
 export const ensureGoogleAuthInitialized = async () => {
-    if (!Capacitor.isNativePlatform()) return;
+    // Note: Initialization is now allowed on Web as well
     if (isInitialized) return;
 
     try {

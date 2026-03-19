@@ -87,8 +87,8 @@ const Contact = () => {
 
                             <ContactItem
                                 icon={Globe}
-                                content="http://sribagavath.com"
-                                href="https://sribagavath.com/"
+                                content="http://sribagavath.org"
+                                href="https://sribagavath.org/"
                             />
 
                             <ContactItem

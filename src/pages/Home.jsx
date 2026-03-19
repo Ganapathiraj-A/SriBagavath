@@ -38,6 +38,7 @@ const MenuButton = ({ title, icon: Icon, path, delay, badgeCount, skipAnimation 
             whileHover={{ scale: 1.02, backgroundColor: 'var(--color-secondary)' }}
             whileTap={{ scale: 0.98 }}
             onClick={() => navigate(path)}
+            data-testid={`menu-button-${title.toLowerCase().replace(/\s+/g, '-')}`}
             style={{
                 width: '100%',
                 padding: '1rem',
@@ -95,7 +96,7 @@ const Home = () => {
     const [authLoading, setAuthLoading] = React.useState(false);
     const navigate = useNavigate();
     const counts = useUnseenCounts();
-    const totalPending = (counts.registrations || 0) + (counts.transactions || 0);
+    const totalPending = (counts.registrations || 0) + (counts.purchases || 0) + (counts.donations || 0);
 
     // Determine current effective role for screen hiding
     const effectiveRole = isAdmin ? (devMode ? 'dev' : 'admin') : 'public';
@@ -494,8 +495,10 @@ const Home = () => {
                                 item.isAdmin
                                     ? totalPending
                                     : (item.path === '/programs'
-                                        ? (counts.hasNewPrograms || counts.hasNewMeetings || counts.hasNewSatsangs || counts.hasNewSchedule ? 1 : 0)
-                                        : 0)
+                                        ? (counts.hasNewPrograms || counts.hasNewMeetings || counts.hasNewDailyZoom || counts.hasNewSatsangs || counts.hasNewSchedule ? 1 : 0)
+                                        : (item.path === '/books'
+                                            ? (counts.hasNewBooks || counts.hasNewAudioBooks || counts.hasNewVideos || counts.hasNewMagazines ? 1 : 0)
+                                            : 0))
                             }
                         />
                     ))}

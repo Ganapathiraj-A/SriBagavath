@@ -1,0 +1,152 @@
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import {
+  FaPhone,
+  FaMapMarkerAlt,
+  FaClock,
+  FaEnvelope,
+  FaFacebookF,
+  FaInstagram,
+  FaYoutube
+} from 'react-icons/fa';
+import './WebLayout.css';
+
+const WebLayout = ({ children }) => {
+  const location = useLocation();
+
+  const getTagline = () => {
+    switch (location.pathname) {
+      case '/web/store':
+        return "Discover Sri Bagavath Ayya's profound teachings in print.";
+      case '/web/donate':
+        return "Your contributions help us spread spiritual awareness and maintain our centers.";
+      case '/web/about':
+        return "Learn about the wisdom and teachings of Sri Bagavath Ayya.";
+      case '/web/contact':
+        return "Get in touch with the Sri Bagavath Mission.";
+      case '/web/emedia':
+        return "Listen & Read Online.";
+      default:
+        if (location.pathname.startsWith('/web/book/')) {
+          return "Discover Sri Bagavath Ayya's profound teachings in print.";
+        }
+        if (location.pathname.startsWith('/web/checkout')) {
+          return "Secure Checkout";
+        }
+        return "Your Simple Path To Enlightenment.";
+    }
+  };
+
+  const navLinks = [
+    { name: 'Home', path: '/web' },
+    { name: 'Store', path: '/web/store' },
+    { name: 'Donate', path: '/web/donate' },
+    { name: 'E Media', path: '/web/emedia' },
+    { name: 'About', path: '/web/about' },
+    { name: 'Contact', path: '/web/contact' }
+  ];
+
+  return (
+    <div className="web-layout">
+      {/* Top Contact Header */}
+      <div className="web-top-header">
+        <div className="web-container">
+          <div className="web-contact-items">
+            <div className="web-contact-item">
+              <FaMapMarkerAlt />
+              <span>Salem, India (Registered Address)</span>
+            </div>
+            <div className="web-contact-item">
+              <FaPhone />
+              <span>+91 97891 65555 (Support 9 AM - 9 PM)</span>
+            </div>
+            <div className="web-contact-item">
+              <FaClock />
+              <span>Mon - Fri: 10:00 - 18:00 (Store open)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Logo Section */}
+      <header className="web-main-header">
+        <div className="web-container">
+          <div className="web-logo-container">
+            <img 
+              src="/assets/sri-bagavath-logo.png" 
+              alt="Sri Bagavath" 
+              className="web-logo"
+            />
+            <div className="web-logo-text">
+              <p className="web-tagline">{getTagline()}</p>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Navigation Bar */}
+      <nav className="web-nav-bar">
+        <div className="web-container">
+          <div className="web-nav-content">
+            <ul className="web-nav-links">
+              {navLinks.map((link) => (
+                <li key={link.path}>
+                  <Link 
+                    to={link.path} 
+                    className={location.pathname === link.path ? 'active' : ''}
+                  >
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <div className="web-social-links">
+              <a href="https://facebook.com" target="_blank" rel="noreferrer"><FaFacebookF /></a>
+              <a href="https://instagram.com" target="_blank" rel="noreferrer"><FaInstagram /></a>
+              <a href="https://youtube.com" target="_blank" rel="noreferrer"><FaYoutube /></a>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Main Content Area */}
+      <main className="web-main-content">
+        <React.Suspense fallback={<div className="loading-state" style={{ minHeight: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>}>
+          {children}
+        </React.Suspense>
+      </main>
+
+      {/* Footer */}
+      <footer className="web-footer">
+        <div className="web-container">
+          <div className="web-footer-grid">
+            <div className="web-footer-section">
+              <h3>About Sri Bagavath</h3>
+              <p>
+                Sri Bagavath Mission is dedicated to sharing the wisdom and teachings of Sri Bagavath Ayya for spiritual liberation and mental wellness.
+              </p>
+            </div>
+            <div className="web-footer-section">
+              <h3>Quick Links</h3>
+              <ul>
+                <li><Link to="/web/about">About Ayya</Link></li>
+                <li><Link to="/web/store">Book Store</Link></li>
+                <li><Link to="/web/emedia">E Media</Link></li>
+              </ul>
+            </div>
+            <div className="web-footer-section">
+              <h3>Contact Us</h3>
+              <p><FaEnvelope /> info@sribagavath.org</p>
+              <p><FaPhone /> +91 97891 65555</p>
+            </div>
+          </div>
+          <div className="web-footer-bottom">
+            <p>&copy; {new Date().getFullYear()} Sri Bagavath Mission. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+export default WebLayout;

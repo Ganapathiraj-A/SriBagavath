@@ -607,6 +607,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                         {programs.map((program, index) => (
                                             <motion.div
                                                 key={program.id}
+                                                data-testid="program-card"
                                                 initial={{ opacity: 0, y: 20 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 transition={{ delay: index * 0.1 }}
@@ -662,6 +663,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                                                 }
                                                             }}
                                                             className="btn-primary"
+                                                            data-testid="register-button"
                                                             disabled={authLoading}
                                                             style={{
                                                                 width: 'auto',

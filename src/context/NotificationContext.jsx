@@ -17,8 +17,13 @@ export const NotificationProvider = ({ children }) => {
         donations: 0,
         hasNewPrograms: false,
         hasNewMeetings: false,
+        hasNewDailyZoom: false,
         hasNewSatsangs: false,
-        hasNewSchedule: false
+        hasNewSchedule: false,
+        hasNewBooks: false,
+        hasNewAudioBooks: false,
+        hasNewVideos: false,
+        hasNewMagazines: false
     });
 
     // 1. ADMIN LOGIC: Total Pending (Registrations & Bookstore)
@@ -93,20 +98,35 @@ export const NotificationProvider = ({ children }) => {
 
             const vPrograms = getLocalTime('lastVisited_programs');
             const vMeetings = getLocalTime('lastVisited_online_meetings');
+            const vDailyZoom = getLocalTime('lastVisited_daily_zoom');
             const vSatsangs = getLocalTime('lastVisited_satsangs');
             const vSchedule = getLocalTime('lastVisited_schedule');
+            const vBooks = getLocalTime('lastVisited_books');
+            const vAudioBooks = getLocalTime('lastVisited_audio_books');
+            const vVideos = getLocalTime('lastVisited_videos');
+            const vMagazines = getLocalTime('lastVisited_magazines');
 
             const sPrograms = getServerTime(data.lastUpdated_programs);
             const sMeetings = getServerTime(data.lastUpdated_online_meetings);
+            const sDailyZoom = getServerTime(data.lastUpdated_daily_zoom);
             const sSatsangs = getServerTime(data.lastUpdated_satsangs);
             const sSchedule = getServerTime(data.lastUpdated_schedule);
+            const sBooks = getServerTime(data.lastUpdated_books);
+            const sAudioBooks = getServerTime(data.lastUpdated_audio_books);
+            const sVideos = getServerTime(data.lastUpdated_videos);
+            const sMagazines = getServerTime(data.lastUpdated_magazines);
 
             setCounts(prev => ({
                 ...prev,
                 hasNewPrograms: sPrograms > vPrograms,
                 hasNewMeetings: sMeetings > vMeetings,
+                hasNewDailyZoom: sDailyZoom > vDailyZoom,
                 hasNewSatsangs: sSatsangs > vSatsangs,
-                hasNewSchedule: sSchedule > vSchedule
+                hasNewSchedule: sSchedule > vSchedule,
+                hasNewBooks: sBooks > vBooks,
+                hasNewAudioBooks: sAudioBooks > vAudioBooks,
+                hasNewVideos: sVideos > vVideos,
+                hasNewMagazines: sMagazines > vMagazines
             }));
         };
 

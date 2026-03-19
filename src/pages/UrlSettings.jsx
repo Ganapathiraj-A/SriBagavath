@@ -236,11 +236,6 @@ const UrlSettings = () => {
                     </div>
                 </div>
 
-                <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                        <Cloud size={14} /> Settings are synchronized across all devices
-                    </p>
-                </div>
             </div>
         </div>
     );

@@ -159,21 +159,25 @@ echo "======================================"
 
 # 8. Automatic ADB Installation (Silent)
 if [[ $FINAL_NAME == *.apk ]]; then
-    # Attempt to reconnect if property file exists
-    ADB_PROP="secrets/adb_connection.properties"
-    if [ -f "$ADB_PROP" ]; then
-        KNOWN_DEVICE=$(grep "LAST_CONNECTED_DEVICE=" "$ADB_PROP" | cut -d'=' -f2)
-        if [ ! -z "$KNOWN_DEVICE" ]; then
-            # Only try to connect if it's not already in the list
-            if ! adb devices | grep -q "$KNOWN_DEVICE"; then
+    # Fast wired/existing connection check first
+    DEVICES=$(adb devices | grep -w "device" | cut -f1)
+
+    if [ ! -z "$DEVICES" ]; then
+        echo "🚀 Found existing connected device(s). Skipping wireless reconnect/auto-discovery..."
+    else
+        # Attempt to reconnect if property file exists
+        ADB_PROP="secrets/adb_connection.properties"
+        if [ -f "$ADB_PROP" ]; then
+            KNOWN_DEVICE=$(grep "LAST_CONNECTED_DEVICE=" "$ADB_PROP" | cut -d'=' -f2)
+            if [ ! -z "$KNOWN_DEVICE" ]; then
                 echo "🔌 Attempting to reconnect to saved device: $KNOWN_DEVICE..."
                 adb connect "$KNOWN_DEVICE" || echo "⚠️ Reconnect failed."
             fi
         fi
-    fi
 
-    # Extract list of connected devices
-    DEVICES=$(adb devices | grep -w "device" | cut -f1)
+        # Extract list of connected devices again after attempt
+        DEVICES=$(adb devices | grep -w "device" | cut -f1)
+    fi
 
     # Auto-Discovery Fallback (Enhanced with Avahi/MDNS)
     if [ -z "$DEVICES" ]; then
@@ -248,22 +252,30 @@ if [[ $FINAL_NAME == *.apk ]]; then
             fi
         fi
 
-        # 2. Subnet Scan Fallback (Legacy port 5555)
+        # 2. Optimized Subnet Scan Fallback
         if [ -z "$DEVICES" ]; then
             INTERFACE_IP=$(hostname -I | awk '{print $1}')
             if [ ! -z "$INTERFACE_IP" ]; then
                 SUBNET=$(echo "$INTERFACE_IP" | cut -d. -f1,2,3).0/24
-                echo "📡 Scanning subnet: $SUBNET for ADB devices (port 5555)..."
-                POTENTIAL_IPS=$(nmap -n -p 5555 --open "$SUBNET" -oG - | awk '/Up$/{print $2}')
+                echo "📡 Scanning subnet $SUBNET for active hosts first..."
+                # Identify active hosts first
+                ACTIVE_HOSTS=$(nmap -sn "$SUBNET" | grep "Nmap scan report for" | cut -d" " -f5)
                 
-                for POTENTIAL_IP in $POTENTIAL_IPS; do
-                    echo "🔌 Found potential device at $POTENTIAL_IP. Attempting to connect..."
-                    if adb connect "$POTENTIAL_IP:5555" | grep -qE "connected|already connected"; then
-                        echo "✅ Connected to $POTENTIAL_IP"
-                        echo "# ADB Connection Details" > "$ADB_PROP"
-                        echo "# Last used/verified: $(date +%Y-%m-%d)" >> "$ADB_PROP"
-                        echo "LAST_CONNECTED_DEVICE=$POTENTIAL_IP:5555" >> "$ADB_PROP"
-                        break
+                for HOST in $ACTIVE_HOSTS; do
+                    [ "$HOST" == "$INTERFACE_IP" ] && continue
+                    
+                    echo "🔍 Checking $HOST for wireless debugging ports (30000-45000)..."
+                    FOUND_PORT=$(nmap -Pn -T4 -p 30000-45000 "$HOST" --open -oG - | grep "/open/" | head -n1 | awk '{for(i=1;i<=NF;i++)if($i~/\/open\//)print $i}' | cut -d'/' -f1)
+                    
+                    if [ ! -z "$FOUND_PORT" ]; then
+                        echo "🔌 Found potential device at $HOST:$FOUND_PORT. Attempting to connect..."
+                        if adb connect "$HOST:$FOUND_PORT" | grep -qE "connected|already connected"; then
+                            echo "✅ Connected to $HOST:$FOUND_PORT"
+                            echo "# ADB Connection Details" > "$ADB_PROP"
+                            echo "# Last used/verified: $(date +%Y-%m-%d)" >> "$ADB_PROP"
+                            echo "LAST_CONNECTED_DEVICE=$HOST:$FOUND_PORT" >> "$ADB_PROP"
+                            break
+                        fi
                     fi
                 done
                 DEVICES=$(adb devices | grep -w "device" | cut -f1)

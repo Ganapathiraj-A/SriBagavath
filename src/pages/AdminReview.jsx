@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Check, Trash2, Rewind, AlertCircle, X, Package, Image, Info } from 'lucide-react';
+import { ChevronLeft, Check, Trash2, Rewind, AlertCircle, X, Package, Image, Info, Share2, Square, CheckSquare } from 'lucide-react';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
 import { TransactionService } from '@/services/TransactionService';
+import { shareTransactions } from '@/utils/shareUtils';
 import PageHeader from '@/components/PageHeader';
 import LazyImage from '@/components/LazyImage';
 import { compressImage, normalizeImageSrc } from '@/utils/imageUtils';
@@ -36,6 +37,7 @@ const AdminReview = () => {
     const [editingParsedAmountValue, setEditingParsedAmountValue] = useState('');
     const [savingDetails, setSavingDetails] = useState(false);
     const [uploadingReceipt, setUploadingReceipt] = useState(null); // stores id of tx being updated
+    const [selectedIds, setSelectedIds] = useState([]);
 
     const handleLogout = async () => {
         if (confirm("Logout?")) {
@@ -225,6 +227,27 @@ const AdminReview = () => {
         } else if (password !== null) {
             alert("Incorrect password.");
         }
+    };
+
+    // Selection Handlers
+    const toggleSelection = (id) => {
+        setSelectedIds(prev =>
+            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+        );
+    };
+
+    const handleSelectAll = () => {
+        if (selectedIds.length === displayedRegs.length) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(displayedRegs.map(r => r.id));
+        }
+    };
+
+    const handleMultiShare = async () => {
+        if (selectedIds.length === 0) return;
+        const selectedItems = allRegs.filter(r => selectedIds.includes(r.id));
+        await shareTransactions(selectedItems, 'PROGRAM', allPrograms);
     };
 
     // State for Image Modal
@@ -814,6 +837,7 @@ const AdminReview = () => {
                         return (
                             <button
                                 key={tab}
+                                data-testid={`reg-tab-${tab}`}
                                 className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
                                 onClick={() => setActiveTab(tab)}
                             >
@@ -841,6 +865,17 @@ const AdminReview = () => {
                 {loading && <p>Loading...</p>}
                 {!loading && displayedRegs.length === 0 && <p style={{ textAlign: 'center', padding: '20px' }}>No transactions in {TAB_LABELS[activeTab]}</p>}
 
+                {/* Multi-select actions */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px', padding: '0 16px' }}>
+                    <button onClick={handleSelectAll} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '6px 12px', color: 'var(--color-text)', fontSize: '13px', fontWeight: 600 }}>
+                        {selectedIds.length === displayedRegs.length && displayedRegs.length > 0 ? <CheckSquare size={16} color="var(--color-primary)" /> : <Square size={16} color="var(--color-text-muted)" />}
+                        {selectedIds.length === displayedRegs.length && displayedRegs.length > 0 ? 'Deselect All' : 'Select All'}
+                    </button>
+                    <button onClick={handleMultiShare} disabled={selectedIds.length === 0} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: selectedIds.length ? 'var(--color-primary)' : 'var(--color-background)', color: selectedIds.length ? 'white' : 'var(--color-text-muted)', border: selectedIds.length ? 'none' : '1px solid var(--color-border)', borderRadius: '8px', padding: '6px 12px', fontSize: '13px', fontWeight: 600, cursor: selectedIds.length ? 'pointer' : 'not-allowed' }}>
+                        <Share2 size={16} /> Share Selected
+                    </button>
+                </div>
+
                 {displayedRegs.map(tx => {
                     const parsed = tx.parsedAmount ? parseFloat(tx.parsedAmount) : null;
                     const standardPrice = tx.amount || 0;
@@ -851,8 +886,12 @@ const AdminReview = () => {
                     const details = getProgramDetails(tx);
 
                     return (
-                        <div key={tx.id} className="card">
-                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <div key={tx.id} className="card" data-testid={`reg-card-${tx.id}`} style={{ position: 'relative' }}>
+                            {/* Selection checkbox */}
+                            <button onClick={(e) => { e.stopPropagation(); toggleSelection(tx.id); }} style={{ position: 'absolute', top: '10px', right: '10px', background: 'none', border: 'none', padding: '0', cursor: 'pointer' }}>
+                                {selectedIds.includes(tx.id) ? <CheckSquare size={20} color="var(--color-primary)" /> : <Square size={20} color="var(--color-text-muted)" />}
+                            </button>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', paddingRight: '30px' }}>
                                 <h3 style={{ margin: 0, fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                                     {tx.itemName}
                                     {tx.reconciled && (
@@ -1024,6 +1063,7 @@ const AdminReview = () => {
                                     <>
                                         <button className="btn-approve" onClick={() => handleUpdate(tx.id, 'REGISTERED')}><Check size={16} /> Approve</button>
                                         <button className="btn-hold" onClick={() => handleUpdate(tx.id, 'HOLD')}><AlertCircle size={16} /> Hold</button>
+                                        <button className="btn-danger" onClick={() => handleDelete(tx.id)} data-testid={`delete-reg-${tx.id}`}><Trash2 size={16} /> Delete</button>
                                     </>
                                 )}
 
@@ -1033,6 +1073,7 @@ const AdminReview = () => {
                                         <button className="btn-bnk" onClick={() => handleUpdate(tx.id, 'COMPLETED')}><Check size={16} /> Mark Completed</button>
                                         <button className="btn-pink" onClick={() => handleUpdate(tx.id, 'PENDING')}><Rewind size={16} /> Pending</button>
                                         <button className="btn-hold" onClick={() => handleUpdate(tx.id, 'HOLD')}><AlertCircle size={16} /> Hold</button>
+                                        <button className="btn-danger" onClick={() => handleDelete(tx.id)} data-testid={`delete-reg-${tx.id}`}><Trash2 size={16} /> Delete</button>
                                     </>
                                 )}
 
@@ -1041,7 +1082,7 @@ const AdminReview = () => {
                                     <>
                                         <button className="btn-approve" onClick={() => handleUpdate(tx.id, 'REGISTERED')}><Check size={16} /> Approve</button>
                                         <button className="btn-pink" onClick={() => handleUpdate(tx.id, 'PENDING')}><Rewind size={16} /> Pending</button>
-                                        <button className="btn-danger" onClick={() => handleDelete(tx.id)}><Trash2 size={16} /> Delete</button>
+                                        <button className="btn-danger" onClick={() => handleDelete(tx.id)} data-testid={`delete-reg-${tx.id}`}><Trash2 size={16} /> Delete</button>
                                     </>
                                 )}
 
@@ -1054,7 +1095,7 @@ const AdminReview = () => {
                                         >
                                             <Package size={16} /> Storage
                                         </button>
-                                        <button className="btn-danger" onClick={() => handleDelete(tx.id)}><Trash2 size={16} /> Delete</button>
+                                        <button className="btn-danger" onClick={() => handleDelete(tx.id)} data-testid={`delete-reg-${tx.id}`}><Trash2 size={16} /> Delete</button>
                                     </>
                                 )}
                             </div>

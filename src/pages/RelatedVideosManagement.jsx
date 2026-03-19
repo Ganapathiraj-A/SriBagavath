@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { collection, query, onSnapshot, doc, setDoc, deleteDoc, serverTimestamp } from '@/utils/FirestoreProxy';
+import { collection, query, onSnapshot, doc, setDoc, updateDoc, deleteDoc, serverTimestamp } from '@/utils/FirestoreProxy';
+import { bumpServerVersion } from '@/utils/SyncManager';
 import { db } from '@/firebase';
 import PageHeader from '@/components/PageHeader';
 import { Plus, Trash2, Edit, Save, X, ExternalLink, Video, Eye, ChevronUp, ChevronDown } from 'lucide-react';
@@ -76,6 +77,12 @@ const RelatedVideosManagement = () => {
 
             await setDoc(doc(db, 'relatedVideos', docId), videoData, { merge: true });
 
+            // Caching & Notification Sync
+            await bumpServerVersion('related_videos');
+            await updateDoc(doc(db, 'system', 'metadata'), {
+                lastUpdated_videos: serverTimestamp()
+            });
+
             resetForm();
             alert(editingId ? "Video updated successfully!" : "Video added successfully!");
         } catch (error) {
@@ -94,6 +101,12 @@ const RelatedVideosManagement = () => {
         if (!confirm("Are you sure you want to delete this video entry?")) return;
         try {
             await deleteDoc(doc(db, 'relatedVideos', id));
+            
+            // Caching & Notification Sync
+            await bumpServerVersion('related_videos');
+            await updateDoc(doc(db, 'system', 'metadata'), {
+                lastUpdated_videos: serverTimestamp()
+            });
         } catch (error) {
             console.error("Error deleting video:", error);
             alert("Failed to delete video");

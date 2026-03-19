@@ -76,6 +76,10 @@ const BookStore = () => {
     };
 
     useEffect(() => {
+        localStorage.setItem('lastVisited_books', Date.now().toString());
+    }, []);
+
+    useEffect(() => {
         if (!authGlobalLoading) {
             loadBooks();
         }
@@ -267,6 +271,7 @@ const BookStore = () => {
                         animate={{ opacity: 1, y: 0 }}
                         className="card"
                         onClick={() => navigate(`/book/${product.id}`)}
+                        data-testid={`product-card-${product.id}`}
                         style={{ display: 'flex', gap: '12px', alignItems: 'center', padding: '12px', cursor: 'pointer', position: 'relative', backgroundColor: 'var(--color-card)', borderRadius: '1rem', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)' }}
                     >
                         <LazyImage
@@ -296,6 +301,7 @@ const BookStore = () => {
                                                 onClick={() => handleRemoveFromCart(product)}
                                                 disabled={authLoading}
                                                 aria-label={`Remove ${product.title} from cart`}
+                                                data-testid={`remove-from-cart-${product.id}`}
                                                 style={{ width: '32px', height: '32px', borderRadius: '50%', border: '1px solid var(--color-border)', background: 'var(--color-card)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: authLoading ? 'wait' : 'pointer' }}
                                             >
                                                 <Minus size={16} />
@@ -307,6 +313,7 @@ const BookStore = () => {
                                         onClick={() => handleAddToCart(product)}
                                         disabled={authLoading}
                                         aria-label={`Add ${product.title} to cart`}
+                                        data-testid={`add-to-cart-${product.id}`}
                                         style={{ width: '32px', height: '32px', borderRadius: '50%', border: 'none', background: 'var(--color-primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: authLoading ? 'wait' : 'pointer', boxShadow: 'var(--shadow-sm)' }}
                                     >
                                         <Plus size={16} />
@@ -355,6 +362,7 @@ const BookStore = () => {
                                 totalPrice
                             }
                         })}
+                        data-testid="checkout-button"
                         style={{
                             backgroundColor: 'white',
                             color: 'var(--color-primary)',

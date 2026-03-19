@@ -8,8 +8,9 @@ import html2canvas from 'html2canvas';
 import PageHeader from '@/components/PageHeader';
 import LazyImage from '@/components/LazyImage';
 import { db } from '@/firebase';
-import { collection, query, where, orderBy, getDocs, limit, startAfter } from '@/utils/FirestoreProxy';
+import { collection, query, where, orderBy, getDocs, limit, startAfter, onSnapshot } from '@/utils/FirestoreProxy';
 import { getLocalDateString } from '@/utils/dateUtils';
+import { needsServerSync, markSyncedLocally } from '@/utils/SyncManager';
 import { useAdminAuth } from '@/context/AdminAuthContext';
 import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 
@@ -41,6 +42,7 @@ const MeetingCard = ({ meeting, teacher, delay, isAdmin, onShare, isSharing }) =
                 {/* Photo Above Date */}
                 <LazyImage
                     src={displayImage}
+                    version={teacher?.updatedAt?.seconds || meeting?.updatedAt?.seconds || ''}
                     alt={displayName}
                     width="4.25rem"
                     height="4.25rem"
@@ -158,6 +160,40 @@ const MeetingCard = ({ meeting, teacher, delay, isAdmin, onShare, isSharing }) =
     );
 };
 
+const YouTubeVideoCard = ({ video, delay }) => {
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay, duration: 0.4 }}
+            onClick={() => window.open(video.youtubeUrl, '_blank')}
+            style={{
+                backgroundColor: 'var(--color-card)',
+                borderRadius: '1.25rem',
+                boxShadow: 'var(--shadow-md)',
+                border: '1px solid var(--color-border)',
+                overflow: 'hidden',
+                position: 'relative',
+                cursor: 'pointer',
+                aspectRatio: '16/9'
+            }}
+        >
+            <LazyImage
+                src={video.thumbnail}
+                alt={video.title}
+                width="100%"
+                height="100%"
+                objectFit="cover"
+                placeholder={() => (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', backgroundColor: 'var(--color-surface)' }}>
+                        <Youtube size={32} color="var(--color-text-light)" />
+                    </div>
+                )}
+            />
+        </motion.div>
+    );
+};
+
 // Module-level cache for teachers to prevent redundant fetches within the same session
 let teachersCache = null;
 
@@ -173,6 +209,9 @@ const DailyZoomMeetings = () => {
     const [activeTab, setActiveTab] = useState('upcoming');
     const [upcomingMeetings, setUpcomingMeetings] = useState([]);
     const [pastMeetings, setPastMeetings] = useState([]);
+    const [youtubeVideos, setYoutubeVideos] = useState([]);
+    const [nextPageToken, setNextPageToken] = useState(null);
+    const [isYoutubeLoading, setIsYoutubeLoading] = useState(false);
     const [teachers, setTeachers] = useState(teachersCache || []);
     const [selectedTeacherId, setSelectedTeacherId] = useState('all');
     const [loading, setLoading] = useState(true);
@@ -223,48 +262,88 @@ const DailyZoomMeetings = () => {
 
     useEffect(() => {
         if (authLoading) return;
-        fetchUpcomingMeetings();
+        
+        // 1. Mark as visited to clear notifications
+        localStorage.setItem('lastVisited_daily_zoom', new Date().toISOString());
+
+        // 2. Setup Real-time Listener for Upcoming Meetings
+        const today = getLocalDateString();
+        const ref = collection(db, 'daily_zoom_meetings');
+        const q = query(
+            ref,
+            where('date', '>=', today),
+            orderBy('date', 'asc')
+        );
+
+        const syncNeeded = needsServerSync('daily_zoom_meetings');
+        setLoading(true);
+
+        const unsub = onSnapshot(q, (snapshot) => {
+            const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            setUpcomingMeetings(data);
+            setLoading(false);
+            
+            // Mark as synced if this was a fresh server update or we were explicitly checking
+            if (!snapshot.metadata.fromCache) {
+                markSyncedLocally('daily_zoom_meetings');
+            }
+        }, (error) => {
+            console.error("Error with Daily Zoom listener:", error);
+            setLoading(false);
+        });
+
+        return () => unsub();
     }, [authLoading]);
+
+    // fetchUpcomingMeetings is no longer needed as we use a real-time listener above.
 
     useEffect(() => {
         if (authLoading) return;
-        if (activeTab === 'past' && pastMeetings.length === 0) {
-            fetchPastMeetings();
+        if (activeTab === 'past' && youtubeVideos.length === 0) {
+            fetchYouTubePlaylist();
         }
     }, [authLoading, activeTab]);
 
-    const fetchUpcomingMeetings = async () => {
-        setLoading(true);
-        try {
-            const { getDocsFromCache, getDocsFromServer } = await import('@/utils/FirestoreProxy');
-            const today = getLocalDateString();
-            const ref = collection(db, 'daily_zoom_meetings');
-            const q = query(
-                ref,
-                where('date', '>=', today),
-                orderBy('date', 'asc')
-            );
+    const fetchYouTubePlaylist = async (pageToken = null) => {
+        if (!pageToken) setIsYoutubeLoading(true);
+        else setLoadingMore(true);
 
-            let snap;
-            try {
-                snap = await getDocsFromCache(q);
-                if (snap.empty) {
-                    snap = await getDocsFromServer(q);
-                } else {
-                    // Silently refresh in background
-                    getDocsFromServer(q).then(s => {
-                        setUpcomingMeetings(s.docs.map(d => ({ id: d.id, ...d.data() })));
-                    }).catch(() => { });
-                }
-            } catch (_err) {
-                snap = await getDocsFromServer(q);
+        try {
+            const apiKey = import.meta.env.VITE_GOOGLE_DRIVE_API_KEY;
+            const playlistId = 'PLhfBLH1RxTuEKjzrKAznLcHZlQwUXJwWp';
+            let url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=10&playlistId=${playlistId}&key=${apiKey}`;
+            
+            if (pageToken) {
+                url += `&pageToken=${pageToken}`;
             }
 
-            setUpcomingMeetings(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-        } catch (_err) {
-            console.error("Error fetching upcoming meetings:", _err);
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (data.items) {
+                const formattedVideos = data.items.map(item => ({
+                    id: item.snippet.resourceId.videoId,
+                    title: item.snippet.title,
+                    description: item.snippet.description,
+                    date: item.snippet.publishedAt,
+                    thumbnail: item.snippet.thumbnails?.high?.url || item.snippet.thumbnails?.default?.url,
+                    youtubeUrl: `https://www.youtube.com/watch?v=${item.snippet.resourceId.videoId}`,
+                    joinUrl: `https://www.youtube.com/watch?v=${item.snippet.resourceId.videoId}`, // Fallback for Zoom button
+                    type: 'youtube'
+                }));
+
+                if (pageToken) {
+                    setYoutubeVideos(prev => [...prev, ...formattedVideos]);
+                } else {
+                    setYoutubeVideos(formattedVideos);
+                }
+                setNextPageToken(data.nextPageToken || null);
+            }
+        } catch (error) {
+            console.error("Error fetching YouTube playlist:", error);
         } finally {
-            setLoading(false);
+            setIsYoutubeLoading(false);
+            setLoadingMore(false);
         }
     };
 
@@ -293,28 +372,8 @@ const DailyZoomMeetings = () => {
     };
 
     const loadMorePast = async () => {
-        if (!lastVisible || loadingMore) return;
-        setLoadingMore(true);
-        try {
-            const { collection, query, where, orderBy, startAfter, limit, getDocs } = await import('@/utils/FirestoreProxy');
-            const today = getLocalDateString();
-            const ref = collection(db, 'daily_zoom_meetings');
-            const q = query(
-                ref,
-                where('date', '<', today),
-                orderBy('date', 'desc'),
-                startAfter(lastVisible),
-                limit(10)
-            );
-            const snap = await getDocs(q);
-            const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            setPastMeetings(prev => [...prev, ...docs]);
-            setLastVisible(snap.docs[snap.docs.length - 1]);
-            setHasMorePast(snap.docs.length === 10);
-        } catch (_err) {
-            console.error("Error loading more past meetings:", _err);
-        } finally {
-            setLoadingMore(false);
+        if (nextPageToken) {
+            await fetchYouTubePlaylist(nextPageToken);
         }
     };
 
@@ -530,8 +589,9 @@ const DailyZoomMeetings = () => {
         setTimeout(() => captureAndShare(shareInfo), 1000);
     };
 
-    const displayedMeetings = (activeTab === 'upcoming' ? upcomingMeetings : pastMeetings)
-        .filter(m => selectedTeacherId === 'all' || m.teacherId === selectedTeacherId);
+    const displayedMeetings = activeTab === 'upcoming' 
+        ? upcomingMeetings.filter(m => selectedTeacherId === 'all' || m.teacherId === selectedTeacherId)
+        : youtubeVideos;
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>
@@ -667,21 +727,21 @@ const DailyZoomMeetings = () => {
                     </button>
                 </div>
 
-                {!loading && (
+                {!loading && !isYoutubeLoading && (
                     <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
                         <h2 style={{ fontSize: '1rem', fontWeight: 750, color: 'var(--color-text)', margin: '0.5rem 0 0.2rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            {activeTab === 'upcoming' ? <Calendar size={18} color={ORANGE} /> : <Clock size={18} color={ORANGE} />}
-                            {activeTab === 'upcoming' ? 'Upcoming Meetings' : 'Past Meetings'}
+                            {activeTab === 'upcoming' ? <Calendar size={18} color={ORANGE} /> : <Youtube size={18} color="#ef4444" />}
+                            {activeTab === 'upcoming' ? 'Upcoming Meetings' : 'Past Recordings (YouTube)'}
                         </h2>
                         {displayedMeetings.length > 0 && (
                             <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>
-                                {displayedMeetings.length} {displayedMeetings.length === 1 ? 'meeting' : 'meetings'}
+                                {displayedMeetings.length} {displayedMeetings.length === 1 ? 'item' : 'items'}
                             </span>
                         )}
                     </div>
                 )}
 
-                {loading ? (
+                {(loading || isYoutubeLoading) ? (
                     <div style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: '3rem' }}>
                         <Loader2 className="animate-spin" size={32} style={{ margin: '0 auto 1rem auto' }} />
                         <p>Loading meetings...</p>
@@ -693,19 +753,30 @@ const DailyZoomMeetings = () => {
                     </div>
                 ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        {displayedMeetings.map((m, idx) => (
-                            <MeetingCard
-                                key={m.id}
-                                meeting={m}
-                                teacher={teachers.find(t => t.id === m.teacherId)}
-                                delay={idx * 0.05}
-                                isAdmin={isAdmin}
-                                onShare={handleShareMeeting}
-                                isSharing={isSharingMeetingId === m.id}
-                            />
-                        ))}
+                        {displayedMeetings.map((m, idx) => {
+                            if (m.type === 'youtube') {
+                                return (
+                                    <YouTubeVideoCard
+                                        key={m.id}
+                                        video={m}
+                                        delay={idx * 0.05}
+                                    />
+                                );
+                            }
+                            return (
+                                <MeetingCard
+                                    key={m.id}
+                                    meeting={m}
+                                    teacher={teachers.find(t => t.id === m.teacherId)}
+                                    delay={idx * 0.05}
+                                    isAdmin={isAdmin}
+                                    onShare={handleShareMeeting}
+                                    isSharing={isSharingMeetingId === m.id}
+                                />
+                            );
+                        })}
 
-                        {activeTab === 'past' && hasMorePast && (
+                        {activeTab === 'past' && nextPageToken && (
                             <button
                                 onClick={loadMorePast}
                                 disabled={loadingMore}

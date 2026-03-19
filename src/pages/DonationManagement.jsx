@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Check, Trash2, Rewind, Package, Heart, X, Search, Calendar, MapPin, ChevronRight, Phone } from 'lucide-react';
+import { ChevronLeft, Check, Trash2, Rewind, Package, Heart, X, Search, Calendar, MapPin, ChevronRight, Phone, Share2, Square, CheckSquare } from 'lucide-react';
 import { TransactionService } from '@/services/TransactionService';
+import { shareTransactions } from '@/utils/shareUtils';
 import PageHeader from '@/components/PageHeader';
 import { compressImage, normalizeImageSrc } from '@/utils/imageUtils';
 import { formatDate } from '@/utils/dateUtils';
@@ -43,6 +44,8 @@ const DonationManagement = () => {
     const [savingDetails, setSavingDetails] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [activeStatus, setActiveStatus] = useState('ALL');
+    // Multi-select state for sharing donations
+    const [selectedIds, setSelectedIds] = useState([]);
 
     useEffect(() => {
         // Clear badges (Sharing same logic as Bookstore for now or could have its own)
@@ -119,6 +122,29 @@ const DonationManagement = () => {
         if (confirm("Delete this donation record?")) {
             await TransactionService.deleteTransaction(id);
         }
+    };
+
+    // Toggle selection of a donation
+    const toggleSelection = (id) => {
+        setSelectedIds((prev) =>
+            prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+        );
+    };
+
+    // Select or deselect all displayed donations
+    const handleSelectAll = () => {
+        if (selectedIds.length === displayedDonations.length) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(displayedDonations.map((d) => d.id));
+        }
+    };
+
+    // Share selected donations via WhatsApp using share utility
+    const handleMultiShare = async () => {
+        const selectedDonations = displayedDonations.filter((d) => selectedIds.includes(d.id));
+        if (selectedDonations.length === 0) return;
+        await shareTransactions(selectedDonations, 'DONATION');
     };
 
     const handleViewImage = async (donation) => {
@@ -337,6 +363,7 @@ const DonationManagement = () => {
                         return (
                             <button
                                 key={tab}
+                                data-testid={`donation-tab-${tab}`}
                                 className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
                                 onClick={() => { setActiveTab(tab); setActiveStatus('ALL'); }}
                                 style={{
@@ -393,17 +420,26 @@ const DonationManagement = () => {
             <div className="product-list" style={{ marginTop: '16px', padding: '0 16px' }}>
                 {loading && <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)' }}>Loading donations...</div>}
                 {!loading && displayedDonations.length === 0 && (
-                    <div style={{ textAlign: 'center', padding: '4rem 2rem', backgroundColor: 'var(--color-surface)', borderRadius: '1.5rem', border: '1px dashed var(--color-border)', color: 'var(--color-text-muted)' }}>
-                        <Heart size={48} style={{ margin: '0 auto 1rem', opacity: 0.3 }} />
-                        <p>No donations found for this status</p>
-                    </div>
+                    <p style={{ textAlign: 'center', padding: '40px', color: 'var(--color-text-muted)' }}>
+                        No {TAB_LABELS[activeTab].toLowerCase()} donations found.
+                    </p>
                 )}
-
+                {/* Multi-select actions */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                    <button onClick={handleSelectAll} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '6px 12px', color: 'var(--color-text)', fontSize: '13px', fontWeight: 600 }}>
+                        {selectedIds.length === displayedDonations.length && displayedDonations.length > 0 ? <CheckSquare size={16} color="var(--color-primary)" /> : <Square size={16} color="var(--color-text-muted)" />}
+                        {selectedIds.length === displayedDonations.length && displayedDonations.length > 0 ? 'Deselect All' : 'Select All'}
+                    </button>
+                    <button onClick={handleMultiShare} disabled={selectedIds.length === 0} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: selectedIds.length ? 'var(--color-primary)' : 'var(--color-background)', color: selectedIds.length ? 'white' : 'var(--color-text-muted)', border: selectedIds.length ? 'none' : '1px solid var(--color-border)', borderRadius: '8px', padding: '6px 12px', fontSize: '13px', fontWeight: 600, cursor: selectedIds.length ? 'pointer' : 'not-allowed' }}>
+                        <Share2 size={16} /> Share Selected
+                    </button>
+                </div>
                 {displayedDonations.map((donation) => (
                     <motion.div
                         key={donation.id}
                         layout
                         onClick={() => donation.hasImage ? handleViewImage(donation) : null}
+                        data-testid={`donation-card-${donation.id}`}
                         style={{
                             backgroundColor: 'var(--color-surface)',
                             padding: '1.25rem',
@@ -416,6 +452,10 @@ const DonationManagement = () => {
                             boxShadow: 'var(--shadow-sm)'
                         }}
                     >
+                        {/* Selection checkbox */}
+                        <button onClick={(e) => { e.stopPropagation(); toggleSelection(donation.id); }} style={{ background: 'none', border: 'none', padding: '0', cursor: 'pointer', alignSelf: 'flex-start' }}>
+                            {selectedIds.includes(donation.id) ? <CheckSquare size={20} color="var(--color-primary)" /> : <Square size={20} color="var(--color-text-muted)" />}
+                        </button>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                             <div>
                                 <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--color-text)' }}>
@@ -510,6 +550,7 @@ const DonationManagement = () => {
                             {(donation.status === 'PENDING' || (donation.isOffline && donation.status === 'REGISTERED' && activeTab === 'RECEIVED')) && (
                                 <button
                                     onClick={() => handleUpdateStatus(donation.id, 'COMPLETED')}
+                                    data-testid={`accept-donation-${donation.id}`}
                                     style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', backgroundColor: 'var(--color-success)', color: 'white', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                                 >
                                     <Check size={16} /> Accept Donation
@@ -537,6 +578,7 @@ const DonationManagement = () => {
                             )}
                             <button
                                 onClick={() => handleDelete(donation.id)}
+                                data-testid={`delete-donation-${donation.id}`}
                                 style={{ padding: '8px', borderRadius: '8px', border: 'none', backgroundColor: 'var(--color-error-transparent)', color: 'var(--color-error)', cursor: 'pointer' }}
                             >
                                 <Trash2 size={18} />

@@ -1,5 +1,5 @@
-import React, { useEffect, Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import React, { Suspense, lazy, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate, Navigate, Outlet } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
@@ -7,6 +7,14 @@ import { ensureGoogleAuthInitialized } from './utils/GoogleAuthUtils';
 import DiagnosticLogs from './utils/DiagnosticLogs';
 
 import Home from './pages/Home'; // Home stays static for immediate visible paint
+
+const RootRedirect = () => {
+    if (Capacitor.isNativePlatform()) {
+        return <Navigate to="/mobile" replace />;
+    }
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+    return <Navigate to={isMobile ? "/mobile" : "/web"} replace />;
+};
 
 // Lazy load all other pages
 const About = lazy(() => import('./pages/About'));
@@ -79,6 +87,18 @@ const BankStatementUpload = lazy(() => import('./pages/BankStatementUpload'));
 const BankReconciliationRegs = lazy(() => import('./pages/BankReconciliationRegs'));
 const BankStatementView = lazy(() => import('./pages/BankStatementView'));
 const MediaMigration = lazy(() => import('./pages/MediaMigration'));
+
+// Website Replica Components
+import WebLayout from './components/WebLayout';
+const WebHome = lazy(() => import('./pages/WebHome'));
+const WebAbout = lazy(() => import('./pages/WebAbout'));
+const WebEMedia = lazy(() => import('./pages/WebEMedia'));
+const WebContact = lazy(() => import('./pages/WebContact'));
+const WebBookStore = lazy(() => import('./pages/WebBookStore'));
+const WebDonations = lazy(() => import('./pages/WebDonations'));
+const WebBookDetails = lazy(() => import('./pages/WebBookDetails'));
+const WebCheckout = lazy(() => import('./pages/WebCheckout'));
+
 import ProtectedRoute from './components/ProtectedRoute';
 import { AdminAuthProvider } from './context/AdminAuthContext';
 import { NotificationProvider } from './context/NotificationContext';
@@ -117,7 +137,7 @@ function AnimatedRoutes() {
       backButtonListener = await CapacitorApp.addListener('backButton', () => {
         const { pathname, search } = location;
 
-        if (pathname === '/') {
+        if (pathname === '/mobile' || pathname === '/web' || pathname === '/') {
           CapacitorApp.exitApp();
           return;
         }
@@ -267,7 +287,8 @@ function AnimatedRoutes() {
           const parentPath = '/' + segments.slice(0, -1).join('/');
           navigate(parentPath);
         } else {
-          navigate('/');
+          // Instead of '/', fallback to '/mobile' for root elements 
+          navigate('/mobile');
         }
       });
     };
@@ -289,7 +310,8 @@ function AnimatedRoutes() {
         </div>
       }>
         <Routes location={location} key={location.pathname}>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<RootRedirect />} />
+          <Route path="/mobile" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/programs" element={<ProgramCategories />} />
           <Route path="/programs/retreat" element={<Programs />} />
@@ -369,6 +391,23 @@ function AnimatedRoutes() {
           <Route path="/admin/back-office/offline-donation" element={<ProtectedRoute requiredPermission="OFFLINE_ENTRY"><BackOfficeOfflineDonation /></ProtectedRoute>} />
           <Route path="/admin/back-office/import-export" element={<ProtectedRoute requiredPermission="IMPORT_EXPORT"><BackOfficeImportExport /></ProtectedRoute>} />
 
+          {/* Website Replica Routes */}
+          <Route path="/web" element={
+            <WebLayout>
+              <Outlet />
+            </WebLayout>
+          }>
+            <Route index element={<WebHome />} />
+            <Route path="about" element={<WebAbout />} />
+            <Route path="emedia" element={<WebEMedia />} />
+            <Route path="downloads" element={<Navigate to="/web/emedia" replace />} />
+            <Route path="store" element={<WebBookStore />} />
+            <Route path="book/:id" element={<WebBookDetails />} />
+            <Route path="donate" element={<WebDonations />} />
+            <Route path="checkout" element={<WebCheckout />} />
+            <Route path="contact" element={<WebContact />} />
+          </Route>
+
           {/* Public view but management is admin */}
           <Route path="/schedule" element={<AyyasSchedule />} />
         </Routes>
@@ -380,6 +419,7 @@ function AnimatedRoutes() {
 import UpdateIcon from './components/UpdateIcon';
 
 function AppContent() {
+  const location = useLocation();
   const [currentVersion, setCurrentVersion] = React.useState(null);
   const { minAppVersion } = useGlobalSettings();
   const { isInitialized } = useAdminAuth();
@@ -416,17 +456,20 @@ function AppContent() {
     return <SkeletonScreen />;
   }
 
+  const isWebRoute = location.pathname.startsWith('/web');
+
   return (
     <div style={{ position: 'relative', minHeight: '100vh', width: '100%', backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}>
-      <ApiCounterOverlay />
-      <DiagnosticLogOverlay />
-      {/* Global Force Update Modal */}
-      <ForceUpdateModal currentVersion={currentVersion} minVersion={minAppVersion} />
-
-      {/* Global Floating Update Icon (Dev/Beta Feature) */}
-      <div style={{ position: 'fixed', top: '60px', right: '32px', zIndex: 9999 }}>
-        <UpdateIcon />
-      </div>
+      {!isWebRoute && (
+        <>
+          <ApiCounterOverlay />
+          <DiagnosticLogOverlay />
+          <ForceUpdateModal currentVersion={currentVersion} minVersion={minAppVersion} />
+          <div style={{ position: 'fixed', top: '60px', right: '32px', zIndex: 9999 }}>
+            <UpdateIcon />
+          </div>
+        </>
+      )}
 
       <ErrorBoundary>
         <AnimatedRoutes />

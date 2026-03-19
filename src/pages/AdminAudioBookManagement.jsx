@@ -9,6 +9,8 @@ import {
     deleteDoc, query, orderBy, serverTimestamp
 } from '@/utils/FirestoreProxy';
 import { db } from '@/firebase';
+import { bumpServerVersion } from '@/utils/SyncManager';
+import { updateDoc } from 'firebase/firestore';
 import PageHeader from '@/components/PageHeader';
 import LazyImage from '@/components/LazyImage';
 import { compressImage } from '@/utils/imageUtils';
@@ -84,6 +86,13 @@ const AdminAudioBookManagement = () => {
                 ...formData,
                 updatedAt: serverTimestamp()
             }, { merge: true });
+
+            // Caching & Notification Sync
+            await bumpServerVersion('audio_books');
+            await updateDoc(doc(db, 'system', 'metadata'), {
+                lastUpdated_audio_books: serverTimestamp()
+            });
+
             setIsModalOpen(false);
         } catch (err) {
             alert("Save failed: " + err.message);
@@ -94,7 +103,17 @@ const AdminAudioBookManagement = () => {
 
     const handleDelete = async (id) => {
         if (window.confirm("Delete this audio book?")) {
-            await deleteDoc(doc(db, 'audio_books', id));
+            try {
+                await deleteDoc(doc(db, 'audio_books', id));
+                
+                // Caching & Notification Sync
+                await bumpServerVersion('audio_books');
+                await updateDoc(doc(db, 'system', 'metadata'), {
+                    lastUpdated_audio_books: serverTimestamp()
+                });
+            } catch (error) {
+                alert("Delete failed: " + error.message);
+            }
         }
     };
 

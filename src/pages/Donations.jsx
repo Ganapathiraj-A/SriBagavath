@@ -201,6 +201,7 @@ const Donations = () => {
                             onClick={() => {
                                 if (onlineTransactionsEnabled) setSelectedAmount(option.id);
                             }}
+                            data-testid={`donation-option-${option.id}`}
                             style={{
                                 padding: '1.25rem',
                                 backgroundColor: onlineTransactionsEnabled ? 'var(--color-card)' : 'var(--color-surface)',
@@ -313,6 +314,7 @@ const Donations = () => {
                             boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
                             transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
                         }}
+                        data-testid="donate-proceed"
                     >
                         {authLoading ? 'Signing in...' : 'Proceed to Donate'}
                     </button>

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Check, Trash2, Rewind, X, Package, Truck, User, Search } from 'lucide-react';
+import { ChevronLeft, Check, Trash2, Rewind, X, Package, Truck, User, Search, Share2, Square, CheckSquare } from 'lucide-react';
 import { TransactionService } from '@/services/TransactionService';
+import { shareTransactions } from '@/utils/shareUtils';
 import PageHeader from '@/components/PageHeader';
 import { compressImage, normalizeImageSrc } from '@/utils/imageUtils';
 import '../components/RegistrationStyles.css';
@@ -27,6 +28,7 @@ const BookStoreManagement = () => {
     const [savingDetails, setSavingDetails] = useState(false);
     const [viewingImage, setViewingImage] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedIds, setSelectedIds] = useState([]);
 
     useEffect(() => {
         // Clear badges
@@ -154,6 +156,26 @@ const BookStoreManagement = () => {
             setUploadingReceipt(null);
             if (e.target) e.target.value = ''; // Reset input
         }
+    };
+
+    const toggleSelection = (id) => {
+        setSelectedIds(prev =>
+            prev.includes(id) ? prev.filter(selectedId => selectedId !== id) : [...prev, id]
+        );
+    };
+
+    const handleSelectAll = () => {
+        if (selectedIds.length === displayedOrders.length) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(displayedOrders.map(order => order.id));
+        }
+    };
+
+    const handleMultiShare = async () => {
+        const transactionsToShare = displayedOrders.filter(o => selectedIds.includes(o.id));
+        if (transactionsToShare.length === 0) return;
+        await shareTransactions(transactionsToShare, 'BOOK');
     };
 
     return (
@@ -329,6 +351,7 @@ const BookStoreManagement = () => {
                         return (
                             <button
                                 key={tab}
+                                data-testid={`order-tab-${tab}`}
                                 className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
                                 onClick={() => setActiveTab(tab)}
                                 style={{
@@ -389,29 +412,45 @@ const BookStoreManagement = () => {
                     </p>
                 )}
 
+                {/* Add Select All and Share button above the list */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                    <button onClick={handleSelectAll} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '6px 12px', color: 'var(--color-text)', fontSize: '13px', fontWeight: 600 }}>
+                        {selectedIds.length === displayedOrders.length && displayedOrders.length > 0 ? <CheckSquare size={16} color="var(--color-primary)" /> : <Square size={16} color="var(--color-text-muted)" />}
+                        {selectedIds.length === displayedOrders.length && displayedOrders.length > 0 ? 'Deselect All' : 'Select All'}
+                    </button>
+                    <button onClick={handleMultiShare} disabled={selectedIds.length === 0} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: selectedIds.length ? 'var(--color-primary)' : 'var(--color-background)', color: selectedIds.length ? 'white' : 'var(--color-text-muted)', border: selectedIds.length ? 'none' : '1px solid var(--color-border)', borderRadius: '8px', padding: '6px 12px', fontSize: '13px', fontWeight: 600, cursor: selectedIds.length ? 'pointer' : 'not-allowed' }}>
+                        <Share2 size={16} /> Share Selected
+                    </button>
+                </div>
+                {/* Existing product list rendering continues*/}
                 {displayedOrders.map(order => (
-                    <div key={order.id} className="card" style={{ marginBottom: '16px', borderLeft: order.status === 'PENDING' ? '4px solid var(--color-warning)' : '4px solid var(--color-success)', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                Order #{order.id.substring(0, 8)}
-                                {order.reconciled && (
-                                    <span style={{
-                                        backgroundColor: 'var(--color-primary-light)',
-                                        color: 'var(--color-primary-dark)',
-                                        fontSize: '10px',
-                                        padding: '2px 6px',
-                                        borderRadius: '4px',
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        gap: '4px'
-                                    }}>
-                                        <Check size={10} /> Bank Verified
-                                    </span>
-                                )}
-                            </span>
-                            <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
-                                {new Date(order.timestamp?.seconds * 1000 || Date.now()).toLocaleDateString()}
-                            </span>
+                    <div key={order.id} className="card" data-testid={`order-card-${order.id}`} style={{ marginBottom: '16px', borderLeft: order.status === 'PENDING' ? '4px solid var(--color-warning)' : '4px solid var(--color-success)', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <button onClick={() => toggleSelection(order.id)} style={{ background: 'none', border: 'none', padding: '0', cursor: 'pointer' }}>
+                                {selectedIds.includes(order.id) ? <CheckSquare size={20} color="var(--color-primary)" /> : <Square size={20} color="var(--color-text-muted)" />}
+                            </button>
+                            <div style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    Order #{order.id.substring(0, 8)}
+                                    {order.reconciled && (
+                                        <span style={{
+                                            backgroundColor: 'var(--color-primary-light)',
+                                            color: 'var(--color-primary-dark)',
+                                            fontSize: '10px',
+                                            padding: '2px 6px',
+                                            borderRadius: '4px',
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '4px'
+                                        }}>
+                                            <Check size={10} /> Bank Verified
+                                        </span>
+                                    )}
+                                </span>
+                                <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+                                    {new Date(order.timestamp?.seconds * 1000 || Date.now()).toLocaleDateString()}
+                                </span>
+                            </div>
                         </div>
 
                         {/* Offline Indicator */}
@@ -424,14 +463,15 @@ const BookStoreManagement = () => {
                                 fontWeight: 'bold',
                                 padding: '2px 6px',
                                 borderRadius: '4px',
-                                marginBottom: '8px'
+                                marginBottom: '8px',
+                                marginTop: '8px'
                             }}>
                                 OFFLINE ORDER
                             </div>
                         )}
 
                         {/* Items summary */}
-                        <div style={{ background: 'var(--color-background)', padding: '10px', borderRadius: '8px', marginBottom: '12px' }}>
+                        <div style={{ background: 'var(--color-background)', padding: '10px', borderRadius: '8px', marginBottom: '12px', marginTop: '8px' }}>
                             <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', fontWeight: 600, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                 <Package size={14} color="var(--color-text-secondary)" /> ORDER ITEMS
                             </div>
@@ -452,7 +492,6 @@ const BookStoreManagement = () => {
                             )}
                         </div>
 
-                        {/* Shipping details */}
                         {order.shippingAddress && (
                             <div style={{ background: 'var(--color-primary-bg)', padding: '10px', borderRadius: '8px', marginBottom: '12px', border: '1px solid var(--color-primary-light)' }}>
                                 <div style={{ fontSize: '12px', color: 'var(--color-primary-dark)', fontWeight: 600, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -506,6 +545,7 @@ const BookStoreManagement = () => {
                             {order.status === 'PENDING' && (
                                 <button
                                     onClick={() => handleUpdateStatus(order.id, 'PROCESSING')}
+                                    data-testid={`process-order-${order.id}`}
                                     style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', backgroundColor: 'var(--color-primary)', color: 'white', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                                 >
                                     <Package size={16} /> Mark Processing
@@ -521,6 +561,7 @@ const BookStoreManagement = () => {
                                     </button>
                                     <button
                                         onClick={() => handleUpdateStatus(order.id, 'SHIPPED')}
+                                        data-testid={`ship-order-${order.id}`}
                                         style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', backgroundColor: 'var(--color-warning)', color: 'white', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                                     >
                                         <Truck size={16} />
@@ -538,6 +579,7 @@ const BookStoreManagement = () => {
                                     </button>
                                     <button
                                         onClick={() => handleUpdateStatus(order.id, 'COMPLETED')}
+                                        data-testid={`complete-order-${order.id}`}
                                         style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', backgroundColor: 'var(--color-success)', color: 'white', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                                     >
                                         <Check size={16} /> Mark Completed
@@ -566,6 +608,7 @@ const BookStoreManagement = () => {
                             ) : null}
                             <button
                                 onClick={() => handleDelete(order.id)}
+                                data-testid={`delete-order-${order.id}`}
                                 style={{ padding: '8px', borderRadius: '8px', border: 'none', backgroundColor: 'var(--color-error-transparent)', color: 'var(--color-error)' }}
                             >
                                 <Trash2 size={18} />
