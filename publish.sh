@@ -76,6 +76,13 @@ gh release create "$GH_TAG" "$ARTIFACT_NAME" \
     --notes "Automated $FLAVOR release of v$VERSION." \
     $GH_FLAGS
 
+# 5. Play Store Publish (for AAB)
+if [ "$FLAVOR" = "prod-aab" ]; then
+    TRACK=${PLAYSTORE_TRACK:-internal}
+    echo "Publishing to Play Store ($TRACK track)..."
+    node scripts/upload_playstore.js "$TRACK" || { echo "❌ Play Store Upload Failed. Artifact still available on GitHub."; exit 1; }
+fi
+
 echo "======================================"
 echo "✅ $FLAVOR PUBLISHED SUCCESSFULLY!"
 echo "Artifact: $ARTIFACT_NAME"

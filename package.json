@@ -1,7 +1,7 @@
 {
   "name": "sri-bagavath",
   "private": true,
-  "version": "3.1.30",
+  "version": "3.1.31",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -14,6 +14,8 @@
     "publish:dev": "node scripts/cross_publish.js dev",
     "publish:prod": "node scripts/cross_publish.js prod",
     "publish:aab:prod": "node scripts/cross_publish.js prod-aab",
+    "publish:playstore": "node scripts/upload_playstore.js",
+    "publish:playstore:prod": "node scripts/upload_playstore.js production",
     "deploy:storage": "firebase deploy --only storage",
     "deploy:hosting:prod": "vite build --mode production && firebase deploy --only hosting:admin --project antigravity-app-5c1ff",
     "deploy:web": "node scripts/fetch-emedia.js && vite build --mode production && firebase deploy --only hosting:web --project antigravity-app-5c1ff",
@@ -58,6 +60,7 @@
     "firebase-admin": "^13.6.0",
     "firebase-tools": "^13.31.1",
     "globals": "^16.5.0",
+    "googleapis": "^171.4.0",
     "vite": "^5.4.11"
   }
 }
