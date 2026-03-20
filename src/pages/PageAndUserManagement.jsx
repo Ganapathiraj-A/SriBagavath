@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ChevronLeft, Layers, BookOpen, Users, EyeOff, Layout, MessageSquare, Hash, Settings, BarChart } from 'lucide-react';
+import { ChevronLeft, Layers, BookOpen, Users, EyeOff } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { SettingItem } from './AdminSettings';
 import { useAdminAuth } from '@/context/AdminAuthContext';
@@ -55,26 +55,6 @@ const PageAndUserManagement = () => {
             permission: 'SUPER_ADMIN',
             color: 'var(--color-warning)',
             bgColor: 'var(--color-warning-transparent)'
-        },
-        {
-            id: 'CLOUD_GLOBAL_SETTINGS',
-            title: 'Cloud Global Settings',
-            subtitle: 'Manage remote app configurations',
-            icon: Settings,
-            path: '/admin/cloud-settings',
-            permission: 'SUPER_ADMIN',
-            color: 'var(--color-tertiary)',
-            bgColor: 'var(--color-tertiary-transparent)'
-        },
-        {
-            id: 'ANALYTICS_TOOLS',
-            title: 'Analytics & Tools',
-            subtitle: 'System performance and data tools',
-            icon: BarChart,
-            path: '/admin/analytics-system',
-            permission: 'SUPER_ADMIN',
-            color: 'var(--color-quaternary)',
-            bgColor: 'var(--color-quaternary-transparent)'
         }
     ].filter(item => {
         const hasPermission = Array.isArray(item.permission)
@@ -87,7 +67,7 @@ const PageAndUserManagement = () => {
     return (
         <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>
             <PageHeader
-                title="Page & Users Mgmt"
+                title="Page & User Mgmt"
                 leftAction={
                     <button onClick={() => navigate('/configuration')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
                         <ChevronLeft size={24} />

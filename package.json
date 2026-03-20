@@ -21,7 +21,9 @@
     "deploy:web": "node scripts/fetch-emedia.js && vite build --mode production && firebase deploy --only hosting:web --project antigravity-app-5c1ff",
     "lint": "eslint .",
     "test:smoke": "playwright test",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "fetch:kpis": "node scripts/fetch_kpis.cjs",
+    "sync:kpis": "node scripts/sync_kpis_to_firestore.cjs"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.4",
@@ -57,7 +59,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "eslint-plugin-unused-imports": "^4.4.1",
-    "firebase-admin": "^13.6.0",
+    "firebase-admin": "^13.7.0",
     "firebase-tools": "^13.31.1",
     "globals": "^16.5.0",
     "googleapis": "^171.4.0",

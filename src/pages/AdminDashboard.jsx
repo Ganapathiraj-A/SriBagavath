@@ -1,677 +1,312 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ChevronLeft, Image, Users, Calendar, LayoutDashboard, Map as MapIcon, RefreshCcw, Database } from 'lucide-react';
+import { ChevronLeft, Database, Users, TrendingUp, IndianRupee, Activity, ShieldAlert, RefreshCcw, Calendar, TrendingDown } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { db } from '@/firebase';
-import { StatsService } from '@/services/StatsService';
-import { doc, getDoc, collection, getDocs, query, where, getCountFromServer } from '@/utils/FirestoreProxy';
-
-import { useUnseenCounts } from '@/hooks/useUnseenCounts';
-import { getLocalDateString } from '@/utils/dateUtils';
+import { doc, getDoc, collection, getDocs } from '@/utils/FirestoreProxy';
 import { useGlobalSettings } from '@/context/GlobalSettingsContext';
-import { useAdminAuth } from '@/context/AdminAuthContext';
 
-const SystemHealthCard = ({ health, onClick }) => (
-    <div
-        onClick={onClick}
-        style={{
-            background: health?.status === 'good' ? 'var(--color-success-transparent)' : 'var(--color-warning-transparent)',
-            padding: '24px',
-            borderRadius: '16px',
-            border: '1px solid',
-            borderColor: health?.status === 'good' ? 'var(--color-success)' : 'var(--color-warning)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '20px',
-            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
-            cursor: 'pointer'
-        }}
-    >
+// --- Cost Configuration ---
+const READ_COST_PER_100K_USD = 0.06;
+const WRITE_COST_PER_100K_USD = 0.18;
+const USD_TO_INR = 83;
+
+const YesterdaySnapshot = ({ data }) => {
+    if (!data) return null;
+    return (
         <div style={{
-            background: health?.status === 'good' ? 'var(--color-success-transparent)' : 'var(--color-warning-transparent)',
-            padding: '12px',
-            borderRadius: '12px',
-            color: health?.status === 'good' ? 'var(--color-success)' : 'var(--color-warning)'
+            background: 'var(--color-primary-transparent)',
+            padding: '20px',
+            borderRadius: '20px',
+            border: '1px solid var(--color-primary)',
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr 1fr',
+            gap: '12px',
+            textAlign: 'center'
         }}>
-            <Database size={28} />
-        </div>
-        <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: 'var(--color-text)' }}>System Health</h3>
-                <span style={{
-                    padding: '2px 10px',
-                    borderRadius: '20px',
-                    fontSize: '12px',
-                    fontWeight: '700',
-                    textTransform: 'uppercase',
-                    background: health?.status === 'good' ? 'var(--color-success)' : 'var(--color-warning)',
-                    color: 'var(--color-text-on-primary)'
-                }}>
-                    {health?.status || 'Good'}
-                </span>
+            <div style={{ gridColumn: 'span 3', marginBottom: '4px', textAlign: 'left', fontSize: '14px', fontWeight: '700', color: 'var(--color-primary-dark)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Calendar size={16} /> Yesterday's Snapshot ({data.date})
             </div>
-            <p style={{ margin: 0, fontSize: '14px', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
-                {health?.reason}
-            </p>
+            <div>
+                <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Users</div>
+                <div style={{ fontSize: '20px', fontWeight: '800', color: 'var(--color-text)' }}>{data.activeUsers || 0}</div>
+            </div>
+            <div>
+                <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Reads</div>
+                <div style={{ fontSize: '20px', fontWeight: '800', color: 'var(--color-text)' }}>{(data.firestoreReads || 0).toLocaleString()}</div>
+            </div>
+            <div>
+                <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Writes</div>
+                <div style={{ fontSize: '20px', fontWeight: '800', color: 'var(--color-text)' }}>{(data.firestoreWrites || 0).toLocaleString()}</div>
+            </div>
         </div>
+    );
+};
+
+const WeeklyHistoryTable = ({ history }) => {
+    const last7Days = history.slice(0, 7);
+    return (
+        <div style={{
+            background: 'var(--color-card)',
+            borderRadius: '20px',
+            overflow: 'hidden',
+            border: '1px solid var(--color-border)',
+            boxShadow: 'var(--shadow-sm)'
+        }}>
+            <div style={{ padding: '16px', background: 'var(--color-surface-alt)', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Activity size={18} color="var(--color-success)" />
+                <span style={{ fontSize: '15px', fontWeight: '700' }}>Last 7 Days History</span>
+            </div>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                <thead>
+                    <tr style={{ background: 'var(--color-surface)', borderBottom: '1px solid var(--color-border)' }}>
+                        <th style={{ padding: '10px 16px', textAlign: 'left', fontWeight: '600', color: 'var(--color-text-muted)' }}>Date</th>
+                        <th style={{ padding: '10px 16px', textAlign: 'right', fontWeight: '600', color: 'var(--color-text-muted)' }}>Users</th>
+                        <th style={{ padding: '10px 16px', textAlign: 'right', fontWeight: '600', color: 'var(--color-text-muted)' }}>Reads</th>
+                        <th style={{ padding: '10px 16px', textAlign: 'right', fontWeight: '600', color: 'var(--color-text-muted)' }}>Writes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {last7Days.map((day, idx) => (
+                        <tr key={day.date} style={{ borderBottom: idx === last7Days.length - 1 ? 'none' : '1px solid var(--color-border)' }}>
+                            <td style={{ padding: '10px 16px', color: 'var(--color-text)' }}>{day.date.split('-').slice(1).join('/')}</td>
+                            <td style={{ padding: '10px 16px', textAlign: 'right', fontWeight: '600', color: 'var(--color-text)' }}>{day.activeUsers || 0}</td>
+                            <td style={{ padding: '10px 16px', textAlign: 'right', color: 'var(--color-text-muted)' }}>{(day.firestoreReads || 0).toLocaleString()}</td>
+                            <td style={{ padding: '10px 16px', textAlign: 'right', color: 'var(--color-text-muted)' }}>{(day.firestoreWrites || 0).toLocaleString()}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    );
+};
+
+const CostAnalysisCard = ({ reads, writes }) => {
+    const readsCostUSD = (reads / 100000) * READ_COST_PER_100K_USD;
+    const writesCostUSD = (writes / 100000) * WRITE_COST_PER_100K_USD;
+    const totalUSD = readsCostUSD + writesCostUSD;
+    const totalINR = totalUSD * USD_TO_INR;
+
+    return (
+        <div style={{
+            background: 'var(--color-card)',
+            padding: '24px',
+            borderRadius: '20px',
+            boxShadow: 'var(--shadow-md)',
+            border: '1px solid var(--color-border)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px'
+        }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <IndianRupee size={22} color="var(--color-success)" />
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700' }}>Monthly Cost Breakdown</h3>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+                    <span style={{ color: 'var(--color-text-muted)' }}>Firestore Reads ({reads.toLocaleString()})</span>
+                    <span style={{ fontWeight: '600' }}>₹{(readsCostUSD * USD_TO_INR).toFixed(2)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+                    <span style={{ color: 'var(--color-text-muted)' }}>Firestore Writes ({writes.toLocaleString()})</span>
+                    <span style={{ fontWeight: '600' }}>₹{(writesCostUSD * USD_TO_INR).toFixed(2)}</span>
+                </div>
+                <div style={{ height: '1px', background: 'var(--color-border)', margin: '4px 0' }} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '18px', fontWeight: '800', color: 'var(--color-success)' }}>
+                    <span>Total Monthly Estimate</span>
+                    <span>₹{totalINR.toFixed(2)}</span>
+                </div>
+            </div>
+            <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontStyle: 'italic', textAlign: 'right' }}>
+                *Based on last 30 days usage ($1 = ₹{USD_TO_INR})
+            </div>
+        </div>
+    );
+};
+
+const EconomicsCard = ({ activeAudience, avgDailyUsers, totalCostINR }) => {
+    const costPerInstalled = activeAudience > 0 ? (totalCostINR / activeAudience) : 0;
+    const costPerDAU = avgDailyUsers > 0 ? (totalCostINR / avgDailyUsers) : 0;
+
+    return (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div style={{ background: 'var(--color-card)', padding: '16px', borderRadius: '16px', border: '1px solid var(--color-border)' }}>
+                <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Cost / Active Audience</div>
+                <div style={{ fontSize: '20px', fontWeight: '800', color: 'var(--color-text)' }}>₹{costPerInstalled.toFixed(4)}</div>
+            </div>
+            <div style={{ background: 'var(--color-card)', padding: '16px', borderRadius: '16px', border: '1px solid var(--color-border)' }}>
+                <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Cost / Active User (DAU)</div>
+                <div style={{ fontSize: '20px', fontWeight: '800', color: 'var(--color-info)' }}>₹{costPerDAU.toFixed(2)}</div>
+            </div>
+        </div>
+    );
+};
+
+const ScalingTable = ({ avgDAU, peakDAU, activeAudience, lifetimeUsers }) => (
+    <div style={{
+        background: 'var(--color-card)',
+        borderRadius: '20px',
+        overflow: 'hidden',
+        border: '1px solid var(--color-border)',
+        boxShadow: 'var(--shadow-sm)'
+    }}>
+        <div style={{ padding: '16px', background: 'var(--color-surface-alt)', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <TrendingUp size={18} color="var(--color-info)" />
+            <span style={{ fontSize: '15px', fontWeight: '700' }}>Usage Scaling Metrics</span>
+        </div>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+            <tbody>
+                <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
+                    <td style={{ padding: '12px 16px', color: 'var(--color-text-muted)' }}>Avg Daily Users (30d)</td>
+                    <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: '700' }}>{avgDAU.toFixed(0)}</td>
+                </tr>
+                <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
+                    <td style={{ padding: '12px 16px', color: 'var(--color-text-muted)' }}>Peak Daily Users (30d)</td>
+                    <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: '700', color: 'var(--color-error)' }}>{peakDAU.toLocaleString()}</td>
+                </tr>
+                <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
+                    <td style={{ padding: '12px 16px', color: 'var(--color-text-muted)' }}>Active Audience (Approx 30d)</td>
+                    <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: '800', color: 'var(--color-info)' }}>{activeAudience.toLocaleString()}</td>
+                </tr>
+                <tr>
+                    <td style={{ padding: '12px 16px', color: 'var(--color-text-muted)' }}>Lifetime Reach (Historical)</td>
+                    <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: '700', color: 'var(--color-primary)' }}>{lifetimeUsers.toLocaleString()}</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 );
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
-    const { counts } = useUnseenCounts();
-    const { appVersion, hiddenScreens, devMode } = useGlobalSettings();
-    const { isAdmin } = useAdminAuth();
+    const { appVersion } = useGlobalSettings();
 
-    const effectiveRole = isAdmin ? (devMode ? 'dev' : 'admin') : 'public';
-    const currentHiddenScreens = hiddenScreens?.[effectiveRole] || [];
-
-    const [stats, setStats] = useState(null);
-    const [geoStats, setGeoStats] = useState(null);
-    const [geoView, setGeoView] = useState('overall'); // 'overall' or 'monthly'
-    const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().substring(0, 7));
+    const [summary, setSummary] = useState(null);
+    const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [health, setHealth] = useState({ status: 'good', reason: 'System performance within limits', detailedMetrics: null });
 
-    const showHealthDetails = () => {
-        if (!health.detailedMetrics) return;
-        const { avgUsers, peakUsers, totalSizeMB, bookCoverSizeMB, bookCoverCount } = health.detailedMetrics;
-
-        const message = `System Health Logic Breakdown:
-
-1. Thresholds:
-- Storage Limit: 500 MB
-- Daily Avg Limit: 400 Users
-- Peak Usage Limit: 700 Users
-
-2. Current Performance:
-- Total Storage: ${totalSizeMB.toFixed(2)} MB${bookCoverSizeMB ? `\n  (Incl. ${bookCoverSizeMB.toFixed(2)}MB from ${bookCoverCount || 0} Book Covers)` : ''}
-- 30-Day Avg: ${avgUsers.toFixed(0)} Users/Day
-- 30-Day Peak: ${peakUsers} Users
-
-Status strictly moves to 'Warning' if any threshold is exceeded. 
-Otherwise, it stays 'Good'.`;
-
-        alert(message);
-    };
-
-    const fetchStats = useCallback(async () => {
+    const fetchData = useCallback(async () => {
         setLoading(true);
         try {
-            const totalsRef = doc(db, "system_stats", "totals");
-            const geoRef = doc(db, "geo_stats", "login_counts");
-            const today = getLocalDateString();
-            const todayRef = doc(db, "system_stats", `daily_${today}`);
+            const summaryRef = doc(db, "app_analytics", "summary");
+            const historyRef = collection(db, "app_analytics", "daily_history", "dates");
 
-            // Prepare Queries
-            const currentProgsQuery = query(collection(db, 'programs'), where('programDate', '>=', today));
-            const currentRegsQuery = query(collection(db, 'transactions'), where('programDate', '>=', today));
-
-            // Fetch Last 30 Days History keys
-            const last30Days = [];
-            for (let i = 0; i < 30; i++) {
-                const date = new Date();
-                date.setDate(date.getDate() - i);
-                last30Days.push(date.toISOString().split('T')[0]);
-            }
-
-            // Execute all fetches in parallel
-            const [
-                totalsSnap,
-                geoSnap,
-                todaySnap,
-                currentProgsSnap,
-                currentRegsSnap,
-                ...historySnaps
-            ] = await Promise.all([
-                getDoc(totalsRef),
-                getDoc(geoRef),
-                getDoc(todayRef),
-                getCountFromServer(currentProgsQuery),
-                getDocs(currentRegsQuery),
-                ...last30Days.map(date => getDoc(doc(db, "system_stats", `daily_${date}`)))
+            const [summarySnap, historySnap] = await Promise.all([
+                getDoc(summaryRef),
+                getDocs(historyRef)
             ]);
 
-            const activeParticipants = currentRegsSnap.docs.reduce((acc, d) => acc + (d.data().participantCount || d.data().participants?.length || 1), 0);
-
-            setStats({
-                ...(totalsSnap.exists() ? totalsSnap.data() : {}),
-                todayUsers: todaySnap.exists() ? todaySnap.data().count : 0,
-                activePrograms: currentProgsSnap.data().count,
-                activeParticipants: activeParticipants
-            });
-
-            const historyData = historySnaps
-                .filter(s => s.exists())
-                .map(s => ({ date: s.id.replace('daily_', ''), count: s.data().count || 0 }));
-
-            /* History tracking removed - using local historyData for health check */
-
-            // Calculate Health
-            const totalSizeMB = totalsSnap.exists() ? (totalsSnap.data().totalImageSizeMB || 0) : 0;
-            const bookCoverSizeMB = totalsSnap.exists() ? (totalsSnap.data().totalBookCoverSizeMB || 0) : 0;
-            const bookCoverCount = totalsSnap.exists() ? (totalsSnap.data().totalBookCovers || 0) : 0;
-            const avgUsers = historyData.length > 0 ? (historyData.reduce((acc, d) => acc + d.count, 0) / historyData.length) : 0;
-            const peakUsers = historyData.length > 0 ? Math.max(...historyData.map(d => d.count)) : 0;
-
-            let healthStatus = 'good';
-            let healthReason = 'System performance within limits';
-
-            if (totalSizeMB > 500) {
-                healthStatus = 'warning';
-                healthReason = `Image storage (${totalSizeMB.toFixed(1)}MB) exceeds 500MB limit.`;
-            } else if (avgUsers > 400) {
-                healthStatus = 'warning';
-                healthReason = `Average daily usage (${avgUsers.toFixed(0)} users) exceeds 400 user limit.`;
-            } else if (peakUsers > 700) {
-                healthStatus = 'warning';
-                healthReason = `Peak daily usage reached ${peakUsers} users, exceeding 700 user threshold.`;
-            } else if (historyData.length > 0) {
-                healthReason = `Healthy: ${avgUsers.toFixed(0)} avg / ${peakUsers} peak users. Storage: ${totalSizeMB.toFixed(1)}MB`;
+            if (summarySnap.exists()) {
+                setSummary(summarySnap.data());
             }
 
-            setHealth({
-                status: healthStatus,
-                reason: healthReason,
-                detailedMetrics: { avgUsers, peakUsers, totalSizeMB, bookCoverSizeMB, bookCoverCount }
-            });
+            const historyData = historySnap.docs
+                .map(doc => ({ date: doc.id, ...doc.data() }))
+                .sort((a, b) => b.date.localeCompare(a.date))
+                .slice(0, 30); // Last 30 days
 
-            if (geoSnap.exists()) {
-                setGeoStats(geoSnap.data());
-            }
-
-        } catch (_err) {
-            console.error("Dashboard fetch failed", _err);
+            setHistory(historyData);
+        } catch (err) {
+            console.error("Dashboard fetch failed", err);
         } finally {
             setLoading(false);
         }
     }, []);
 
-    const handleRecalculate = async () => {
-        if (!window.confirm("This will scan the database to fix any count discrepancies. Continue?")) return;
-        setLoading(true);
-        try {
-            await StatsService.recalculateTotals();
-            alert("Stats recalculated successfully!");
-            await fetchStats();
-        } catch (_err) {
-            alert("Recalculate failed: " + _err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    /*
-    const handleClearAll = async () => {
-        const password = window.prompt("Enter admin password to proceed with FULL system reset:");
-        if (password !== "413800") {
-            if (password !== null) alert("Incorrect password.");
-            return;
-        }
-
-        const confirm1 = window.confirm("WARNING: This will delete ALL programs, registrations, and images. THIS CANNOT BE UNDONE. Are you absolutely sure?");
-        if (!confirm1) return;
-
-        const confirm2 = window.prompt("Type 'DELETE ALL' to confirm (Caps lock on):");
-        if (confirm2 !== 'DELETE ALL') return;
-
-        setLoading(true);
-        // setLoading(true);
-        try {
-            await StatsService.clearAllData();
-            alert("System has been reset successfully!");
-            await fetchStats();
-        } catch (_err) {
-            alert("Force visit failed: " + _err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
-    */
-
-    const handleForceVisit = async () => {
-        setLoading(true);
-        try {
-            await StatsService.trackUserLogin(true);
-            alert("This device has been force-recorded as a visitor for today!");
-            await fetchStats();
-        } catch (_err) {
-            alert("Force visit failed: " + _err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
-
     useEffect(() => {
-        fetchStats();
-    }, [fetchStats]);
+        fetchData();
+    }, [fetchData]);
 
-     
-    const StatCard = ({ title, value, unit = "", icon: IconComponent, color, bgColor }) => (
-        <div style={{
-            background: 'var(--color-card)',
-            padding: '20px',
-            borderRadius: '16px',
-            boxShadow: 'var(--shadow-sm)',
-            border: '1px solid var(--color-border)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px'
-        }}>
-            <div style={{
-                background: bgColor || `${color}15`,
-                padding: '12px',
-                borderRadius: '12px',
-                color: color
-            }}>
-                <IconComponent size={24} />
-            </div>
-            <div>
-                <div style={{ fontSize: '14px', color: 'var(--color-text-muted)', fontWeight: '500' }}>{title}</div>
-                <div style={{ fontSize: '24px', fontWeight: '700', color: 'var(--color-text)' }}>
-                    {value || 0}{unit}
-                </div>
-            </div>
-        </div>
-    );
+    // Derived Metrics
+    const lifetimeUsers = summary?.lifetimeTotalUsers || 0;
+    const activeAudience = summary?.activeAudience28d || 0;
+    const totalReads30d = history.reduce((acc, d) => acc + (d.firestoreReads || 0), 0);
+    const totalWrites30d = history.reduce((acc, d) => acc + (d.firestoreWrites || 0), 0);
+    const avgDAU = history.length > 0 ? (history.reduce((acc, d) => acc + (d.activeUsers || 0), 0) / history.length) : 0;
+    const peakDAU = history.length > 0 ? Math.max(...history.map(d => d.activeUsers || 0)) : 0;
 
-    const NotificationBanner = () => {
-        const totalPending = counts.registrations + counts.transactions;
-        if (totalPending === 0 || currentHiddenScreens.includes('/admin-review')) return null;
-
-        return (
-            <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                onClick={() => navigate('/admin-review')}
-                style={{
-                    background: 'var(--color-error)',
-                    padding: '16px',
-                    borderRadius: '16px',
-                    color: 'white',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    cursor: 'pointer',
-                    boxShadow: '0 10px 15px -3px rgba(239, 68, 68, 0.4)',
-                    marginBottom: '10px'
-                }}
-            >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{ background: 'rgba(255,255,255,0.2)', padding: '8px', borderRadius: '12px' }}>
-                        <RefreshCcw size={20} className="animate-spin-slow" />
-                    </div>
-                    <div>
-                        <div style={{ fontWeight: 'bold', fontSize: '16px' }}>Pending Actions Required</div>
-                        <div style={{ fontSize: '14px', opacity: 0.9 }}>
-                            {counts.registrations > 0 && `${counts.registrations} Registrations`}
-                            {counts.registrations > 0 && counts.transactions > 0 && ' & '}
-                            {counts.transactions > 0 && `${counts.transactions} Book Orders`}
-                        </div>
-                    </div>
-                </div>
-                <div style={{ background: 'var(--color-background)', color: 'var(--color-error)', padding: '4px 12px', borderRadius: '20px', fontWeight: '700', fontSize: '14px' }}>
-                    Review
-                </div>
-            </motion.div>
-        );
-    };
+    const totalCostUSD = ((totalReads30d / 100000) * READ_COST_PER_100K_USD) + ((totalWrites30d / 100000) * WRITE_COST_PER_100K_USD);
+    const totalCostINR = totalCostUSD * USD_TO_INR;
 
     return (
-        <div className="min-h-screen pb-20" style={{ backgroundColor: 'var(--color-background)' }}>
-            {loading && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'var(--color-background)',
-                    opacity: 0.7,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000
-                }}>
-                    <RefreshCcw className="animate-spin" size={40} color="var(--color-primary)" />
-                </div>
-            )}
+        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-surface)', paddingBottom: '40px' }}>
             <PageHeader
-                title="Admin Dashboard"
+                title="Economics Dashboard"
                 leftAction={
-                    <button onClick={() => navigate(-1)} className="p-2">
+                    <button onClick={() => navigate(-1)} style={{ padding: '8px', border: 'none', background: 'transparent', cursor: 'pointer' }}>
                         <ChevronLeft size={24} />
+                    </button>
+                }
+                rightAction={
+                    <button onClick={fetchData} style={{ padding: '8px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-primary)' }}>
+                        <RefreshCcw size={20} className={loading ? 'animate-spin' : ''} />
                     </button>
                 }
             />
 
-            <div style={{ padding: '20px', display: 'grid', gap: '20px' }}>
-
-                {/* System Health Section */}
-                <SystemHealthCard health={health} onClick={showHealthDetails} />
-
-                {/* 1. Stats Grid */}
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
-                    gap: '12px'
-                }}>
-                    <StatCard
-                        title="Active Progs"
-                        value={stats?.activePrograms}
-                        icon={Calendar}
-                        color="var(--color-warning)"
-                        bgColor="var(--color-warning-transparent)"
-                    />
-                    <StatCard
-                        title="Active Participants"
-                        value={stats?.activeParticipants}
-                        icon={Users}
-                        color="var(--color-error)"
-                        bgColor="var(--color-error-transparent)"
-                    />
-                    <StatCard
-                        title="Users Today"
-                        value={stats?.todayUsers}
-                        icon={Users}
-                        color="var(--color-info)"
-                        bgColor="var(--color-info-transparent)"
-                    />
-                    <StatCard
-                        title="Users Month"
-                        value={geoStats?.monthly?.[new Date().toISOString().substring(0, 7)] ?
-                            Object.values(geoStats.monthly[new Date().toISOString().substring(0, 7)]).reduce((a, b) => a + b, 0) : 0
-                        }
-                        icon={Users}
-                        color="var(--color-accent)"
-                        bgColor="var(--color-accent-transparent)"
-                    />
-                    <StatCard
-                        title="Overall Progs"
-                        value={stats?.totalPrograms}
-                        icon={LayoutDashboard}
-                        color="var(--color-info)"
-                        bgColor="var(--color-info-transparent)"
-                    />
-                    <StatCard
-                        title="Overall Participants"
-                        value={stats?.totalParticipants}
-                        icon={Users}
-                        color="var(--color-success)"
-                        bgColor="var(--color-success-transparent)"
-                    />
-                    <StatCard
-                        title="Book Orders"
-                        value={stats?.totalBookOrders}
-                        icon={LayoutDashboard}
-                        color="var(--color-success)"
-                        bgColor="var(--color-success-transparent)"
-                    />
-                    <StatCard
-                        title="Book Revenue"
-                        value={stats?.totalBookRevenue}
-                        unit=" ₹"
-                        icon={RefreshCcw}
-                        color="var(--color-success)"
-                        bgColor="var(--color-success-transparent)"
-                    />
-                    <StatCard
-                        title="Program Banners"
-                        value={stats?.totalBanners}
-                        icon={Image}
-                        color="var(--color-accent)"
-                        bgColor="var(--color-accent-transparent)"
-                    />
-                    <StatCard
-                        title="Online Banners"
-                        value={stats?.totalOnlineBanners}
-                        icon={Image}
-                        color="var(--color-info)"
-                        bgColor="var(--color-info-transparent)"
-                    />
-                    <StatCard
-                        title="Satsang Banners"
-                        value={stats?.totalSatsangBanners}
-                        icon={Image}
-                        color="var(--color-warning)"
-                        bgColor="var(--color-warning-transparent)"
-                    />
-                    <StatCard
-                        title="Receipt Images"
-                        value={stats?.totalReceipts}
-                        icon={Image}
-                        color="var(--color-accent)"
-                        bgColor="var(--color-accent-transparent)"
-                    />
-                    <StatCard
-                        title="Book Covers"
-                        value={stats?.totalBookCovers}
-                        icon={Image}
-                        color="var(--color-success)"
-                        bgColor="var(--color-success-transparent)"
-                    />
-                    <StatCard
-                        title="Storage Size"
-                        value={stats?.totalImageSizeMB?.toFixed(2)}
-                        unit="MB"
-                        icon={RefreshCcw}
-                        color="var(--color-text-muted)"
-                        bgColor="var(--color-surface-alt)"
-                    />
+            {loading ? (
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
+                    <Activity className="animate-pulse" size={48} color="var(--color-primary)" />
                 </div>
+            ) : (
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '42rem', margin: '0 auto' }}
+                >
+                    {/* Yesterday Snapshot Section */}
+                    <YesterdaySnapshot data={history[0]} />
 
-                {/* Geographic Distribution */}
-                <div style={{
-                    background: 'var(--color-card)',
-                    padding: '24px',
-                    borderRadius: '16px',
-                    boxShadow: 'var(--shadow-sm)',
-                    border: '1px solid var(--color-border)'
-                }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <MapIcon size={20} color="var(--color-primary)" />
-                            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: 'var(--color-text)' }}>{geoView === 'overall' ? 'Overall' : 'Monthly'} Distribution</h3>
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
-                            <div style={{ display: 'flex', gap: '4px', background: 'var(--color-surface-alt)', padding: '4px', borderRadius: '8px' }}>
-                                <button
-                                    onClick={() => setGeoView('overall')}
-                                    style={{
-                                        padding: '4px 12px',
-                                        fontSize: '12px',
-                                        borderRadius: '6px',
-                                        background: geoView === 'overall' ? 'var(--color-background)' : 'transparent',
-                                        boxShadow: geoView === 'overall' ? 'var(--shadow-sm)' : 'none',
-                                        border: 'none',
-                                        fontWeight: '500',
-                                        color: 'var(--color-text)'
-                                    }}
-                                >Overall</button>
-                                <button
-                                    onClick={() => setGeoView('monthly')}
-                                    style={{
-                                        padding: '4px 12px',
-                                        fontSize: '12px',
-                                        borderRadius: '6px',
-                                        background: geoView === 'monthly' ? 'var(--color-background)' : 'transparent',
-                                        boxShadow: geoView === 'monthly' ? 'var(--shadow-sm)' : 'none',
-                                        border: 'none',
-                                        fontWeight: '500',
-                                        color: 'var(--color-text)'
-                                    }}
-                                >Month</button>
-                            </div>
+                    {/* Past Week History Table */}
+                    <WeeklyHistoryTable history={history} />
 
-                            {geoView === 'monthly' && geoStats?.monthly && (
-                                <div style={{
-                                    display: 'flex',
-                                    gap: '8px',
-                                    overflowX: 'auto',
-                                    maxWidth: '100%',
-                                    paddingBottom: '4px',
-                                    WebkitOverflowScrolling: 'touch',
-                                    msOverflowStyle: 'none',
-                                    scrollbarWidth: 'none'
-                                }}>
-                                    {Object.keys(geoStats.monthly).sort().reverse().map(m => {
-                                        const isActive = selectedMonth === m;
-                                        return (
-                                            <button
-                                                key={m}
-                                                onClick={() => setSelectedMonth(m)}
-                                                style={{
-                                                    padding: '6px 12px',
-                                                    fontSize: '11px',
-                                                    borderRadius: '8px',
-                                                    border: '1px solid',
-                                                    borderColor: isActive ? 'var(--color-primary)' : 'var(--color-border)',
-                                                    background: isActive ? 'var(--color-primary)' : 'var(--color-surface)',
-                                                    color: isActive ? 'var(--color-text-on-primary)' : 'var(--color-text-muted)',
-                                                    fontWeight: '600',
-                                                    whiteSpace: 'nowrap'
-                                                }}
-                                            >
-                                                {new Date(m + "-02").toLocaleString('default', { month: 'short', year: '2-digit' })}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            )}
+                    {/* Cost Summary Section */}
+                    <CostAnalysisCard reads={totalReads30d} writes={totalWrites30d} />
+                    
+                    {/* Per-User Economics Section */}
+                    <EconomicsCard 
+                        activeAudience={activeAudience} 
+                        avgDailyUsers={avgDAU} 
+                        totalCostINR={totalCostINR} 
+                    />
+
+                    {/* Usage Scaling Table */}
+                    <ScalingTable 
+                        avgDAU={avgDAU} 
+                        peakDAU={peakDAU} 
+                        activeAudience={activeAudience}
+                        lifetimeUsers={lifetimeUsers}
+                    />
+
+                    {/* Diagnostics/Info */}
+                    <div style={{
+                        padding: '16px',
+                        background: 'var(--color-info-transparent)',
+                        borderRadius: '16px',
+                        border: '1px solid var(--color-info)',
+                        display: 'flex',
+                        gap: '12px',
+                        alignItems: 'flex-start'
+                    }}>
+                        <ShieldAlert size={20} color="var(--color-info)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                        <div style={{ fontSize: '13px', color: 'var(--color-info-dark)', lineHeight: 1.5 }}>
+                            <strong>Metric Note:</strong> 'Active Audience' matches Play Console more closely by counting unique users active in the last 30 days. 'Lifetime Reach' includes every user since inception.
                         </div>
                     </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        {(() => {
-                            const data = geoView === 'overall' ? (geoStats?.counts || {}) : (geoStats?.monthly?.[selectedMonth] || {});
-                            const entries = Object.entries(data).sort(([, a], [, b]) => b - a);
-                            const total = Object.values(data).reduce((a, b) => a + b, 0);
-
-                            if (entries.length === 0) {
-                                return (
-                                    <div style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: '20px' }}>
-                                        No data for this view.
-                                    </div>
-                                );
-                            }
-
-                            return entries.slice(0, 10).map(([loc, count]) => {
-                                const percentage = ((count / total) * 100).toFixed(1);
-                                return (
-                                    <div key={loc}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '14px', color: 'var(--color-text)' }}>
-                                            <span style={{ fontWeight: '500' }}>{loc}</span>
-                                            <span style={{ color: 'var(--color-text-muted)' }}>{count} users ({percentage}%)</span>
-                                        </div>
-                                        <div style={{ background: 'var(--color-surface)', height: '8px', borderRadius: '4px' }}>
-                                            <div style={{
-                                                background: 'var(--color-info-dark)',
-                                                height: '100%',
-                                                width: `${percentage}%`,
-                                                borderRadius: '4px',
-                                                transition: 'width 0.5s ease-out'
-                                            }} />
-                                        </div>
-                                    </div>
-                                );
-                            });
-                        })()}
+                    <div style={{
+                        textAlign: 'center',
+                        color: 'var(--color-text-muted)',
+                        fontSize: '11px',
+                        fontWeight: '600',
+                        marginTop: '10px'
+                    }}>
+                        {import.meta.env.MODE.toUpperCase()} ENGINE | v{appVersion}
                     </div>
-                </div>
-
-                {/* Diagnostics (Debug Only) */}
-                <div style={{
-                    padding: '20px',
-                    backgroundColor: 'var(--color-warning-transparent)',
-                    borderRadius: '16px',
-                    border: '1px solid var(--color-warning)',
-                    fontSize: '13px'
-                }}>
-                    <h4 style={{ margin: '0 0 10px 0', color: 'var(--color-warning)' }}>📊 Diagnostics</h4>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', color: 'var(--color-warning)' }}>
-                        <div>Last Data Sync: {stats?.updatedAt?.toDate?.()?.toLocaleString() || "Never"}</div>
-                        <div>Total Unique Devices: {stats?.totalUniqueDevices || 0}</div>
-                        <button
-                            onClick={handleForceVisit}
-                            style={{
-                                padding: '8px 12px',
-                                background: 'var(--color-warning-transparent)',
-                                border: '1px solid var(--color-warning)',
-                                borderRadius: '8px',
-                                color: 'var(--color-warning)',
-                                fontWeight: '600',
-                                width: 'fit-content'
-                            }}
-                        >
-                            Force Track This Device
-                        </button>
-                    </div>
-                </div>
-
-                {/* Bottom Action Bar */}
-                <div style={{
-                    display: 'flex',
-                    gap: '12px',
-                    padding: '16px 20px 32px 20px',
-                    backgroundColor: 'var(--color-card)',
-                    borderTop: '1px solid var(--color-border)',
-                    position: 'sticky',
-                    bottom: 0,
-                    zIndex: 10,
-                    marginBottom: '-20px',
-                    marginLeft: '-20px',
-                    marginRight: '-20px'
-                }}>
-                    <button
-                        onClick={fetchStats}
-                        style={{
-                            flex: 1,
-                            padding: '12px',
-                            borderRadius: '12px',
-                            backgroundColor: 'var(--color-surface-alt)',
-                            border: 'none',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '8px',
-                            color: 'var(--color-text-muted)',
-                            fontWeight: '600'
-                        }}
-                    >
-                        <RefreshCcw size={18} /> Refresh
-                    </button>
-                    <button
-                        onClick={handleRecalculate}
-                        style={{
-                            flex: 1,
-                            padding: '12px',
-                            borderRadius: '12px',
-                            backgroundColor: 'var(--color-primary-transparent)',
-                            border: 'none',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '8px',
-                            color: 'var(--color-primary-dark)',
-                            fontWeight: '600'
-                        }}
-                    >
-                        <Database size={18} /> Sync
-                    </button>
-                </div>
-
-                <div style={{
-                    textAlign: 'center',
-                    marginTop: '20px',
-                    paddingBottom: '20px',
-                    color: 'var(--color-text-muted)',
-                    fontSize: '12px',
-                    fontWeight: '500'
-                }}>
-                    {import.meta.env.MODE} | v{appVersion}
-                </div>
-            </div>
+                </motion.div>
+            )}
         </div>
     );
 };

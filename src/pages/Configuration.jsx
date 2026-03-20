@@ -220,7 +220,7 @@ const Configuration = () => {
                                 {hasAccess('ADMIN_REVIEW') && !currentHiddenScreens.includes('/admin/donations') && <ConfigButton title="Donations" icon={Heart} path="/admin/donations" delay={0.17} color="var(--color-error)" bgColor="var(--color-error-transparent)" badgeCount={counts.donations} />}
                                 {(hasAccess('PROGRAM_MANAGEMENT') || hasAccess('MANAGE_USERS') || hasAccess('SUPER_ADMIN')) && !currentHiddenScreens.includes('/admin/page-user-management') && (
                                     <ConfigButton
-                                        title="Page & Users Mgmt"
+                                        title="Page & User Mgmt"
                                         subtitle="Programs, Media, Admins & Visibility"
                                         icon={Layers}
                                         path="/admin/page-user-management"
