@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Check, Trash2, Rewind, AlertCircle, X, Package, Image, Info, Share2, Square, CheckSquare } from 'lucide-react';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
@@ -252,6 +252,20 @@ const AdminReview = () => {
 
     // State for Image Modal
     const [viewingImage, setViewingImage] = useState(null);
+    const [activeModalTab, setActiveModalTab] = useState('IMAGE'); // 'IMAGE' or 'DETAILS'
+
+    useEffect(() => {
+        if (viewingImage) {
+            document.body.style.overflow = 'hidden';
+            // Also prevent default touch move on body for iOS
+            const preventDefault = (e) => e.preventDefault();
+            document.addEventListener('touchmove', preventDefault, { passive: false });
+            return () => {
+                document.body.style.overflow = 'unset';
+                document.removeEventListener('touchmove', preventDefault);
+            };
+        }
+    }, [viewingImage]);
     const [viewingReg, setViewingReg] = useState(null);
 
     const extractUtrSuggestions = (text) => {
@@ -282,16 +296,17 @@ const AdminReview = () => {
             if (base64) {
                 setViewingImage({
                     base64,
+                    id: tx.id,
                     utr: tx.utr,
                     amount: tx.amount,
                     parsedAmount: tx.parsedAmount,
-                    id: tx.id,
                     ocrText: tx.ocrText || '',
                     mismatchedBankEntryId: tx.mismatchedBankEntryId,
                     mismatchedBankAmount: tx.mismatchedBankAmount,
                     mismatchedBankDesc: tx.mismatchedBankDesc,
                     mismatchedBankDate: tx.mismatchedBankDate
                 });
+                setActiveModalTab('IMAGE');
                 setEditingUtrValue(tx.utr || '');
                 setEditingAmountValue(tx.amount?.toString() || '');
                 setEditingParsedAmountValue(tx.parsedAmount?.toString() || '');
@@ -456,13 +471,13 @@ const AdminReview = () => {
                         background: 'var(--color-card)',
                         padding: '1.25rem',
                         borderRadius: '1.5rem',
-                        maxWidth: '28rem',
-                        width: '100%',
-                        maxHeight: '92vh',
+                        maxWidth: '30rem',
+                        width: '95%',
+                        maxHeight: '94vh',
                         display: 'flex',
                         flexDirection: 'column',
                         gap: '1rem',
-                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                        boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)',
                         overflow: 'hidden',
                         position: 'relative'
                     }}>
@@ -505,136 +520,193 @@ const AdminReview = () => {
                             </div>
                         </div>
 
-                        {/* Receipt Image */}
-                        <div style={{ position: 'relative', borderRadius: '1rem', overflowY: 'auto', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', maxHeight: '65vh', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
-                            <LazyImage
-                                src={normalizeImageSrc(viewingImage.base64)}
-                                alt="Receipt"
-                                width="100%"
-                                height="auto"
-                                objectFit="contain"
-                                display="block"
-                            />
-                            <div style={{ position: 'absolute', top: '0.75rem', right: '0.75rem', backgroundColor: 'var(--color-card)', padding: '4px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, color: 'var(--color-text)', backdropFilter: 'blur(4px)', border: '1px solid var(--color-border)' }}>
-                                Receipt Image
-                            </div>
-                        </div>
-
-                        {/* OCR Text / Suggestions */}
-                        <div style={{ backgroundColor: 'var(--color-surface)', padding: '15px', borderRadius: '12px', border: '1px solid var(--color-border)' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                <span style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--color-text-muted)', fontWeight: 700, letterSpacing: '0.05em' }}>Detecting UTR from Receipt</span>
-                                {extractUtrSuggestions(viewingImage.ocrText).length > 0 && <span style={{ fontSize: '10px', backgroundColor: 'var(--color-success-transparent)', color: 'var(--color-success)', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>Found Suggestions</span>}
-                            </div>
-
-                            {extractUtrSuggestions(viewingImage.ocrText).length > 0 ? (
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                                    {extractUtrSuggestions(viewingImage.ocrText).map(sug => (
-                                        <button
-                                            key={sug}
-                                            onClick={() => setEditingUtrValue(sug)}
-                                            style={{ padding: '6px 12px', backgroundColor: editingUtrValue === sug ? 'var(--color-primary-transparent)' : 'var(--color-surface)', color: editingUtrValue === sug ? 'var(--color-primary)' : 'var(--color-text)', border: `1px solid ${editingUtrValue === sug ? 'var(--color-primary)' : 'var(--color-border)'}`, borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
-                                        >
-                                            {sug}
-                                        </button>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div style={{ fontSize: '13px', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>No UTR-like numbers detected. Please enter manually.</div>
-                            )}
-
-                            <div style={{ marginTop: '12px', borderTop: '1px solid var(--color-border)', paddingTop: '10px' }}>
-                                <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--color-text-muted)', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '4px' }}>Raw OCR Preview</div>
-                                <div style={{ fontSize: '12px', color: 'var(--color-text)', lineHeight: '1.5', maxHeight: '100px', overflowY: 'auto', backgroundColor: 'var(--color-card)', padding: '8px', borderRadius: '6px', border: '1px solid var(--color-border)', whiteSpace: 'pre-wrap' }}>
-                                    {highlightUTR(viewingImage.ocrText, editingUtrValue)}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Edit Fields */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                    <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-muted)' }}>Edit UTR</label>
-                                    <input
-                                        type="text"
-                                        value={editingUtrValue}
-                                        onChange={(e) => setEditingUtrValue(e.target.value)}
-                                        placeholder="UTR..."
-                                        style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', fontSize: '14px', outline: 'none' }}
-                                    />
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                    <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-muted)' }}>Reg. Amount</label>
-                                    <input
-                                        type="number"
-                                        value={editingAmountValue}
-                                        onChange={(e) => setEditingAmountValue(e.target.value)}
-                                        placeholder="Reg Amount..."
-                                        style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', fontSize: '14px', outline: 'none' }}
-                                    />
-                                </div>
-                            </div>
-
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-muted)' }}>OCR Amount (Detected from Receipt)</label>
-                                <input
-                                    type="number"
-                                    value={editingParsedAmountValue}
-                                    onChange={(e) => setEditingParsedAmountValue(e.target.value)}
-                                    placeholder="OCR Amount..."
-                                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', fontSize: '15px', outline: 'none', backgroundColor: 'var(--color-error-transparent)', color: 'var(--color-text)' }}
-                                />
-                            </div>
-
+                        {/* Modal Tabs */}
+                        <div style={{ display: 'flex', width: '100%', borderBottom: '1px solid var(--color-border)', marginBottom: '15px' }}>
                             <button
-                                onClick={handleSaveDetails}
-                                disabled={savingDetails}
+                                onClick={() => setActiveModalTab('IMAGE')}
                                 style={{
-                                    width: '100%',
-                                    height: '48px',
-                                    backgroundColor: 'var(--color-success)',
-                                    color: 'white',
+                                    flex: 1,
+                                    padding: '10px',
                                     border: 'none',
-                                    borderRadius: '12px',
-                                    fontWeight: 700,
-                                    fontSize: '15px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    cursor: savingDetails ? 'wait' : 'pointer',
-                                    boxShadow: 'var(--shadow-md)',
-                                    marginTop: '4px'
+                                    background: 'none',
+                                    borderBottom: activeModalTab === 'IMAGE' ? '2px solid var(--color-primary)' : '2px solid transparent',
+                                    color: activeModalTab === 'IMAGE' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                    fontWeight: activeModalTab === 'IMAGE' ? 700 : 500,
+                                    fontSize: '14px',
+                                    cursor: 'pointer'
                                 }}
                             >
-                                {savingDetails ? 'Saving Changes...' : 'Save Updated Details'}
+                                Receipt Image
+                            </button>
+                            <button
+                                onClick={() => setActiveModalTab('DETAILS')}
+                                style={{
+                                    flex: 1,
+                                    padding: '10px',
+                                    border: 'none',
+                                    background: 'none',
+                                    borderBottom: activeModalTab === 'DETAILS' ? '2px solid var(--color-primary)' : '2px solid transparent',
+                                    color: activeModalTab === 'DETAILS' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                    fontWeight: activeModalTab === 'DETAILS' ? 700 : 500,
+                                    fontSize: '14px',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Transaction Details
                             </button>
                         </div>
 
-                        <button
-                            onClick={() => setViewingImage(null)}
-                            style={{
-                                width: '100%',
-                                height: '48px',
-                                minHeight: '48px',
-                                flexShrink: 0,
-                                background: 'var(--color-surface)',
-                                color: 'var(--color-text-muted)',
-                                border: '1px solid var(--color-border)',
-                                borderRadius: '12px',
-                                fontWeight: 700,
-                                fontSize: '15px',
-                                cursor: 'pointer',
-                                marginTop: '8px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                transition: 'all 0.2s',
-                                boxShadow: 'var(--shadow-sm)'
-                            }}
-                        >
-                            Dismiss
-                        </button>
+                        {/* Scrollable Body */}
+                        <div style={{
+                            overflowY: 'auto',
+                            flex: 1,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '15px',
+                            width: '100%',
+                            paddingRight: '4px',
+                            WebkitOverflowScrolling: 'touch',
+                            overscrollBehavior: 'contain',
+                            touchAction: 'manipulation'
+                        }}>
+                            {activeModalTab === 'IMAGE' ? (
+                                <div style={{
+                                    width: '100%',
+                                    border: '1px solid var(--color-border)',
+                                    borderRadius: '8px',
+                                    overflow: 'hidden',
+                                    backgroundColor: 'var(--color-surface-alt)',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center'
+                                }}>
+                                    <img
+                                        src={normalizeImageSrc(viewingImage.base64)}
+                                        alt="Receipt"
+                                        style={{
+                                            maxWidth: '100%',
+                                            maxHeight: '65vh',
+                                            objectFit: 'contain',
+                                            display: 'block'
+                                        }}
+                                    />
+                                </div>
+                            ) : (
+                                <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                    <div>
+                                        <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--color-text-muted)', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
+                                            Detected 12-Digit Numbers
+                                        </div>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                            {extractUtrSuggestions(viewingImage.ocrText).length > 0 ? (
+                                                extractUtrSuggestions(viewingImage.ocrText).map(num => (
+                                                    <button
+                                                        key={num}
+                                                        onClick={() => setEditingUtrValue(num)}
+                                                        style={{
+                                                            padding: '4px 10px',
+                                                            backgroundColor: editingUtrValue === num ? 'var(--color-primary-bg)' : 'var(--color-surface-alt)',
+                                                            color: editingUtrValue === num ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+                                                            border: editingUtrValue === num ? '1px solid var(--color-primary-light)' : '1px solid var(--color-border)',
+                                                            borderRadius: '6px',
+                                                            fontSize: '12px',
+                                                            fontWeight: 600,
+                                                            cursor: 'pointer'
+                                                        }}
+                                                    >
+                                                        {num}
+                                                    </button>
+                                                ))
+                                            ) : (
+                                                <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>No 12-digit numbers found</div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Edit UTR</label>
+                                            <input
+                                                type="text"
+                                                value={editingUtrValue}
+                                                onChange={(e) => setEditingUtrValue(e.target.value)}
+                                                placeholder="UTR..."
+                                                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', fontSize: '14px', outline: 'none', backgroundColor: 'var(--color-input-bg)', color: 'var(--color-text)' }}
+                                            />
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Amount</label>
+                                            <input
+                                                type="number"
+                                                value={editingAmountValue}
+                                                onChange={(e) => setEditingAmountValue(e.target.value)}
+                                                placeholder="Amount..."
+                                                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', fontSize: '14px', outline: 'none', backgroundColor: 'var(--color-input-bg)', color: 'var(--color-text)' }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>OCR Amount (Detected)</label>
+                                        <input
+                                            type="number"
+                                            value={editingParsedAmountValue}
+                                            onChange={(e) => setEditingParsedAmountValue(e.target.value)}
+                                            placeholder="OCR Amount..."
+                                            style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--color-border-danger)', fontSize: '15px', outline: 'none', backgroundColor: 'var(--color-danger-bg)', color: 'var(--color-text)' }}
+                                        />
+                                    </div>
+
+                                    <button
+                                        onClick={handleSaveDetails}
+                                        disabled={savingDetails}
+                                        style={{
+                                            width: '100%',
+                                            height: '48px',
+                                            backgroundColor: 'var(--color-success)',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '12px',
+                                            fontWeight: 700,
+                                            fontSize: '15px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            cursor: savingDetails ? 'wait' : 'pointer',
+                                            boxShadow: 'var(--shadow-md)',
+                                            marginTop: '4px'
+                                        }}
+                                    >
+                                        {savingDetails ? 'Saving Changes...' : 'Save Updated Details'}
+                                    </button>
+                                </div>
+                            )}
+
+                            <button
+                                onClick={() => setViewingImage(null)}
+                                style={{
+                                    width: '100%',
+                                    height: '48px',
+                                    minHeight: '48px',
+                                    flexShrink: 0,
+                                    background: 'var(--color-surface)',
+                                    color: 'var(--color-text-muted)',
+                                    border: '1px solid var(--color-border)',
+                                    borderRadius: '12px',
+                                    fontWeight: 700,
+                                    fontSize: '15px',
+                                    cursor: 'pointer',
+                                    marginTop: '8px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    transition: 'all 0.2s',
+                                    boxShadow: 'var(--shadow-sm)'
+                                }}
+                            >
+                                Dismiss
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
@@ -886,7 +958,7 @@ const AdminReview = () => {
                     const details = getProgramDetails(tx);
 
                     return (
-                        <div key={tx.id} className="card" data-testid={`reg-card-${tx.id}`} style={{ position: 'relative' }}>
+                        <div key={tx.id} className="card" data-testid={`reg-card-${tx.id}`} style={{ position: 'relative', WebkitTapHighlightColor: 'transparent' }}>
                             {/* Selection checkbox */}
                             <button onClick={(e) => { e.stopPropagation(); toggleSelection(tx.id); }} style={{ position: 'absolute', top: '10px', right: '10px', background: 'none', border: 'none', padding: '0', cursor: 'pointer' }}>
                                 {selectedIds.includes(tx.id) ? <CheckSquare size={20} color="var(--color-primary)" /> : <Square size={20} color="var(--color-text-muted)" />}
@@ -986,7 +1058,7 @@ const AdminReview = () => {
                             <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginTop: '12px' }}>
                                 {tx.hasImage ? (
                                     <button
-                                        onClick={() => handleViewImage(tx)}
+                                        onClick={(e) => { e.stopPropagation(); handleViewImage(tx); }}
                                         style={{
                                             flex: 1,
                                             background: 'var(--color-card)',
@@ -1009,7 +1081,7 @@ const AdminReview = () => {
                                     <div style={{ flex: 1, position: 'relative' }}>
                                         <button
                                             disabled={uploadingReceipt === tx.id}
-                                            onClick={() => document.getElementById(`receipt-input-${tx.id}`).click()}
+                                            onClick={(e) => { e.stopPropagation(); document.getElementById(`receipt-input-${tx.id}`).click(); }}
                                             style={{
                                                 width: '100%',
                                                 padding: '8px 16px',

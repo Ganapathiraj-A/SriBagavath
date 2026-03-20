@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Check, Trash2, Rewind, Package, Heart, X, Search, Calendar, MapPin, ChevronRight, Phone, Share2, Square, CheckSquare } from 'lucide-react';
@@ -37,6 +37,19 @@ const DonationManagement = () => {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('RECEIVED');
     const [viewingImage, setViewingImage] = useState(null);
+    const [activeModalTab, setActiveModalTab] = useState('IMAGE'); // 'IMAGE' or 'DETAILS'
+
+    useEffect(() => {
+        if (viewingImage) {
+            document.body.style.overflow = 'hidden';
+            const preventDefault = (e) => e.preventDefault();
+            document.addEventListener('touchmove', preventDefault, { passive: false });
+            return () => {
+                document.body.style.overflow = 'unset';
+                document.removeEventListener('touchmove', preventDefault);
+            };
+        }
+    }, [viewingImage]);
     const [uploadingReceipt, setUploadingReceipt] = useState(null); // stores id of donation being updated
     const [editingUtrValue, setEditingUtrValue] = useState('');
     const [editingAmountValue, setEditingAmountValue] = useState('');
@@ -159,6 +172,7 @@ const DonationManagement = () => {
                     parsedAmount: donation.parsedAmount,
                     ocrText: donation.ocrText || ''
                 });
+                setActiveModalTab('IMAGE');
                 setEditingUtrValue(donation.utr || '');
                 setEditingAmountValue(donation.amount?.toString() || '');
                 setEditingParsedAmountValue(donation.parsedAmount?.toString() || '');
@@ -233,117 +247,188 @@ const DonationManagement = () => {
                         background: 'var(--color-card)',
                         padding: '15px',
                         borderRadius: '16px',
+                        maxHeight: '94vh',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        width: '95%',
                         maxWidth: '30rem',
-                        width: '100%',
-                        boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)'
+                        boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)',
+                        overflow: 'hidden'
                     }}>
-                        <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                        <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
                             <h2 style={{ margin: 0, fontSize: '18px' }}>Verify Receipt</h2>
                             <button onClick={() => setViewingImage(null)} style={{ border: 'none', background: 'none', padding: '5px', cursor: 'pointer' }}>
                                 <X size={24} color="var(--color-text-muted)" />
                             </button>
                         </div>
 
-                        <div style={{ width: '100%', overflowY: 'auto', maxHeight: '40vh', border: '1px solid var(--color-border)', borderRadius: '8px' }}>
-                            <img
-                                src={normalizeImageSrc(viewingImage.base64)}
-                                alt="Receipt"
-                                style={{ width: '100%', display: 'block' }}
-                            />
-                        </div>
-
-                        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                            <div>
-                                <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--color-text-muted)', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
-                                    Detected 12-Digit Numbers
-                                </div>
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                                    {extractUtrSuggestions(viewingImage.ocrText).length > 0 ? (
-                                        extractUtrSuggestions(viewingImage.ocrText).map(num => (
-                                            <button
-                                                key={num}
-                                                onClick={() => setEditingUtrValue(num)}
-                                                style={{
-                                                    padding: '4px 10px',
-                                                    backgroundColor: editingUtrValue === num ? 'var(--color-primary-bg)' : 'var(--color-surface-alt)',
-                                                    color: editingUtrValue === num ? 'var(--color-primary)' : 'var(--color-text-secondary)',
-                                                    border: editingUtrValue === num ? '1px solid var(--color-primary-light)' : '1px solid var(--color-border)',
-                                                    borderRadius: '6px',
-                                                    fontSize: '12px',
-                                                    fontWeight: 600,
-                                                    cursor: 'pointer'
-                                                }}
-                                            >
-                                                {num}
-                                            </button>
-                                        ))
-                                    ) : (
-                                        <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>No 12-digit numbers found</div>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                    <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Edit UTR</label>
-                                    <input
-                                        type="text"
-                                        value={editingUtrValue}
-                                        onChange={(e) => setEditingUtrValue(e.target.value)}
-                                        placeholder="UTR..."
-                                        style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', fontSize: '14px', outline: 'none', backgroundColor: 'var(--color-input-bg)', color: 'var(--color-text)' }}
-                                    />
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                    <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Amount</label>
-                                    <input
-                                        type="number"
-                                        value={editingAmountValue}
-                                        onChange={(e) => setEditingAmountValue(e.target.value)}
-                                        placeholder="Amount..."
-                                        style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', fontSize: '14px', outline: 'none', backgroundColor: 'var(--color-input-bg)', color: 'var(--color-text)' }}
-                                    />
-                                </div>
-                            </div>
-
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>OCR Amount (Detected)</label>
-                                <input
-                                    type="number"
-                                    value={editingParsedAmountValue}
-                                    onChange={(e) => setEditingParsedAmountValue(e.target.value)}
-                                    placeholder="OCR Amount..."
-                                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--color-border-danger)', fontSize: '15px', outline: 'none', backgroundColor: 'var(--color-danger-bg)', color: 'var(--color-text)' }}
-                                />
-                            </div>
-
-                            <button
-                                onClick={handleSaveDetails}
-                                disabled={savingDetails}
-                                style={{
-                                    width: '100%',
-                                    height: '48px',
-                                    backgroundColor: 'var(--color-primary)',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '12px',
-                                    fontWeight: 700,
-                                    fontSize: '15px',
-                                    cursor: savingDetails ? 'wait' : 'pointer'
+                        {/* Modal Tabs */}
+                        <div style={{ display: 'flex', width: '100%', borderBottom: '1px solid var(--color-border)', marginBottom: '15px' }}>
+                            <button 
+                                onClick={() => setActiveModalTab('IMAGE')}
+                                style={{ 
+                                    flex: 1, 
+                                    padding: '10px', 
+                                    border: 'none', 
+                                    background: 'none', 
+                                    borderBottom: activeModalTab === 'IMAGE' ? '2px solid var(--color-primary)' : '2px solid transparent',
+                                    color: activeModalTab === 'IMAGE' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                    fontWeight: activeModalTab === 'IMAGE' ? 700 : 500,
+                                    fontSize: '14px',
+                                    cursor: 'pointer'
                                 }}
                             >
-                                {savingDetails ? 'Saving...' : 'Save Updated Details'}
+                                Receipt Image
                             </button>
+                            <button 
+                                onClick={() => setActiveModalTab('DETAILS')}
+                                style={{ 
+                                    flex: 1, 
+                                    padding: '10px', 
+                                    border: 'none', 
+                                    background: 'none', 
+                                    borderBottom: activeModalTab === 'DETAILS' ? '2px solid var(--color-primary)' : '2px solid transparent',
+                                    color: activeModalTab === 'DETAILS' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                    fontWeight: activeModalTab === 'DETAILS' ? 700 : 500,
+                                    fontSize: '14px',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Transaction Details
+                            </button>
+                        </div>
+
+                        {/* Scrollable Body */}
+                        <div style={{ 
+                            overflowY: 'auto', 
+                            flex: 1, 
+                            display: 'flex', 
+                            flexDirection: 'column', 
+                            gap: '15px', 
+                            width: '100%', 
+                            paddingRight: '4px',
+                            WebkitOverflowScrolling: 'touch',
+                            overscrollBehavior: 'contain',
+                            touchAction: 'manipulation'
+                        }}>
+                            {activeModalTab === 'IMAGE' ? (
+                                <div style={{ 
+                                    width: '100%', 
+                                    border: '1px solid var(--color-border)', 
+                                    borderRadius: '8px', 
+                                    overflow: 'hidden',
+                                    backgroundColor: 'var(--color-surface-alt)',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center'
+                                }}>
+                                    <img
+                                        src={normalizeImageSrc(viewingImage.base64)}
+                                        alt="Receipt"
+                                        style={{ 
+                                            maxWidth: '100%', 
+                                            maxHeight: '65vh',
+                                            objectFit: 'contain', 
+                                            display: 'block' 
+                                        }}
+                                    />
+                                </div>
+                            ) : (
+                                <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                    <div>
+                                        <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--color-text-muted)', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '8px' }}>
+                                            Detected 12-Digit Numbers
+                                        </div>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                            {extractUtrSuggestions(viewingImage.ocrText).length > 0 ? (
+                                                extractUtrSuggestions(viewingImage.ocrText).map(num => (
+                                                    <button
+                                                        key={num}
+                                                        onClick={() => setEditingUtrValue(num)}
+                                                        style={{
+                                                            padding: '4px 10px',
+                                                            backgroundColor: editingUtrValue === num ? 'var(--color-primary-bg)' : 'var(--color-surface-alt)',
+                                                            color: editingUtrValue === num ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+                                                            border: editingUtrValue === num ? '1px solid var(--color-primary-light)' : '1px solid var(--color-border)',
+                                                            borderRadius: '6px',
+                                                            fontSize: '12px',
+                                                            fontWeight: 600,
+                                                            cursor: 'pointer'
+                                                        }}
+                                                    >
+                                                        {num}
+                                                    </button>
+                                                ))
+                                            ) : (
+                                                <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>No 12-digit numbers found</div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Edit UTR</label>
+                                            <input
+                                                type="text"
+                                                value={editingUtrValue}
+                                                onChange={(e) => setEditingUtrValue(e.target.value)}
+                                                placeholder="UTR..."
+                                                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', fontSize: '14px', outline: 'none', backgroundColor: 'var(--color-input-bg)', color: 'var(--color-text)' }}
+                                            />
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>Amount</label>
+                                            <input
+                                                type="number"
+                                                value={editingAmountValue}
+                                                onChange={(e) => setEditingAmountValue(e.target.value)}
+                                                placeholder="Amount..."
+                                                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', fontSize: '14px', outline: 'none', backgroundColor: 'var(--color-input-bg)', color: 'var(--color-text)' }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>OCR Amount (Detected)</label>
+                                        <input
+                                            type="number"
+                                            value={editingParsedAmountValue}
+                                            onChange={(e) => setEditingParsedAmountValue(e.target.value)}
+                                            placeholder="OCR Amount..."
+                                            style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--color-border-danger)', fontSize: '15px', outline: 'none', backgroundColor: 'var(--color-danger-bg)', color: 'var(--color-text)' }}
+                                        />
+                                    </div>
+
+                                    <button
+                                        onClick={handleSaveDetails}
+                                        disabled={savingDetails}
+                                        style={{
+                                            width: '100%',
+                                            height: '48px',
+                                            backgroundColor: 'var(--color-primary)',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '12px',
+                                            fontWeight: 700,
+                                            fontSize: '15px',
+                                            cursor: savingDetails ? 'wait' : 'pointer'
+                                        }}
+                                    >
+                                        {savingDetails ? 'Saving...' : 'Save Updated Details'}
+                                    </button>
+                                </div>
+                            )}
+
                             <button
                                 onClick={() => setViewingImage(null)}
-                                style={{ width: '100%', height: '48px', background: 'var(--color-surface-alt)', color: 'var(--color-text-secondary)', border: '1px solid var(--color-border)', borderRadius: '12px', fontWeight: 600, cursor: 'pointer' }}
+                                style={{ width: '100%', height: '48px', background: 'var(--color-surface-alt)', color: 'var(--color-text-secondary)', border: '1px solid var(--color-border)', borderRadius: '12px', fontWeight: 600, cursor: 'pointer', marginTop: 'auto' }}
                             >
                                 Close
                             </button>
                         </div>
                     </div>
                 </div>
-            )}
+        )}
 
             <PageHeader
                 title="Donations"
@@ -449,7 +534,8 @@ const DonationManagement = () => {
                             flexDirection: 'column',
                             gap: '1rem',
                             cursor: donation.hasImage ? 'pointer' : 'default',
-                            boxShadow: 'var(--shadow-sm)'
+                            boxShadow: 'var(--shadow-sm)',
+                            WebkitTapHighlightColor: 'transparent'
                         }}
                     >
                         {/* Selection checkbox */}
@@ -514,7 +600,7 @@ const DonationManagement = () => {
                         <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
                             {donation.hasImage ? (
                                 <button
-                                    onClick={() => handleViewImage(donation)}
+                                    onClick={(e) => { e.stopPropagation(); handleViewImage(donation); }}
                                     style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface-alt)', fontSize: '13px', fontWeight: 500, color: 'var(--color-text-secondary)' }}
                                 >
                                     Verify Receipt
@@ -523,7 +609,7 @@ const DonationManagement = () => {
                                 <div style={{ flex: 1, position: 'relative' }}>
                                     <button
                                         disabled={uploadingReceipt === donation.id}
-                                        onClick={() => document.getElementById(`receipt-input-${donation.id}`).click()}
+                                        onClick={(e) => { e.stopPropagation(); document.getElementById(`receipt-input-${donation.id}`).click(); }}
                                         style={{
                                             width: '100%',
                                             padding: '8px',
@@ -549,7 +635,7 @@ const DonationManagement = () => {
                             )}
                             {(donation.status === 'PENDING' || (donation.isOffline && donation.status === 'REGISTERED' && activeTab === 'RECEIVED')) && (
                                 <button
-                                    onClick={() => handleUpdateStatus(donation.id, 'COMPLETED')}
+                                    onClick={(e) => { e.stopPropagation(); handleUpdateStatus(donation.id, 'COMPLETED'); }}
                                     data-testid={`accept-donation-${donation.id}`}
                                     style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', backgroundColor: 'var(--color-success)', color: 'white', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                                 >
@@ -559,7 +645,7 @@ const DonationManagement = () => {
                             {(donation.status === 'COMPLETED' || (donation.isOffline && donation.status === 'REGISTERED' && activeTab === 'ACCEPTED')) && (
                                 <>
                                     <button
-                                        onClick={() => handleUpdateStatus(donation.id, 'PENDING')}
+                                        onClick={(e) => { e.stopPropagation(); handleUpdateStatus(donation.id, 'PENDING'); }}
                                         style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text-secondary)', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                                     >
                                         <Rewind size={16} /> Revert

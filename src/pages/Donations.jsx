@@ -32,7 +32,7 @@ const Donations = () => {
     const navigate = useNavigate();
     const [selectedAmount, setSelectedAmount] = useState(null);
     const [customAmount, setCustomAmount] = useState('');
-    const [monthlyAmount, setMonthlyAmount] = useState('500');
+    const [monthlyAmount, setMonthlyAmount] = useState('1000');
     const [authLoading, setAuthLoading] = useState(false);
     const [activeTab, setActiveTab] = useState('General');
     const { onlineTransactionsEnabled, offlineRegistrationContact } = useGlobalSettings();
@@ -257,7 +257,7 @@ const Donations = () => {
                                             color: 'var(--color-text)'
                                         }}
                                     >
-                                        {[500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 5000, 6000, 7000, 8000, 9000, 10000].map(amt => (
+                                        {[1000, 1500, 2000, 2500, 3000, 3500, 4000, 5000, 6000, 7000, 8000, 9000, 10000].map(amt => (
                                             <option key={amt} value={amt}>₹{amt.toLocaleString()}</option>
                                         ))}
                                     </select>

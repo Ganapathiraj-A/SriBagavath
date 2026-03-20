@@ -62,7 +62,18 @@ const MyRegistrations = () => {
     useEffect(() => {
         const unsubscribe = TransactionService.streamUserTransactions((data) => {
             console.log("MyRegs Stream Data:", data?.length); // Debug
-            setRegistrations(data || []);
+            const filtered = (data || []).filter(tx => {
+                const type = tx.itemType || 'PROGRAM';
+                const name = (tx.itemName || "").toLowerCase();
+                // Only show programs, filter out magazine subscriptions and donations
+                return type !== 'MAGAZINE_SUBSCRIPTION' && 
+                       type !== 'DONATION' && 
+                       type !== 'BOOK' &&
+                       !name.includes("magazine") && 
+                       !name.includes("subscription") &&
+                       !name.includes("donation");
+            });
+            setRegistrations(filtered);
             setLoading(false);
         });
 

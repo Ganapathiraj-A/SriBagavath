@@ -464,10 +464,12 @@ function AppContent() {
         <>
           <ApiCounterOverlay />
           <DiagnosticLogOverlay />
-          <ForceUpdateModal currentVersion={currentVersion} minVersion={minAppVersion} />
-          <div style={{ position: 'fixed', top: '60px', right: '32px', zIndex: 9999 }}>
-            <UpdateIcon />
-          </div>
+          {Capacitor.isNativePlatform() && <ForceUpdateModal currentVersion={currentVersion} minVersion={minAppVersion} />}
+          {Capacitor.isNativePlatform() && (
+            <div style={{ position: 'fixed', top: '60px', right: '32px', zIndex: 9999 }}>
+              <UpdateIcon />
+            </div>
+          )}
         </>
       )}
 

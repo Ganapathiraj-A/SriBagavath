@@ -132,7 +132,7 @@ const AyyasSchedule = () => {
         setIsSharingAll(true);
         const data = { type: 'list', schedules };
         setSharingData(data);
-        setTimeout(() => captureAndShare(data), 1000);
+        setTimeout(() => captureAndShare(data), 1500);
     };
 
     const handleShare = async (schedule) => {
@@ -140,7 +140,7 @@ const AyyasSchedule = () => {
         setIsSharingScheduleId(schedule.id);
         const data = { type: 'single', schedule };
         setSharingData(data);
-        setTimeout(() => captureAndShare(data), 1000);
+        setTimeout(() => captureAndShare(data), 1500);
     };
 
     if (loading) {
@@ -354,11 +354,12 @@ const AyyasSchedule = () => {
             <div style={{
                 position: 'fixed',
                 top: '0',
-                left: '0',
+                left: '-2000px',
                 width: '800px',
                 zIndex: -1000,
-                opacity: 0.01,
-                pointerEvents: 'none'
+                visibility: 'visible',
+                pointerEvents: 'none',
+                opacity: 1
             }}>
                 {sharingData && (
                     <div

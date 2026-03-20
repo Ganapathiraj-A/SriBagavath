@@ -66,7 +66,7 @@ const MyOrders = () => {
         setLoading(true);
         console.log("[MyOrders] Starting transaction stream for:", currentUser.uid);
         const unsubscribe = TransactionService.streamUserTransactions((data) => {
-            const bookOrders = (data || []).filter(tx => tx.itemType === 'BOOK' || (tx.orderItems && tx.orderItems.length > 0));
+            const bookOrders = (data || []).filter(tx => tx.itemType === 'BOOK' || tx.itemType === 'MAGAZINE_SUBSCRIPTION' || (tx.orderItems && tx.orderItems.length > 0));
             setOrders(bookOrders);
             setLoading(false);
         });

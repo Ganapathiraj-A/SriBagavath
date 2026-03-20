@@ -6,10 +6,16 @@ import './WebPages.css';
 
 const donationOptions = [
   { id: 'don_1', title: 'Single Donation', price: 1000, category: 'General', icon: <FaHeart />, description: 'One-time contribution to support our mission.' },
-  { id: 'don_2', title: 'Sustaining Support', price: 5000, category: 'General', icon: <FaHandsHelping />, description: 'Help us maintain our spiritual centers.' },
+  { id: 'don_2', title: 'Sustaining Support', price: 2000, category: 'General', icon: <FaHandsHelping />, description: 'Help us maintain our spiritual centers.' },
+  { id: 'don_3', title: 'Generous Support', price: 5000, category: 'General', icon: <FaHandsHelping />, description: 'Significant contribution to our initiatives.' },
   { id: 'don_custom', title: 'Custom Amount', price: 0, category: 'General', isCustom: true, icon: <FaHeart />, description: 'Contribute any amount of your choice.' },
-  { id: 'ann_1', title: 'Annadhanam Support', price: 2000, category: 'Annadhanam', icon: <FaHandsHelping />, description: 'Support the daily food distribution service.' },
+  
+  { id: 'ann_1', title: 'Annadhanam Support', price: 1000, category: 'Annadhanam', icon: <FaHandsHelping />, description: 'Support the daily food distribution service.' },
+  { id: 'ann_2', title: 'Annadhanam Mid', price: 2000, category: 'Annadhanam', icon: <FaHandsHelping />, description: 'Increased support for food distribution.' },
+  { id: 'ann_3', title: 'Annadhanam Large', price: 5000, category: 'Annadhanam', icon: <FaHandsHelping />, description: 'Major support for our feeding programs.' },
   { id: 'ann_custom', title: 'Custom Annadhanam', price: 0, category: 'Annadhanam', isCustom: true, icon: <FaHandsHelping />, description: 'Contribute any amount for food service.' },
+  
+  { id: 'mem_monthly', title: 'Monthly Donation', price: 0, category: 'Membership', isMonthly: true, icon: <FaUsers />, description: 'Regular monthly support for our mission.' },
   { id: 'mem_annual', title: 'Annual Member', price: 10000, category: 'Membership', icon: <FaUsers />, description: 'Join us as an active annual member.' },
   { id: 'mem_founder', title: 'Founder Member', price: 25000, category: 'Membership', icon: <FaUsers />, description: 'Become a permanent founder member.' }
 ];
@@ -19,11 +25,12 @@ const WebDonations = () => {
   const [activeTab, setActiveTab] = useState('General');
   const [selectedId, setSelectedId] = useState(null);
   const [customAmount, setCustomAmount] = useState('');
+  const [monthlyAmount, setMonthlyAmount] = useState('1000');
 
   const tabs = ['General', 'Annadhanam', 'Membership'];
 
   const handleProceed = (option) => {
-    const amount = option.isCustom ? parseInt(customAmount) : option.price;
+    const amount = option.isCustom ? parseInt(customAmount) : (option.isMonthly ? parseInt(monthlyAmount) : option.price);
     if (!amount || amount <= 0) {
       alert("Please enter a valid amount.");
       return;
@@ -31,7 +38,7 @@ const WebDonations = () => {
 
     navigate('/web/checkout', {
       state: {
-        items: [{ ...option, title: option.title, price: amount, quantity: 1 }],
+        items: [{ ...option, title: option.isMonthly ? `Monthly Donation - ₹${amount}` : option.title, price: amount, quantity: 1 }],
         totalPrice: amount,
         isDonation: true
       }
@@ -74,7 +81,11 @@ const WebDonations = () => {
                    <h3>{option.title}</h3>
                 </div>
                 <p className="card-description">{option.description}</p>
-                {!option.isCustom && <p className="card-amount">₹{option.price}</p>}
+                {option.isMonthly ? (
+                  <p className="card-amount">₹{parseInt(monthlyAmount).toLocaleString()}+</p>
+                ) : (
+                  !option.isCustom && <p className="card-amount">₹{option.price.toLocaleString()}</p>
+                )}
                 
                 <AnimatePresence>
                   {selectedId === option.id && (
@@ -94,6 +105,20 @@ const WebDonations = () => {
                              onChange={(e) => setCustomAmount(e.target.value)}
                              autoFocus
                            />
+                        </div>
+                      )}
+                      {option.isMonthly && (
+                        <div className="custom-amount-input">
+                          <span>₹</span>
+                          <select 
+                            value={monthlyAmount}
+                            onChange={(e) => setMonthlyAmount(e.target.value)}
+                            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', background: 'white' }}
+                          >
+                            {[1000, 1500, 2000, 2500, 3000, 3500, 4000, 5000, 6000, 7000, 8000, 9000, 10000].map(amt => (
+                              <option key={amt} value={amt}>{amt.toLocaleString()}</option>
+                            ))}
+                          </select>
                         </div>
                       )}
                       <button className="web-btn-primary full" onClick={() => handleProceed(option)}>
