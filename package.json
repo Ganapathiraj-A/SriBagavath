@@ -1,7 +1,7 @@
 {
   "name": "sri-bagavath",
   "private": true,
-  "version": "3.1.42",
+  "version": "3.1.57",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,6 +11,8 @@
     "build:apk:dev": "node scripts/cross_build.js dev",
     "build:apk:prod": "node scripts/cross_build.js prod",
     "build:aab:prod": "node scripts/cross_build.js prod-aab",
+    "update:dev": "npm run build:apk:dev",
+    "update:prod": "npm run build:apk:prod",
     "publish:dev": "node scripts/cross_publish.js dev",
     "publish:prod": "node scripts/cross_publish.js prod",
     "publish:aab:prod": "node scripts/cross_publish.js prod-aab",

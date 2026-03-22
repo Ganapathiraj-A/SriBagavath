@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
-import { Share2, ChevronLeft, Loader2 } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Share2, ChevronLeft, Loader2, X, Info, TestTube2, AlertCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import PageHeader from '@/components/PageHeader';
 import { Share } from '@capacitor/share';
 import { Filesystem, Directory } from '@capacitor/filesystem';
@@ -10,7 +10,6 @@ import { db } from '@/firebase';
 import { collection, query, orderBy } from '@/utils/FirestoreProxy';
 import { getLocalDateString } from '@/utils/dateUtils';
 import { useAdminAuth } from '@/context/AdminAuthContext';
-import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 
 const AyyasSchedule = () => {
     const navigate = useNavigate();
@@ -19,519 +18,251 @@ const AyyasSchedule = () => {
     const [isSharingAll, setIsSharingAll] = useState(false);
     const [sharingData, setSharingData] = useState(null);
     const [isSharingScheduleId, setIsSharingScheduleId] = useState(null);
+    const [isCapturing, setIsCapturing] = useState(false);
+    const [previewUrl, setPreviewUrl] = useState(null);
+    const [capturedFileUri, setCapturedFileUri] = useState(null);
+    const [fileStats, setFileStats] = useState(null);
+    const [shareInProgress, setShareInProgress] = useState(false);
     const shareRef = useRef(null);
-    const location = useLocation();
-    const { loading: authGlobalLoading, isAdmin, hasAccess } = useAdminAuth();
-    const { hiddenScreens, devMode } = useGlobalSettings();
-
-    const effectiveRole = isAdmin ? (devMode ? 'dev' : 'admin') : 'public';
-    const currentHiddenScreens = hiddenScreens?.[effectiveRole] || [];
+    const { loading: authGlobalLoading } = useAdminAuth();
 
     useEffect(() => {
         const fetchSchedules = async () => {
             if (authGlobalLoading) return;
             try {
                 const { getDocsFromCache, getDocsFromServer } = await import('@/utils/FirestoreProxy');
-                const { needsServerSync, markSyncedLocally } = await import('../utils/SyncManager');
-
                 const filterSchedules = (list) => {
                     const today = getLocalDateString();
-                    return list.filter(s => {
-                        const endDate = s.toDate || s.fromDate;
-                        return endDate >= today;
-                    });
+                    return list.filter(s => (s.toDate || s.fromDate) >= today);
                 };
-
-                const schedulesRef = collection(db, 'schedules');
-                const q = query(schedulesRef, orderBy('fromDate', 'asc'));
-
-                const needsSync = needsServerSync('schedules');
-
-                // Try cache first
-                let cacheSnap = null;
-                try {
-                    cacheSnap = await getDocsFromCache(q);
-                    if (!cacheSnap.empty) {
-                        const list = cacheSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-                        setSchedules(filterSchedules(list));
-                        setLoading(false);
-                        console.log(`[Schedule] Loaded ${list.length} items from cache`);
-                    }
-                } catch (_err) {
-                    console.warn("[Schedule] Cache read failed", _err);
+                const q = query(collection(db, 'schedules'), orderBy('fromDate', 'asc'));
+                const cacheSnap = await getDocsFromCache(q).catch(() => null);
+                if (cacheSnap && !cacheSnap.empty) {
+                    setSchedules(filterSchedules(cacheSnap.docs.map(d => ({ id: d.id, ...d.data() }))));
+                    setLoading(false);
                 }
-
-                // If cache empty OR needs sync, fetch from server
-                if (!cacheSnap || cacheSnap.empty || needsSync) {
-                    console.log(`[Schedule] Refreshing from server...`);
-                    getDocsFromServer(q).then(serverSnap => {
-                        const list = serverSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-                        setSchedules(filterSchedules(list));
-                        markSyncedLocally('schedules');
-                    }).catch(err => {
-                        console.error("[Schedule] Server refresh failed", err);
-                    }).finally(() => {
-                        setLoading(false);
-                    });
-                }
-            } catch (_err) {
-                console.error("Error fetching schedules: ", _err);
-            } finally {
-                setLoading(false);
-            }
+                getDocsFromServer(q).then(serverSnap => {
+                    setSchedules(filterSchedules(serverSnap.docs.map(d => ({ id: d.id, ...d.data() }))));
+                }).finally(() => setLoading(false));
+            } catch (_err) { setLoading(false); }
         };
-
-        // Track visit for badge reset
-        localStorage.setItem('lastVisited_schedule', new Date().toISOString());
         fetchSchedules();
     }, [authGlobalLoading]);
 
     const captureAndShare = async (currentData) => {
-        if (!shareRef.current || !currentData) return;
+        if (!currentData) return;
         try {
-            const { Toast } = await import('@capacitor/toast');
-            await Toast.show({ text: 'Preparing image...' });
+            setIsCapturing(true);
+            await new Promise(resolve => setTimeout(resolve, 1500)); 
+            if (!shareRef.current) throw new Error("Capture ref not found");
+            
+            const canvas = await html2canvas(shareRef.current, { useCORS: true, scale: 2, backgroundColor: '#ffffff', width: 800 });
+            
+            // Convert to Blob for internal preview (GUARANTEED TO WORK)
+            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.9));
+            const blobUrl = URL.createObjectURL(blob);
+            setPreviewUrl(blobUrl);
 
-            // Wait for template to render
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            const canvas = await html2canvas(shareRef.current, {
-                useCORS: true,
-                scale: 2,
-                backgroundColor: '#ffffff',
-                width: 800,
-                scrollX: 0,
-                scrollY: 0,
-                x: 0,
-                y: 0,
-                onclone: (doc) => {
-                    const el = doc.getElementById('schedule-share-template');
-                    if (el) {
-                        el.style.display = 'block';
-                        el.style.opacity = '1';
-                        el.style.visibility = 'visible';
-                        el.style.position = 'relative';
-                        el.style.left = '0';
-                        el.style.top = '0';
-                    }
-                }
+            // Robust Base64 conversion
+            const reader = new FileReader();
+            const base64Data = await new Promise((resolve) => {
+                reader.onloadend = () => {
+                    const base64 = reader.result.split(',')[1];
+                    resolve(base64);
+                };
+                reader.readAsDataURL(blob);
             });
 
-            const fileName = `ayya_schedule_${Date.now()}.png`;
-            const base64Data = canvas.toDataURL('image/png').split(',')[1];
-
+            const fileName = `schedule_${Date.now()}.jpg`;
+            
+            // Using External Storage for cross-app visibility
             const result = await Filesystem.writeFile({
                 path: fileName,
                 data: base64Data,
-                directory: Directory.Cache,
+                directory: Directory.External,
                 encoding: 'base64'
             });
 
-            // Safer URI building
-            let fileUri = result.uri;
-            if (!fileUri.startsWith('file://')) {
-                if (fileUri.startsWith('/')) {
-                    fileUri = `file://${fileUri}`;
-                } else if (!fileUri.startsWith('capacitor://') && !fileUri.startsWith('data:')) {
-                    // It's likely a relative path if it gets here (shouldn't happen with .uri)
-                    const uriRes = await Filesystem.getUri({
-                        path: fileName,
-                        directory: Directory.Cache
-                    });
-                    fileUri = uriRes.uri;
-                }
-            }
+            const stats = await Filesystem.stat({ path: fileName, directory: Directory.External });
             
-            // Ensure 3 slashes if it's file://
-            if (fileUri.startsWith('file://') && !fileUri.startsWith('file:///')) {
-                fileUri = fileUri.replace('file://', 'file:///');
-            }
-
-            // Give filesystem a moment to sync
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            await Toast.show({ text: 'Opening Share...' });
-            
-            // DEBUG: Show URI if in dev mode or for this specific fix
-            // alert("Sharing URI: " + fileUri);
-
-            await Share.share({
-                title: "Ayya's Schedule",
-                text: "",
-                files: [fileUri]
-            });
+            setFileStats({ ...stats, sizeKb: Math.round(stats.size / 1024) });
+            setCapturedFileUri(result.uri);
+            setIsCapturing(false);
         } catch (error) {
-            console.error("[Schedule] Sharing failed:", error);
-            alert('Sharing failed: ' + (error.message || error));
-        } finally {
+            alert('Capture failed: ' + error.message);
+            setIsCapturing(false);
             setIsSharingAll(false);
             setIsSharingScheduleId(null);
         }
     };
 
+    const finalShare = async (mode = 'normal') => {
+        if (!capturedFileUri && mode !== 'dummy') return;
+        setShareInProgress(true);
+        try {
+            const { Toast } = await import('@capacitor/toast');
+            if (mode === 'dummy') {
+                const dummyResult = await Filesystem.writeFile({
+                    path: `test_${Date.now()}.txt`,
+                    data: "Sri Bagavath App Test",
+                    directory: Directory.External,
+                    encoding: 'utf8'
+                });
+                await Share.share({ title: "Test", text: "Test", files: [dummyResult.uri] });
+            } else if (mode === 'diagnostic') {
+                alert(`URI: ${capturedFileUri}\nSize: ${fileStats?.sizeKb}KB`);
+            } else {
+                await Toast.show({ text: 'Sharing Image...' });
+                // Clean share
+                await Share.share({
+                    files: [capturedFileUri]
+                });
+            }
+            if (mode !== 'diagnostic') resetSharing();
+            else setShareInProgress(false);
+        } catch (error) {
+            alert('Share Error: ' + error.message);
+            setShareInProgress(false);
+        }
+    };
+
+    const resetSharing = () => {
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
+        setPreviewUrl(null);
+        setCapturedFileUri(null);
+        setFileStats(null);
+        setIsSharingAll(false);
+        setIsSharingScheduleId(null);
+        setSharingData(null);
+        setShareInProgress(false);
+        setIsCapturing(false);
+    };
+
     const handleShareAll = async () => {
         if (schedules.length === 0) return;
         setIsSharingAll(true);
-        const data = { type: 'list', schedules };
-        setSharingData(data);
-        setTimeout(() => captureAndShare(data), 1500);
+        setSharingData({ type: 'list', schedules: [...schedules], location: 'All Locations' });
+        setTimeout(() => captureAndShare({ type: 'list' }), 100);
     };
 
     const handleShare = async (schedule) => {
         if (!schedule) return;
         setIsSharingScheduleId(schedule.id);
-        const data = { type: 'single', schedule };
-        setSharingData(data);
-        setTimeout(() => captureAndShare(data), 1500);
+        setSharingData({ type: 'single', schedule, location: schedule.place });
+        setTimeout(() => captureAndShare({ type: 'single' }), 100);
     };
 
-    if (loading) {
-        return (
-            <div style={{
-                minHeight: '100vh',
-                backgroundColor: 'var(--color-background)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-            }}>
-                <p style={{ fontSize: '1.125rem', color: 'var(--color-text-muted)' }}>Loading schedules...</p>
-            </div>
-        );
-    }
+    if (loading) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><p>Loading...</p></div>;
 
     return (
-        <div style={{
-            minHeight: '100vh',
-            backgroundColor: 'var(--color-background)',
-            paddingBottom: '2rem'
-        }}>
+        <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)', paddingBottom: '2rem' }}>
             <PageHeader
                 title="Ayya's Schedule"
-                leftAction={
-                    <button onClick={() => navigate('/programs')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
-                        <ChevronLeft size={24} />
+                leftAction={<button onClick={() => navigate('/programs')} style={{ background: 'none', border: 'none', padding: '8px' }}><ChevronLeft size={24} /></button>}
+                rightAction={
+                    <button onClick={handleShareAll} disabled={isSharingAll || schedules.length === 0} style={{ width: '40px', height: '40px', backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {isSharingAll ? <Loader2 size={20} className="animate-spin" /> : <Share2 size={20} />}
                     </button>
                 }
-                rightAction={
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <button
-                            onClick={handleShareAll}
-                            disabled={isSharingAll || schedules.length === 0}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                width: '40px',
-                                height: '40px',
-                                backgroundColor: 'var(--color-card)',
-                                border: '1px solid var(--color-border)',
-                                borderRadius: '50%',
-                                cursor: (isSharingAll || isSharingScheduleId) ? 'default' : 'pointer',
-                                boxShadow: 'var(--shadow-sm)',
-                                color: 'var(--color-primary)',
-                                opacity: isSharingAll ? 0.6 : 1
-                            }}
-                            title="Share Full List"
-                        >
-                            {isSharingAll ? <Loader2 size={20} className="animate-spin" /> : <Share2 size={20} />}
-                        </button>
-                        {(isAdmin || hasAccess('PROGRAM_MANAGEMENT')) && !currentHiddenScreens.includes('/schedule/manage') && (
-                            <button
-                                onClick={() => navigate('/schedule/manage', { state: { returnPath: location.pathname } })}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.4rem',
-                                    padding: '0.5rem 0.8rem',
-                                    backgroundColor: 'var(--color-primary-transparent)',
-                                    color: 'var(--color-primary)',
-                                    border: '1px solid var(--color-primary-transparent)',
-                                    borderRadius: '0.75rem',
-                                    fontSize: '0.85rem',
-                                    fontWeight: 600,
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                Edit
-                            </button>
-                        )}
-                    </div>
-                }
             />
-            <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ maxWidth: '42rem', margin: '0 auto', width: '100%' }}>
 
-
-                    {schedules.length === 0 ? (
-                        <div style={{
-                            backgroundColor: 'var(--color-card)',
-                            borderRadius: '1rem',
-                            padding: '3rem',
-                            textAlign: 'center',
-                            boxShadow: 'var(--shadow-sm)',
-                            border: '1px solid var(--color-border)'
-                        }}>
-                            <p style={{ fontSize: '1.125rem', color: 'var(--color-text-muted)' }}>
-                                No schedules available at the moment.
-                            </p>
-                        </div>
-                    ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            {schedules.map((schedule, index) => (
-                                <motion.div
-                                    key={schedule.id}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: index * 0.1 }}
-                                    style={{
-                                        backgroundColor: 'var(--color-card)',
-                                        borderRadius: '1rem',
-                                        padding: '1.5rem',
-                                        boxShadow: 'var(--shadow-sm)',
-                                        border: '1px solid var(--color-border)',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '1.5rem'
-                                    }}
-                                >
-                                    {/* Date Box */}
-                                    <div style={{
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        backgroundColor: 'var(--color-primary-transparent)',
-                                        color: 'var(--color-primary)',
-                                        padding: '1rem',
-                                        borderRadius: '0.75rem',
-                                        minWidth: '5rem',
-                                        flexShrink: 0
-                                    }}>
-                                        <span style={{
-                                            fontSize: '0.875rem',
-                                            fontWeight: 600,
-                                            textTransform: 'uppercase',
-                                            letterSpacing: '0.05em'
-                                        }}>
-                                            {new Date(schedule.fromDate).toLocaleDateString(undefined, { month: 'short' })}
-                                        </span>
-                                        <span style={{
-                                            fontSize: '1.75rem',
-                                            fontWeight: 'bold',
-                                            lineHeight: 1
-                                        }}>
-                                            {new Date(schedule.fromDate).getDate()}
-                                        </span>
-                                    </div>
-
-                                    {/* Content */}
-                                    <div style={{
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        gap: '0.5rem',
-                                        flex: 1
-                                    }}>
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                                            <h2 style={{
-                                                fontSize: '1.25rem',
-                                                fontWeight: 600,
-                                                color: 'var(--color-text)',
-                                                margin: 0
-                                            }}>
-                                                {schedule.place}
-                                            </h2>
-                                        </div>
-
-                                        <div style={{
-                                            display: 'flex',
-                                            flexWrap: 'wrap',
-                                            gap: '0.5rem 1.5rem',
-                                            color: 'var(--color-text-muted)',
-                                            fontSize: '0.925rem'
-                                        }}>
-                                            <div style={{ display: 'flex', alignItems: 'center' }}>
-                                                {new Date(schedule.fromDate).toLocaleDateString(undefined, {
-                                                    weekday: 'short',
-                                                    month: 'short',
-                                                    day: 'numeric'
-                                                })}
-                                            </div>
-
-                                            <div style={{ display: 'flex', alignItems: 'center' }}>
-                                                {new Date(schedule.toDate).toLocaleDateString(undefined, {
-                                                    weekday: 'short',
-                                                    month: 'short',
-                                                    day: 'numeric'
-                                                })}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <button
-                                        onClick={() => handleShare(schedule)}
-                                        disabled={isSharingScheduleId === schedule.id}
-                                        style={{
-                                            padding: '0.5rem',
-                                            color: 'var(--color-primary)',
-                                            background: 'none',
-                                            border: 'none',
-                                            cursor: isSharingScheduleId === schedule.id ? 'default' : 'pointer',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            opacity: isSharingScheduleId === schedule.id ? 0.5 : 0.8
-                                        }}
-                                        title="Share Schedule"
-                                    >
-                                        {isSharingScheduleId === schedule.id ? <Loader2 size={20} className="animate-spin" /> : <Share2 size={20} />}
-                                    </button>
-                                </motion.div>
-                            ))}
-                        </div>
-                    )}
+            <div style={{ padding: '1.5rem', maxWidth: '42rem', margin: '0 auto' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    {schedules.map((schedule, index) => (
+                        <motion.div key={schedule.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 }} style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '1.5rem', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                            <div style={{ backgroundColor: 'var(--color-primary-transparent)', color: 'var(--color-primary)', padding: '1rem', borderRadius: '0.75rem', minWidth: '5rem', textAlign: 'center' }}>
+                                <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>{new Date(schedule.fromDate).toLocaleDateString(undefined, { month: 'short' }).toUpperCase()}</div>
+                                <div style={{ fontSize: '1.75rem', fontWeight: 'bold' }}>{new Date(schedule.fromDate).getDate()}</div>
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <h2 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0 }}>{schedule.place}</h2>
+                                <div style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>{new Date(schedule.fromDate).toLocaleDateString()} - {new Date(schedule.toDate).toLocaleDateString()}</div>
+                            </div>
+                            <button onClick={() => handleShare(schedule)} disabled={isSharingScheduleId === schedule.id} style={{ border: 'none', background: 'none', color: 'var(--color-primary)' }}>
+                                {isSharingScheduleId === schedule.id ? <Loader2 size={18} className="animate-spin" /> : <Share2 size={18} />}
+                            </button>
+                        </motion.div>
+                    ))}
                 </div>
             </div>
 
-            {/* Hidden Shareable Template */}
-            <div style={{
-                position: 'fixed',
-                top: '0',
-                left: '-2000px',
-                width: '800px',
-                zIndex: -1000,
-                visibility: 'visible',
-                pointerEvents: 'none',
-                opacity: 1
-            }}>
-                {sharingData && (
-                    <div
-                        id="schedule-share-template"
-                        ref={shareRef}
-                        style={{
-                            width: '800px',
-                            backgroundColor: '#ffffff',
-                            padding: '60px 40px',
-                            fontFamily: 'system-ui, -apple-system, sans-serif'
-                        }}
-                    >
-                        {/* Header branding */}
-                        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-                            <h1 style={{ color: '#f97316', margin: '0 0 10px 0', fontSize: '32px', fontWeight: 800 }}>
-                                Ayya's Schedule
-                            </h1>
-                            <div style={{ height: '4px', width: '100px', backgroundColor: '#f97316', margin: '0 auto' }}></div>
-                        </div>
+            <AnimatePresence>
+                {previewUrl && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 10001, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
+                        <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} style={{ backgroundColor: 'white', borderRadius: '1.5rem', width: '100%', maxWidth: '420px', overflow: 'hidden' }}>
+                            <div style={{ padding: '1.25rem', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <div>
+                                    <h3 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0 }}>Review Image</h3>
+                                    {fileStats && <div style={{ fontSize: '0.75rem', color: '#ea580c' }}>Ready: {fileStats.sizeKb} KB (External)</div>}
+                                </div>
+                                <button onClick={resetSharing} style={{ padding: '4px', border: 'none', background: 'none' }}><X size={20} /></button>
+                            </div>
+                            
+                            <div style={{ padding: '1rem', background: '#f8fafc', textAlign: 'center' }}>
+                                <img src={previewUrl} style={{ maxWidth: '100%', height: 'auto', borderRadius: '12px', border: '1px solid #cbd5e1', boxShadow: '0 8px 24px rgba(0,0,0,0.15)' }} alt="Preview" />
+                                <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginTop: '12px' }}>
+                                    <button onClick={() => finalShare('diagnostic')} style={{ fontSize: '10px', padding: '4px 8px', borderRadius: '6px', background: 'white', border: '1px solid #e2e8f0' }}><Info size={12} style={{ display: 'inline' }} /> Path</button>
+                                    <button onClick={() => finalShare('dummy')} style={{ fontSize: '10px', padding: '4px 8px', borderRadius: '6px', background: 'white', border: '1px solid #e2e8f0' }}><TestTube2 size={12} style={{ display: 'inline' }} /> Dummy</button>
+                                </div>
+                            </div>
 
-                        {/* Content */}
-                        {sharingData.type === 'single' ? (
-                            <div style={{
-                                backgroundColor: '#fff7ed',
-                                borderRadius: '25px',
-                                padding: '40px',
-                                border: '1px solid #ffedd5',
-                                textAlign: 'center'
-                            }}>
-                                <h2 style={{ fontSize: '36px', fontWeight: 800, color: '#111827', margin: '0 0 15px 0' }}>
-                                    {sharingData.schedule.place}
-                                </h2>
-                                <div style={{ height: '2px', width: '50px', backgroundColor: '#f97316', margin: '0 auto 25px auto' }}></div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-                                        <div style={{ backgroundColor: '#ffffff', padding: '10px 20px', borderRadius: '15px', border: '1px solid #ffedd5' }}>
-                                            <p style={{ margin: 0, fontSize: '20px', color: '#f97316', fontWeight: 700 }}>FROM</p>
-                                            <p style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#111827' }}>
-                                                {new Date(sharingData.schedule.fromDate).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
-                                            </p>
-                                        </div>
-                                        <div style={{ height: '1px', width: '20px', backgroundColor: '#f97316' }}></div>
-                                        <div style={{ backgroundColor: '#ffffff', padding: '10px 20px', borderRadius: '15px', border: '1px solid #ffedd5' }}>
-                                            <p style={{ margin: 0, fontSize: '20px', color: '#f97316', fontWeight: 700 }}>TO</p>
-                                            <p style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#111827' }}>
-                                                {new Date(sharingData.schedule.toDate).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
-                                            </p>
-                                        </div>
+                            <div style={{ padding: '1.25rem', display: 'flex', gap: '0.75rem' }}>
+                                <button onClick={resetSharing} disabled={shareInProgress} style={{ flex: 1, padding: '0.8rem', borderRadius: '14px', border: '1px solid #e2e8f0', background: 'white', fontWeight: 600 }}>Cancel</button>
+                                <button onClick={() => finalShare('normal')} disabled={shareInProgress} style={{ flex: 1, padding: '0.8rem', borderRadius: '14px', background: '#ea580c', color: 'white', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                                    {shareInProgress ? <Loader2 size={18} className="animate-spin" /> : <Share2 size={18} />}
+                                    Share Now
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {isCapturing && (
+                <div style={{ position: 'fixed', inset: 0, backgroundColor: 'white', zIndex: 9999, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ marginBottom: '20px' }}><Loader2 size={32} className="animate-spin" style={{ color: '#ea580c' }} /></div>
+                    <div ref={shareRef} style={{ width: '800px', backgroundColor: 'white', padding: '60px 40px' }}>
+                        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+                            <h1 style={{ color: '#ea580c', fontSize: '32px', fontWeight: 800, margin: 0 }}>Ayya's Schedule</h1>
+                            <div style={{ height: '4px', width: '100px', backgroundColor: '#ea580c', margin: '10px auto' }}></div>
+                        </div>
+                        {sharingData?.type === 'single' ? (
+                            <div style={{ backgroundColor: '#fff7ed', borderRadius: '25px', padding: '40px', border: '1px solid #ffedd5', textAlign: 'center' }}>
+                                <h2 style={{ fontSize: '36px', fontWeight: 800 }}>{sharingData.schedule.place}</h2>
+                                <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '20px' }}>
+                                    <div style={{ background: 'white', padding: '15px 25px', borderRadius: '15px', border: '1px solid #ffedd5' }}>
+                                        <div style={{ color: '#ea580c', fontWeight: 700, fontSize: '14px' }}>FROM</div>
+                                        <div style={{ fontSize: '20px', fontWeight: 800 }}>{new Date(sharingData.schedule.fromDate).toLocaleDateString()}</div>
                                     </div>
-                                    {sharingData.schedule.description && (
-                                        <p style={{ fontSize: '20px', color: '#4b5563', margin: '20px 0 0 0', fontStyle: 'italic', lineHeight: 1.5 }}>
-                                            {sharingData.schedule.description}
-                                        </p>
-                                    )}
+                                    <div style={{ background: 'white', padding: '15px 25px', borderRadius: '15px', border: '1px solid #ffedd5' }}>
+                                        <div style={{ color: '#ea580c', fontWeight: 700, fontSize: '14px' }}>TO</div>
+                                        <div style={{ fontSize: '20px', fontWeight: 800 }}>{new Date(sharingData.schedule.toDate).toLocaleDateString()}</div>
+                                    </div>
                                 </div>
                             </div>
                         ) : (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                                {sharingData.schedules.map((s) => (
-                                    <div key={s.id} style={{
-                                        backgroundColor: '#fff7ed',
-                                        borderRadius: '20px',
-                                        padding: '25px',
-                                        border: '1px solid #ffedd5',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '30px'
-                                    }}>
-                                        {/* Date Section */}
-                                        <div style={{
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            backgroundColor: '#ffffff',
-                                            color: '#f97316',
-                                            padding: '15px',
-                                            borderRadius: '15px',
-                                            minWidth: '100px',
-                                            border: '1px solid #ffedd5'
-                                        }}>
-                                            <span style={{ fontSize: '18px', fontWeight: 700, textTransform: 'uppercase' }}>
-                                                {new Date(s.fromDate).toLocaleDateString(undefined, { month: 'short' })}
-                                            </span>
-                                            <span style={{ fontSize: '36px', fontWeight: 800 }}>
-                                                {new Date(s.fromDate).getDate()}
-                                            </span>
+                                {sharingData?.schedules?.slice(0, 10).map(s => (
+                                    <div key={s.id} style={{ backgroundColor: '#fff7ed', borderRadius: '20px', padding: '25px', border: '1px solid #ffedd5', display: 'flex', alignItems: 'center', gap: '30px' }}>
+                                        <div style={{ minWidth: '100px', textAlign: 'center', background: 'white', padding: '15px', borderRadius: '15px' }}>
+                                            <div style={{ color: '#ea580c', fontWeight: 700 }}>{new Date(s.fromDate).toLocaleDateString(undefined, { month: 'short' }).toUpperCase()}</div>
+                                            <div style={{ fontSize: '30px', fontWeight: 800 }}>{new Date(s.fromDate).getDate()}</div>
                                         </div>
-
-                                        {/* Content Section */}
-                                        <div style={{ flex: 1 }}>
-                                            <h2 style={{ fontSize: '28px', fontWeight: 700, color: '#111827', margin: '0 0 8px 0' }}>
-                                                {s.place}
-                                            </h2>
-                                            <p style={{ fontSize: '20px', color: '#4b5563', margin: 0 }}>
-                                                {new Date(s.fromDate).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
-                                                {' - '}
-                                                {new Date(s.toDate).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
-                                            </p>
+                                        <div>
+                                            <div style={{ fontSize: '24px', fontWeight: 700 }}>{s.place}</div>
+                                            <div style={{ color: '#4b5563' }}>{new Date(s.fromDate).toLocaleDateString()} - {new Date(s.toDate).toLocaleDateString()}</div>
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         )}
-
-                        {/* Footer Branding */}
-                        <div style={{ marginTop: '50px', paddingTop: '30px', borderTop: '2px solid #f3f4f6', textAlign: 'center' }}>
-                            <p style={{ margin: 0, color: '#f97316', fontSize: '22px', fontWeight: 800 }}>
-                                Download Sri Bagavath App for latest updates
-                            </p>
-                            <p style={{ margin: '8px 0 0 0', color: '#6b7280', fontSize: '14px' }}>
-                                Available on Google Play Store
-                            </p>
-                        </div>
+                        <div style={{ marginTop: '50px', textAlign: 'center', color: '#ea580c', fontSize: '22px', fontWeight: 800 }}>Sri Bagavath</div>
                     </div>
-                )}
-            </div>
-
-            <style>{`
-                @keyframes spin {
-                    from { transform: rotate(0deg); }
-                    to { transform: rotate(360deg); }
-                }
-                .animate-spin {
-                    animation: spin 1s linear infinite;
-                }
-            `}</style>
+                </div>
+            )}
+            <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } } .animate-spin { animation: spin 1s linear infinite; }`}</style>
         </div>
     );
 };
-
 
 export default AyyasSchedule;
