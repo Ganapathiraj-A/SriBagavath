@@ -16,7 +16,7 @@ const AdminGallery = () => {
     const [editForm, setEditForm] = useState({ url: '', caption: '', order: 0, category: 'general' });
     const [showAddModal, setShowAddModal] = useState(false);
     const [activeTab, setActiveTab] = useState('general');
-    const [subTab, setSubTab] = useState('recent');
+    const [subTab, setSubTab] = useState('events');
     const [newForm, setNewForm] = useState({ url: '', caption: '', order: 0, category: 'general' });
 
     useEffect(() => {
@@ -209,7 +209,7 @@ const AdminGallery = () => {
                         }}
                     >
                         {[
-                            { id: 'recent', label: 'Recent' },
+                            { id: 'events', label: 'Events' },
                             { id: 'ayya', label: 'Ayya' }
                         ].map(tab => {
                             const isActive = subTab === tab.id;
@@ -280,7 +280,7 @@ const AdminGallery = () => {
                         cursor: 'pointer'
                     }}
                 >
-                    <Plus size={20} /> Add to {activeTab === 'recent' ? (subTab === 'ayya' ? 'Ayya' : 'Recent') : 'General'}
+                    <Plus size={20} /> Add to {activeTab === 'recent' ? (subTab === 'ayya' ? 'Ayya' : 'Events') : 'General'}
                 </button>
 
                 {loading ? (
@@ -335,7 +335,7 @@ const AdminGallery = () => {
                                             style={{ width: '100%', padding: '0.5rem', borderRadius: '0.25rem', border: '1px solid var(--color-border)' }}
                                         />
                                         <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.25rem', overflowX: 'auto', paddingBottom: '4px' }}>
-                                            {['general', 'recent', 'ayya'].map(cat => (
+                                            {['general', 'events', 'ayya'].map(cat => (
                                                 <button
                                                     key={cat}
                                                     type="button"
@@ -474,7 +474,7 @@ const AdminGallery = () => {
                                 <div>
                                     <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Category</label>
                                     <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                        {['general', 'recent', 'ayya'].map(cat => (
+                                        {['general', 'events', 'ayya'].map(cat => (
                                             <button
                                                 key={cat}
                                                 type="button"

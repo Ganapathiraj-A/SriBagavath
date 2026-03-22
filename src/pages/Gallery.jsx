@@ -14,7 +14,7 @@ const Gallery = () => {
     const [images, setImages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('general');
-    const [subTab, setSubTab] = useState('recent');
+    const [subTab, setSubTab] = useState('events');
     const [selectedIndex, setSelectedIndex] = useState(null);
 
     useEffect(() => {
@@ -154,7 +154,7 @@ const Gallery = () => {
                         }}
                     >
                         {[
-                            { id: 'recent', label: 'Recent' },
+                            { id: 'events', label: 'Events' },
                             { id: 'ayya', label: 'Ayya' }
                         ].map(tab => {
                             const isActive = subTab === tab.id;
