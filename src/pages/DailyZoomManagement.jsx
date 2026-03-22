@@ -57,9 +57,9 @@ const DailyZoomManagement = () => {
             setHistoryMeetings(snapHistory.docs.map(d => ({ id: d.id, ...d.data() })));
 
             // Load Teachers
-            const teacherRef = collection(db, 'daily_zoom_teachers');
-            const teacherSnap = await getDocs(query(teacherRef, orderBy('name', 'asc')));
-            const teachersList = teacherSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+            const teachersRef = collection(db, 'teachers');
+            const teachersSnap = await getDocs(query(teachersRef, orderBy('name', 'asc')));
+            const teachersList = teachersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
             setTeachers(teachersList);
 
             // Load Links

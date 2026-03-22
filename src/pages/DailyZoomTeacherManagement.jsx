@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
-    Edit2, Trash2, Save, ChevronLeft, User, Phone, Mail, Image as ImageIcon
+    Edit2, Trash2, Save, ChevronLeft, User, Phone, Mail, Image as ImageIcon, CheckCircle2, Circle
 } from 'lucide-react';
 import { db, storage } from '@/firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy } from '@/utils/FirestoreProxy';
 import { ref, deleteObject } from 'firebase/storage';
+import { bumpServerVersion } from '@/utils/SyncManager';
 import PageHeader from '@/components/PageHeader';
 import LazyImage from '@/components/LazyImage';
 import { compressImage } from '@/utils/imageUtils';
@@ -16,6 +17,9 @@ import '../components/RegistrationStyles.css';
 
 const DailyZoomTeacherManagement = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const returnPath = location.state?.returnPath || '/admin/daily-zoom';
+    
     const [teachers, setTeachers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
@@ -25,7 +29,9 @@ const DailyZoomTeacherManagement = () => {
         name: '',
         image: '',
         googleId: '',
-        phoneNumber: ''
+        phoneNumber: '',
+        showInConsultation: false,
+        consultationOrder: 999
     });
 
     useEffect(() => {
@@ -35,7 +41,7 @@ const DailyZoomTeacherManagement = () => {
     const loadTeachers = async () => {
         try {
             setLoading(true);
-            const ref = collection(db, 'daily_zoom_teachers');
+            const ref = collection(db, 'teachers');
             const q = query(ref, orderBy('name', 'asc'));
             const snap = await getDocs(q);
             setTeachers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
@@ -47,8 +53,11 @@ const DailyZoomTeacherManagement = () => {
     };
 
     const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        const { name, value, type, checked } = e.target;
+        setFormData(prev => ({ 
+            ...prev, 
+            [name]: type === 'checkbox' ? checked : value 
+        }));
     };
 
     const handleImageUpload = (e) => {
@@ -76,10 +85,10 @@ const DailyZoomTeacherManagement = () => {
             let finalImageUrl = dataToSave.image;
 
             if (editingId) {
-                await updateDoc(doc(db, 'daily_zoom_teachers', editingId), dataToSave);
+                await updateDoc(doc(db, 'teachers', editingId), dataToSave);
                 alert('Teacher updated!');
             } else {
-                const docRef = await addDoc(collection(db, 'daily_zoom_teachers'), {
+                const docRef = await addDoc(collection(db, 'teachers'), {
                     ...dataToSave,
                     createdAt: new Date().toISOString()
                 });
@@ -91,7 +100,7 @@ const DailyZoomTeacherManagement = () => {
             if (newImageFile && finalImageUrl && finalImageUrl.startsWith('data:')) {
                 try {
                     const downloadUrl = await TransactionService.uploadBase64ToStorage(teacherId, finalImageUrl, 'teachers', 'photo.jpg');
-                    await updateDoc(doc(db, 'daily_zoom_teachers', teacherId), { image: downloadUrl });
+                    await updateDoc(doc(db, 'teachers', teacherId), { image: downloadUrl });
 
                     // Update stats
                     const sizeInBytes = finalImageUrl.length * 0.75;
@@ -100,6 +109,11 @@ const DailyZoomTeacherManagement = () => {
                     console.error("Teacher photo storage upload failed, keeping as Base64", storageErr);
                 }
             }
+
+            // Sync versions
+            await bumpServerVersion('teachers');
+            await bumpServerVersion('daily_zoom_meetings');
+            await bumpServerVersion('consultants');
 
             resetForm();
             loadTeachers();
@@ -113,7 +127,9 @@ const DailyZoomTeacherManagement = () => {
             name: teacher.name || '',
             image: teacher.image || '',
             googleId: teacher.googleId || '',
-            phoneNumber: teacher.phoneNumber || ''
+            phoneNumber: teacher.phoneNumber || '',
+            showInConsultation: teacher.showInConsultation || false,
+            consultationOrder: teacher.consultationOrder !== undefined ? teacher.consultationOrder : 999
         });
         setEditingId(teacher.id);
         setIsEditing(true);
@@ -121,9 +137,9 @@ const DailyZoomTeacherManagement = () => {
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm('Delete this teacher? This won\'t affect existing meetings.')) {
+        if (window.confirm('Delete this teacher? This won\'t affect existing meetings or transactions.')) {
             try {
-                await deleteDoc(doc(db, 'daily_zoom_teachers', id));
+                await deleteDoc(doc(db, 'teachers', id));
 
                 // Delete photo from storage
                 try {
@@ -133,6 +149,7 @@ const DailyZoomTeacherManagement = () => {
                     console.warn("Storage deletion failed or file didn't exist", e);
                 }
 
+                await bumpServerVersion('teachers');
                 loadTeachers();
             } catch (_err) {
                 alert('Error deleting: ' + _err.message);
@@ -141,7 +158,14 @@ const DailyZoomTeacherManagement = () => {
     };
 
     const resetForm = () => {
-        setFormData({ name: '', image: '', googleId: '', phoneNumber: '' });
+        setFormData({ 
+            name: '', 
+            image: '', 
+            googleId: '', 
+            phoneNumber: '',
+            showInConsultation: false,
+            consultationOrder: 999
+        });
         setIsEditing(false);
         setEditingId(null);
     };
@@ -151,7 +175,7 @@ const DailyZoomTeacherManagement = () => {
             <PageHeader
                 title="Manage Teachers"
                 leftAction={
-                    <button onClick={() => navigate('/admin/daily-zoom')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', color: 'var(--color-text)' }}>
+                    <button onClick={() => navigate(returnPath)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', color: 'var(--color-text)' }}>
                         <ChevronLeft size={24} />
                     </button>
                 }
@@ -175,7 +199,7 @@ const DailyZoomTeacherManagement = () => {
                             </div>
 
                             <div style={{ display: 'grid', gap: '0.4rem' }}>
-                                <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Phone Number</label>
+                                <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Phone Number (for Consultation)</label>
                                 <input
                                     type="tel"
                                     name="phoneNumber"
@@ -186,8 +210,27 @@ const DailyZoomTeacherManagement = () => {
                                 />
                             </div>
 
+                            <div style={{ display: 'flex', gap: '1.5rem', backgroundColor: 'var(--color-surface)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }} onClick={() => setFormData(prev => ({ ...prev, showInConsultation: !prev.showInConsultation }))}>
+                                    {formData.showInConsultation ? <CheckCircle2 color="var(--color-primary)" size={20} /> : <Circle color="var(--color-text-muted)" size={20} />}
+                                    <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-text)' }}>Show in Consultation</span>
+                                </div>
+                                {formData.showInConsultation && (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <label style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Order:</label>
+                                        <input
+                                            type="number"
+                                            name="consultationOrder"
+                                            value={formData.consultationOrder}
+                                            onChange={handleInputChange}
+                                            style={{ width: '60px', padding: '4px', borderRadius: '4px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+
                             <div style={{ display: 'grid', gap: '0.4rem' }}>
-                                <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Google ID (for admin matching)</label>
+                                <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Google ID (for Zoom admin matching)</label>
                                 <input
                                     type="text"
                                     name="googleId"
@@ -260,7 +303,10 @@ const DailyZoomTeacherManagement = () => {
                     </div>
 
                     <div style={{ display: 'grid', gap: '1rem' }}>
-                        <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--color-text)' }}>Registered Teachers</h2>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--color-text)' }}>Unified Teacher List</h2>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{teachers.length} teachers total</div>
+                        </div>
                         {loading ? <p style={{ color: 'var(--color-text-muted)' }}>Loading teachers...</p> : teachers.length === 0 ? <p style={{ color: 'var(--color-text-muted)' }}>No teachers registered yet.</p> : (
                             teachers.map(t => (
                                 <div key={t.id} style={{ backgroundColor: 'var(--color-card)', padding: '1rem', borderRadius: '0.75rem', display: 'flex', alignItems: 'center', gap: '1rem', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)' }}>
@@ -281,7 +327,10 @@ const DailyZoomTeacherManagement = () => {
                                         )}
                                     </div>
                                     <div style={{ flex: 1 }}>
-                                        <div style={{ fontWeight: 600, color: 'var(--color-text)' }}>{t.name}</div>
+                                        <div style={{ fontWeight: 600, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            {t.name}
+                                            {t.showInConsultation && <span style={{ fontSize: '0.65rem', backgroundColor: 'var(--color-primary-transparent)', color: 'var(--color-primary)', padding: '2px 6px', borderRadius: '99px' }}>Consultant</span>}
+                                        </div>
                                         <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                                             {t.phoneNumber && <><Phone size={12} /> {t.phoneNumber}</>}
                                             {t.googleId && <><Mail size={12} style={{ marginLeft: t.phoneNumber ? '8px' : '0' }} /> {t.googleId}</>}

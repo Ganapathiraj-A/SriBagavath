@@ -6,7 +6,7 @@ import PageHeader from '@/components/PageHeader';
 import { useAdminAuth } from '@/context/AdminAuthContext';
 import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 
-const ContactCard = ({ name, number, delay }) => {
+const ContactCard = ({ name, number, image, delay }) => {
     const [copied, setCopied] = React.useState(false);
 
     const handleCopy = () => {
@@ -27,60 +27,79 @@ const ContactCard = ({ name, number, delay }) => {
             style={{
                 backgroundColor: 'var(--color-card)',
                 padding: '1.25rem',
-                borderRadius: '1rem',
+                borderRadius: '1.25rem',
                 boxShadow: 'var(--shadow-sm)',
                 border: '1px solid var(--color-border)',
                 display: 'flex',
-                flexDirection: 'column',
-                gap: '1rem'
+                alignItems: 'center',
+                gap: '1.25rem'
             }}
         >
-            <div>
-                <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>{name}</h3>
-                <p style={{ fontSize: '1rem', color: 'var(--color-text-muted)', margin: '0.25rem 0 0 0' }}>{number}</p>
+            <div style={{ width: '4rem', height: '4rem', borderRadius: '1rem', overflow: 'hidden', border: '1px solid var(--color-border)', flexShrink: 0, backgroundColor: 'var(--color-surface)' }}>
+                {image ? (
+                    <img
+                        src={image}
+                        alt={name}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        loading="lazy"
+                    />
+                ) : (
+                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Phone size={24} color="var(--color-text-muted)" />
+                    </div>
+                )}
             </div>
 
-            <div style={{ display: 'flex', gap: '0.75rem' }}>
-                <button
-                    onClick={handleCall}
-                    style={{
-                        flex: 1,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '0.5rem',
-                        padding: '0.75rem',
-                        backgroundColor: '#f97316',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '0.5rem',
-                        fontWeight: 600,
-                        cursor: 'pointer'
-                    }}
-                >
-                    <Phone size={18} />
-                    Call
-                </button>
-                <button
-                    onClick={handleCopy}
-                    style={{
-                        flex: 1,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '0.5rem',
-                        padding: '0.75rem',
-                        backgroundColor: 'var(--color-surface)',
-                        color: 'var(--color-text)',
-                        border: 'none',
-                        borderRadius: '0.5rem',
-                        fontWeight: 600,
-                        cursor: 'pointer'
-                    }}
-                >
-                    {copied ? <Check size={18} color="var(--color-success)" /> : <Copy size={18} />}
-                    {copied ? 'Copied' : 'Copy'}
-                </button>
+            <div style={{ flex: 1 }}>
+                <div style={{ marginBottom: '1rem' }}>
+                    <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>{name}</h3>
+                    <p style={{ fontSize: '1rem', color: 'var(--color-text-muted)', margin: '0.25rem 0 0 0' }}>{number}</p>
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    <button
+                        onClick={handleCall}
+                        style={{
+                            flex: 1,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '0.5rem',
+                            padding: '0.6rem',
+                            backgroundColor: '#f97316',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '0.6rem',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            fontSize: '0.875rem'
+                        }}
+                    >
+                        <Phone size={16} />
+                        Call
+                    </button>
+                    <button
+                        onClick={handleCopy}
+                        style={{
+                            flex: 1,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '0.5rem',
+                            padding: '0.6rem',
+                            backgroundColor: 'var(--color-surface)',
+                            color: 'var(--color-text)',
+                            border: '1px solid var(--color-border)',
+                            borderRadius: '0.6rem',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            fontSize: '0.875rem'
+                        }}
+                    >
+                        {copied ? <Check size={16} color="var(--color-success)" /> : <Copy size={16} />}
+                        {copied ? 'Copied' : 'Copy'}
+                    </button>
+                </div>
             </div>
         </motion.div>
     );
@@ -101,14 +120,14 @@ const Consultation = () => {
         const fetchConsultants = async () => {
             if (!isInitialized) return;
             try {
-                const { collection, getDocs, query, orderBy, getDocsFromCache, getDocsFromServer } = await import('@/utils/FirestoreProxy');
+                const { collection, getDocs, query, orderBy, where, getDocsFromCache, getDocsFromServer } = await import('@/utils/FirestoreProxy');
                 const { db } = await import('../firebase');
                 const { needsServerSync, markSyncedLocally } = await import('../utils/SyncManager');
 
-                const ref = collection(db, 'consultants');
-                const q = query(ref, orderBy('order', 'asc'));
+                const ref = collection(db, 'teachers');
+                const q = query(ref, where('showInConsultation', '==', true), orderBy('consultationOrder', 'asc'), orderBy('name', 'asc'));
 
-                const needsSync = needsServerSync('consultants');
+                const needsSync = needsServerSync('consultants'); // Keep existing sync key
                 let snap;
                 try {
                     snap = await getDocsFromCache(q);
@@ -121,7 +140,13 @@ const Consultation = () => {
                     markSyncedLocally('consultants');
                 }
 
-                setConsultants(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+                setConsultants(snap.docs.map(d => ({ 
+                    id: d.id, 
+                    name: d.data().name,
+                    number: d.data().phoneNumber || '',
+                    image: d.data().image || '',
+                    ...d.data() 
+                })));
             } catch (_err) {
                 console.error("Error fetching consultants:", _err);
             } finally {
@@ -170,7 +195,7 @@ const Consultation = () => {
                     <p style={{ textAlign: 'center', color: 'var(--color-text-light)', padding: '2rem' }}>No teacher contacts available.</p>
                 ) : (
                     consultants.map((c, idx) => (
-                        <ContactCard key={c.id} name={c.name} number={c.number} delay={idx * 0.1} />
+                        <ContactCard key={c.id} name={c.name} number={c.number} image={c.image} delay={idx * 0.1} />
                     ))
                 )}
 
