@@ -98,6 +98,11 @@ const PaymentFlow = () => {
             import('../utils/Analytics').then(m => {
                 m.default.trackScreenView('Payment Flow');
             });
+
+            // Auto-launch Razorpay if requested
+            if (location.state?.autoLaunch) {
+                handleRazorpayPayment();
+            }
         }
     }, [amount, navigate, location.state]);
 

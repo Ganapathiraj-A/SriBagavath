@@ -215,7 +215,7 @@ const EventRegistration = () => {
 
         navigate('/payment-flow', {
             replace: true,
-            state: paymentState
+            state: { ...paymentState, autoLaunch: true }
         });
     };
 
