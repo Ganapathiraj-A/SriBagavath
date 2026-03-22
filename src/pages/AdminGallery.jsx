@@ -15,6 +15,8 @@ const AdminGallery = () => {
     const [editingId, setEditingId] = useState(null);
     const [editForm, setEditForm] = useState({ url: '', caption: '', order: 0, category: 'general' });
     const [showAddModal, setShowAddModal] = useState(false);
+    const [activeTab, setActiveTab] = useState('general');
+    const [subTab, setSubTab] = useState('recent');
     const [newForm, setNewForm] = useState({ url: '', caption: '', order: 0, category: 'general' });
 
     useEffect(() => {
@@ -124,14 +126,142 @@ const AdminGallery = () => {
         });
     };
 
+    const filteredImages = images.filter(img => {
+        const cat = img.category || 'general';
+        if (activeTab === 'general') return cat === 'general';
+        if (activeTab === 'recent') return cat === subTab;
+        return false;
+    });
+
     return (
         <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-surface)', paddingBottom: '2rem' }}>
             <PageHeader title="Gallery Management" />
 
+            <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                gap: '2rem',
+                marginBottom: '1rem',
+                borderBottom: '1px solid var(--color-border)',
+                padding: '0 1rem',
+                backgroundColor: 'var(--color-surface)',
+                position: 'sticky',
+                top: '56px',
+                zIndex: 10
+            }}>
+                {[
+                    { id: 'general', label: 'General' },
+                    { id: 'recent', label: 'Recent' }
+                ].map(tab => {
+                    const isActive = activeTab === tab.id;
+                    return (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            style={{
+                                padding: '0.75rem 0.25rem',
+                                border: 'none',
+                                backgroundColor: 'transparent',
+                                fontSize: '0.875rem',
+                                fontWeight: 700,
+                                color: isActive ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                position: 'relative',
+                                cursor: 'pointer',
+                                transition: 'color 0.2s'
+                            }}
+                        >
+                            {tab.label}
+                            {isActive && (
+                                <motion.div
+                                    layoutId="adminGalleryTabUnderline"
+                                    style={{
+                                        position: 'absolute',
+                                        bottom: 0,
+                                        left: 0,
+                                        right: 0,
+                                        height: '3px',
+                                        backgroundColor: 'var(--color-primary)',
+                                        borderRadius: '99px'
+                                    }}
+                                />
+                            )}
+                        </button>
+                    );
+                })}
+            </div>
+
+            <AnimatePresence>
+                {activeTab === 'recent' && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            gap: '1.5rem',
+                            borderBottom: '1px solid var(--color-border)',
+                            backgroundColor: 'var(--color-surface)',
+                            position: 'sticky',
+                            top: '109px',
+                            zIndex: 9,
+                            overflow: 'hidden'
+                        }}
+                    >
+                        {[
+                            { id: 'recent', label: 'Recent' },
+                            { id: 'ayya', label: 'Ayya' }
+                        ].map(tab => {
+                            const isActive = subTab === tab.id;
+                            return (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setSubTab(tab.id)}
+                                    style={{
+                                        padding: '0.625rem 0.25rem',
+                                        border: 'none',
+                                        backgroundColor: 'transparent',
+                                        fontSize: '0.8125rem',
+                                        fontWeight: 600,
+                                        color: isActive ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                        position: 'relative',
+                                        cursor: 'pointer',
+                                        transition: 'color 0.2s',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.025em'
+                                    }}
+                                >
+                                    {tab.label}
+                                    {isActive && (
+                                        <motion.div
+                                            layoutId="adminGallerySubTabUnderline"
+                                            style={{
+                                                position: 'absolute',
+                                                bottom: 2,
+                                                left: 0,
+                                                right: 0,
+                                                height: '2px',
+                                                backgroundColor: 'var(--color-primary)',
+                                                borderRadius: '99px'
+                                            }}
+                                        />
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <div style={{ maxWidth: '48rem', margin: '0 auto', padding: '1rem' }}>
                 <button
                     onClick={() => {
-                        setNewForm(prev => ({ ...prev, order: images.length }));
+                        const defaultCategory = activeTab === 'recent' ? subTab : 'general';
+                        setNewForm(prev => ({ 
+                            ...prev, 
+                            order: images.length,
+                            category: defaultCategory
+                        }));
                         setShowAddModal(true);
                     }}
                     style={{
@@ -150,14 +280,14 @@ const AdminGallery = () => {
                         cursor: 'pointer'
                     }}
                 >
-                    <Plus size={20} /> Add New Image
+                    <Plus size={20} /> Add to {activeTab === 'recent' ? (subTab === 'ayya' ? 'Ayya' : 'Recent') : 'General'}
                 </button>
 
                 {loading ? (
                     <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)' }}>Loading gallery...</div>
                 ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        {images.map((img) => (
+                        {filteredImages.map((img) => (
                             <div key={img.id} style={{
                                 backgroundColor: 'var(--color-card)',
                                 borderRadius: '0.75rem',
