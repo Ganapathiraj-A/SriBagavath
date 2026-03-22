@@ -100,18 +100,25 @@ const AyyasSchedule = () => {
                 scale: 2,
                 backgroundColor: '#ffffff',
                 width: 800,
+                scrollX: 0,
+                scrollY: 0,
+                x: 0,
+                y: 0,
                 onclone: (doc) => {
                     const el = doc.getElementById('schedule-share-template');
                     if (el) {
                         el.style.display = 'block';
                         el.style.opacity = '1';
                         el.style.visibility = 'visible';
+                        el.style.position = 'relative';
+                        el.style.left = '0';
+                        el.style.top = '0';
                     }
                 }
             });
 
-            const fileName = `ayya_schedule_${Date.now()}.jpg`;
-            const base64Data = canvas.toDataURL('image/jpeg', 0.95).split(',')[1];
+            const fileName = `ayya_schedule_${Date.now()}.png`;
+            const base64Data = canvas.toDataURL('image/png').split(',')[1];
 
             const result = await Filesystem.writeFile({
                 path: fileName,
@@ -120,13 +127,33 @@ const AyyasSchedule = () => {
                 encoding: 'base64'
             });
 
-            // Ensure it's a file:// URI
-            const fileUri = result.uri.startsWith('file://') ? result.uri : `file://${result.uri}`;
+            // Safer URI building
+            let fileUri = result.uri;
+            if (!fileUri.startsWith('file://')) {
+                if (fileUri.startsWith('/')) {
+                    fileUri = `file://${fileUri}`;
+                } else if (!fileUri.startsWith('capacitor://') && !fileUri.startsWith('data:')) {
+                    // It's likely a relative path if it gets here (shouldn't happen with .uri)
+                    const uriRes = await Filesystem.getUri({
+                        path: fileName,
+                        directory: Directory.Cache
+                    });
+                    fileUri = uriRes.uri;
+                }
+            }
+            
+            // Ensure 3 slashes if it's file://
+            if (fileUri.startsWith('file://') && !fileUri.startsWith('file:///')) {
+                fileUri = fileUri.replace('file://', 'file:///');
+            }
 
             // Give filesystem a moment to sync
             await new Promise(resolve => setTimeout(resolve, 500));
 
             await Toast.show({ text: 'Opening Share...' });
+            
+            // DEBUG: Show URI if in dev mode or for this specific fix
+            // alert("Sharing URI: " + fileUri);
 
             await Share.share({
                 title: "Ayya's Schedule",
