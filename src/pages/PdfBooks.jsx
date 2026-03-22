@@ -129,20 +129,22 @@ const PdfBooks = () => {
     if (!url) return null;
     if (url.startsWith('data:')) return url;
     try {
-      const { CapacitorHttp } = await import('@capacitor/core');
-      const response = await CapacitorHttp.get({
+      const tempFileName = `temp_pdf_${Date.now()}.jpg`;
+      const downloadResult = await Filesystem.downloadFile({
         url: url,
-        responseType: 'arraybuffer'
+        path: tempFileName,
+        directory: Directory.Cache
       });
       
-      if (response.status !== 200) throw new Error(`HTTP ${response.status}`);
+      const readResult = await Filesystem.readFile({
+        path: tempFileName,
+        directory: Directory.Cache
+      });
       
-      const uint8Array = new Uint8Array(response.data);
-      let binary = '';
-      for (let i = 0; i < uint8Array.byteLength; i++) {
-        binary += String.fromCharCode(uint8Array[i]);
-      }
-      return `data:image/jpeg;base64,${btoa(binary)}`;
+      // Clean up temp file
+      Filesystem.deleteFile({ path: tempFileName, directory: Directory.Cache }).catch(() => {});
+      
+      return `data:image/jpeg;base64,${readResult.data}`;
     } catch (err) {
       console.error("fetchAsBase64 failed:", err);
       return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=";

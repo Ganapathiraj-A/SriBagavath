@@ -239,31 +239,6 @@ const Programs = () => {
         }
     };
 
-    const fetchAsBase64 = async (url) => {
-        if (!url) return null;
-        if (url.startsWith('data:')) return url.split(',')[1];
-        try {
-            const { CapacitorHttp } = await import('@capacitor/core');
-            const response = await CapacitorHttp.get({
-                url: url,
-                responseType: 'arraybuffer'
-            });
-            
-            if (response.status !== 200) throw new Error(`HTTP ${response.status}`);
-            
-            // Convert arraybuffer to base64
-            const uint8Array = new Uint8Array(response.data);
-            let binary = '';
-            for (let i = 0; i < uint8Array.byteLength; i++) {
-                binary += String.fromCharCode(uint8Array[i]);
-            }
-            return btoa(binary);
-        } catch (err) {
-            console.error("fetchAsBase64 failed:", err);
-            return null;
-        }
-    };
-
     const handleShareBanner = async (program) => {
         const bannerData = program.programBanner || (program.id === viewingProgram?.id ? viewingBanner : null);
 
@@ -276,26 +251,32 @@ const Programs = () => {
             const { Toast } = await import('@capacitor/toast');
             await Toast.show({ text: 'Preparing image...' });
 
-            let cleanBase64 = null;
-            if (bannerData.startsWith('http')) {
-                cleanBase64 = await fetchAsBase64(bannerData);
-            } else {
-                cleanBase64 = bannerData.split(',')[1] || bannerData;
-            }
-
-            if (!cleanBase64) {
-                throw new Error("Could not process image data");
-            }
-
             const fileName = `banner_${Date.now()}.jpg`;
+            let fileUri = null;
 
-            // Write to cache directory (temporary file)
-            const result = await Filesystem.writeFile({
-                path: fileName,
-                data: cleanBase64,
-                directory: Directory.Cache,
-                encoding: 'base64'
-            });
+            if (bannerData.startsWith('http')) {
+                // Download directly to cache - Bypasses all CORS and Base64 issues
+                const downloadResult = await Filesystem.downloadFile({
+                    url: bannerData,
+                    path: fileName,
+                    directory: Directory.Cache
+                });
+                fileUri = downloadResult.path;
+            } else {
+                // Handle Base64 (legacy or local)
+                const cleanBase64 = bannerData.split(',')[1] || bannerData;
+                const writeResult = await Filesystem.writeFile({
+                    path: fileName,
+                    data: cleanBase64,
+                    directory: Directory.Cache,
+                    encoding: 'base64'
+                });
+                fileUri = writeResult.uri;
+            }
+
+            if (!fileUri) {
+                throw new Error("Could not prepare file for sharing");
+            }
 
             // Give filesystem a moment to sync
             await new Promise(resolve => setTimeout(resolve, 500));
@@ -306,7 +287,7 @@ const Programs = () => {
             await Share.share({
                 title: program.programName,
                 text: `Check out this program: ${program.programName}\n\nDownload Sri Bagavath App for more: https://play.google.com/store/apps/details?id=com.bhavathpathai.app`,
-                files: [result.uri]
+                files: [fileUri]
             });
 
             // Track Share
