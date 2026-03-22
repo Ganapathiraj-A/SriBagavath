@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+Tamil:wght@400;700;800&display=swap');
 
 :root {
-  color-scheme: light;
+  color-scheme: light dark;
   --color-primary: #FF9933;
   --color-primary-dark: #CC7A00;
   --color-primary-transparent: rgba(255, 153, 51, 0.1);
@@ -59,7 +59,6 @@
   --web-cream-light: #FDF6E3;
 }
 
-/* 
 @media (prefers-color-scheme: dark) {
   :root {
     --color-background: #0F172A;
@@ -104,7 +103,6 @@
     --color-shadow: rgba(0, 0, 0, 0.5);
   }
 }
-*/
 
 * {
   margin: 0;
@@ -112,12 +110,18 @@
   box-sizing: border-box;
 }
 
-body {
+html, body {
   font-family: 'Outfit', sans-serif;
   background-color: var(--color-background);
   color: var(--color-text);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  margin: 0;
+  padding: 0;
+}
+
+#root {
+  min-height: 100vh;
 }
 
 button {

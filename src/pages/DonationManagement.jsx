@@ -241,6 +241,7 @@ const DonationManagement = () => {
             {viewingImage && (
                 <div className="modal-overlay" onClick={() => setViewingImage(null)} style={{ zIndex: 1100 }}>
                     <div className="modal-content" onClick={e => e.stopPropagation()} style={{
+                        display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
                         gap: '15px',
@@ -248,8 +249,6 @@ const DonationManagement = () => {
                         padding: '15px',
                         borderRadius: '16px',
                         maxHeight: '94vh',
-                        display: 'flex',
-                        flexDirection: 'column',
                         width: '95%',
                         maxWidth: '30rem',
                         boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)',

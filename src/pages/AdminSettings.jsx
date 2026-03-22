@@ -8,7 +8,8 @@ import {
     Settings,
     Cloud,
     Check,
-    Copy
+    Copy,
+    Image as ImageIcon
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { useAdminAuth } from '@/context/AdminAuthContext';
@@ -110,7 +111,7 @@ export const SettingItem = ({ title, subtitle, icon: Icon, delay, onClick, color
 
 const AdminSettings = () => {
     const navigate = useNavigate();
-    const { hasAccess, isAdmin } = useAdminAuth();
+    const { hasAccess, isAdmin, role } = useAdminAuth();
     const { hiddenScreens, devMode } = useGlobalSettings();
 
     const effectiveRole = isAdmin ? (devMode ? 'dev' : 'admin') : 'public';
@@ -142,6 +143,21 @@ const AdminSettings = () => {
                     icon: Cloud,
                     path: '/admin/cloud-settings',
                     permission: 'SUPER_ADMIN',
+                    color: 'var(--color-primary)',
+                    bgColor: 'var(--color-primary-transparent)'
+                }
+            ]
+        },
+        {
+            title: 'Content Management',
+            items: [
+                {
+                    id: 'GALLERY_MANAGEMENT',
+                    title: 'Gallery Management',
+                    subtitle: 'Add, edit & reorder gallery images',
+                    icon: ImageIcon,
+                    path: '/admin/gallery',
+                    permission: ['PROGRAM_MANAGEMENT', 'DIGITAL_BOOKS_MANAGEMENT', 'RELATED_VIDEO_MANAGEMENT', 'SUPER_ADMIN'],
                     color: 'var(--color-primary)',
                     bgColor: 'var(--color-primary-transparent)'
                 }
@@ -196,6 +212,19 @@ const AdminSettings = () => {
                             hasPermission = item.permission.length === 0 || item.permission.some(p => hasAccess(p));
                         } else {
                             hasPermission = !item.permission || hasAccess(item.permission);
+                        }
+
+                        // Diagnostic for Analytics visibility
+                        if (item.id === 'analytics-system') {
+                            console.log(`[AdminSettings] Visibility Check for ${item.title}:`, {
+                                hasPermission,
+                                requiredPermission: item.permission,
+                                currentRole: role,
+                                isHidden: currentHiddenScreens.includes(item.path),
+                                currentHiddenScreens,
+                                effectiveRole,
+                                devMode
+                            });
                         }
 
                         if (!hasPermission) return false;

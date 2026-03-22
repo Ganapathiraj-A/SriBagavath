@@ -45,7 +45,7 @@ const WebHome = () => {
                 <FaVideo className="card-icon" />
                 <h3>Events & Camps</h3>
                 <p>Join our regular satsangs and meditation camps held across various locations.</p>
-                <Link to="/web/contact" className="web-btn-text">View Schedule →</Link>
+                <Link to="/web/events" className="web-btn-text">View Schedule →</Link>
               </div>
               <div className="web-mission-card">
                 <FaBook className="card-icon" />

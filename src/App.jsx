@@ -18,6 +18,7 @@ const RootRedirect = () => {
 
 // Lazy load all other pages
 const About = lazy(() => import('./pages/About'));
+const Gallery = lazy(() => import('./pages/Gallery'));
 const Programs = lazy(() => import('./pages/Programs'));
 const Books = lazy(() => import('./pages/Books'));
 const MonthlyMagazine = lazy(() => import('./pages/MonthlyMagazine'));
@@ -67,6 +68,7 @@ const MyDonations = lazy(() => import('./pages/MyDonations'));
 const AdminSettings = lazy(() => import('./pages/AdminSettings'));
 const PersonalProfile = lazy(() => import('./pages/PersonalProfile'));
 const CloudGlobalSettings = lazy(() => import('./pages/CloudGlobalSettings'));
+const AdminGallery = lazy(() => import('./pages/AdminGallery'));
 const BooksAndMediaManagement = lazy(() => import('./pages/BooksAndMediaManagement'));
 const AnalyticsAndSystem = lazy(() => import('./pages/AnalyticsAndSystem'));
 const HideScreens = lazy(() => import('./pages/HideScreens'));
@@ -90,12 +92,13 @@ const MediaMigration = lazy(() => import('./pages/MediaMigration'));
 
 // Website Replica Components
 import WebLayout from './components/WebLayout';
-const WebHome = lazy(() => import('./pages/WebHome'));
-const WebAbout = lazy(() => import('./pages/WebAbout'));
-const WebEMedia = lazy(() => import('./pages/WebEMedia'));
-const WebContact = lazy(() => import('./pages/WebContact'));
-const WebBookStore = lazy(() => import('./pages/WebBookStore'));
-const WebDonations = lazy(() => import('./pages/WebDonations'));
+import WebHome from './pages/WebHome';
+import WebAbout from './pages/WebAbout';
+import WebEMedia from './pages/WebEMedia';
+import WebContact from './pages/WebContact';
+import WebBookStore from './pages/WebBookStore';
+import WebDonations from './pages/WebDonations';
+import WebEvents from './pages/WebEvents';
 const WebBookDetails = lazy(() => import('./pages/WebBookDetails'));
 const WebCheckout = lazy(() => import('./pages/WebCheckout'));
 
@@ -242,9 +245,11 @@ function AnimatedRoutes() {
           '/programs/online/daily': '/programs',
           '/schedule': '/programs',
           '/bookstore': '/books',
+          '/gallery': '/books',
           '/digital-books': '/books',
           '/pdf-books': '/books',
           '/audio-books': '/books',
+          '/admin/gallery': '/admin/settings',
           '/videos': '/books',
           '/monthly-magazine': '/books',
           '/conversations': '/books',
@@ -322,6 +327,7 @@ function AnimatedRoutes() {
           <Route path="/programs/consultation" element={<Consultation />} />
           <Route path="/programs/online/daily" element={<DailyZoomMeetings />} />
           <Route path="/conversations/recorded-programs" element={<RecordedPrograms />} />
+          <Route path="/gallery" element={<Gallery />} />
           <Route path="/books" element={<Books />} />
           <Route path="/bookstore" element={<BookStore />} />
           <Route path="/book/:bookId" element={<BookDetails />} />
@@ -369,6 +375,7 @@ function AnimatedRoutes() {
           <Route path="/admin/personal-profile" element={<ProtectedRoute><PersonalProfile /></ProtectedRoute>} />
           <Route path="/admin/cloud-settings" element={<ProtectedRoute requiredRole="SUPER_ADMIN"><CloudGlobalSettings /></ProtectedRoute>} />
           <Route path="/admin/books-media" element={<ProtectedRoute requiredAdmin={true} allowedPermissions={['BANKING', 'DIGITAL_BOOKS_MANAGEMENT', 'RELATED_VIDEO_MANAGEMENT']}><BooksAndMediaManagement /></ProtectedRoute>} />
+          <Route path="/admin/gallery" element={<ProtectedRoute requiredAdmin={true} allowedPermissions={['DIGITAL_BOOKS_MANAGEMENT', 'RELATED_VIDEO_MANAGEMENT']}><AdminGallery /></ProtectedRoute>} />
           <Route path="/admin/analytics-system" element={<ProtectedRoute requiredAdmin={true} allowedPermissions={['REPORTING']}><AnalyticsAndSystem /></ProtectedRoute>} />
           <Route path="/admin/hide-screens" element={<ProtectedRoute requiredRole="SUPER_ADMIN"><HideScreens /></ProtectedRoute>} />
           <Route path="/admin/page-user-management" element={<ProtectedRoute requiredAdmin={true} allowedPermissions={['PROGRAM_MANAGEMENT', 'CONSULTATION_MANAGEMENT', 'DAILY_ZOOM_MANAGEMENT', 'BANKING', 'DIGITAL_BOOKS_MANAGEMENT', 'RELATED_VIDEO_MANAGEMENT', 'MANAGE_USERS', 'SUPER_ADMIN']}><PageAndUserManagement /></ProtectedRoute>} />
@@ -398,6 +405,7 @@ function AnimatedRoutes() {
             </WebLayout>
           }>
             <Route index element={<WebHome />} />
+            <Route path="events" element={<WebEvents />} />
             <Route path="about" element={<WebAbout />} />
             <Route path="emedia" element={<WebEMedia />} />
             <Route path="downloads" element={<Navigate to="/web/emedia" replace />} />

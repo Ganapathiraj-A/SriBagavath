@@ -17,10 +17,10 @@ export const AdminAuthProvider = ({ children }) => {
         if (!isAdmin) return false;
         if (!requiredPermission) return true; // No specific permission needed
 
-        const normalizedRole = role?.toUpperCase();
+        const normalizedRole = role?.trim().toUpperCase();
         if (normalizedRole === 'SUPER_ADMIN') return true; // Super admin has all access
         if (normalizedRole === 'ADMIN') {
-            // Admin has access to everything EXCEPT Manage Users (unless explicitly granted, but logic implies exclusion)
+            // Admin has access to everything EXCEPT Manage Users (unless explicitly granted)
             return requiredPermission !== 'MANAGE_USERS';
         }
         if (normalizedRole === 'POWER_USER') {

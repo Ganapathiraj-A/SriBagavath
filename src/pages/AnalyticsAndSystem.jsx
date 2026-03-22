@@ -271,25 +271,25 @@ const AnalyticsAndSystem = () => {
                     {/* Yesterday Snapshot Section */}
                     <YesterdaySnapshot data={history[0]} />
 
-                    {/* Past Week History Table */}
-                    <WeeklyHistoryTable history={history} />
-
-                    {/* Cost Summary Section */}
-                    <CostAnalysisCard reads={totalReads30d} writes={totalWrites30d} />
-                    
-                    {/* Per-User Economics Section */}
-                    <EconomicsCard 
-                        activeAudience={activeAudience} 
-                        avgDailyUsers={avgDAU} 
-                        totalCostINR={totalCostINR} 
-                    />
-
                     {/* Usage Scaling Table */}
                     <ScalingTable 
                         avgDAU={avgDAU} 
                         peakDAU={peakDAU} 
                         activeAudience={activeAudience}
                         lifetimeUsers={lifetimeUsers}
+                    />
+
+                    {/* Past Week History Table */}
+                    <WeeklyHistoryTable history={history} />
+
+                    {/* Cost Summary Section */}
+                    <CostAnalysisCard reads={totalReads30d} writes={totalReads30d} />
+                    
+                    {/* Per-User Economics Section */}
+                    <EconomicsCard 
+                        activeAudience={activeAudience} 
+                        avgDailyUsers={avgDAU} 
+                        totalCostINR={totalCostINR} 
                     />
 
                     {/* System Maintenance Section */}

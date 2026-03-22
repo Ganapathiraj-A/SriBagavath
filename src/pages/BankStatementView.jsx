@@ -344,16 +344,14 @@ const BankStatementView = () => {
                     {viewingImage && (
                         <div className="modal-overlay" onClick={() => setViewingImage(null)} style={{ zIndex: 1100 }}>
                             <div className="modal-content" onClick={e => e.stopPropagation()} style={{
+                                display: 'flex',
                                 flexDirection: 'column',
                                 alignItems: 'center',
                                 background: 'var(--color-surface)',
                                 padding: '15px',
                                 borderRadius: '16px',
                                 maxWidth: '30rem',
-                                width: '100%',
                                 maxHeight: '94vh',
-                                display: 'flex',
-                                flexDirection: 'column',
                                 width: '95%',
                                 boxShadow: 'var(--shadow-lg)',
                                 border: '1px solid var(--color-border)',

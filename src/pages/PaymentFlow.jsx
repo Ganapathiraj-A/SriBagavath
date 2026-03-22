@@ -3,9 +3,11 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Camera, CameraResultType } from '@capacitor/camera';
 import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
-import { Trash2, CheckCircle2, Camera as CameraIcon, PlayCircle, EyeOff, ChevronDown, ChevronUp } from 'lucide-react';
+import { Trash2, CheckCircle2, Camera as CameraIcon, PlayCircle, EyeOff, ChevronDown, ChevronUp, CreditCard } from 'lucide-react';
 import { Clipboard } from '@capacitor/clipboard';
+import { Checkout } from 'capacitor-razorpay';
 
+import { auth } from '@/firebase';
 import { TransactionService } from '@/services/TransactionService';
 import OCR from '@/plugins/OCRPlugin';
 import { GPayUtils } from '@/utils/GPayUtils';
@@ -14,6 +16,9 @@ import instructionGif from '@/assets/payment_instruction.gif';
 import '../components/RegistrationStyles.css';
 import { useCart } from '@/context/CartContext';
 import { normalizeImageSrc } from '@/utils/imageUtils';
+import { AppConfig } from '@/config/AppConfig';
+import PaymentStatusOverlay from '@/components/PaymentStatusOverlay';
+import { httpsCallable, getFunctions } from 'firebase/functions';
 
 // Type Steps matching SBB App
 // SELECTION is skipped as we come from Registration
@@ -67,6 +72,8 @@ const PaymentFlow = () => {
     const [loading, setLoading] = useState(false);
     const [viewingImage, setViewingImage] = useState(null);
     const [showFullOcr, setShowFullOcr] = useState(false);
+    const [paymentStatus, setPaymentStatus] = useState(null); // 'processing', 'success', 'error'
+    const [paymentErrorMessage, setPaymentErrorMessage] = useState("");
 
     // Date Helper to handle Firestore Timestamps or Strings safely
     const formatProgramDate = (dateVal) => {
@@ -98,6 +105,108 @@ const PaymentFlow = () => {
         if (!submissionAmount && amount) setSubmissionAmount(amount.toString());
         if (!submissionName && (programName || itemName)) setSubmissionName(programName || itemName);
     }, [amount, programName, itemName, submissionAmount, submissionName]);
+
+    // --- Razorpay Integration ---
+
+    const getTargetPage = () => {
+        let targetPage = '/my-registrations';
+        if (itemType === 'BOOK') {
+            clearCart();
+            targetPage = '/my-orders';
+        } else if (itemType === 'MAGAZINE_SUBSCRIPTION') {
+            clearCart();
+            targetPage = '/monthly-magazine?tab=subscriptions';
+        } else if (itemType === 'DONATION') {
+            targetPage = '/my-donations';
+        }
+        return targetPage;
+    };
+
+    const handleRazorpayPayment = async () => {
+        setLoading(true);
+        try {
+            const { getFunctions, httpsCallable } = await import('firebase/functions');
+            const functions = getFunctions(undefined, 'asia-south1');
+            const createOrder = httpsCallable(functions, 'createRazorpayOrder');
+            const verifyPayment = httpsCallable(functions, 'verifyRazorpayPayment');
+
+            // 1. Create Order
+            const orderRes = await createOrder({ 
+                amount: parseFloat(submissionAmount),
+                receipt: `rcpt_${Date.now()}`
+            });
+            const order = orderRes.data;
+
+            const options = {
+                key: AppConfig.razorpayKeyId,
+                amount: order.amount.toString(),
+                currency: order.currency,
+                name: "Sri Bagavath Mission",
+                description: submissionName,
+                order_id: order.id,
+                prefill: {
+                    name: primaryApplicant?.name || "",
+                    email: auth.currentUser?.email || "",
+                    contact: primaryApplicant?.phone || ""
+                },
+                theme: { color: "#FF9933" },
+                retry: { enabled: false },
+                send_sms_hash: true,
+                modal: {
+                    confirm_close: false,
+                    backdrop_close: false
+                }
+            };
+
+            const result = await Checkout.open(options);
+            const response = result.response;
+            console.log("Native Razorpay Success:", response);
+
+            setPaymentStatus('processing');
+
+            // 2. Verify Payment
+            const verifyRes = await verifyPayment({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature
+            });
+
+            if (verifyRes.data.status === 'success') {
+                // 3. Record Transaction
+                await TransactionService.recordTransaction({
+                    itemName: submissionName,
+                    itemType: itemType || 'PROGRAM',
+                    amount: parseFloat(submissionAmount),
+                    status: 'COMPLETED',
+                    paymentSource: 'razorpay_native',
+                    razorpayOrderId: response.razorpay_order_id,
+                    razorpayPaymentId: response.razorpay_payment_id,
+                    orderItems: location.state?.orderItems || storedData.orderItems || [],
+                    shippingAddress: location.state?.shippingAddress || storedData.shippingAddress || null,
+                    participants: participants || [],
+                    primaryApplicant: primaryApplicant || {},
+                    place: place || "",
+                    participantCount: participantCount || (participants ? participants.length : 0),
+                    programId: programId || "",
+                    programDate: programDate || "",
+                    programCity: programCity || "",
+                    selectedOptions: selectedOptions || []
+                }, null);
+
+                // Skip my success checkmark as Razorpay already showed success
+                const targetPage = getTargetPage();
+                navigate(targetPage, { replace: true, state: { success: true } });
+            } else {
+                throw new Error(verifyRes.data.message || "Payment verification failed");
+            }
+        } catch (error) {
+            console.error("Payment Error:", error);
+            setPaymentStatus('error');
+            setPaymentErrorMessage(error.description || error.message || "Payment failed or cancelled.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     // Methods
     const processOCR = async (base64) => {
@@ -185,6 +294,7 @@ const PaymentFlow = () => {
 
     const handleSubmit = async () => {
         setLoading(true);
+        setPaymentStatus('processing');
         try {
             await TransactionService.recordTransaction({
                 itemName: submissionName,
@@ -213,20 +323,25 @@ const PaymentFlow = () => {
                 m.default.trackPaymentSuccess(parseFloat(submissionAmount), location.state?.programId || category);
             });
 
-            let targetPage = '/my-registrations';
-            if (location.state?.itemType === 'BOOK') {
-                clearCart();
-                targetPage = '/my-orders';
-            }
-            if (location.state?.itemType === 'MAGAZINE_SUBSCRIPTION') {
-                clearCart();
-                targetPage = '/monthly-magazine?tab=subscriptions';
-            }
-            if (location.state?.itemType === 'DONATION') targetPage = '/my-donations';
+            setPaymentStatus('success');
 
-            navigate(targetPage, { replace: true });
+            setTimeout(() => {
+                let targetPage = '/my-registrations';
+                if (itemType === 'BOOK') {
+                    clearCart();
+                    targetPage = '/my-orders';
+                } else if (itemType === 'MAGAZINE_SUBSCRIPTION') {
+                    clearCart();
+                    targetPage = '/monthly-magazine?tab=subscriptions';
+                } else if (itemType === 'DONATION') {
+                    targetPage = '/my-donations';
+                }
+                navigate(targetPage, { replace: true, state: { success: true } });
+            }, 2000);
+
         } catch (_err) {
-            alert("Submission Failed: " + _err.message);
+            setPaymentStatus('error');
+            setPaymentErrorMessage(_err.message);
         } finally {
             setLoading(false);
         }
@@ -238,7 +353,38 @@ const PaymentFlow = () => {
 
     const renderQrView = () => (
         <div className="center-content">
-            <h2 style={{ textAlign: 'center' }}>Click Image to Copy UPI ID</h2>
+            <h2 style={{ textAlign: 'center' }}>Choose Payment Method</h2>
+            
+            <button 
+                className="btn-primary full-width" 
+                style={{ 
+                    marginBottom: '20px', 
+                    height: '56px', 
+                    fontSize: '18px', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    gap: '12px',
+                    background: 'linear-gradient(135deg, #FF9933 0%, #FFB347 100%)',
+                    boxShadow: '0 4px 15px rgba(255, 153, 51, 0.3)'
+                }}
+                onClick={handleRazorpayPayment}
+                disabled={loading}
+            >
+                {loading ? "Processing..." : (
+                    <>
+                        <CreditCard size={24} /> Pay via UPI / Card / Netbanking
+                    </>
+                )}
+            </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', margin: '20px 0', gap: '15px' }}>
+                <div style={{ flex: 1, height: '1px', background: 'var(--color-border)' }} />
+                <span style={{ color: 'var(--color-text-muted)', fontSize: '14px', fontWeight: 600 }}>OR MANUAL UPI</span>
+                <div style={{ flex: 1, height: '1px', background: 'var(--color-border)' }} />
+            </div>
+
+            <h3 style={{ textAlign: 'center', fontSize: '15px', color: 'var(--color-text-muted)', marginBottom: '15px' }}>Scan QR or Tap to Copy UPI ID</h3>
             <div
                 className="qr-container"
                 onClick={async () => {
@@ -246,6 +392,7 @@ const PaymentFlow = () => {
                         await Clipboard.write({
                             string: "sribagavathmission.63022941@hdfcbank"
                         });
+                        alert("UPI ID copied to clipboard!");
                     } catch (e) {
                         console.warn("Clipboard write failed", e);
                     }
@@ -260,12 +407,11 @@ const PaymentFlow = () => {
                 }}
             >
                 <img src={qrImage} alt="QR Code" onError={(e) => {
-                    // Fallback
                     e.currentTarget.style.display = 'none';
                 }} />
             </div>
             <p className="hint-text" style={{ textAlign: 'center' }}>
-                Tap the QR code to save UPI ID to clipboard and proceed
+                Tap the QR code to save UPI ID and proceed with manual screenshot upload
             </p>
             <button className="btn-secondary full-width" style={{ marginTop: '20px' }} onClick={() => {
                 if (location.state?.itemType === 'BOOK') {
@@ -284,7 +430,7 @@ const PaymentFlow = () => {
     );
 
     const renderInstructions = () => (
-        <div className="instructions-container" style={{ paddingBottom: '80px', textAlign: 'center' }}>
+        <div className="instructions-container" style={{ textAlign: 'center' }}>
             <h2 style={{ textAlign: 'center' }}>Payment Instructions</h2>
 
             <button
@@ -576,6 +722,17 @@ const PaymentFlow = () => {
                 {currentStep === 'INSTRUCTIONS' && renderInstructions()}
                 {currentStep === 'SUBMISSION' && renderSubmission()}
             </div>
+
+            <PaymentStatusOverlay 
+                status={paymentStatus}
+                errorDetails={paymentErrorMessage}
+                onClose={() => setPaymentStatus(null)}
+                onRetry={() => {
+                    setPaymentStatus(null);
+                    if (currentStep === 'SUBMISSION') handleSubmit();
+                    else handleRazorpayPayment();
+                }}
+            />
         </div>
     );
 };

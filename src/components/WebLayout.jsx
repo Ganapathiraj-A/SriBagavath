@@ -10,6 +10,7 @@ import {
   FaYoutube
 } from 'react-icons/fa';
 import './WebLayout.css';
+import WebImagePrefetcher from './WebImagePrefetcher';
 
 const WebLayout = ({ children }) => {
   const location = useLocation();
@@ -24,6 +25,8 @@ const WebLayout = ({ children }) => {
         return "Learn about the wisdom and teachings of Sri Bagavath Ayya.";
       case '/web/contact':
         return "Get in touch with the Sri Bagavath Mission.";
+      case '/web/events':
+        return "Join our upcoming satsangs and meditation camps.";
       case '/web/emedia':
         return "Listen & Read Online.";
       default:
@@ -39,15 +42,17 @@ const WebLayout = ({ children }) => {
 
   const navLinks = [
     { name: 'Home', path: '/web' },
+    { name: 'Events', path: '/web/events' },
+    { name: 'E Media', path: '/web/emedia' },
     { name: 'Store', path: '/web/store' },
     { name: 'Donate', path: '/web/donate' },
-    { name: 'E Media', path: '/web/emedia' },
     { name: 'About', path: '/web/about' },
     { name: 'Contact', path: '/web/contact' }
   ];
 
   return (
     <div className="web-layout">
+      <WebImagePrefetcher />
       {/* Top Contact Header */}
       <div className="web-top-header">
         <div className="web-container">
@@ -130,6 +135,7 @@ const WebLayout = ({ children }) => {
               <h3>Quick Links</h3>
               <ul>
                 <li><Link to="/web/about">About Ayya</Link></li>
+                <li><Link to="/web/events">Events & Camps</Link></li>
                 <li><Link to="/web/store">Book Store</Link></li>
                 <li><Link to="/web/emedia">E Media</Link></li>
               </ul>

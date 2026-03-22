@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Book, Music, Video, ExternalLink, ChevronRight, Download, Folder, FileText } from 'lucide-react';
 import emediaData from '../data/emedia.json';
@@ -9,6 +9,15 @@ const WebEMedia = () => {
     const [activeTab, setActiveTab] = useState('pdf');
     const [activeLanguage, setActiveLanguage] = useState(emediaData.digitalBooks.languages[0]?.id || 'tamil');
     const [currentMagazineFolder, setCurrentMagazineFolder] = useState(null);
+    const [shouldRenderAll, setShouldRenderAll] = useState(false);
+
+    useEffect(() => {
+        // Stagger rendering of off-screen tabs to prioritize initial paint
+        const timer = setTimeout(() => {
+            setShouldRenderAll(true);
+        }, 800);
+        return () => clearTimeout(timer);
+    }, []);
 
     const tabs = [
         { id: 'pdf', name: 'Digital Books', icon: <Book size={20} /> },
@@ -41,7 +50,7 @@ const WebEMedia = () => {
                     animate={{ opacity: 1, y: 0 }}
                     className="emedia-grid"
                 >
-                    {books.map((book) => (
+                    {books.map((book, index) => (
                         <a
                             key={book.id}
                             href={book.webViewLink || `https://drive.google.com/file/d/${book.id}/view`}
@@ -51,7 +60,7 @@ const WebEMedia = () => {
                         >
                             <div className="emedia-card-image book-cover">
                                 {book.cover ? (
-                                    <LazyImage src={book.cover} alt={book.name} />
+                                    <LazyImage src={book.cover} alt={book.name} priority={index < 8} />
                                 ) : (
                                     <div className="emedia-placeholder-icon">
                                         <Book size={32} />
@@ -59,7 +68,7 @@ const WebEMedia = () => {
                                 )}
                             </div>
                             <div className="emedia-card-info">
-                                <h3>{book.name}</h3>
+                                <h3 className="emedia-month-display">{book.name}</h3>
                                 <p>Digital Edition</p>
                             </div>
                             <ExternalLink size={18} className="emedia-external-icon" />
@@ -188,7 +197,7 @@ const WebEMedia = () => {
     const renderAudioSection = () => (
         <div className="emedia-content-section">
             <div className="emedia-grid">
-                {emediaData.audioBooks.map((book) => (
+                {emediaData.audioBooks.map((book, index) => (
                     <a
                         key={book.id}
                         href={book.link}
@@ -198,7 +207,7 @@ const WebEMedia = () => {
                     >
                         <div className="emedia-card-image">
                             {book.imageUrl ? (
-                                <LazyImage src={book.imageUrl} alt={book.title} />
+                                <LazyImage src={book.imageUrl} alt={book.title} priority={index < 8} />
                             ) : (
                                 <div className="emedia-placeholder-icon">
                                     <Music size={32} />
@@ -206,7 +215,7 @@ const WebEMedia = () => {
                             )}
                         </div>
                         <div className="emedia-card-info">
-                            <h3>{book.title}</h3>
+                            <h3 className="emedia-month-display">{book.title}</h3>
                             <p>Audio Satsangs & Lectures</p>
                         </div>
                         <ChevronRight size={20} className="emedia-chevron" />
@@ -218,7 +227,7 @@ const WebEMedia = () => {
 
     const renderVideoSection = () => (
         <div className="emedia-content-section">
-            <div className="emedia-grid">
+            <div className="emedia-grid video-grid-layout">
                 {/* Column 1 */}
                 <div>
                     <h2 className="emedia-section-title" style={{ marginTop: 0 }}>General Playlist</h2>
@@ -245,25 +254,51 @@ const WebEMedia = () => {
 
                 {/* Column 2 */}
                 <div>
-                    <h2 className="emedia-section-title" style={{ marginTop: 0 }}>Teachers' Talks</h2>
-                    <div className="emedia-vertical-list" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        {emediaData.videos.teachers.map((video) => (
-                            <a
-                                key={video.id}
-                                href={video.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="emedia-card video-card"
-                            >
-                                <div className="emedia-card-icon video alt">
-                                    <Video size={24} />
-                                </div>
-                                <div className="emedia-card-info">
-                                    <h3>{video.title}</h3>
-                                </div>
-                                <ExternalLink size={18} className="emedia-external-icon" />
-                            </a>
-                        ))}
+                    <h2 className="emedia-section-title" style={{ marginTop: 0 }}>Teachers</h2>
+                    <div className="teachers-split-container">
+                        <div className="teachers-split-col">
+                            {emediaData.videos.teachers
+                                .filter(v => v.title.includes('Saravanan') || v.title.includes('Jeevamani'))
+                                .map((video) => (
+                                <a
+                                    key={video.id}
+                                    href={video.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="emedia-card video-card"
+                                >
+                                    <div className="emedia-card-icon video alt">
+                                        <Video size={24} />
+                                    </div>
+                                    <div className="emedia-card-info">
+                                        <h3>{video.title}</h3>
+                                    </div>
+                                    <ExternalLink size={18} className="emedia-external-icon" />
+                                </a>
+                            ))}
+                        </div>
+
+                        <div className="teachers-split-col">
+                            {emediaData.videos.teachers
+                                .filter(v => !v.title.includes('Saravanan') && !v.title.includes('Jeevamani'))
+                                .map((video) => (
+                                <a
+                                    key={video.id}
+                                    href={video.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="emedia-card video-card"
+                                >
+                                    <div className="emedia-card-icon video alt">
+                                        <Video size={24} />
+                                    </div>
+                                    <div className="emedia-card-info">
+                                        <h3>{video.title}</h3>
+                                    </div>
+                                    <ExternalLink size={18} className="emedia-external-icon" />
+                                </a>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -292,20 +327,22 @@ const WebEMedia = () => {
                 </nav>
 
                 <main className="emedia-main">
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={activeTab}
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            transition={{ duration: 0.3 }}
-                        >
-                            {activeTab === 'pdf' && renderPDFSection()}
-                            {activeTab === 'magazine' && renderMagazineSection()}
-                            {activeTab === 'audio' && renderAudioSection()}
-                            {activeTab === 'video' && renderVideoSection()}
-                        </motion.div>
-                    </AnimatePresence>
+                    <div style={{ display: activeTab === 'pdf' ? 'block' : 'none' }}>
+                        {renderPDFSection()}
+                    </div>
+                    {shouldRenderAll && (
+                        <>
+                            <div style={{ display: activeTab === 'magazine' ? 'block' : 'none' }}>
+                                {renderMagazineSection()}
+                            </div>
+                            <div style={{ display: activeTab === 'audio' ? 'block' : 'none' }}>
+                                {renderAudioSection()}
+                            </div>
+                            <div style={{ display: activeTab === 'video' ? 'block' : 'none' }}>
+                                {renderVideoSection()}
+                            </div>
+                        </>
+                    )}
                 </main>
             </div>
         </div>

@@ -67,7 +67,11 @@ export const TransactionService = {
             selectedOptions: data.selectedOptions || [],
             deviceId: TransactionService.getDeviceId(),
             userId: userId,
-            userEmail: user ? user.email : null
+            userEmail: user ? user.email : null,
+            // Razorpay Fields
+            paymentSource: data.paymentSource || 'manual',
+            razorpayOrderId: data.razorpayOrderId || null,
+            razorpayPaymentId: data.razorpayPaymentId || null
         };
 
         const batch = writeBatch(db);

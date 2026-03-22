@@ -19,6 +19,7 @@ const LazyImage = ({
     firestorePath,
     version = '',
     alt = "",
+    priority = false, // New prop for above-the-fold assets
     placeholder: Placeholder,
     className = "",
     style = {},
@@ -31,7 +32,8 @@ const LazyImage = ({
     const cacheKey = firestorePath || src;
     const [currentSrc, setCurrentSrc] = useState(imageCache.get(cacheKey) || (firestorePath ? null : src));
     const [loading, setLoading] = useState(false);
-    // Set to true immediately so images start loading as soon as the component renders
+    // Set to true immediately so images start loading as soon as the component renders,
+    // but the loading="lazy" attribute (native) will handle actual network deference.
     const [isVisible, setIsVisible] = useState(true); 
     const containerRef = useRef(null);
     const hasTracked = useRef(false);
@@ -107,7 +109,8 @@ const LazyImage = ({
                 <img
                     src={currentSrc}
                     alt={alt}
-                    loading="eager"
+                    loading={priority ? "eager" : "lazy"}
+                    {...(priority ? { fetchPriority: "high" } : {})}
                     style={{ width: '100%', height, objectFit }}
                 />
             ) : (

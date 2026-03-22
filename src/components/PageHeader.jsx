@@ -104,6 +104,8 @@ const PageHeader = ({
             '/admin/audio-books': '/configuration',
             '/digital-books': '/books',
             '/related-videos': '/books',
+            '/gallery': '/books',
+            '/admin/gallery': '/admin/settings',
             '/admin/media-migration': '/admin/settings',
             '/admin/books-media': '/admin/settings',
             '/admin/analytics-system': '/admin/settings'

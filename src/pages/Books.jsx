@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Headphones, BookOpen, Video, FileText, Youtube } from 'lucide-react';
+import { Headphones, BookOpen, Video, FileText, Youtube, Image as ImageIcon } from 'lucide-react';
 import { collection, query, getDocs, orderBy } from '@/utils/FirestoreProxy';
 import { db } from '@/firebase';
 import { useGlobalSettings } from '@/context/GlobalSettingsContext';
@@ -131,6 +131,7 @@ const Books = () => {
                         {!currentHiddenScreens.includes('/conversations/recorded-programs') && <BookTypeButton title="Recorded Programs" icon={Video} path="/conversations/recorded-programs" delay={0.4} />}
                         {!currentHiddenScreens.includes('/monthly-magazine') && <BookTypeButton title="Monthly Magazine" icon={FileText} path="/monthly-magazine" delay={0.5} />}
                         {!currentHiddenScreens.includes('/videos') && <BookTypeButton title="Related Videos" icon={Youtube} path="/videos" delay={0.6} />}
+                        {!currentHiddenScreens.includes('/gallery') && <BookTypeButton title="Gallery" icon={ImageIcon} path="/gallery" delay={0.7} />}
                     </div>
                 </motion.div>
             </div>

@@ -21,7 +21,7 @@ const DEFAULT_USER_SETTINGS = {
     showApiCounter: false,
     showDiagnosticLogs: false,
     showImageVerificationAlert: false,
-    showRightPanel: true
+    showRightPanel: false
 };
 
 export const GlobalSettingsProvider = ({ children }) => {
@@ -155,7 +155,7 @@ export const GlobalSettingsProvider = ({ children }) => {
                             showApiCounter: false,
                             showDiagnosticLogs: false,
                             showImageVerificationAlert: false,
-                            showRightPanel: true
+                            showRightPanel: false
                         };
                         setDoc(userDocRef, initData);
                         setUserSettings(initData);

@@ -1,7 +1,7 @@
 {
   "name": "sri-bagavath",
   "private": true,
-  "version": "3.1.33",
+  "version": "3.1.34",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -19,6 +19,7 @@
     "deploy:storage": "firebase deploy --only storage",
     "deploy:hosting:prod": "vite build --mode production && firebase deploy --only hosting:admin --project antigravity-app-5c1ff",
     "deploy:web": "node scripts/fetch-emedia.js && vite build --mode production && firebase deploy --only hosting:web --project antigravity-app-5c1ff",
+    "deploy:prod": "node scripts/fetch-emedia.js && vite build --mode production && firebase deploy --only hosting --project antigravity-app-5c1ff",
     "lint": "eslint .",
     "test:smoke": "playwright test",
     "preview": "vite preview",
@@ -37,6 +38,7 @@
     "@capacitor/share": "^7.0.3",
     "@capacitor/toast": "^7.0.3",
     "@codetrix-studio/capacitor-google-auth": "git+https://github.com/Ganapathiraj-A/capacitor-google-auth-fork.git#master",
+    "capacitor-razorpay": "^1.3.0",
     "firebase": "^12.6.0",
     "framer-motion": "^12.23.25",
     "html2canvas": "^1.4.1",
