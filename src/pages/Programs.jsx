@@ -301,10 +301,10 @@ const Programs = () => {
             console.error('Error sharing banner:', _err);
             // Fallback to clipboard if sharing fails
             try {
-                await navigator.clipboard.writeText(program.programBanner);
-                alert('Sharing failed. Banner URL copied to clipboard.');
+                await navigator.clipboard.writeText(bannerData);
+                alert('Sharing failed: ' + (_err.message || _err) + '\n\nBanner URL copied to clipboard.');
             } catch (clipErr) {
-                alert('Sharing failed completely. ' + _err.message);
+                alert('Sharing failed completely: ' + (_err.message || _err));
             }
         }
     };
