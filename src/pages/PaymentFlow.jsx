@@ -5,7 +5,6 @@ import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { Trash2, CheckCircle2, Camera as CameraIcon, PlayCircle, EyeOff, ChevronDown, ChevronUp, CreditCard } from 'lucide-react';
 import { Clipboard } from '@capacitor/clipboard';
-import { Checkout } from 'capacitor-razorpay';
 
 import { auth } from '@/firebase';
 import { TransactionService } from '@/services/TransactionService';
@@ -98,11 +97,6 @@ const PaymentFlow = () => {
             import('../utils/Analytics').then(m => {
                 m.default.trackScreenView('Payment Flow');
             });
-
-            // Auto-launch Razorpay if requested
-            if (location.state?.autoLaunch) {
-                handleRazorpayPayment();
-            }
         }
     }, [amount, navigate, location.state]);
 
@@ -111,8 +105,8 @@ const PaymentFlow = () => {
         if (!submissionName && (programName || itemName)) setSubmissionName(programName || itemName);
     }, [amount, programName, itemName, submissionAmount, submissionName]);
 
-    // --- Razorpay Integration ---
-
+    // --- Razorpay Integration (On Hold) ---
+    /*
     const getTargetPage = () => {
         let targetPage = '/my-registrations';
         if (itemType === 'BOOK') {
@@ -212,6 +206,7 @@ const PaymentFlow = () => {
             setLoading(false);
         }
     };
+    */
 
     // Methods
     const processOCR = async (base64) => {
@@ -360,28 +355,7 @@ const PaymentFlow = () => {
         <div className="center-content">
             <h2 style={{ textAlign: 'center' }}>Choose Payment Method</h2>
             
-            <button 
-                className="btn-primary full-width" 
-                style={{ 
-                    marginBottom: '20px', 
-                    height: '56px', 
-                    fontSize: '18px', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    gap: '12px',
-                    background: 'linear-gradient(135deg, #FF9933 0%, #FFB347 100%)',
-                    boxShadow: '0 4px 15px rgba(255, 153, 51, 0.3)'
-                }}
-                onClick={handleRazorpayPayment}
-                disabled={loading}
-            >
-                {loading ? "Processing..." : (
-                    <>
-                        <CreditCard size={24} /> Pay via UPI / Card / Netbanking
-                    </>
-                )}
-            </button>
+            {/* Razorpay disabled for now */}
 
             <div style={{ display: 'flex', alignItems: 'center', margin: '20px 0', gap: '15px' }}>
                 <div style={{ flex: 1, height: '1px', background: 'var(--color-border)' }} />
@@ -735,7 +709,6 @@ const PaymentFlow = () => {
                 onRetry={() => {
                     setPaymentStatus(null);
                     if (currentStep === 'SUBMISSION') handleSubmit();
-                    else handleRazorpayPayment();
                 }}
             />
         </div>

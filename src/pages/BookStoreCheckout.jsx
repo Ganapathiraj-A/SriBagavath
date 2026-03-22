@@ -74,7 +74,7 @@ const BookStoreCheckout = () => {
 
         navigate('/payment-flow', {
             replace: true, // Replace history so Back goes to Store/Donations
-            state: { ...paymentState, autoLaunch: true }
+            state: { ...paymentState }
         });
     };
 
