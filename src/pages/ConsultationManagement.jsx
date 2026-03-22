@@ -40,9 +40,22 @@ const ConsultationManagement = () => {
             const newState = !teacher.showInConsultation;
             await updateDoc(doc(db, 'teachers', teacher.id), { 
                 showInConsultation: newState,
-                // If turning on and no order set, put at end
                 consultationOrder: teacher.consultationOrder !== undefined ? teacher.consultationOrder : 999
             });
+
+            // Backward compatibility: sync to legacy 'consultants' collection
+            if (newState) {
+                const { setDoc } = await import('@/utils/FirestoreProxy');
+                await setDoc(doc(db, 'consultants', teacher.id), {
+                    name: teacher.name,
+                    number: teacher.phoneNumber || '',
+                    order: teacher.consultationOrder !== undefined ? teacher.consultationOrder : 999
+                });
+            } else {
+                const { deleteDoc: delDoc } = await import('@/utils/FirestoreProxy');
+                await delDoc(doc(db, 'consultants', teacher.id)).catch(() => {});
+            }
+
             await bumpServerVersion('consultants');
             await bumpServerVersion('teachers');
             loadTeachers();
@@ -52,14 +65,16 @@ const ConsultationManagement = () => {
     };
 
     const handleReorder = async (newList) => {
-        // Only reorder those shown in consultation
         const itemsToUpdate = newList.filter(t => t.showInConsultation);
         setTeachers(newList);
         try {
-            const updates = itemsToUpdate.map((item, index) =>
-                updateDoc(doc(db, 'teachers', item.id), { consultationOrder: index })
-            );
-            await Promise.all(updates);
+            const updates = itemsToUpdate.map((item, index) => {
+                const p1 = updateDoc(doc(db, 'teachers', item.id), { consultationOrder: index });
+                // Backward compatibility sync
+                const p2 = updateDoc(doc(db, 'consultants', item.id), { order: index }).catch(() => {});
+                return Promise.all([p1, p2]);
+            });
+            await Promise.all(updates.flat());
             await bumpServerVersion('consultants');
             await bumpServerVersion('teachers');
         } catch (error) {

@@ -86,6 +86,13 @@ const DailyZoomTeacherManagement = () => {
 
             if (editingId) {
                 await updateDoc(doc(db, 'teachers', editingId), dataToSave);
+                // Backward compatibility: sync to legacy collection
+                await updateDoc(doc(db, 'daily_zoom_teachers', editingId), {
+                    name: dataToSave.name,
+                    image: dataToSave.image,
+                    googleId: dataToSave.googleId,
+                    phoneNumber: dataToSave.phoneNumber
+                }).catch(e => console.warn('Legacy sync failed:', e));
                 alert('Teacher updated!');
             } else {
                 const docRef = await addDoc(collection(db, 'teachers'), {
@@ -93,6 +100,24 @@ const DailyZoomTeacherManagement = () => {
                     createdAt: new Date().toISOString()
                 });
                 teacherId = docRef.id;
+                // Backward compatibility: sync to legacy collection using same ID
+                await updateDoc(doc(db, 'daily_zoom_teachers', teacherId), {
+                    name: dataToSave.name,
+                    image: dataToSave.image,
+                    googleId: dataToSave.googleId,
+                    phoneNumber: dataToSave.phoneNumber,
+                    createdAt: new Date().toISOString()
+                }).catch(async (e) => {
+                    // If update fails because it doesn't exist, try set/add with same ID
+                    const { setDoc } = await import('@/utils/FirestoreProxy');
+                    await setDoc(doc(db, 'daily_zoom_teachers', teacherId), {
+                        name: dataToSave.name,
+                        image: dataToSave.image,
+                        googleId: dataToSave.googleId,
+                        phoneNumber: dataToSave.phoneNumber,
+                        createdAt: new Date().toISOString()
+                    });
+                });
                 alert('Teacher added!');
             }
 
@@ -101,6 +126,8 @@ const DailyZoomTeacherManagement = () => {
                 try {
                     const downloadUrl = await TransactionService.uploadBase64ToStorage(teacherId, finalImageUrl, 'teachers', 'photo.jpg');
                     await updateDoc(doc(db, 'teachers', teacherId), { image: downloadUrl });
+                    // Sync image URL back to legacy too
+                    await updateDoc(doc(db, 'daily_zoom_teachers', teacherId), { image: downloadUrl }).catch(() => {});
 
                     // Update stats
                     const sizeInBytes = finalImageUrl.length * 0.75;
@@ -140,6 +167,8 @@ const DailyZoomTeacherManagement = () => {
         if (window.confirm('Delete this teacher? This won\'t affect existing meetings or transactions.')) {
             try {
                 await deleteDoc(doc(db, 'teachers', id));
+                // Sync delete to legacy
+                await deleteDoc(doc(db, 'daily_zoom_teachers', id)).catch(() => {});
 
                 // Delete photo from storage
                 try {
