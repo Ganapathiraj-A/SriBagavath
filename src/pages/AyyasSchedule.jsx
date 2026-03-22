@@ -89,9 +89,15 @@ const AyyasSchedule = () => {
     const captureAndShare = async (currentData) => {
         if (!shareRef.current || !currentData) return;
         try {
+            const { Toast } = await import('@capacitor/toast');
+            await Toast.show({ text: 'Preparing image...' });
+
+            // Wait for template to render
+            await new Promise(resolve => setTimeout(resolve, 500));
+
             const canvas = await html2canvas(shareRef.current, {
                 useCORS: true,
-                scale: 3,
+                scale: 2,
                 backgroundColor: '#ffffff',
                 width: 800,
                 onclone: (doc) => {
@@ -114,13 +120,22 @@ const AyyasSchedule = () => {
                 encoding: 'base64'
             });
 
+            // Ensure it's a file:// URI
+            const fileUri = result.uri.startsWith('file://') ? result.uri : `file://${result.uri}`;
+
+            // Give filesystem a moment to sync
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            await Toast.show({ text: 'Opening Share...' });
+
             await Share.share({
                 title: "Ayya's Schedule",
                 text: "",
-                files: [result.uri]
+                files: [fileUri]
             });
         } catch (error) {
             console.error("[Schedule] Sharing failed:", error);
+            alert('Sharing failed: ' + (error.message || error));
         } finally {
             setIsSharingAll(false);
             setIsSharingScheduleId(null);
