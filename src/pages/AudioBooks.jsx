@@ -88,9 +88,13 @@ const AudioBooks = () => {
 
       const text = `🎧 *${currentData.book.title}*\n🔗 *Audio Link:* ${currentData.book.link}`;
 
+      // Give filesystem a moment to sync
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       await Share.share({
         title: currentData.book.title,
         text: text,
+        url: currentData.book.link,
         files: [result.uri]
       });
     } catch (error) {

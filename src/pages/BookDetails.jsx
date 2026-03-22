@@ -112,9 +112,13 @@ const BookDetails = () => {
                 encoding: 'base64'
             });
 
+            // Give filesystem a moment to sync
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
             await Share.share({
                 title: currentData.title,
-                text: `Check out this book: ${currentData.title}`,
+                text: `Check out this book: ${currentData.title}\n\nDownload Sri Bagavath App: https://play.google.com/store/apps/details?id=com.bhavathpathai.app`,
+                url: 'https://play.google.com/store/apps/details?id=com.bhavathpathai.app',
                 files: [result.uri]
             });
         } catch (error) {

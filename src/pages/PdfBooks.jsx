@@ -171,9 +171,13 @@ const PdfBooks = () => {
 
       const text = `📗 *${currentData.file.name}*\n🔗 *Book Link:* ${currentData.viewUrl}`;
 
+      // Give filesystem a moment to sync
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       await Share.share({
         title: currentData.file.name,
         text: text,
+        url: currentData.viewUrl,
         files: [result.uri]
       });
     } catch (error) {

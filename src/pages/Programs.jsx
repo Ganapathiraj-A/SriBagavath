@@ -264,7 +264,7 @@ const Programs = () => {
             // Share the file URI
             await Share.share({
                 title: program.programName,
-                // text: `Check out this program: ${program.programName}`, // REMOVED as per request
+                text: `Check out this program: ${program.programName}\n\nDownload Sri Bagavath App for more: https://play.google.com/store/apps/details?id=com.bhavathpathai.app`,
                 files: [result.uri]
             });
 
