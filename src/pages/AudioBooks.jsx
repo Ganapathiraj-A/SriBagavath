@@ -43,18 +43,25 @@ const AudioBooks = () => {
   }, []);
 
   const fetchAsBase64 = async (url) => {
-    if (!url || !url.startsWith('http')) return url;
+    if (!url) return null;
+    if (url.startsWith('data:')) return url;
     try {
-      const response = await fetch(url, { mode: 'cors', credentials: 'omit' });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const blob = await response.blob();
-      return await new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.readAsDataURL(blob);
+      const { CapacitorHttp } = await import('@capacitor/core');
+      const response = await CapacitorHttp.get({
+        url: url,
+        responseType: 'arraybuffer'
       });
-    } catch (e) {
-      console.error("[AudioBooks] fetchAsBase64 failed:", e);
+      
+      if (response.status !== 200) throw new Error(`HTTP ${response.status}`);
+      
+      const uint8Array = new Uint8Array(response.data);
+      let binary = '';
+      for (let i = 0; i < uint8Array.byteLength; i++) {
+        binary += String.fromCharCode(uint8Array[i]);
+      }
+      return `data:image/jpeg;base64,${btoa(binary)}`;
+    } catch (err) {
+      console.error("fetchAsBase64 failed:", err);
       return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=";
     }
   };

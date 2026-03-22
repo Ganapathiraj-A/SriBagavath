@@ -243,17 +243,21 @@ const Programs = () => {
         if (!url) return null;
         if (url.startsWith('data:')) return url.split(',')[1];
         try {
-            const response = await fetch(url);
-            const blob = await response.blob();
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    const base64 = reader.result.split(',')[1];
-                    resolve(base64);
-                };
-                reader.onerror = reject;
-                reader.readAsDataURL(blob);
+            const { CapacitorHttp } = await import('@capacitor/core');
+            const response = await CapacitorHttp.get({
+                url: url,
+                responseType: 'arraybuffer'
             });
+            
+            if (response.status !== 200) throw new Error(`HTTP ${response.status}`);
+            
+            // Convert arraybuffer to base64
+            const uint8Array = new Uint8Array(response.data);
+            let binary = '';
+            for (let i = 0; i < uint8Array.byteLength; i++) {
+                binary += String.fromCharCode(uint8Array[i]);
+            }
+            return btoa(binary);
         } catch (err) {
             console.error("fetchAsBase64 failed:", err);
             return null;
