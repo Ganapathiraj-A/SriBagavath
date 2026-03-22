@@ -269,7 +269,7 @@ const AnalyticsAndSystem = () => {
                     style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '42rem', margin: '0 auto' }}
                 >
                     {/* Yesterday Snapshot Section */}
-                    <YesterdaySnapshot data={history[0]} />
+                    <YesterdaySnapshot data={history[1] || history[0]} />
 
                     {/* Usage Scaling Table */}
                     <ScalingTable 
@@ -283,7 +283,7 @@ const AnalyticsAndSystem = () => {
                     <WeeklyHistoryTable history={history} />
 
                     {/* Cost Summary Section */}
-                    <CostAnalysisCard reads={totalReads30d} writes={totalReads30d} />
+                    <CostAnalysisCard reads={totalReads30d} writes={totalWrites30d} />
                     
                     {/* Per-User Economics Section */}
                     <EconomicsCard 

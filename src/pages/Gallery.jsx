@@ -174,9 +174,7 @@ const Gallery = () => {
                                         color: isActive ? 'var(--color-primary)' : 'var(--color-text-muted)',
                                         position: 'relative',
                                         cursor: 'pointer',
-                                        transition: 'color 0.2s',
-                                        textTransform: 'uppercase',
-                                        letterSpacing: '0.025em'
+                                        transition: 'color 0.2s'
                                     }}
                                 >
                                     {tab.label}
