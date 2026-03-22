@@ -261,7 +261,10 @@ const Programs = () => {
                     path: fileName,
                     directory: Directory.Cache
                 });
-                fileUri = downloadResult.path;
+                // Ensure it's a file:// URI for the Share plugin
+                fileUri = downloadResult.path.startsWith('file://') 
+                    ? downloadResult.path 
+                    : `file://${downloadResult.path}`;
             } else {
                 // Handle Base64 (legacy or local)
                 const cleanBase64 = bannerData.split(',')[1] || bannerData;
