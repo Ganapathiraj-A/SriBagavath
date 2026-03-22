@@ -261,6 +261,9 @@ const Programs = () => {
                 encoding: 'base64'
             });
 
+            // Give filesystem a moment to sync
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
             // Share the file URI
             await Share.share({
                 title: program.programName,

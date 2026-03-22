@@ -153,7 +153,6 @@ const PdfBooks = () => {
         onclone: (doc) => {
           const el = doc.getElementById('pdf-share-container-wrapper');
           if (el) {
-            el.style.opacity = '1';
             el.style.visibility = 'visible';
           }
         }
@@ -647,13 +646,14 @@ const PdfBooks = () => {
 
       {/* Hidden Shareable Template */}
       <div style={{
-        position: 'fixed',
-        top: '0',
-        left: '0',
+        position: 'absolute',
+        top: '-9999px',
+        left: '-9999px',
         width: '800px',
         zIndex: -1000,
-        opacity: 0.01,
-        pointerEvents: 'none'
+        opacity: 1,
+        pointerEvents: 'none',
+        visibility: 'visible'
       }}>
         {sharingData && (
           <div
