@@ -59,12 +59,19 @@ const AudioBooks = () => {
     }
   };
 
-  const captureAndShare = async (currentData) => {
-    if (!shareRef.current || !currentData) return;
+  const captureAndShare = async () => {
+    if (!shareRef.current || !sharingData) return;
     try {
+      const { Toast } = await import('@capacitor/toast');
+      await Toast.show({ text: 'Preparing image...' });
+
+      const currentData = sharingData;
+      // Wait for layout and images
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       const canvas = await html2canvas(shareRef.current, {
         useCORS: true,
-        scale: 3,
+        scale: 2,
         backgroundColor: '#ffffff',
         width: 800,
         onclone: (doc) => {
@@ -90,6 +97,8 @@ const AudioBooks = () => {
       // Give filesystem a moment to sync
       await new Promise(resolve => setTimeout(resolve, 500));
       
+      await Toast.show({ text: 'Opening Share...' });
+
       await Share.share({
         title: currentData.book.title,
         text: text,
@@ -97,9 +106,12 @@ const AudioBooks = () => {
         files: [result.uri]
       });
     } catch (error) {
-      console.error("[AudioBooks] captureAndShare error:", error);
+      console.error('Share failed:', error);
+      const { Toast } = await import('@capacitor/toast');
+      await Toast.show({ text: 'Share failed. Try again.' });
     } finally {
       setIsSharingAudioBookId(null);
+      setSharingData(null);
     }
   };
 

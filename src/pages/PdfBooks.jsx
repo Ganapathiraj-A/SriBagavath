@@ -145,9 +145,15 @@ const PdfBooks = () => {
   const captureAndShare = async (currentData) => {
     if (!shareRef.current || !currentData) return;
     try {
+      const { Toast } = await import('@capacitor/toast');
+      await Toast.show({ text: 'Preparing image...' });
+
+      // Wait for images
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       const canvas = await html2canvas(shareRef.current, {
         useCORS: true,
-        scale: 3,
+        scale: 2,
         backgroundColor: '#ffffff',
         width: 800,
         onclone: (doc) => {
@@ -173,6 +179,8 @@ const PdfBooks = () => {
       // Give filesystem a moment to sync
       await new Promise(resolve => setTimeout(resolve, 500));
       
+      await Toast.show({ text: 'Opening Share...' });
+
       await Share.share({
         title: currentData.file.name,
         text: text,
@@ -180,9 +188,11 @@ const PdfBooks = () => {
         files: [result.uri]
       });
     } catch (error) {
-      console.error("[PdfBooks] captureAndShare error:", error);
+      console.error('Share failed:', error);
+      const { Toast } = await import('@capacitor/toast');
+      await Toast.show({ text: 'Share failed. Try again.' });
     } finally {
-      setIsSharingFileId(null);
+      setSharingData(null);
     }
   };
 

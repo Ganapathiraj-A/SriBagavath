@@ -239,6 +239,27 @@ const Programs = () => {
         }
     };
 
+    const fetchAsBase64 = async (url) => {
+        if (!url) return null;
+        if (url.startsWith('data:')) return url.split(',')[1];
+        try {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    const base64 = reader.result.split(',')[1];
+                    resolve(base64);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+        } catch (err) {
+            console.error("fetchAsBase64 failed:", err);
+            return null;
+        }
+    };
+
     const handleShareBanner = async (program) => {
         const bannerData = program.programBanner || (program.id === viewingProgram?.id ? viewingBanner : null);
 
@@ -248,9 +269,20 @@ const Programs = () => {
         }
 
         try {
-            const base64Data = bannerData;
-            // Extract base64 part if it contains data prefix
-            const cleanBase64 = base64Data.split(',')[1] || base64Data;
+            const { Toast } = await import('@capacitor/toast');
+            await Toast.show({ text: 'Preparing image...' });
+
+            let cleanBase64 = null;
+            if (bannerData.startsWith('http')) {
+                cleanBase64 = await fetchAsBase64(bannerData);
+            } else {
+                cleanBase64 = bannerData.split(',')[1] || bannerData;
+            }
+
+            if (!cleanBase64) {
+                throw new Error("Could not process image data");
+            }
+
             const fileName = `banner_${Date.now()}.jpg`;
 
             // Write to cache directory (temporary file)
@@ -264,6 +296,8 @@ const Programs = () => {
             // Give filesystem a moment to sync
             await new Promise(resolve => setTimeout(resolve, 500));
             
+            await Toast.show({ text: 'Opening Share...' });
+
             // Share the file URI
             await Share.share({
                 title: program.programName,

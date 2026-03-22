@@ -88,9 +88,15 @@ const BookDetails = () => {
         if (!currentData) return;
 
         try {
+            const { Toast } = await import('@capacitor/toast');
+            await Toast.show({ text: 'Preparing image...' });
+
+            // Wait for images to load and layout to settle
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
             const canvas = await html2canvas(shareRef.current, {
                 useCORS: true,
-                scale: 3,
+                scale: 2, // Reduced from 3 to avoid memory issues/black screens
                 backgroundColor: '#ffffff',
                 width: 800,
                 onclone: (doc) => {
@@ -114,6 +120,8 @@ const BookDetails = () => {
             // Give filesystem a moment to sync
             await new Promise(resolve => setTimeout(resolve, 500));
             
+            await Toast.show({ text: 'Opening Share...' });
+
             await Share.share({
                 title: currentData.title,
                 text: `Check out this book: ${currentData.title}\n\nDownload Sri Bagavath App: https://play.google.com/store/apps/details?id=com.bhavathpathai.app`,
@@ -121,8 +129,11 @@ const BookDetails = () => {
                 files: [result.uri]
             });
         } catch (error) {
-            console.error("captureAndShare error:", error);
+            console.error('Share failed:', error);
+            const { Toast } = await import('@capacitor/toast');
+            await Toast.show({ text: 'Share failed. Try again.' });
         } finally {
+            setSharingData(null);
             setIsSharing(false);
         }
     };
