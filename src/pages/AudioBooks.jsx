@@ -1,10 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Share2, Play, Edit2, Music, Loader2 } from 'lucide-react';
 import { Share } from '@capacitor/share';
-import { Filesystem, Directory } from '@capacitor/filesystem';
-import { Capacitor } from '@capacitor/core';
-import html2canvas from 'html2canvas';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '@/components/PageHeader';
 import { collection, query, orderBy, onSnapshot } from '@/utils/FirestoreProxy';
@@ -19,8 +16,6 @@ const AudioBooks = () => {
   const [audioBooks, setAudioBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isSharingAudioBookId, setIsSharingAudioBookId] = useState(null);
-  const [sharingData, setSharingData] = useState(null);
-  const shareRef = useRef(null);
 
   useEffect(() => {
     localStorage.setItem('lastVisited_audio_books', Date.now().toString());
@@ -42,103 +37,21 @@ const AudioBooks = () => {
     return () => unsub();
   }, []);
 
-  const fetchAsBase64 = async (url) => {
-    if (!url) return null;
-    if (url.startsWith('data:')) return url;
-    try {
-      const tempFileName = `temp_audio_${Date.now()}.jpg`;
-      const downloadResult = await Filesystem.downloadFile({
-        url: url,
-        path: tempFileName,
-        directory: Directory.Cache
-      });
-      
-      const readResult = await Filesystem.readFile({
-        path: tempFileName,
-        directory: Directory.Cache
-      });
-      
-      // Clean up temp file
-      Filesystem.deleteFile({ path: tempFileName, directory: Directory.Cache }).catch(() => {});
-      
-      return `data:image/jpeg;base64,${readResult.data}`;
-    } catch (err) {
-      console.error("fetchAsBase64 failed:", err);
-      return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=";
-    }
-  };
-
-  const captureAndShare = async () => {
-    if (!shareRef.current || !sharingData) return;
-    try {
-      const { Toast } = await import('@capacitor/toast');
-      await Toast.show({ text: 'Preparing image...' });
-
-      const currentData = sharingData;
-      // Wait for layout and images
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      const canvas = await html2canvas(shareRef.current, {
-        useCORS: true,
-        scale: 2,
-        backgroundColor: '#ffffff',
-        width: 800,
-        onclone: (doc) => {
-          const el = doc.getElementById('audio-share-container-wrapper');
-          if (el) {
-            el.style.visibility = 'visible';
-          }
-        }
-      });
-
-      const finalData = canvas.toDataURL('image/jpeg', 0.95).split(',')[1];
-      const fileName = `share_audio_${Date.now()}.jpg`;
-
-      const result = await Filesystem.writeFile({
-        path: fileName,
-        data: finalData,
-        directory: Directory.Cache,
-        encoding: 'base64'
-      });
-
-      const text = `🎧 *${currentData.book.title}*\n🔗 *Audio Link:* ${currentData.book.link}`;
-
-      // Give filesystem a moment to sync
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      await Toast.show({ text: 'Opening Share...' });
-
-      await Share.share({
-        title: currentData.book.title,
-        text: text,
-        url: currentData.book.link,
-        files: [result.uri]
-      });
-    } catch (error) {
-      console.error('Share failed:', error);
-      const { Toast } = await import('@capacitor/toast');
-      await Toast.show({ text: 'Share failed. Try again.' });
-    } finally {
-      setIsSharingAudioBookId(null);
-      setSharingData(null);
-    }
-  };
-
   const handleShare = async (e, book) => {
     e.stopPropagation();
     e.preventDefault();
     setIsSharingAudioBookId(book.id);
 
     try {
-      const base64Img = await fetchAsBase64(book.image);
-      const shareInfo = {
-        book,
-        displayImage: base64Img || "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII="
-      };
-      setSharingData(shareInfo);
-      setTimeout(() => captureAndShare(shareInfo), 1000);
+      const shareText = `🎧 *Audio Book: ${book.title}*\n🔗 Link: ${book.link || book.url}`;
+      
+      await Share.share({
+        title: book.title,
+        text: shareText
+      });
     } catch (err) {
       console.error("Sharing failed", err);
+    } finally {
       setIsSharingAudioBookId(null);
     }
   };
@@ -319,96 +232,6 @@ const AudioBooks = () => {
           ))}
         </div>
       )}
-
-      {/* Hidden Shareable Template */}
-      <div style={{
-        position: 'absolute',
-        top: '-9999px',
-        left: '-9999px',
-        width: '800px',
-        zIndex: -1000,
-        opacity: 1,
-        pointerEvents: 'none',
-        visibility: 'visible'
-      }}>
-        {sharingData && (
-          <div
-            id="audio-share-container-wrapper"
-            ref={shareRef}
-            style={{
-              width: '800px',
-              backgroundColor: '#ffffff',
-              padding: '60px 40px',
-              fontFamily: 'system-ui, -apple-system, sans-serif',
-              textAlign: 'center'
-            }}
-          >
-            {/* Header branding */}
-            <div style={{ marginBottom: '40px' }}>
-              <h1 style={{ color: '#f97316', margin: '0 0 10px 0', fontSize: '28px', fontWeight: 800 }}>
-                Sri Bagavath Audio Library
-              </h1>
-              <div style={{ height: '4px', width: '80px', backgroundColor: '#f97316', margin: '0 auto' }}></div>
-            </div>
-
-            {/* Book Cover */}
-            <div style={{ marginBottom: '40px' }}>
-              {sharingData.displayImage !== "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=" ? (
-                <img
-                  src={sharingData.displayImage}
-                  style={{
-                    width: '320px',
-                    height: '450px',
-                    borderRadius: '20px',
-                    objectFit: 'cover',
-                    boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)',
-                    border: '8px solid #ffffff'
-                  }}
-                  crossOrigin="anonymous"
-                  alt=""
-                  onError={(e) => { e.target.style.display = 'none'; }}
-                />
-              ) : (
-                <div style={{
-                  width: '320px',
-                  height: '450px',
-                  borderRadius: '20px',
-                  backgroundColor: '#fff7ed',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto',
-                  border: '2px dashed #ffedd5'
-                }}>
-                  <Music size={80} color="#f97316" />
-                </div>
-              )}
-            </div>
-
-            {/* Book Info */}
-            <div style={{ marginBottom: '40px' }}>
-              <h2 style={{ fontSize: '32px', color: '#111827', margin: '0 0 15px 0', fontWeight: 800, lineHeight: 1.2 }}>
-                {sharingData.book.title}
-              </h2>
-              <div style={{ display: 'inline-block', backgroundColor: '#fff7ed', padding: '12px 24px', borderRadius: '30px', border: '1px solid #ffedd5' }}>
-                <p style={{ margin: 0, color: '#f97316', fontWeight: 700, fontSize: '18px' }}>
-                  Listen to Audio Book
-                </p>
-              </div>
-            </div>
-
-            {/* Footer Branding */}
-            <div style={{ marginTop: '40px', paddingTop: '30px', borderTop: '2px solid #f3f4f6' }}>
-              <p style={{ margin: 0, color: '#f97316', fontSize: '20px', fontWeight: 800 }}>
-                Download Sri Bagavath App for latest updates
-              </p>
-              <p style={{ margin: '8px 0 0 0', color: '#6b7280', fontSize: '14px' }}>
-                Available on Google Play Store
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
 
       <style>{`
         @keyframes spin {

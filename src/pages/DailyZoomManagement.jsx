@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
-    Plus, Edit2, Trash2, Save, ChevronLeft, User, Calendar, Link as LinkIcon, FileText, Youtube, Eye, Trash
+    Plus, Edit2, Trash2, Save, ChevronLeft, User, Calendar, Link as LinkIcon, FileText, Youtube, Eye, Trash, History
 } from 'lucide-react';
 import { db } from '@/firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy, limit, where } from '@/utils/FirestoreProxy';
@@ -120,6 +120,27 @@ const DailyZoomManagement = () => {
             }));
         } else {
             setFormData(prev => ({ ...prev, linkId: '', joinUrl: '' }));
+        }
+    };
+
+    const handleUsePreviousDescription = () => {
+        // Combine all known meetings and sort by date descending
+        const allMeetings = [...meetings, ...historyMeetings].sort((a, b) => {
+            const dateCompare = b.date.localeCompare(a.date);
+            if (dateCompare !== 0) return dateCompare;
+            // Secondary sort by ID if dates are equal (proxy for creation order if createdAt missing)
+            return (b.id || '').localeCompare(a.id || '');
+        });
+
+        // If editing, find the first meeting that isn't the current one
+        const prevMeeting = allMeetings.find(m => 
+            m.description && (isEditing ? m.id !== editingId : true)
+        );
+
+        if (prevMeeting) {
+            setFormData(prev => ({ ...prev, description: prevMeeting.description }));
+        } else {
+            alert('No previous meetings with a description found.');
         }
     };
 
@@ -416,9 +437,30 @@ const DailyZoomManagement = () => {
                                 )}
 
                                 <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
-                                        <FileText size={16} color="var(--color-primary)" /> Description (Optional)
-                                    </label>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+                                            <FileText size={16} color="var(--color-primary)" /> Description (Optional)
+                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={handleUsePreviousDescription}
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '4px',
+                                                fontSize: '0.75rem',
+                                                fontWeight: 600,
+                                                color: 'var(--color-primary)',
+                                                backgroundColor: 'var(--color-primary-transparent)',
+                                                border: 'none',
+                                                padding: '4px 8px',
+                                                borderRadius: '6px',
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            <History size={12} /> Use Previous
+                                        </button>
+                                    </div>
                                     <textarea
                                         name="description"
                                         value={formData.description}
