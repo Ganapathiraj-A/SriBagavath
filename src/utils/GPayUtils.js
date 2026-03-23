@@ -19,41 +19,38 @@ export const GPayUtils = {
 
     // 2. Save QR Code
     saveQRCode: async (qrImageSrc) => {
+        console.log("Saving QR Code from:", qrImageSrc);
         try {
             // 1. Get Base64
             let base64 = "";
             if (qrImageSrc.startsWith('data:image')) {
                 base64 = qrImageSrc.split(',')[1];
             } else {
+                console.log("Fetching QR image...");
                 const response = await fetch(qrImageSrc);
+                console.log("Fetch response status:", response.status);
                 const blob = await response.blob();
-                base64 = await new Promise((resolve) => {
+                base64 = await new Promise((resolve, reject) => {
                     const reader = new FileReader();
                     reader.onloadend = () => resolve(reader.result.split(',')[1]);
+                    reader.onerror = reject;
                     reader.readAsDataURL(blob);
                 });
             }
 
+            console.log("Base64 length:", base64.length);
+
             // 2. Use OCR Plugin to save to gallery (Native)
             try {
                 await OCR.saveImageToGallery({ base64 });
-                // Note: SBB App removed Toast per user request, so we just return true.
-                // But let's keep the alert as per Sri Bagavath original flow "Click to Save" feedback requirement?
-                // User said "copy exact logic", SBB utils says "// Toast removed per user request".
-                // But PaymentScreen.tsx calls it and says "Tap the QR code to save it and proceed".
-                // Let's stick to SBB behavior: Silent save or simple toast if native fails.
-
-                // Alerting just in case so user knows it happened, as SriBagavath users might expect it.
-                // But adhering to "exact logic": SBB Utils has NO toast on success.
-                // So we will be silent on success.
-
-            } catch (_err) {
-                console.error("Write Failed", _err);
-                alert('Failed to Save to Gallery');
+                console.log("Successfully saved to gallery");
+            } catch (nativeErr) {
+                console.error("Native Save Failed:", nativeErr);
+                alert('Native Save Failed: ' + (nativeErr.message || JSON.stringify(nativeErr)));
             }
-        } catch (_err) {
-            console.error("Save Error", _err);
-            alert('Failed to Save Image');
+        } catch (err) {
+            console.error("Save Error (JS):", err);
+            alert('Save Error (JS): ' + err.message);
         }
     }
 };
