@@ -26,7 +26,18 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import android.os.Build;
 
-@CapacitorPlugin(name = "SBBOCR")
+@CapacitorPlugin(
+    name = "SBBOCR",
+    permissions = {
+        @Permission(
+            alias = "storage",
+            strings = {
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            }
+        )
+    }
+)
 public class SBBOCRPlugin extends Plugin {
 
     public SBBOCRPlugin() {
@@ -209,6 +220,26 @@ public class SBBOCRPlugin extends Plugin {
 
     @PluginMethod
     public void saveImageToGallery(PluginCall call) {
+        // Only require permissions for older Android
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.Q) {
+            if (getPermissionState("storage") != com.getcapacitor.PermissionState.GRANTED) {
+                requestPermissionForAlias("storage", call, "storageCallback");
+                return;
+            }
+        }
+        _saveImageInternal(call);
+    }
+
+    @com.getcapacitor.annotation.PermissionCallback
+    private void storageCallback(PluginCall call) {
+        if (getPermissionState("storage") == com.getcapacitor.PermissionState.GRANTED) {
+            _saveImageInternal(call);
+        } else {
+            call.reject("Storage permission is required to save QR code.");
+        }
+    }
+
+    private void _saveImageInternal(PluginCall call) {
         String base64Image = call.getString("base64");
         if (base64Image == null) {
             call.reject("No image provided");
@@ -216,8 +247,19 @@ public class SBBOCRPlugin extends Plugin {
         }
 
         try {
-            // Check if image already exists
             android.content.ContentResolver resolver = getContext().getContentResolver();
+            android.content.ContentValues values = new android.content.ContentValues();
+            
+            String fileName = "BagavathMission_QR_" + System.currentTimeMillis();
+            values.put(android.provider.MediaStore.Images.Media.DISPLAY_NAME, fileName);
+            values.put(android.provider.MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+            values.put(android.provider.MediaStore.Images.Media.TITLE, "BagavathMission_QR");
+            
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                values.put(android.provider.MediaStore.Images.Media.RELATIVE_PATH, android.os.Environment.DIRECTORY_PICTURES);
+                values.put(android.provider.MediaStore.Images.Media.IS_PENDING, 1);
+            }
+
             android.net.Uri collection;
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
                 collection = android.provider.MediaStore.Images.Media.getContentUri(android.provider.MediaStore.VOLUME_EXTERNAL_PRIMARY);
@@ -225,46 +267,39 @@ public class SBBOCRPlugin extends Plugin {
                 collection = android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
             }
 
-            String[] projection = new String[] { android.provider.MediaStore.Images.Media._ID };
-            // Check both TITLE and DISPLAY_NAME to be safe
-            String selection = android.provider.MediaStore.Images.Media.TITLE + " = ? OR " + 
-                               android.provider.MediaStore.Images.Media.DISPLAY_NAME + " LIKE ?";
-            String[] selectionArgs = new String[] { "BagavathMission_QR", "BagavathMission_QR%" };
-
-            try (android.database.Cursor cursor = resolver.query(collection, projection, selection, selectionArgs, null)) {
-                if (cursor != null && cursor.moveToFirst()) {
-                    // Already exists - DELETE it so we can re-create it at the top
-                    long id = cursor.getLong(cursor.getColumnIndexOrThrow(android.provider.MediaStore.Images.Media._ID));
-                    android.net.Uri deleteUri = android.content.ContentUris.withAppendedId(collection, id);
-                    try {
-                        resolver.delete(deleteUri, null, null);
-                        Log.d("OCR_PLUGIN", "Deleted existing QR image: " + id);
-                    } catch (Exception e) {
-                        Log.e("OCR_PLUGIN", "Failed to delete existing QR", e);
-                        // If delete fails, we might create a duplicate or just error out. 
-                        // Proceeding to insert might result in "BagavathMission_QR (1)" etc.
-                    }
-                }
+            // Cleanup old QR images
+            try {
+                String selection = android.provider.MediaStore.Images.Media.TITLE + " = ?";
+                String[] selectionArgs = new String[] { "BagavathMission_QR" };
+                resolver.delete(collection, selection, selectionArgs);
+            } catch (Exception e) {
+                Log.e("OCR_PLUGIN", "Cleanup failed", e);
             }
 
-            // If not found, save it
+            android.net.Uri itemUri = resolver.insert(collection, values);
+            if (itemUri == null) {
+                call.reject("Failed to create MediaStore entry");
+                return;
+            }
+
             byte[] decodedString = Base64.decode(base64Image, Base64.DEFAULT);
             Bitmap bitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
 
-            String savedImageURL = android.provider.MediaStore.Images.Media.insertImage(
-                    resolver,
-                    bitmap,
-                    "BagavathMission_QR",
-                    "QR Code for Payment"
-            );
-
-            if (savedImageURL != null) {
-                call.resolve();
-            } else {
-                call.reject("Failed to save image");
+            try (java.io.OutputStream out = resolver.openOutputStream(itemUri)) {
+                if (bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)) {
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                        values.clear();
+                        values.put(android.provider.MediaStore.Images.Media.IS_PENDING, 0);
+                        resolver.update(itemUri, values, null, null);
+                    }
+                    call.resolve();
+                } else {
+                    call.reject("Failed to compress bitmap");
+                }
             }
         } catch (Exception e) {
-            call.reject("Error saving image", e);
+            Log.e("OCR_PLUGIN", "Save failed", e);
+            call.reject("Error saving image: " + e.getMessage(), e);
         }
     }
 
