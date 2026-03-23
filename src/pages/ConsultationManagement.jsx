@@ -25,9 +25,23 @@ const ConsultationManagement = () => {
         try {
             setLoading(true);
             const ref = collection(db, 'teachers');
-            const q = query(ref, orderBy('consultationOrder', 'asc'), orderBy('name', 'asc'));
+            const q = query(ref, orderBy('name', 'asc'));
             const snap = await getDocs(q);
-            setTeachers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+            const loadedTeachers = snap.docs.map(d => ({ 
+                id: d.id, 
+                consultationOrder: 999, // Default
+                ...d.data() 
+            }));
+            
+            // Sort by consultationOrder, then name
+            loadedTeachers.sort((a, b) => {
+                const orderA = a.consultationOrder !== undefined ? a.consultationOrder : 999;
+                const orderB = b.consultationOrder !== undefined ? b.consultationOrder : 999;
+                if (orderA !== orderB) return orderA - orderB;
+                return a.name.localeCompare(b.name);
+            });
+            
+            setTeachers(loadedTeachers);
         } catch (error) {
             console.error('Error loading teachers:', error);
         } finally {

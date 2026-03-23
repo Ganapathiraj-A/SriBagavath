@@ -9,6 +9,7 @@ import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy,
 import { bumpServerVersion } from '@/utils/SyncManager';
 import PageHeader from '@/components/PageHeader';
 import LazyImage from '@/components/LazyImage';
+import TeacherManagementPanel from '@/components/TeacherManagementPanel';
 import { getLocalDateString } from '@/utils/dateUtils';
 import '../components/RegistrationStyles.css';
 
@@ -330,34 +331,39 @@ const DailyZoomManagement = () => {
                     overflowX: 'auto',
                     scrollbarWidth: 'none'
                 }}>
-                    {['upcoming', 'history', 'add', 'edit'].map((tab) => {
-                        if (tab === 'edit' && !isEditing) return null;
-                        const isActive = activeTab === tab;
-                        return (
-                            <button
-                                key={tab}
-                                onClick={() => {
-                                    if (tab === 'add') resetForm();
-                                    setActiveTab(tab);
-                                }}
-                                style={{
-                                    padding: '12px 4px',
-                                    border: 'none',
-                                    borderBottom: isActive ? '2px solid var(--color-primary)' : '2px solid transparent',
-                                    backgroundColor: 'transparent',
-                                    color: isActive ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                                    fontWeight: isActive ? 700 : 500,
-                                    fontSize: '0.9rem',
-                                    textTransform: 'capitalize',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s',
-                                    whiteSpace: 'nowrap'
-                                }}
-                            >
-                                {tab}
-                            </button>
-                        );
-                    })}
+                    {(() => {
+                        const tabs = ['upcoming', 'history', 'add'];
+                        if (isEditing) tabs.push('edit');
+                        tabs.push('teachers');
+
+                        return tabs.map((tab) => {
+                            const isActive = activeTab === tab;
+                            return (
+                                <button
+                                    key={tab}
+                                    onClick={() => {
+                                        if (tab === 'add') resetForm();
+                                        setActiveTab(tab);
+                                    }}
+                                    style={{
+                                        padding: '12px 4px',
+                                        border: 'none',
+                                        borderBottom: isActive ? '2px solid var(--color-primary)' : '2px solid transparent',
+                                        backgroundColor: 'transparent',
+                                        color: isActive ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                        fontWeight: isActive ? 700 : 500,
+                                        fontSize: '0.9rem',
+                                        textTransform: 'capitalize',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                        whiteSpace: 'nowrap'
+                                    }}
+                                >
+                                    {tab}
+                                </button>
+                            );
+                        });
+                    })()}
                 </div>
 
                 <motion.div
@@ -625,6 +631,9 @@ const DailyZoomManagement = () => {
                                 })
                             )}
                         </div>
+                    )}
+                    {activeTab === 'teachers' && (
+                        <TeacherManagementPanel />
                     )}
                 </motion.div>
             </div>

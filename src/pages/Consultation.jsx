@@ -125,7 +125,7 @@ const Consultation = () => {
                 const { needsServerSync, markSyncedLocally } = await import('../utils/SyncManager');
 
                 const ref = collection(db, 'teachers');
-                const q = query(ref, orderBy('consultationOrder', 'asc'));
+                const q = query(ref, orderBy('name', 'asc'));
 
                 const needsSync = needsServerSync('consultants'); // Keep existing sync key
                 let snap;
@@ -140,16 +140,23 @@ const Consultation = () => {
                     markSyncedLocally('consultants');
                 }
 
-                setConsultants(snap.docs
-                    .map(d => ({ 
-                        id: d.id, 
-                        name: d.data().name,
-                        number: d.data().phoneNumber || '',
-                        image: d.data().image || '',
-                        ...d.data() 
-                    }))
-                    .filter(t => t.showInConsultation === true)
-                );
+                const teachersList = snap.docs.map(d => ({ 
+                    id: d.id, 
+                    ...d.data(),
+                    name: d.data().name,
+                    number: d.data().phoneNumber || '',
+                    image: d.data().image || '',
+                }));
+
+                // Sort by consultationOrder, then name
+                teachersList.sort((a, b) => {
+                    const orderA = a.consultationOrder !== undefined ? a.consultationOrder : 999;
+                    const orderB = b.consultationOrder !== undefined ? b.consultationOrder : 999;
+                    if (orderA !== orderB) return orderA - orderB;
+                    return a.name.localeCompare(b.name);
+                });
+
+                setConsultants(teachersList.filter(t => t.showInConsultation === true));
             } catch (_err) {
                 console.error("Error fetching consultants:", _err);
             } finally {
