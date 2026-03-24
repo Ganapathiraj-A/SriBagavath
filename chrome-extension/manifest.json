@@ -1,0 +1,51 @@
+{
+  "manifest_version": 3,
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA8l78T8kyN8hJ7EUQYwu1LMIInKFpg+vNPei3EvRSatD1cZd4OF8ghBcixm6e1dWP3G30VFAFA0NmYgoR6a/1sSW0k2Z+n1yXIzHd7wDD5GB7zeWIm0EQx0EOgmjV6KYFVnOqrm6/MOGzr1NJGJP8ujDOde2mjzzWUzgd0YSTosyUd6GRs5pACwD3tcTWQ5z8ksvBQKv/EASTcb76l6eM3StvbSiDGfyx6WQkMqf3crSYVWZ7x7lx8xXFgZMjnh+II2jB8zrmiufCHDt7alDuk+rio35RpzDEOWy9oI5BdDgQkdH/B46UglBxu/bYOusFkVjR4ESk0lIqr96L1po3wQIDAQAB",
+  "name": "Sri Bagavath Admin Notifier",
+  "version": "1.0.0",
+  "description": "Real-time notifications for Sri Bagavath Admins about pending transactions.",
+  "permissions": [
+    "storage",
+    "notifications",
+    "alarms",
+    "identity",
+    "identity.email",
+    "offscreen"
+  ],
+  "oauth2": {
+    "client_id": "358075696780-qsjfuaor48tadg93f2p0rq9h7kprdink.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/userinfo.profile",
+      "openid"
+    ]
+  },
+  "host_permissions": [
+    "https://*.firebaseio.com/",
+    "https://*.googleapis.com/"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "options_page": "options.html",
+  "background": {
+    "service_worker": "dist/background.js",
+    "type": "module"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/*.png"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
