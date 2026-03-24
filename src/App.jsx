@@ -26,6 +26,7 @@ const AudioBooks = lazy(() => import('./pages/AudioBooks'));
 const Videos = lazy(() => import('./pages/Videos'));
 const PdfBooks = lazy(() => import('./pages/PdfBooks'));
 const Contact = lazy(() => import('./pages/Contact'));
+const WhatsAppMessages = lazy(() => import('./pages/WhatsAppMessages'));
 const Configuration = lazy(() => import('./pages/Configuration'));
 const ProgramManagement = lazy(() => import('./pages/ProgramManagement'));
 const ProgramTypesManagement = lazy(() => import('./pages/ProgramTypesManagement'));
@@ -341,6 +342,7 @@ function AnimatedRoutes() {
           <Route path="/pdf-books" element={<PdfBooks />} />
           <Route path="/digital-books" element={<DigitalBooksHub />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/messages" element={<WhatsAppMessages />} />
           <Route path="/my-registrations" element={<MyRegistrations />} />
           <Route path="/event-registration" element={<EventRegistration />} />
           <Route path="/payment-flow" element={<PaymentFlow />} />

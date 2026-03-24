@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit2, Trash2, Save, X, ChevronUp, ChevronDown } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, X, ChevronUp, ChevronDown, Share2 } from 'lucide-react';
 import { collection, query, getDocs, orderBy, addDoc, updateDoc, deleteDoc, doc, Timestamp } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '@/firebase';
+import { shareImage } from '@/utils/shareUtils';
 import PageHeader from '@/components/PageHeader';
 
 const AdminGallery = () => {
@@ -389,6 +390,7 @@ const AdminGallery = () => {
                                                 style={{ width: '60px', padding: '0.5rem', borderRadius: '0.25rem', border: '1px solid var(--color-border)' }}
                                             />
                                             <div style={{ flex: 1 }} />
+                                            <button onClick={() => shareImage(img)} style={{ padding: '0.5rem', color: 'var(--color-primary)', background: 'none', border: 'none' }}><Share2 size={20} /></button>
                                             <button onClick={() => handleDelete(img.id)} style={{ padding: '0.5rem', color: 'var(--color-error)', background: 'none', border: 'none' }}><Trash2 size={20} /></button>
                                             <button onClick={() => handleUpdate(img.id)} style={{ padding: '0.5rem', color: 'var(--color-success)', background: 'none', border: 'none' }}><Save size={20} /></button>
                                             <button onClick={(e) => { e.stopPropagation(); setEditingId(null); }} style={{ padding: '0.5rem', color: 'var(--color-text-muted)', background: 'none', border: 'none' }}><X size={20} /></button>

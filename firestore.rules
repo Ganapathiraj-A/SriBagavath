@@ -163,6 +163,11 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    match /whatsapp_messages/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     match /diagnostic_reports/{reportId} {
       allow read: if isAdmin();
       allow create: if request.auth != null || 

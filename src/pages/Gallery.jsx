@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { X, ChevronLeft, ChevronRight, Maximize2, Edit2 } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Maximize2, Edit2, Share2 } from 'lucide-react';
 import { collection, query, getDocs, orderBy } from '@/utils/FirestoreProxy';
 import { db } from '@/firebase';
 import { useAdminAuth } from '@/context/AdminAuthContext';
+import { shareImage } from '@/utils/shareUtils';
 import PageHeader from '@/components/PageHeader';
 import LazyImage from '@/components/LazyImage';
 
@@ -248,15 +249,36 @@ const Gallery = () => {
                             position: 'absolute',
                             top: '0.5rem',
                             right: '0.5rem',
-                            padding: '0.25rem',
-                            borderRadius: '50%',
-                            backgroundColor: 'rgba(0,0,0,0.3)',
-                            color: 'white',
                             display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
+                            gap: '0.4rem'
                         }}>
-                            <Maximize2 size={14} />
+                            <button 
+                                onClick={(e) => { e.stopPropagation(); shareImage(img); }}
+                                style={{
+                                    padding: '0.4rem',
+                                    borderRadius: '50%',
+                                    backgroundColor: 'rgba(0,0,0,0.4)',
+                                    color: 'white',
+                                    border: 'none',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                <Share2 size={14} />
+                            </button>
+                            <div style={{
+                                padding: '0.4rem',
+                                borderRadius: '50%',
+                                backgroundColor: 'rgba(0,0,0,0.4)',
+                                color: 'white',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}>
+                                <Maximize2 size={14} />
+                            </div>
                         </div>
                     </motion.div>
                 ))}
@@ -281,12 +303,20 @@ const Gallery = () => {
                             touchAction: 'none'
                         }}
                     >
-                        <button 
-                            onClick={closeLightbox}
-                            style={{ position: 'absolute', top: '2rem', right: '1.5rem', color: 'white', background: 'none', border: 'none', cursor: 'pointer' }}
-                        >
-                            <X size={32} />
-                        </button>
+                        <div style={{ position: 'absolute', top: '2rem', right: '1.5rem', display: 'flex', gap: '1rem' }}>
+                            <button 
+                                onClick={() => shareImage(filteredImages[selectedIndex])}
+                                style={{ color: 'white', background: 'none', border: 'none', cursor: 'pointer' }}
+                            >
+                                <Share2 size={28} />
+                            </button>
+                            <button 
+                                onClick={closeLightbox}
+                                style={{ color: 'white', background: 'none', border: 'none', cursor: 'pointer' }}
+                            >
+                                <X size={32} />
+                            </button>
+                        </div>
 
                         <button 
                             onClick={prevImage}

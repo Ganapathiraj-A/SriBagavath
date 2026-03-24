@@ -63,7 +63,10 @@ export const GlobalSettingsProvider = ({ children }) => {
         bookUpdateUrl: 'https://docs.google.com/spreadsheets/d/1TtzVIK28OidQQb2cuuHNqrcuSiUGgM-q28xkJHLyWrs/edit?gid=1377614208',
         donationImportUrl: 'https://docs.google.com/spreadsheets/d/1TtzVIK28OidQQb2cuuHNqrcuSiUGgM-q28xkJHLyWrs/edit?gid=314638099',
         donationExportUrl: 'https://docs.google.com/spreadsheets/d/1TtzVIK28OidQQb2cuuHNqrcuSiUGgM-q28xkJHLyWrs/edit?gid=1623097087',
-        donationUpdateUrl: 'https://docs.google.com/spreadsheets/d/1TtzVIK28OidQQb2cuuHNqrcuSiUGgM-q28xkJHLyWrs/edit?gid=227329141'
+        donationUpdateUrl: 'https://docs.google.com/spreadsheets/d/1TtzVIK28OidQQb2cuuHNqrcuSiUGgM-q28xkJHLyWrs/edit?gid=227329141',
+        whatsappInstanceId: '',
+        whatsappApiToken: '',
+        whatsappChatId: ''
     });
 
     // Firestore Per-User Settings (Developer Options)
@@ -331,6 +334,12 @@ export const GlobalSettingsProvider = ({ children }) => {
             setDonationImportUrl: (val) => updateAdmin({ donationImportUrl: val }),
             setDonationExportUrl: (val) => updateAdmin({ donationExportUrl: val }),
             setDonationUpdateUrl: (val) => updateAdmin({ donationUpdateUrl: val }),
+            whatsappInstanceId: adminSettings.whatsappInstanceId,
+            whatsappApiToken: adminSettings.whatsappApiToken,
+            whatsappChatId: adminSettings.whatsappChatId,
+            setWhatsappInstanceId: (val) => updateAdmin({ whatsappInstanceId: val }),
+            setWhatsappApiToken: (val) => updateAdmin({ whatsappApiToken: val }),
+            setWhatsappChatId: (val) => updateAdmin({ whatsappChatId: val }),
             setDigitalBookLanguages: (val) => updatePublic({ digitalBookLanguages: val }),
             setDriveMagazineId: (val) => updatePublic({ driveMagazineId: val }),
             setDriveAudioBooksId: (val) => updatePublic({ driveAudioBooksId: val }),

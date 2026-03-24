@@ -84,3 +84,29 @@ export const shareTransactions = async (items, type, allPrograms = []) => {
         console.error("Sharing failed", error);
     }
 };
+
+/**
+ * Shares a gallery image URL.
+ * @param {Object} img - Image object with url and caption
+ */
+export const shareImage = async (img) => {
+    if (!img || !img.url) return;
+    try {
+        await Share.share({
+            title: 'Sri Bagavath Gallery',
+            text: img.caption || 'Check out this image from Sri Bagavath Gallery',
+            url: img.url,
+            dialogTitle: 'Share Image'
+        });
+    } catch (error) {
+        console.error("Sharing failed", error);
+        // Fallback for web if navigator.share is available but Share plugin fails
+        if (navigator.share) {
+            await navigator.share({
+                title: 'Sri Bagavath Gallery',
+                text: img.caption || 'Check out this image from Sri Bagavath Gallery',
+                url: img.url
+            }).catch(() => {});
+        }
+    }
+};
