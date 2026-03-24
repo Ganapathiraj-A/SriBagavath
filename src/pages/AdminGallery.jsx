@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit2, Trash2, Save, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, X, ChevronUp, ChevronDown } from 'lucide-react';
 import { collection, query, getDocs, orderBy, addDoc, updateDoc, deleteDoc, doc, Timestamp } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '@/firebase';
@@ -116,7 +116,26 @@ const AdminGallery = () => {
         }
     };
 
-    const startEdit = (img) => {
+    const handleMove = async (img, direction) => {
+        const currentIndex = images.findIndex(i => i.id === img.id);
+        const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+        
+        if (targetIndex < 0 || targetIndex >= images.length) return;
+        
+        const neighbor = images[targetIndex];
+        
+        try {
+            // Swap orders
+            await updateDoc(doc(db, 'gallery', img.id), { order: neighbor.order, updatedAt: Timestamp.now() });
+            await updateDoc(doc(db, 'gallery', neighbor.id), { order: img.order, updatedAt: Timestamp.now() });
+            fetchImages();
+        } catch (error) {
+            console.error("Error moving image:", error);
+        }
+    };
+
+    const startEdit = (img, e) => {
+        if (e) e.stopPropagation();
         setEditingId(img.id);
         setEditForm({ 
             url: img.url, 
@@ -286,15 +305,21 @@ const AdminGallery = () => {
                 ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         {filteredImages.map((img) => (
-                            <div key={img.id} style={{
-                                backgroundColor: 'var(--color-card)',
-                                borderRadius: '0.75rem',
-                                border: '1px solid var(--color-border)',
-                                padding: '1rem',
-                                display: 'flex',
-                                gap: '1rem',
-                                alignItems: 'center'
-                            }}>
+                            <motion.div 
+                                key={img.id} 
+                                layout
+                                whileHover={{ scale: 1.01, backgroundColor: 'var(--color-surface-hover)' }}
+                                style={{
+                                    backgroundColor: 'var(--color-card)',
+                                    borderRadius: '0.75rem',
+                                    border: '1px solid var(--color-border)',
+                                    padding: '1rem',
+                                    display: 'flex',
+                                    gap: '1rem',
+                                    alignItems: 'center',
+                                    transition: 'border-color 0.2s ease'
+                                }}
+                            >
                                 <div style={{ width: '80px', height: '80px', borderRadius: '0.5rem', overflow: 'hidden', flexShrink: 0 }}>
                                     <img src={img.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                 </div>
@@ -363,12 +388,17 @@ const AdminGallery = () => {
                                                 placeholder="Order"
                                                 style={{ width: '60px', padding: '0.5rem', borderRadius: '0.25rem', border: '1px solid var(--color-border)' }}
                                             />
+                                            <div style={{ flex: 1 }} />
+                                            <button onClick={() => handleDelete(img.id)} style={{ padding: '0.5rem', color: 'var(--color-error)', background: 'none', border: 'none' }}><Trash2 size={20} /></button>
                                             <button onClick={() => handleUpdate(img.id)} style={{ padding: '0.5rem', color: 'var(--color-success)', background: 'none', border: 'none' }}><Save size={20} /></button>
-                                            <button onClick={() => setEditingId(null)} style={{ padding: '0.5rem', color: 'var(--color-text-muted)', background: 'none', border: 'none' }}><X size={20} /></button>
+                                            <button onClick={(e) => { e.stopPropagation(); setEditingId(null); }} style={{ padding: '0.5rem', color: 'var(--color-text-muted)', background: 'none', border: 'none' }}><X size={20} /></button>
                                         </div>
                                     </div>
                                 ) : (
-                                    <div style={{ flex: 1, overflow: 'hidden' }}>
+                                    <div 
+                                        onClick={() => startEdit(img)}
+                                        style={{ flex: 1, overflow: 'hidden', cursor: 'pointer' }}
+                                    >
                                         <div style={{ fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{img.caption || 'No caption'}</div>
                                         <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{img.url}</div>
                                         <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
@@ -377,14 +407,38 @@ const AdminGallery = () => {
                                         </div>
                                     </div>
                                 )}
-
+                                
                                 {editingId !== img.id && (
-                                    <div style={{ display: 'flex', gap: '0.25rem' }}>
-                                        <button onClick={() => startEdit(img)} style={{ padding: '0.5rem', color: 'var(--color-primary)', background: 'none', border: 'none' }}><Edit2 size={18} /></button>
-                                        <button onClick={() => handleDelete(img.id)} style={{ padding: '0.5rem', color: 'var(--color-error)', background: 'none', border: 'none' }}><Trash2 size={18} /></button>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                        <button 
+                                            disabled={images.indexOf(img) === 0}
+                                            onClick={(e) => { e.stopPropagation(); handleMove(img, 'up'); }} 
+                                            style={{ 
+                                                padding: '0.25rem', 
+                                                color: images.indexOf(img) === 0 ? 'var(--color-border)' : 'var(--color-primary)', 
+                                                background: 'none', 
+                                                border: 'none',
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            <ChevronUp size={24} />
+                                        </button>
+                                        <button 
+                                            disabled={images.indexOf(img) === images.length - 1}
+                                            onClick={(e) => { e.stopPropagation(); handleMove(img, 'down'); }} 
+                                            style={{ 
+                                                padding: '0.25rem', 
+                                                color: images.indexOf(img) === images.length - 1 ? 'var(--color-border)' : 'var(--color-primary)', 
+                                                background: 'none', 
+                                                border: 'none',
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            <ChevronDown size={24} />
+                                        </button>
                                     </div>
                                 )}
-                            </div>
+                            </motion.div>
                         ))}
                     </div>
                 )}
