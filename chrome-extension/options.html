@@ -144,13 +144,18 @@
         </div>
 
         <div id="status" class="status">Settings saved!</div>
-        <div style="display: flex; gap: 10px; margin-top: 16px;">
-            <button id="scan-now" style="flex: 1; padding: 10px; background: var(--primary); border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: 600;">
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 16px;">
+            <button id="scan-now" style="width: 100%; padding: 10px; background: var(--primary); border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: 600;">
                 Scan Now
             </button>
-            <button id="test-notify" style="flex: 1; padding: 10px; background: white; border: 1px solid var(--border); border-radius: 8px; color: var(--muted); cursor: pointer; font-size: 13px;">
-                Test Notify
-            </button>
+            <div style="display: flex; gap: 8px;">
+                <button id="test-beep" style="flex: 1; padding: 10px; background: white; border: 1px solid var(--border); border-radius: 8px; color: var(--muted); cursor: pointer; font-size: 13px;">
+                    Test Beep 🔊
+                </button>
+                <button id="test-notify" style="flex: 1; padding: 10px; background: white; border: 1px solid var(--border); border-radius: 8px; color: var(--muted); cursor: pointer; font-size: 13px;">
+                    Test Notify 🔔
+                </button>
+            </div>
         </div>
     </div>
     <script src="dist/options.js"></script>
