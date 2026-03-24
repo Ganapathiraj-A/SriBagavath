@@ -130,7 +130,7 @@ const ConsultationManagement = () => {
                     </button>
                 }
                 rightAction={
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.25rem' }}>
                         <button
                             onClick={() => navigate('/admin/daily-zoom/teachers', { state: { returnPath: location.pathname } })}
                             style={{

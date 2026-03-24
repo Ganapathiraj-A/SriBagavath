@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Phone, Copy, Check } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
+import LazyImage from '@/components/LazyImage';
 import { useAdminAuth } from '@/context/AdminAuthContext';
 import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 
@@ -37,11 +38,12 @@ const ContactCard = ({ name, number, image, delay }) => {
         >
             <div style={{ width: '4rem', height: '4rem', borderRadius: '1rem', overflow: 'hidden', border: '1px solid var(--color-border)', flexShrink: 0, backgroundColor: 'var(--color-surface)' }}>
                 {image ? (
-                    <img
+                    <LazyImage
                         src={image}
                         alt={name}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        loading="lazy"
+                        width="100%"
+                        height="100%"
+                        objectFit="cover"
                     />
                 ) : (
                     <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -127,26 +129,35 @@ const Consultation = () => {
                 const ref = collection(db, 'teachers');
                 const q = query(ref, orderBy('name', 'asc'));
 
-                const needsSync = needsServerSync('consultants'); // Keep existing sync key
+                const syncKey = 'consultants_refresh_v3'; // Hard force refresh
+                const needsSync = needsServerSync(syncKey); 
                 let snap;
                 try {
                     snap = await getDocsFromCache(q);
                     if (snap.empty || needsSync) {
+                        console.log("Forcing server sync for consultants...");
                         snap = await getDocsFromServer(q);
-                        markSyncedLocally('consultants');
+                        markSyncedLocally(syncKey);
                     }
                 } catch (_err) {
                     snap = await getDocs(q);
-                    markSyncedLocally('consultants');
+                    markSyncedLocally(syncKey);
                 }
 
-                const teachersList = snap.docs.map(d => ({ 
-                    id: d.id, 
-                    ...d.data(),
-                    name: d.data().name,
-                    number: d.data().phoneNumber || '',
-                    image: d.data().image || '',
-                }));
+                const teachersList = snap.docs.map(d => {
+                    const data = d.data();
+                    return { 
+                        id: d.id, 
+                        ...data,
+                        name: data.name,
+                        number: data.phoneNumber || data.number || '', // Support both field names
+                        image: data.image || data.photo || '', // Support both field names
+                    };
+                });
+                
+                if (devMode) {
+                    console.log("Loaded Consultants Data:", teachersList.filter(t => t.showInConsultation));
+                }
 
                 // Sort by consultationOrder, then name
                 teachersList.sort((a, b) => {
