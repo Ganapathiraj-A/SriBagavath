@@ -129,49 +129,50 @@ const ConsultationManagement = () => {
                         <ChevronLeft size={24} />
                     </button>
                 }
-                rightAction={
-                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.25rem' }}>
-                        <button
-                            onClick={() => navigate('/admin/daily-zoom/teachers', { state: { returnPath: location.pathname } })}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.4rem',
-                                padding: '0.5rem 0.8rem',
-                                backgroundColor: 'var(--color-surface)',
-                                color: 'var(--color-text)',
-                                border: '1px solid var(--color-border)',
-                                borderRadius: '0.75rem',
-                                fontSize: '0.85rem',
-                                fontWeight: 600,
-                                cursor: 'pointer'
-                            }}
-                        >
-                            <Settings size={16} /> Manage Teachers
-                        </button>
-                        <button
-                            onClick={() => navigate('/programs/consultation')}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.4rem',
-                                padding: '0.5rem 0.8rem',
-                                backgroundColor: 'var(--color-surface)',
-                                color: 'var(--color-text)',
-                                border: '1px solid var(--color-border)',
-                                borderRadius: '0.75rem',
-                                fontSize: '0.85rem',
-                                fontWeight: 600,
-                                cursor: 'pointer'
-                            }}
-                        >
-                            <ExternalLink size={16} /> View Listing
-                        </button>
-                    </div>
-                }
             />
 
             <div style={{ maxWidth: '42rem', margin: '0 auto', padding: '1.5rem' }}>
+                <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', justifyContent: 'center' }}>
+                    <button
+                        onClick={() => navigate('/admin/daily-zoom/teachers', { state: { returnPath: location.pathname } })}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.4rem',
+                            padding: '0.6rem 1rem',
+                            backgroundColor: 'var(--color-surface)',
+                            color: 'var(--color-primary)',
+                            border: '1px solid var(--color-primary-transparent)',
+                            borderRadius: '0.75rem',
+                            fontSize: '0.9rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            boxShadow: 'var(--shadow-sm)'
+                        }}
+                    >
+                        <Settings size={18} /> Manage Teachers
+                    </button>
+                    <button
+                        onClick={() => navigate('/programs/consultation')}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.4rem',
+                            padding: '0.6rem 1rem',
+                            backgroundColor: 'var(--color-surface)',
+                            color: 'var(--color-primary)',
+                            border: '1px solid var(--color-primary-transparent)',
+                            borderRadius: '0.75rem',
+                            fontSize: '0.9rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            boxShadow: 'var(--shadow-sm)'
+                        }}
+                    >
+                        <ExternalLink size={18} /> View Listing
+                    </button>
+                </div>
+
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
                     
                     <div style={{ marginBottom: '2rem' }}>
