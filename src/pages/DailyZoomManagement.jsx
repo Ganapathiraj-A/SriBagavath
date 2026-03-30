@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
@@ -259,6 +259,47 @@ const DailyZoomManagement = () => {
         }
     };
 
+    const dateStats = useMemo(() => {
+        const list = activeTab === 'upcoming' ? meetings : (activeTab === 'history' ? historyMeetings : []);
+        if (list.length === 0) return null;
+
+        const sorted = [...list].sort((a, b) => a.date.localeCompare(b.date));
+        const first = sorted[0].date;
+        const last = sorted[sorted.length - 1].date;
+
+        const formatDateShort = (dateStr) => {
+            if (!dateStr) return "";
+            const d = new Date(dateStr);
+            const day = d.getDate().toString().padStart(2, '0');
+            const month = d.toLocaleDateString('en-US', { month: 'short' });
+            return `${day}/${month}`;
+        };
+
+        if (first === last) return { range: formatDateShort(first), missing: '' };
+
+        const missing = [];
+        const existingDates = new Set(list.map(m => m.date));
+        
+        const current = new Date(first);
+        const end = new Date(last);
+        
+        const temp = new Date(current);
+        temp.setDate(temp.getDate() + 1);
+
+        while (temp < end) {
+            const dStr = temp.toLocaleDateString('en-CA');
+            if (!existingDates.has(dStr)) {
+                missing.push(temp.getDate());
+            }
+            temp.setDate(temp.getDate() + 1);
+        }
+
+        return {
+            range: `${formatDateShort(first)} to ${formatDateShort(last)}`,
+            missing: missing.join(', ')
+        };
+    }, [meetings, historyMeetings, activeTab]);
+
     if (loading && meetings.length === 0) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><p>Loading...</p></div>;
 
     return (
@@ -297,7 +338,21 @@ const DailyZoomManagement = () => {
 
             <div style={{ maxWidth: '42rem', margin: '0 auto', padding: '1rem' }}>
                 {(activeTab === 'upcoming' || activeTab === 'history') && (
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '12px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                            {dateStats && (
+                                <>
+                                    <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>
+                                        Scheduled: <span style={{ color: 'var(--color-text)' }}>{dateStats.range}</span>
+                                    </div>
+                                    {dateStats.missing && (
+                                        <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-error)' }}>
+                                            Missing Dates: <span style={{ fontWeight: 700 }}>{dateStats.missing}</span>
+                                        </div>
+                                    )}
+                                </>
+                            )}
+                        </div>
                         <button
                             onClick={handleRemoveOldEntries}
                             disabled={loading || historyMeetings.length === 0}
