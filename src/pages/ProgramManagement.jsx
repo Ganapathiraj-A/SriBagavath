@@ -342,7 +342,12 @@ const ProgramManagement = () => {
                 consentQuestion: formData.consentQuestion || '',
                 isFree: formData.isFree || false,
                 additionalOptions: formData.additionalOptions || [],
-                ageRules: formData.ageRules || [],
+                ageRules: (formData.ageRules || []).map(r => ({
+                    ...r,
+                    minAge: Number(r.minAge) || 0,
+                    maxAge: Number(r.maxAge) || 0,
+                    amount: Number(r.amount) || 0
+                })),
                 createdAt: new Date().toISOString()
             };
 

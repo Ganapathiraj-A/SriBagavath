@@ -5,12 +5,35 @@ import PageHeader from '@/components/PageHeader';
 import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 import '../components/RegistrationStyles.css';
 import { TransactionService } from '@/services/TransactionService';
+import { db } from '@/firebase';
+import { doc, getDoc } from '@/utils/FirestoreProxy';
+import { useAdminAuth } from '@/context/AdminAuthContext';
 
 const EventRegistration = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { program, savedState } = location.state || {};
+    const { program: initialProgram, savedState } = location.state || {};
+    const [program, setProgram] = useState(initialProgram);
     const { onlineTransactionsEnabled, offlineRegistrationContact } = useGlobalSettings();
+    const { isAdmin } = useAdminAuth();
+
+    // Fresh Load of Program Data to bypass stale cache
+    useEffect(() => {
+        if (initialProgram?.id) {
+            const refreshProgram = async () => {
+                try {
+                    const snap = await getDoc(doc(db, 'programs', initialProgram.id));
+                    if (snap.exists()) {
+                        setProgram({ id: snap.id, ...snap.data() });
+                        console.log("Program data refreshed from server", snap.id);
+                    }
+                } catch (err) {
+                    console.error("Failed to refresh program data", err);
+                }
+            };
+            refreshProgram();
+        }
+    }, [initialProgram?.id]);
 
     // Redirect if no program
     useEffect(() => {
@@ -144,13 +167,18 @@ const EventRegistration = () => {
         const baseFee = program?.isFree ? 0 : (Number(program?.programFee) || 0);
 
         participants.forEach(p => {
-            const age = parseInt(p.age);
+            const ageInput = Number(p.age);
             let fee = baseFee;
 
-            if (!isNaN(age)) {
-                const rule = ageRules.find(r => age >= parseInt(r.minAge) && age <= parseInt(r.maxAge));
+            if (!isNaN(ageInput) && ageInput >= 0) {
+                const rule = ageRules.find(r => {
+                    const min = Number(r.minAge);
+                    const max = Number(r.maxAge);
+                    return ageInput >= min && ageInput <= max;
+                });
                 if (rule) {
-                    fee = Number(rule.amount) || 0;
+                    fee = Number(rule.amount);
+                    if (isNaN(fee)) fee = 0;
                 }
             }
             programTotal += fee;
@@ -167,14 +195,19 @@ const EventRegistration = () => {
         const baseFee = program?.isFree ? 0 : (Number(program?.programFee) || 0);
 
         participants.forEach(p => {
-            const age = parseInt(p.age);
+            const ageInput = Number(p.age);
             let fee = baseFee;
             let label = "Default Fee";
 
-            if (!isNaN(age)) {
-                const rule = ageRules.find(r => age >= parseInt(r.minAge) && age <= parseInt(r.maxAge));
+            if (!isNaN(ageInput) && ageInput >= 0) {
+                const rule = ageRules.find(r => {
+                    const min = Number(r.minAge);
+                    const max = Number(r.maxAge);
+                    return ageInput >= min && ageInput <= max;
+                });
                 if (rule) {
-                    fee = Number(rule.amount) || 0;
+                    fee = Number(rule.amount);
+                    if (isNaN(fee)) fee = 0;
                     label = `Age ${rule.minAge}-${rule.maxAge}`;
                 }
             }
@@ -556,7 +589,14 @@ const EventRegistration = () => {
             <div className="card" style={{ position: 'sticky', bottom: '10px', background: 'var(--color-primary-transparent)', border: '1px solid var(--color-primary-light)', zIndex: 10 }}>
                 {/* Cost Breakdown */}
                 <div style={{ marginBottom: '10px', borderBottom: '1px solid var(--color-primary-light)', paddingBottom: '8px' }}>
-                    <h4 style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-primary)', marginBottom: '4px', marginTop: 0 }}>Fee Breakdown</h4>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                        <h4 style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-primary)', margin: 0 }}>Fee Breakdown</h4>
+                        {isAdmin && program?.ageRules?.length > 0 && (
+                            <span style={{ fontSize: '0.65rem', backgroundColor: 'var(--color-primary)', color: 'white', padding: '1px 5px', borderRadius: '4px' }}>
+                                Age Rules: {program.ageRules.length}
+                            </span>
+                        )}
+                    </div>
                     <div style={{ display: 'grid', gap: '4px' }}>
                         {getBreakdown().map((item, idx) => (
                             <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--color-text)' }}>
