@@ -494,12 +494,17 @@ const EventRegistration = () => {
                     <div style={{ display: 'flex', gap: '8px' }}>
                         <div className="form-group" style={{ flex: 1 }}>
                             <label>Age</label>
-                            <input
-                                type="number"
+                            <select
                                 value={p.age}
                                 onChange={(e) => handleParticipantChange(index, 'age', e.target.value)}
+                                style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-card)', color: 'var(--color-text)' }}
                                 data-testid={`reg-age-${index}`}
-                            />
+                            >
+                                <option value="">Age</option>
+                                {[...Array(100).keys()].map(age => (
+                                    <option key={age} value={age}>{age}</option>
+                                ))}
+                            </select>
                         </div>
                         <div className="form-group" style={{ flex: 1 }}>
                             <label>Gender</label>

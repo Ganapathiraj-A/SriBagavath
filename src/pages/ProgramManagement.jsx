@@ -1177,31 +1177,37 @@ const ProgramManagement = () => {
                                                 <div key={rule.id || idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '0.5rem', alignItems: 'end' }}>
                                                     <div>
                                                         <label style={{ display: 'block', fontSize: '0.7rem', color: 'var(--color-text-muted)', marginBottom: '2px' }}>Min Age</label>
-                                                        <input
-                                                            type="number"
-                                                            placeholder="0"
+                                                        <select
                                                             value={rule.minAge}
                                                             onChange={(e) => {
                                                                 const updated = [...formData.ageRules];
                                                                 updated[idx].minAge = e.target.value;
                                                                 setFormData(prev => ({ ...prev, ageRules: updated }));
                                                             }}
-                                                            style={{ width: '100%', padding: '0.5rem', borderRadius: '0.4rem', border: '1px solid var(--color-border)' }}
-                                                        />
+                                                            style={{ width: '100%', padding: '0.5rem', borderRadius: '0.4rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
+                                                        >
+                                                            <option value="">Min Age</option>
+                                                            {[...Array(100).keys()].map(age => (
+                                                                <option key={age} value={age}>{age}</option>
+                                                            ))}
+                                                        </select>
                                                     </div>
                                                     <div>
                                                         <label style={{ display: 'block', fontSize: '0.7rem', color: 'var(--color-text-muted)', marginBottom: '2px' }}>Max Age</label>
-                                                        <input
-                                                            type="number"
-                                                            placeholder="12"
+                                                        <select
                                                             value={rule.maxAge}
                                                             onChange={(e) => {
                                                                 const updated = [...formData.ageRules];
                                                                 updated[idx].maxAge = e.target.value;
                                                                 setFormData(prev => ({ ...prev, ageRules: updated }));
                                                             }}
-                                                            style={{ width: '100%', padding: '0.5rem', borderRadius: '0.4rem', border: '1px solid var(--color-border)' }}
-                                                        />
+                                                            style={{ width: '100%', padding: '0.5rem', borderRadius: '0.4rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
+                                                        >
+                                                            <option value="">Max Age</option>
+                                                            {[...Array(100).keys()].map(age => (
+                                                                <option key={age} value={age}>{age}</option>
+                                                            ))}
+                                                        </select>
                                                     </div>
                                                     <div>
                                                         <label style={{ display: 'block', fontSize: '0.7rem', color: 'var(--color-text-muted)', marginBottom: '2px' }}>Amount (₹)</label>
