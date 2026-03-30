@@ -379,7 +379,7 @@ function AnimatedRoutes() {
           <Route path="/admin/personal-profile" element={<ProtectedRoute><PersonalProfile /></ProtectedRoute>} />
           <Route path="/admin/cloud-settings" element={<ProtectedRoute requiredRole="SUPER_ADMIN"><CloudGlobalSettings /></ProtectedRoute>} />
           <Route path="/admin/books-media" element={<ProtectedRoute requiredAdmin={true} allowedPermissions={['BANKING', 'DIGITAL_BOOKS_MANAGEMENT', 'RELATED_VIDEO_MANAGEMENT']}><BooksAndMediaManagement /></ProtectedRoute>} />
-          <Route path="/admin/gallery" element={<ProtectedRoute requiredAdmin={true} allowedPermissions={['DIGITAL_BOOKS_MANAGEMENT', 'RELATED_VIDEO_MANAGEMENT']}><AdminGallery /></ProtectedRoute>} />
+          <Route path="/admin/gallery" element={<ProtectedRoute requiredAdmin={true} allowedPermissions={['GALLERY_MANAGEMENT']}><AdminGallery /></ProtectedRoute>} />
           <Route path="/admin/analytics-system" element={<ProtectedRoute requiredAdmin={true} allowedPermissions={['REPORTING']}><AnalyticsAndSystem /></ProtectedRoute>} />
           <Route path="/admin/hide-screens" element={<ProtectedRoute requiredRole="SUPER_ADMIN"><HideScreens /></ProtectedRoute>} />
           <Route path="/admin/page-user-management" element={<ProtectedRoute requiredAdmin={true} allowedPermissions={['PROGRAM_MANAGEMENT', 'CONSULTATION_MANAGEMENT', 'DAILY_ZOOM_MANAGEMENT', 'BANKING', 'DIGITAL_BOOKS_MANAGEMENT', 'RELATED_VIDEO_MANAGEMENT', 'MANAGE_USERS', 'SUPER_ADMIN']}><PageAndUserManagement /></ProtectedRoute>} />

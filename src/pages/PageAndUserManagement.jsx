@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ChevronLeft, Layers, BookOpen, Users, EyeOff } from 'lucide-react';
+import { ChevronLeft, Layers, BookOpen, Users, EyeOff, Image } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { SettingItem } from './AdminSettings';
 import { useAdminAuth } from '@/context/AdminAuthContext';
@@ -35,6 +35,16 @@ const PageAndUserManagement = () => {
             permission: ['BANKING', 'DIGITAL_BOOKS_MANAGEMENT', 'RELATED_VIDEO_MANAGEMENT'],
             color: 'var(--color-accent)',
             bgColor: 'var(--color-accent-transparent)'
+        },
+        {
+            id: 'GALLERY_MANAGEMENT',
+            title: 'Gallery Management',
+            subtitle: 'Upload and manage organization photos',
+            icon: Image,
+            path: '/admin/gallery',
+            permission: 'GALLERY_MANAGEMENT',
+            color: 'var(--color-success)',
+            bgColor: 'var(--color-success-transparent)'
         },
         {
             id: 'MANAGE_USERS',

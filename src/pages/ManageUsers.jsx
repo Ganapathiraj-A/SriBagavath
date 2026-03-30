@@ -13,6 +13,7 @@ const ALL_PERMISSIONS = [
     { id: 'CONSULTATION_MANAGEMENT', label: 'Consultation Management' },
     { id: 'DAILY_ZOOM_MANAGEMENT', label: 'Daily Zoom Management' },
     { id: 'DIGITAL_BOOKS_MANAGEMENT', label: 'Digital Books Management' },
+    { id: 'GALLERY_MANAGEMENT', label: 'Gallery Management' },
     { id: 'IMPORT_EXPORT', label: 'Import/Export' },
     { id: 'MANAGE_USERS', label: 'Manage Users' },
     { id: 'OFFLINE_ENTRY', label: 'Offline Entry Screens' },

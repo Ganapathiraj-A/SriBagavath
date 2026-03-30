@@ -39,6 +39,7 @@ const HideScreens = () => {
             ]
         },
         { id: '/donations', title: 'Donations' },
+        { id: '/gallery', title: 'Gallery' },
         { id: '/contact', title: 'Contact' }
     ];
 
@@ -78,7 +79,8 @@ const HideScreens = () => {
                     children: [
                         { id: '/admin/books', title: 'Book Management' },
                         { id: '/admin/digital-books-settings', title: 'Digital Books Languages' },
-                        { id: '/admin/related-videos', title: 'Related Videos' }
+                        { id: '/admin/related-videos', title: 'Related Videos' },
+                        { id: '/admin/gallery', title: 'Gallery Management' }
                     ]
                 },
                 { id: '/manage-users', title: 'Manage Admins' }

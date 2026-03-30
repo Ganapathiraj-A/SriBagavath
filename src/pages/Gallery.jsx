@@ -68,7 +68,7 @@ const Gallery = () => {
         <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-surface)', paddingBottom: '2rem' }}>
             <PageHeader 
                 title="Gallery" 
-                rightAction={isAdmin ? (
+                rightAction={(isAdmin || hasAccess('GALLERY_MANAGEMENT')) ? (
                     <button 
                         onClick={() => navigate('/admin/gallery')}
                         style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', color: 'var(--color-text)' }}
