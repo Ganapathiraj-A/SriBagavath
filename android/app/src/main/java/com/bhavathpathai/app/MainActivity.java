@@ -3,6 +3,7 @@ package com.bhavathpathai.app;
 import android.os.Bundle;
 import android.util.Log;
 import com.getcapacitor.BridgeActivity;
+import com.ionicframework.capacitor.Checkout;
 
 import com.codetrixstudio.capacitor.GoogleAuth.GoogleAuth;
 import com.capacitorjs.plugins.app.AppPlugin;
@@ -21,6 +22,7 @@ public class MainActivity extends BridgeActivity {
         Log.d("SBB_DEBUG", "Registering custom plugins...");
         registerPlugin(GoogleAuth.class);
         registerPlugin(SBBOCRPlugin.class);
+        registerPlugin(Checkout.class);
         Log.d("SBB_DEBUG", "Custom plugins registered.");
 
         super.onCreate(savedInstanceState);

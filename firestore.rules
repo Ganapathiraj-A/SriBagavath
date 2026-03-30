@@ -52,6 +52,11 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
     
+    match /gallery/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
     match /schedules/{id} {
       allow read: if true;
       allow write: if isAdmin();
@@ -112,6 +117,11 @@ service cloud.firestore {
     }
 
     match /daily_zoom_teachers/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /teachers/{id} {
       allow read: if true;
       allow write: if isAdmin();
     }

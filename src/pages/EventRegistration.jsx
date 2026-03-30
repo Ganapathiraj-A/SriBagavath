@@ -29,7 +29,7 @@ const EventRegistration = () => {
 
     // Fees from Program Data
     const fees = {
-        programFee: Number(program?.programFee) || 0
+        programFee: program?.isFree ? 0 : (Number(program?.programFee) || 0)
     };
 
     // Initialize State from savedState if available, else defaults
@@ -511,7 +511,7 @@ const EventRegistration = () => {
             <div className="card" style={{ position: 'sticky', bottom: '10px', background: 'var(--color-primary-transparent)', border: '1px solid var(--color-primary-light)', zIndex: 10 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontWeight: 600 }}>Total Estimated Amount:</span>
-                    <span style={{ fontSize: '18px', fontWeight: 'bold' }}>₹{calculateTotal()}</span>
+                    <span style={{ fontSize: '18px', fontWeight: 'bold' }}>{calculateTotal() > 0 ? `₹${calculateTotal()}` : 'FREE'}</span>
                 </div>
 
                 {!onlineTransactionsEnabled && (
@@ -531,7 +531,7 @@ const EventRegistration = () => {
 
                 {onlineTransactionsEnabled && (
                     <button className="btn-primary" style={{ marginTop: '10px' }} onClick={handleProceed} data-testid="reg-proceed">
-                        Proceed to Payment
+                        {calculateTotal() > 0 ? 'Proceed to Payment' : 'Register Now (Free)'}
                     </button>
                 )}
             </div>

@@ -10,7 +10,7 @@ import { GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'fireb
 import { normalizeImageSrc } from '@/utils/imageUtils';
 import LazyImage from '@/components/LazyImage';
 
-const MyOrders = () => {
+const MyOrders = ({ hideHeader = false }) => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [viewingImage, setViewingImage] = useState(null);
@@ -103,8 +103,8 @@ const MyOrders = () => {
     };
 
     return (
-        <div style={{ backgroundColor: 'var(--color-background)', minHeight: '100vh', paddingBottom: '20px' }}>
-            <PageHeader title="My Orders" />
+        <div style={{ backgroundColor: 'var(--color-background)', minHeight: hideHeader ? 'auto' : '100vh', paddingBottom: '20px' }}>
+            {!hideHeader && <PageHeader title="My Orders" />}
 
             <div style={{ padding: '16px' }}>
                 {!currentUser || currentUser.isAnonymous ? (

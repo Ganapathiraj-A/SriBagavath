@@ -2,4 +2,7 @@ include ':app'
 include ':capacitor-cordova-android-plugins'
 project(':capacitor-cordova-android-plugins').projectDir = new File('./capacitor-cordova-android-plugins/')
 
+include ':capacitor-razorpay'
+project(':capacitor-razorpay').projectDir = new File(rootProject.projectDir, '../node_modules/capacitor-razorpay/android')
+
 apply from: 'capacitor.settings.gradle'

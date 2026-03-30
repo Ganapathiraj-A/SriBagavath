@@ -17,7 +17,7 @@ import { getLocalDateString } from '@/utils/dateUtils';
 import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 import LazyImage from '@/components/LazyImage';
 
-const Programs = () => {
+const Programs = ({ hideHeader = false }) => {
     const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
     const location = useLocation();
@@ -376,31 +376,33 @@ Download Sri Bagavath App for latest updates`.trim();
             backgroundColor: 'var(--color-surface)',
             paddingBottom: '2rem'
         }}>
-            <PageHeader
-                title={viewingProgram ? viewingProgram.programName : "Programs"}
-                rightAction={
-                    (isAdmin || hasAccess('PROGRAM_MANAGEMENT')) && (
-                        <button
-                            onClick={() => navigate('/program', { state: { returnPath: location.pathname + location.search } })}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.4rem',
-                                padding: '0.5rem 0.8rem',
-                                backgroundColor: 'var(--color-primary-transparent)',
-                                color: 'var(--color-primary)',
-                                border: '1px solid var(--color-primary)',
-                                borderRadius: '0.75rem',
-                                fontSize: '0.85rem',
-                                fontWeight: 700,
-                                cursor: 'pointer'
-                            }}
-                        >
-                            Edit
-                        </button>
-                    )
-                }
-            />
+            {!hideHeader && (
+                <PageHeader
+                    title={viewingProgram ? viewingProgram.programName : "Programs"}
+                    rightAction={
+                        (isAdmin || hasAccess('PROGRAM_MANAGEMENT')) && (
+                            <button
+                                onClick={() => navigate('/program', { state: { returnPath: location.pathname + location.search } })}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.4rem',
+                                    padding: '0.5rem 0.8rem',
+                                    backgroundColor: 'var(--color-primary-transparent)',
+                                    color: 'var(--color-primary)',
+                                    border: '1px solid var(--color-primary)',
+                                    borderRadius: '0.75rem',
+                                    fontSize: '0.85rem',
+                                    fontWeight: 700,
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Edit
+                            </button>
+                        )
+                    }
+                />
+            )}
             <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ maxWidth: '42rem', margin: '0 auto', width: '100%' }}>
 
@@ -479,6 +481,20 @@ Download Sri Bagavath App for latest updates`.trim();
                                                 {viewingProgram.programVenue}
                                             </div>
                                         </div>
+
+                                        {viewingProgram.isFree && (
+                                            <div style={{ 
+                                                backgroundColor: 'var(--color-success-transparent)', 
+                                                color: 'var(--color-success)', 
+                                                padding: '0.75rem', 
+                                                borderRadius: '0.5rem', 
+                                                fontWeight: 600,
+                                                textAlign: 'center',
+                                                border: '1px solid var(--color-success-light)'
+                                            }}>
+                                                FREE PROGRAM
+                                            </div>
+                                        )}
 
                                         {viewingProgram.programDescription && (
                                             <div>
@@ -650,9 +666,25 @@ Download Sri Bagavath App for latest updates`.trim();
                                                     fontWeight: 600,
                                                     color: 'var(--color-text)',
                                                     margin: '0 0 0.4rem 0',
-                                                    lineHeight: '1.3'
+                                                    lineHeight: '1.3',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '0.5rem'
                                                 }}>
                                                     {program.programName}
+                                                    {program.isFree && (
+                                                        <span style={{ 
+                                                            fontSize: '0.65rem', 
+                                                            backgroundColor: 'var(--color-success)', 
+                                                            color: 'white', 
+                                                            padding: '2px 6px', 
+                                                            borderRadius: '4px',
+                                                            textTransform: 'uppercase',
+                                                            letterSpacing: '0.5px'
+                                                        }}>
+                                                            Free
+                                                        </span>
+                                                    )}
                                                 </h2>
 
                                                 {/* Row 2: Date Range & Location */}

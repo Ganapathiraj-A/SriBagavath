@@ -85,6 +85,7 @@ const ProgramManagement = () => {
         consentText: '',
 
         consentQuestion: '',
+        isFree: false,
         additionalOptions: []
     });
 
@@ -118,6 +119,7 @@ const ProgramManagement = () => {
                 consentText: editingProgram.consentText || '',
 
                 consentQuestion: editingProgram.consentQuestion || '',
+                isFree: editingProgram.isFree || false,
                 additionalOptions: editingProgram.additionalOptions || []
             });
 
@@ -249,6 +251,7 @@ const ProgramManagement = () => {
                         updates.consentText = selectedType.consentText || '';
 
                         updates.consentQuestion = selectedType.consentQuestion || '';
+                        updates.isFree = selectedType.isFree || false,
                         updates.additionalOptions = selectedType.additionalOptions || [];
                     }
                 }
@@ -334,6 +337,7 @@ const ProgramManagement = () => {
                 consentText: formData.consentText || '',
 
                 consentQuestion: formData.consentQuestion || '',
+                isFree: formData.isFree || false,
                 additionalOptions: formData.additionalOptions || [],
                 createdAt: new Date().toISOString()
             };
@@ -442,6 +446,7 @@ const ProgramManagement = () => {
             consentText: '',
 
             consentQuestion: '',
+            isFree: false,
             additionalOptions: []
         });
 
@@ -1097,9 +1102,40 @@ const ProgramManagement = () => {
                                             name="programFee"
                                             value={formData.programFee}
                                             onChange={handleInputChange}
-                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
+                                            disabled={formData.isFree}
+                                            style={{ 
+                                                width: '100%', 
+                                                padding: '0.75rem', 
+                                                borderRadius: '0.5rem', 
+                                                border: '1px solid var(--color-border)', 
+                                                backgroundColor: formData.isFree ? 'var(--color-background)' : 'var(--color-surface)', 
+                                                color: 'var(--color-text)',
+                                                opacity: formData.isFree ? 0.6 : 1
+                                            }}
                                         />
                                     </div>
+                                </div>
+
+                                {/* Free Program Toggle */}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0' }}>
+                                    <input
+                                        type="checkbox"
+                                        id="isFree"
+                                        name="isFree"
+                                        checked={formData.isFree}
+                                        onChange={(e) => {
+                                            const checked = e.target.checked;
+                                            setFormData(prev => ({
+                                                ...prev,
+                                                isFree: checked,
+                                                programFee: checked ? '0' : prev.programFee
+                                            }));
+                                        }}
+                                        style={{ width: '20px', height: '20px', cursor: 'pointer' }}
+                                    />
+                                    <label htmlFor="isFree" style={{ fontWeight: 600, color: 'var(--color-primary)', cursor: 'pointer' }}>
+                                        Mark as FREE Program
+                                    </label>
                                 </div>
 
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>

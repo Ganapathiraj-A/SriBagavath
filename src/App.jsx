@@ -100,8 +100,10 @@ import WebContact from './pages/WebContact';
 import WebBookStore from './pages/WebBookStore';
 import WebDonations from './pages/WebDonations';
 import WebEvents from './pages/WebEvents';
+import WebAccount from './pages/WebAccount';
 const WebBookDetails = lazy(() => import('./pages/WebBookDetails'));
 const WebCheckout = lazy(() => import('./pages/WebCheckout'));
+const WebGallery = lazy(() => import('./pages/WebGallery'));
 
 import ProtectedRoute from './components/ProtectedRoute';
 import { AdminAuthProvider } from './context/AdminAuthContext';
@@ -414,8 +416,11 @@ function AnimatedRoutes() {
             <Route path="store" element={<WebBookStore />} />
             <Route path="book/:id" element={<WebBookDetails />} />
             <Route path="donate" element={<WebDonations />} />
+            <Route path="gallery" element={<WebGallery />} />
             <Route path="checkout" element={<WebCheckout />} />
             <Route path="contact" element={<WebContact />} />
+            <Route path="account" element={<WebAccount />} />
+            <Route path="programs/retreat" element={<Programs hideHeader={true} />} />
           </Route>
 
           {/* Public view but management is admin */}

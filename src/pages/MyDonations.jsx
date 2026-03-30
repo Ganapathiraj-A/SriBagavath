@@ -10,7 +10,7 @@ import { ensureGoogleAuthInitialized } from '@/utils/GoogleAuthUtils';
 import { auth } from '@/firebase';
 import { GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
 
-const MyDonations = () => {
+const MyDonations = ({ hideHeader = false }) => {
     const [donations, setDonations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [authLoading, setAuthLoading] = useState(false);
@@ -100,8 +100,8 @@ const MyDonations = () => {
     };
 
     return (
-        <div style={{ backgroundColor: 'var(--color-background)', minHeight: '100vh', paddingBottom: '20px' }}>
-            <PageHeader title="My Donations" />
+        <div style={{ backgroundColor: 'var(--color-background)', minHeight: hideHeader ? 'auto' : '100vh', paddingBottom: '20px' }}>
+            {!hideHeader && <PageHeader title="My Donations" />}
 
             <div style={{ padding: '16px', maxWidth: '32rem', margin: '0 auto' }}>
                 {!currentUser || currentUser.isAnonymous ? (

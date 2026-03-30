@@ -11,7 +11,7 @@ import { GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'fireb
 import { normalizeImageSrc } from '@/utils/imageUtils';
 import LazyImage from '@/components/LazyImage';
 
-const MyRegistrations = () => {
+const MyRegistrations = ({ hideHeader = false }) => {
     const navigate = useNavigate();
     const [registrations, setRegistrations] = useState([]);
     const [allPrograms, setAllPrograms] = useState([]);
@@ -158,6 +158,14 @@ const MyRegistrations = () => {
         return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     };
 
+    const handleViewDetails = (txId, programId) => {
+        if (!programId) {
+            alert("Full details are not available for this specific registration record.");
+            return;
+        }
+        navigate(`/programs/retreat?id=${programId}`);
+    };
+
     const handleViewReceipt = async (tx) => {
         try {
             const base64 = tx.imageUrl || await TransactionService.getImage(tx.id);
@@ -173,8 +181,8 @@ const MyRegistrations = () => {
     };
 
     return (
-        <div style={{ backgroundColor: 'var(--color-background)', minHeight: '100vh', paddingBottom: '20px' }}>
-            <PageHeader title="My Registrations" />
+        <div style={{ backgroundColor: 'var(--color-background)', minHeight: hideHeader ? 'auto' : '100vh', paddingBottom: '20px' }}>
+            {!hideHeader && <PageHeader title="My Registrations" />}
 
             <div className="product-list" style={{ marginTop: '16px', padding: '16px' }}>
                 {!currentUser || currentUser.isAnonymous ? (
@@ -314,7 +322,7 @@ const MyRegistrations = () => {
                                             marginLeft: '8px',
                                             border: '1px solid var(--color-border)'
                                         }}>
-                                            {tx.status === 'COMPLETED' ? 'COMPLETED' : tx.status}
+                                            {tx.status === 'COMPLETED' ? 'COMPLETED' : (tx.status === 'REGISTERED' ? 'APPROVED' : tx.status)}
                                         </span>
                                     </div>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', color: 'var(--color-text-muted)' }}>
@@ -367,7 +375,7 @@ const MyRegistrations = () => {
                                             <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
                                                 <button
                                                     className="btn-secondary"
-                                                    onClick={() => navigate(`/programs/retreat?id=${tx.programId || details.id}`)}
+                                                    onClick={() => handleViewDetails(tx.id, tx.programId || details.id)}
                                                     style={{ flex: 1, fontSize: '14px', padding: '8px' }}
                                                 >
                                                     View Details

@@ -81,12 +81,14 @@ const Contact = () => {
                                 href="tel:+917904118421"
                             />
 
+{/* 
                             <div onClick={() => navigate('/messages')} style={{ cursor: 'pointer' }}>
                                 <ContactItem
                                     icon={MessageSquare}
                                     content="Group Messages"
                                 />
                             </div>
+                            */}
 
                             <ContactItem
                                 icon={Phone}

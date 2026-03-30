@@ -10,6 +10,7 @@ import { auth } from '@/firebase';
 import { TransactionService } from '@/services/TransactionService';
 import OCR from '@/plugins/OCRPlugin';
 import { GPayUtils } from '@/utils/GPayUtils';
+import { Checkout } from 'capacitor-razorpay';
 import qrImage from '@/assets/qr_code.jpg';
 import instructionGif from '@/assets/payment_instruction.gif';
 import '../components/RegistrationStyles.css';
@@ -105,8 +106,24 @@ const PaymentFlow = () => {
         if (!submissionName && (programName || itemName)) setSubmissionName(programName || itemName);
     }, [amount, programName, itemName, submissionAmount, submissionName]);
 
-    // --- Razorpay Integration (On Hold) ---
-    /*
+    // Track if we've already tried auto-launching to prevent loops
+    const [autoLaunched, setAutoLaunched] = useState(false);
+
+    useEffect(() => {
+        // Only auto-launch if we are in QR_VIEW and haven't tried yet
+        // and we are NOT coming from a shared image (which sets SUBMISSION)
+        if (currentStep === 'QR_VIEW' && !autoLaunched && amount !== undefined) {
+            const numAmount = parseFloat(amount);
+            if (numAmount === 0) {
+                setAutoLaunched(true);
+                setTimeout(() => handleFreeRegistration(), 1000);
+            } else if (numAmount > 0) {
+                setAutoLaunched(true);
+                setTimeout(() => handleRazorpayPayment(), 500);
+            }
+        }
+    }, [currentStep, autoLaunched, amount]);
+
     const getTargetPage = () => {
         let targetPage = '/my-registrations';
         if (itemType === 'BOOK') {
@@ -121,6 +138,51 @@ const PaymentFlow = () => {
         return targetPage;
     };
 
+    const handleFreeRegistration = async () => {
+        setLoading(true);
+        setPaymentStatus('processing');
+        try {
+            const transactionId = `FREE-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+            
+            const transactionData = {
+                orderId: transactionId,
+                paymentId: 'FREE_REGISTRATION',
+                signature: 'NONE',
+                amount: 0,
+                status: 'REGISTERED', // Changed from COMPLETED to REGISTERED (Approved)
+                paymentSource: 'free_registration',
+                itemName: programName || itemName || 'Free Registration', // Replaced programName with itemName
+                programId: programId || null,
+                programDate: programDate || null,
+                programCity: programCity || null,
+                participants: participants || [],
+                primaryApplicant: primaryApplicant || {},
+                place: place || "",
+                selectedOptions: selectedOptions || [],
+                participantCount: participantCount || (participants ? participants.length : 0),
+                itemType: itemType || 'PROGRAM',
+                createdAt: new Date().toISOString()
+            };
+
+            await TransactionService.recordTransaction(transactionData);
+            
+            navigate(getTargetPage(), { 
+                replace: true,
+                state: { 
+                    success: true,
+                    programName: programName,
+                    amount: 0
+                }
+            });
+        } catch (err) {
+            console.error("Free registration failed:", err);
+            setPaymentStatus('error');
+            setPaymentErrorMessage(err.message || "Failed to complete free registration. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleRazorpayPayment = async () => {
         setLoading(true);
         try {
@@ -129,18 +191,23 @@ const PaymentFlow = () => {
             const createOrder = httpsCallable(functions, 'createRazorpayOrder');
             const verifyPayment = httpsCallable(functions, 'verifyRazorpayPayment');
 
+            // Determine routing
+            const accountType = (itemType === 'BOOK' || itemType === 'DONATION') ? 'CHARITABLE' : 'SBM';
+            const rzpKeyId = accountType === 'CHARITABLE' ? AppConfig.razorpayCharitableKeyId : AppConfig.razorpaySbmKeyId;
+
             // 1. Create Order
             const orderRes = await createOrder({ 
                 amount: parseFloat(submissionAmount),
-                receipt: `rcpt_${Date.now()}`
+                receipt: `rcpt_${Date.now()}`,
+                accountType: accountType
             });
             const order = orderRes.data;
 
             const options = {
-                key: AppConfig.razorpayKeyId,
+                key: rzpKeyId,
                 amount: order.amount.toString(),
                 currency: order.currency,
-                name: "Sri Bagavath Mission",
+                name: accountType === 'CHARITABLE' ? "Sri Bagavath Mission Charitable Trust" : "Sri Bagavath Mission",
                 description: submissionName,
                 order_id: order.id,
                 prefill: {
@@ -159,7 +226,7 @@ const PaymentFlow = () => {
 
             const result = await Checkout.open(options);
             const response = result.response;
-            console.log("Native Razorpay Success:", response);
+            console.log(`Native Razorpay Success (${accountType}):`, response);
 
             setPaymentStatus('processing');
 
@@ -167,7 +234,8 @@ const PaymentFlow = () => {
             const verifyRes = await verifyPayment({
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature
+                razorpay_signature: response.razorpay_signature,
+                accountType: accountType
             });
 
             if (verifyRes.data.status === 'success') {
@@ -176,7 +244,7 @@ const PaymentFlow = () => {
                     itemName: submissionName,
                     itemType: itemType || 'PROGRAM',
                     amount: parseFloat(submissionAmount),
-                    status: 'COMPLETED',
+                    status: 'REGISTERED', // Changed from COMPLETED to REGISTERED (Approved)
                     paymentSource: 'razorpay_native',
                     razorpayOrderId: response.razorpay_order_id,
                     razorpayPaymentId: response.razorpay_payment_id,
@@ -200,13 +268,52 @@ const PaymentFlow = () => {
             }
         } catch (error) {
             console.error("Payment Error:", error);
+            
+            // 1. Extract error message
+            let errorStr = "";
+            if (typeof error === 'string') {
+                errorStr = error;
+            } else if (error && typeof error === 'object') {
+                // Razorpay native plugin often returns a JSON string or an object with code/description
+                errorStr = error.description || error.message || JSON.stringify(error);
+            }
+
+            // 2. Check for cancellation (Customer aborted)
+            const isCancelled = errorStr.toLowerCase().includes('canceled') || 
+                               errorStr.toLowerCase().includes('cancelled') ||
+                               (error?.code === '2' || error?.code === 2); // Common Razorpay cancel code
+
+            if (isCancelled) {
+                console.log("Payment intentionally cancelled by user.");
+                setPaymentStatus(null);
+                setLoading(false);
+                return;
+            }
+
+            // 3. Specific check for the "Verification Failed" case from the screenshot
+            // The screenshot shows a 'payment_authentication' step failure which might be a timeout or cancel
+            if (errorStr.includes('payment_authentication')) {
+                setPaymentStatus(null);
+                setLoading(false);
+                return;
+            }
+
+            // 4. Genuine Error - Clean up the display string
             setPaymentStatus('error');
-            setPaymentErrorMessage(error.description || error.message || "Payment failed or cancelled.");
+            
+            // Priority: Human readable description > message > generic fallback
+            let displayMessage = error.description || error.message;
+            
+            // If it's still JSON or missing, use a safe generic message
+            if (!displayMessage || displayMessage.includes('{')) {
+                displayMessage = "Payment could not be completed. Please check your network or try a different payment method.";
+            }
+
+            setPaymentErrorMessage(displayMessage);
         } finally {
             setLoading(false);
         }
     };
-    */
 
     // Methods
     const processOCR = async (base64) => {
@@ -269,6 +376,8 @@ const PaymentFlow = () => {
                 checkForSharedImage();
             }
         });
+
+
 
         return () => {
             if (pollInterval) clearInterval(pollInterval);
@@ -353,58 +462,61 @@ const PaymentFlow = () => {
 
     const renderQrView = () => (
         <div className="center-content">
-            <h2 style={{ textAlign: 'center' }}>Choose Payment Method</h2>
-            
-            {/* Razorpay disabled for now */}
-
-            <div style={{ display: 'flex', alignItems: 'center', margin: '20px 0', gap: '15px' }}>
-                <div style={{ flex: 1, height: '1px', background: 'var(--color-border)' }} />
-                <span style={{ color: 'var(--color-text-muted)', fontSize: '14px', fontWeight: 600 }}>OR MANUAL UPI</span>
-                <div style={{ flex: 1, height: '1px', background: 'var(--color-border)' }} />
-            </div>
-
-            <h3 style={{ textAlign: 'center', fontSize: '15px', color: 'var(--color-text-muted)', marginBottom: '15px' }}>Scan QR or Tap to Copy UPI ID</h3>
-            <div
-                className="qr-container"
-                onClick={async () => {
-                    try {
-                        await Clipboard.write({
-                            string: "sribagavathmission.63022941@hdfcbank"
-                        });
-                        alert("UPI ID copied to clipboard!");
-                    } catch (e) {
-                        console.warn("Clipboard write failed", e);
-                    }
-                    GPayUtils.saveQRCode(qrImage);
-
-                    // Track UPI Copy
-                    import('../utils/Analytics').then(m => {
-                        m.default.logEvent('qr_upi_copy');
-                    });
-
-                    setCurrentStep('INSTRUCTIONS');
-                }}
-            >
-                <img src={qrImage} alt="QR Code" onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                }} />
-            </div>
-            <p className="hint-text" style={{ textAlign: 'center' }}>
-                Tap the QR code to save UPI ID and proceed with manual screenshot upload
+            <h2 style={{ textAlign: 'center', marginBottom: '8px' }}>Secure Checkout</h2>
+            <p style={{ textAlign: 'center', color: 'var(--color-text-muted)', marginBottom: '30px' }}>
+                Redirecting to Razorpay for secure payment...
             </p>
-            <button className="btn-secondary full-width" style={{ marginTop: '20px' }} onClick={() => {
-                if (location.state?.itemType === 'BOOK') {
-                    navigate('/bookstore-checkout', { replace: true, state: location.state?.savedState });
-                } else {
-                    navigate('/event-registration', {
-                        replace: true,
-                        state: {
-                            program: location.state?.program,
-                            savedState: location.state?.savedState
+            
+            <button
+                className="btn-primary full-width"
+                style={{
+                    height: '56px',
+                    fontSize: '16px',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '12px',
+                    backgroundColor: '#1E293B' // Dark elegant slate for Razorpay
+                }}
+                onClick={handleRazorpayPayment}
+                disabled={loading}
+            >
+                <CreditCard size={20} />
+                {loading ? 'Initializing Secure Payment...' : 'Pay with Razorpay (UPI/Card)'}
+            </button>
+
+            <div style={{ marginTop: '40px', textAlign: 'center' }}>
+                <button 
+                    className="btn-secondary" 
+                    style={{ border: 'none', background: 'none', color: 'var(--color-text-muted)', textDecoration: 'underline' }}
+                    onClick={() => {
+                        if (location.state?.itemType === 'BOOK') {
+                            navigate('/bookstore-checkout', { replace: true, state: location.state?.savedState });
+                        } else {
+                            navigate('/event-registration', {
+                                replace: true,
+                                state: {
+                                    program: location.state?.program,
+                                    savedState: location.state?.savedState
+                                }
+                            });
                         }
-                    });
-                }
-            }}>Back to Details</button>
+                    }}
+                >
+                    Cancel and Go Back
+                </button>
+            </div>
+
+            {/* Manual UPI Hidden by default, but accessible for admins or if specifically needed */}
+            <div style={{ marginTop: 'auto', paddingTop: '40px', opacity: 0.3 }}>
+                <button 
+                    style={{ background: 'none', border: 'none', fontSize: '12px', color: 'var(--color-text-muted)' }}
+                    onClick={() => setCurrentStep('INSTRUCTIONS')}
+                >
+                    Having trouble? Use manual payment
+                </button>
+            </div>
         </div>
     );
 
@@ -687,28 +799,52 @@ const PaymentFlow = () => {
                     </div>
                 )
             }
-        </div >
+        </div>
     );
+
+    const showHeadless = currentStep === 'QR_VIEW' && loading;
 
     return (
         <div className="payment-container">
-            <header className="header" style={{ textAlign: 'center' }}>
-                <h1 style={{ width: '100%', textAlign: 'center' }}>Payment & Registration</h1>
-            </header>
-
-            <div className="content-area">
-                {currentStep === 'QR_VIEW' && renderQrView()}
-                {currentStep === 'INSTRUCTIONS' && renderInstructions()}
-                {currentStep === 'SUBMISSION' && renderSubmission()}
+            {!showHeadless && (
+                <header className="header" style={{ textAlign: 'center' }}>
+                    <h1 style={{ width: '100%', textAlign: 'center' }}>Payment & Registration</h1>
+                </header>
+            )}
+            
+            <div className="content-area" style={showHeadless ? { display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80vh' } : {}}>
+                {showHeadless ? (
+                    <div style={{ padding: '2rem', textAlign: 'center' }}>
+                        <div className="spinner" style={{ margin: '0 auto 1.5rem auto' }}></div>
+                        <p style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--color-primary)', margin: 0 }}>
+                            {parseFloat(amount) === 0 ? 'Registering...' : 'Connecting to Secure Gateway...'}
+                        </p>
+                        <p style={{ marginTop: '0.75rem', color: 'var(--color-text-muted)', fontSize: '0.95rem' }}>
+                            {parseFloat(amount) === 0 ? 'Finishing your free registration' : 'Please do not close the app or press back'}
+                        </p>
+                    </div>
+                ) : (
+                    <>
+                        {currentStep === 'QR_VIEW' && renderQrView()}
+                        {currentStep === 'INSTRUCTIONS' && renderInstructions()}
+                        {currentStep === 'SUBMISSION' && renderSubmission()}
+                    </>
+                )}
             </div>
 
             <PaymentStatusOverlay 
                 status={paymentStatus}
                 errorDetails={paymentErrorMessage}
+                message={parseFloat(amount) === 0 ? "Finalizing your free registration..." : null}
+                title={parseFloat(amount) === 0 ? "Processing Registration" : "Verifying Payment"}
+                successTitle={parseFloat(amount) === 0 ? "Registration Successful!" : "Payment Successful!"}
+                errorTitle={parseFloat(amount) === 0 ? "Registration Failed" : "Verification Failed"}
                 onClose={() => setPaymentStatus(null)}
                 onRetry={() => {
                     setPaymentStatus(null);
-                    if (currentStep === 'SUBMISSION') handleSubmit();
+                    if (parseFloat(amount) === 0) handleFreeRegistration();
+                    else if (currentStep === 'SUBMISSION') handleSubmit();
+                    else handleRazorpayPayment();
                 }}
             />
         </div>

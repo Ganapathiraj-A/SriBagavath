@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, MapPin, Share2, Video, Clock, RefreshCw, User, Youtube, ChevronRight, Phone, Copy } from 'lucide-react';
 import { db } from '../firebase';
-import { collection, query, where, orderBy, getDocsCacheFirst, onSnapshot } from '../utils/FirestoreProxy';
+import { collection, query, where, orderBy, getDocs, getDocsCacheFirst, onSnapshot } from '../utils/FirestoreProxy';
 import { getLocalDateString } from '../utils/dateUtils';
 import LazyImage from '../components/LazyImage';
 import './WebPages.css';
@@ -23,40 +23,34 @@ const formatRecurrenceRule = (master) => {
 
 const getNextOccurrence = (master, todayStr) => {
     if (!master.isRecurring) return master;
-    let currentDate = new Date(master.date);
+    let currentDate = new Date(master.date || master.programDate);
     const today = new Date(todayStr);
-    const ruleEndDate = master.recurringEndDateType === 'date' ? new Date(master.recurringEndDate) : null;
-    const exceptions = master.exceptions || [];
-    const maxDate = new Date();
-    maxDate.setFullYear(maxDate.getFullYear() + 1);
+    
+    // Safety check for invalid dates
+    if (isNaN(currentDate.getTime())) return master;
 
-    while (currentDate <= maxDate) {
-        if (ruleEndDate && currentDate > ruleEndDate) break;
-        const dateStr = currentDate.toISOString().split('T')[0];
-        let isMatch = false;
-        if (master.frequency === 'daily') isMatch = true;
-        else if (master.frequency === 'weekly') {
-            if (master.recurringDays?.includes(currentDate.getDay().toString())) isMatch = true;
-        } else if (master.frequency === 'monthly') {
-            const startDay = new Date(master.date).getDate();
-            if (currentDate.getDate() === startDay) isMatch = true;
+    // Simple forward skip for recurring
+    if (master.frequency === 'daily') {
+        if (currentDate < today) currentDate = new Date(today);
+    } else if (master.frequency === 'weekly') {
+        while (currentDate < today) {
+            currentDate.setDate(currentDate.getDate() + 7);
         }
-        if (isMatch && !exceptions.includes(dateStr) && dateStr >= todayStr) {
-            return {
-                ...master,
-                id: `${master.id}_${dateStr}`,
-                masterId: master.id,
-                date: dateStr,
-                isVirtual: true,
-                recurrenceText: formatRecurrenceRule(master)
-            };
+    } else if (master.frequency === 'monthly') {
+        while (currentDate < today) {
+            currentDate.setMonth(currentDate.getMonth() + 1);
         }
-        currentDate.setDate(currentDate.getDate() + 1);
     }
-    return null;
+
+    return {
+        ...master,
+        date: currentDate.toLocaleDateString('en-CA'),
+        programDate: currentDate.toLocaleDateString('en-CA')
+    };
 };
 
 const WebEvents = () => {
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('retreats');
     const [data, setData] = useState({
         retreats: [],
@@ -75,302 +69,236 @@ const WebEvents = () => {
     ];
 
     useEffect(() => {
+        let unsubPrograms;
+        
         const fetchData = async () => {
+            console.log("[WebEvents] FetchData Start");
             setLoading(true);
             const today = getLocalDateString();
             
             try {
-                // Fetch Retreats
-                const retreatsSnap = await getDocsCacheFirst(query(collection(db, 'programs'), where('programDate', '>=', today), orderBy('programDate', 'asc')));
-                const retreatsList = retreatsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-                // Fetch Satsangs
-                const satsangsSnap = await getDocsCacheFirst(collection(db, 'satsangs'));
-                const rawSatsangs = satsangsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-                const processedSatsangs = [];
-                rawSatsangs.forEach(m => {
-                    if (m.isRecurringInstance || m.masterId) return;
-                    if (m.isRecurring) {
-                        const next = getNextOccurrence(m, today);
-                        if (next) processedSatsangs.push(next);
-                    } else if (m.date >= today) {
-                        processedSatsangs.push(m);
+                // 1. Live Programs Listener
+                unsubPrograms = onSnapshot(
+                    query(collection(db, 'programs'), where('programDate', '>=', today), orderBy('programDate', 'asc')),
+                    (snap) => {
+                        console.log("[WebEvents] Programs Snap:", snap.size);
+                        const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                        setData(prev => ({ ...prev, retreats: list }));
+                        setLoading(false);
+                    },
+                    (err) => {
+                        console.error("[WebEvents] Programs listener failed:", err);
+                        setLoading(false);
                     }
-                });
-                processedSatsangs.sort((a, b) => a.date.localeCompare(b.date));
+                );
 
-                // Fetch Online Meetings
-                const onlineSnap = await getDocsCacheFirst(collection(db, 'online_meetings'));
-                const rawOnline = onlineSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-                const processedOnline = [];
-                rawOnline.forEach(m => {
-                    if (m.isRecurringInstance || m.masterId) return;
-                    if (m.isRecurring) {
-                        const next = getNextOccurrence(m, today);
-                        if (next) processedOnline.push(next);
-                    } else if (m.date >= today) {
-                        processedOnline.push(m);
+                // 2. Parallel Fetches for other tabs (Non-blocking)
+                const fetchOthers = async () => {
+                    const results = await Promise.allSettled([
+                        getDocsCacheFirst(collection(db, 'satsangs')),
+                        getDocsCacheFirst(collection(db, 'online_meetings')),
+                        getDocsCacheFirst(query(collection(db, 'daily_zoom_meetings'), where('date', '>=', today), orderBy('date', 'asc'))),
+                        getDocsCacheFirst(collection(db, 'teachers'))
+                    ]);
+
+                    const newData = { ...data };
+
+                    // Handle Satsangs (Schedules)
+                    if (results[0].status === 'fulfilled') {
+                        const raw = results[0].value.docs.map(d => ({ id: d.id, ...d.data() }));
+                        const processed = [];
+                        raw.forEach(m => {
+                            if (m.isRecurringInstance || m.masterId) return;
+                            if (m.isRecurring) {
+                                const next = getNextOccurrence(m, today);
+                                if (next) processed.push(next);
+                            } else {
+                                const d = m.date?.toDate ? m.date.toDate().toLocaleDateString('en-CA') : m.date;
+                                if (d >= today) processed.push({ ...m, date: d });
+                            }
+                        });
+                        processed.sort((a, b) => (a.date || "").toString().localeCompare((b.date || "").toString()));
+                        newData.schedules = processed;
                     }
-                });
-                processedOnline.sort((a, b) => a.date.localeCompare(b.date));
 
-                // Fetch Daily Zoom
-                const zoomSnap = await getDocsCacheFirst(query(collection(db, 'daily_zoom_meetings'), where('date', '>=', today), orderBy('date', 'asc')));
-                const zoomList = zoomSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    // Handle Online Meetings (Daily Zoom)
+                    if (results[1].status === 'fulfilled') {
+                        const raw = results[1].value.docs.map(d => ({ id: d.id, ...d.data() }));
+                        const processed = [];
+                        raw.forEach(m => {
+                            if (m.isRecurringInstance || m.masterId) return;
+                            if (m.isRecurring) {
+                                const next = getNextOccurrence(m, today);
+                                if (next) processed.push(next);
+                            } else {
+                                const d = m.date?.toDate ? m.date.toDate().toLocaleDateString('en-CA') : m.date;
+                                if (d >= today) processed.push({ ...m, date: d });
+                            }
+                        });
+                        processed.sort((a, b) => (a.date || "").toString().localeCompare((b.date || "").toString()));
+                        newData.dailyZoom = processed;
+                    }
 
-                // Fetch Schedule
-                const scheduleSnap = await getDocsCacheFirst(query(collection(db, 'schedules'), orderBy('fromDate', 'asc')));
-                const scheduleList = scheduleSnap.docs.map(d => ({ id: d.id, ...d.data() })).filter(s => (s.toDate || s.fromDate) >= today);
+                    // Handle Daily Zoom Meetings tab (Legacy/Specific)
+                    if (results[2].status === 'fulfilled') {
+                        // Merge or override if needed
+                    }
 
-                // Fetch Consultation
-                const consulSnap = await getDocsCacheFirst(query(collection(db, 'consultants'), orderBy('order', 'asc')));
-                const consulList = consulSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    // Handle Teachers
+                    if (results[3].status === 'fulfilled') {
+                        setTeachers(results[3].value.docs.map(d => ({ id: d.id, ...d.data() })));
+                    }
 
-                // Fetch Teachers (for Daily Zoom)
-                const teachersSnap = await getDocsCacheFirst(collection(db, 'daily_zoom_teachers'));
-                setTeachers(teachersSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+                    setData(prev => ({ ...prev, ...newData }));
+                };
 
-                setData({
-                    retreats: retreatsList,
-                    dailyZoom: zoomList,
-                    schedules: scheduleList,
-                    consultation: consulList
-                });
-            } catch (err) {
-                console.error("Failed to fetch events data:", err);
-            } finally {
+                fetchOthers();
+
+            } catch (error) {
+                console.error("[WebEvents] Critical error in fetchData:", error);
                 setLoading(false);
             }
         };
+
         fetchData();
+        return () => { if (unsubPrograms) unsubPrograms(); };
     }, []);
 
-    const handleShare = async (title, date, location, venue, link) => {
-        const text = `
-*${title}*
-📅 *Date:* ${date}
-📍 *Location:* ${location}
-🏢 *Venue:* ${venue}
-━━━━━━━━━━━━━━━━━━━━
-Join here: ${link || window.location.href}`.trim();
-
-        try {
-            await navigator.clipboard.writeText(text);
-            alert('Details copied to clipboard!');
-        } catch (err) {
-            console.error('Failed to copy:', err);
+    const handleShare = async (program) => {
+        const text = `Join us for ${program.title} on ${program.programDate} at ${program.location}.\n\nRegister here: https://sribagavath.org/web/programs/${program.id}`;
+        if (navigator.share) {
+            try {
+                await navigator.share({ title: program.title, text: text, url: window.location.href });
+            } catch (err) {}
+        } else {
+            navigator.clipboard.writeText(text);
+            alert("Details copied to clipboard!");
         }
     };
 
-    const renderCard = (item, type, index) => {
-        if (type === 'retreats') {
-            const startDate = new Date(item.programDate);
-            return (
-                <div key={item.id} className="emedia-card event-list-card schedule-card-refined program-list-card-unified">
-                    <div className="event-date-badge schedule-date-box">
-                        <span className="month">{startDate.toLocaleDateString(undefined, { month: 'short' })}</span>
-                        <span className="day">{startDate.getDate()}</span>
-                    </div>
-                    <div className="event-list-info">
-                        <div className="schedule-header">
-                            <h3 className="schedule-place">{item.programName}</h3>
-                        </div>
-                        <div className="event-meta-grid">
-                            <div className="event-meta-item">
-                                <Calendar size={16} />
-                                <span>
-                                    {startDate.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
-                                    {item.programEndDate && ` - ${new Date(item.programEndDate).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}`}
-                                </span>
-                            </div>
-                            <div className="event-meta-item">
-                                <MapPin size={16} />
-                                <span>{item.programCity}</span>
-                            </div>
-                        </div>
-
-                        <div className="program-actions unified-actions">
-                            {item.registrationStatus === 'Open' ? (
-                                <button 
-                                    className="program-btn primary small"
-                                    onClick={() => window.open(`https://wa.me/919789165555?text=I%20want%20to%20register%20for%20${encodeURIComponent(item.programName)}`, '_blank')}
-                                >
-                                    Register Now
-                                </button>
-                            ) : (
-                                <span className="program-status-closed small">Registration Closed</span>
-                            )}
-                            <button 
-                                className="program-btn secondary small"
-                                onClick={() => window.open(`https://wa.me/919789165555?text=I%20need%20details%20about%20${encodeURIComponent(item.programName)}`, '_blank')}
-                            >
-                                Details
-                            </button>
-                        </div>
+    if (loading) {
+        return (
+            <div className="web-events-page">
+                <div className="web-container">
+                    <div className="emedia-header-spacer" />
+                    <div className="web-loading-placeholder">
+                        <RefreshCw className="animate-spin" size={48} />
+                        <p>Loading Programs...</p>
                     </div>
                 </div>
-            );
-        }
+            </div>
+        );
+    }
 
-        if (type === 'satsangs' || type === 'online') {
-            const isOnline = type === 'online';
-            return (
-                <div key={item.id} className="emedia-card event-list-card">
-                    <div className="event-date-badge">
-                        <span className="month">{new Date(item.date).toLocaleDateString(undefined, { month: 'short' })}</span>
-                        <span className="day">{new Date(item.date).getDate()}</span>
-                    </div>
-                    <div className="event-list-info">
-                        <h3>{item.conductedBy}</h3>
-                        <div className="event-meta-grid">
-                            <div className="event-meta-item"><Clock size={16} /> <span>{item.startTime}</span></div>
-                            <div className="event-meta-item">{isOnline ? <Video size={16} /> : <MapPin size={16} />} <span>{isOnline ? 'Online Meeting' : item.city}</span></div>
-                            {item.recurrenceText && <div className="event-meta-item recurrence"><RefreshCw size={14} /> <span>{item.recurrenceText}</span></div>}
-                        </div>
-                        {item.description && <p className="event-desc-small">{item.description}</p>}
-                        <div className="event-list-actions">
-                            <button className="event-action-btn share small" onClick={() => handleShare(item.conductedBy, item.date, isOnline ? 'Online' : item.city, item.startTime)}><Share2 size={14} /> Share</button>
-                            {isOnline ? (
-                                <a href={item.joinUrl} target="_blank" rel="noopener noreferrer" className="event-action-btn join small">Join Meeting</a>
-                            ) : (
-                                <a href={`https://wa.me/919789165555?text=Satsang Inquiry: ${item.conductedBy} at ${item.city}`} target="_blank" rel="noopener noreferrer" className="event-action-btn inquiry small">Enquire</a>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            );
-        }
-
-        if (type === 'dailyZoom') {
-            const teacher = teachers.find(t => t.id === item.teacherId);
-            const displayName = teacher?.name || item.name || 'Speaker';
-            return (
-                <div key={item.id} className="emedia-card daily-zoom-card">
-                    <div className="zoom-speaker-img">
-                        <LazyImage src={teacher?.imageUrl || item.imageUrl} alt={displayName} />
-                    </div>
-                    <div className="zoom-card-info">
-                        <div className="zoom-date-row">
-                            <Calendar size={14} /> <span>{new Date(item.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}</span>
-                        </div>
-                        <h3>{displayName}</h3>
-                        {item.description && <p className="zoom-desc">{item.description}</p>}
-                        <div className="zoom-card-btns">
-                            <a href={item.joinUrl} target="_blank" rel="noopener noreferrer" className="zoom-btn join"><Video size={16} /> Zoom</a>
-                            {item.youtubeUrl && <a href={item.youtubeUrl} target="_blank" rel="noopener noreferrer" className="zoom-btn youtube"><Youtube size={16} /> YouTube</a>}
-                        </div>
-                    </div>
-                </div>
-            );
-        }
-
-        if (type === 'schedules') {
-            return (
-                <div key={item.id} className="emedia-card event-list-card schedule-card-refined">
-                    <div className="event-date-badge schedule-date-box">
-                        <span className="month">{new Date(item.fromDate).toLocaleDateString(undefined, { month: 'short' })}</span>
-                        <span className="day">{new Date(item.fromDate).getDate()}</span>
-                    </div>
-                    <div className="event-list-info">
-                        <div className="schedule-header">
-                            <h3 className="schedule-place">{item.place || item.title}</h3>
-                        </div>
-                        <div className="event-meta-grid">
-                            <div className="event-meta-item">
-                                <Calendar size={16} />
-                                <span>
-                                    {new Date(item.fromDate).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
-                                    {item.toDate && ` - ${new Date(item.toDate).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}`}
-                                </span>
-                            </div>
-                            {item.description && (
-                                <div className="event-meta-item schedule-desc-row">
-                                    <p className="event-desc-small">{item.description}</p>
-                                </div>
-                            )}
-                        </div>
-                        <div className="event-list-actions">
-                            <button className="event-action-btn share small" onClick={() => handleShare(item.place || item.title, item.fromDate, item.place, item.description)}>
-                                <Share2 size={14} /> Share Schedule
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            );
-        }
-    };
+    const activeList = data[activeTab] || [];
 
     return (
         <div className="web-events-page">
             <div className="web-container">
                 <div className="emedia-header-spacer" />
                 
-                <nav className="emedia-tabs">
+                <header className="page-section-header">
+                    <h1 className="web-logo-text-large">Events & Programs</h1>
+                    <p>Participate in our upcoming retreats, satsangs, and meditation camps.</p>
+                </header>
+
+                <div className="events-tabs">
                     {tabs.map(tab => (
                         <button
                             key={tab.id}
-                            className={`emedia-tab-btn ${activeTab === tab.id ? 'active' : ''}`}
+                            className={`event-tab-btn ${activeTab === tab.id ? 'active' : ''}`}
                             onClick={() => setActiveTab(tab.id)}
                         >
                             {tab.icon}
                             <span>{tab.name}</span>
-                            {activeTab === tab.id && <div className="active-underline" />}
+                            {activeTab === tab.id && <motion.div layoutId="tab-underline" className="tab-underline" />}
                         </button>
                     ))}
-                </nav>
+                </div>
 
-                <main className="emedia-main events-main">
-                    {loading ? (
-                        <div className="web-loading-state">
-                            <div className="spinner"></div>
-                            <p>Loading {tabs.find(t => t.id === activeTab)?.name}...</p>
-                        </div>
-                    ) : (data[activeTab].length === 0) ? (
-                        <div className="web-no-results">
-                            <div className="no-results-icon"><Calendar size={48} /></div>
-                            <h3>No upcoming items</h3>
-                            <p>There are no scheduled {tabs.find(t => t.id === activeTab)?.name.toLowerCase()} at the moment.</p>
-                        </div>
-                    ) : (
-                        <div className={`events-grid-layout ${activeTab}`}>
+                <div className="events-content">
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={activeTab}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.2 }}
+                        >
                             {activeTab === 'consultation' ? (
-                                <div className="consultation-container">
-                                    <p className="consultation-hint">Contact our Teachers for personalized guidance</p>
-                                    <div className="consultation-grid">
-                                        {data.consultation.map((c, idx) => (
-                                            <div key={c.id} className="consultation-card">
-                                                <div className="consultant-info">
-                                                    <h3>{c.name}</h3>
-                                                    <p>{c.number}</p>
-                                                </div>
-                                                <div className="consultant-actions">
-                                                    <a href={`tel:${c.number}`} className="consult-btn call">
-                                                        <Phone size={18} /> Call
-                                                    </a>
-                                                    <button 
-                                                        className="consult-btn copy"
-                                                        onClick={() => {
-                                                            navigator.clipboard.writeText(c.number);
-                                                            alert('Number copied!');
-                                                        }}
-                                                    >
-                                                        <Copy size={18} /> Copy
-                                                    </button>
+                                <div className="consultation-grid">
+                                    {teachers.length > 0 ? teachers.map(teacher => (
+                                        <div key={teacher.id} className="consultation-card">
+                                            <div className="teacher-photo-container">
+                                                <LazyImage src={teacher.photo} alt={teacher.name} className="teacher-photo" />
+                                            </div>
+                                            <div className="teacher-info">
+                                                <h3>{teacher.name}</h3>
+                                                <p className="teacher-location"><MapPin size={14} /> {teacher.location || 'Salem'}</p>
+                                                <div className="teacher-contact-actions">
+                                                    {teacher.phone && (
+                                                        <a href={`tel:${teacher.phone}`} className="teacher-action-btn">
+                                                            <Phone size={16} /> Call
+                                                        </a>
+                                                    )}
+                                                    {teacher.youtube && (
+                                                        <a href={teacher.youtube} target="_blank" rel="noreferrer" className="teacher-action-btn yt">
+                                                            <Youtube size={16} /> Channel
+                                                        </a>
+                                                    )}
                                                 </div>
                                             </div>
-                                        ))}
-                                    </div>
-                                    <div className="consultation-info-box">
-                                        <span>ℹ️</span>
-                                        <p>Consultations are available during scheduled hours. Please call to book an appointment.</p>
-                                    </div>
+                                        </div>
+                                    )) : (
+                                        <div className="web-no-results">
+                                            <p>No consultants available at the moment.</p>
+                                        </div>
+                                    )}
                                 </div>
                             ) : (
-                                data[activeTab].map((item, index) => renderCard(item, activeTab, index))
+                                <div className="events-list">
+                                    {activeList.length > 0 ? activeList.map((item, idx) => (
+                                        <motion.div 
+                                            key={item.id} 
+                                            className="web-event-card"
+                                            initial={{ opacity: 0, scale: 0.95 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            transition={{ delay: idx * 0.05 }}
+                                        >
+                                            <div className="event-card-inner">
+                                                <div className="event-card-main">
+                                                    <div className="event-date-badge">
+                                                        <span className="event-day">{new Date(item.programDate || item.date).getDate()}</span>
+                                                        <span className="event-month">{new Date(item.programDate || item.date).toLocaleString('default', { month: 'short' })}</span>
+                                                    </div>
+                                                    <div className="event-card-body">
+                                                        <h3>{item.title}</h3>
+                                                        <div className="event-meta">
+                                                            <span><MapPin size={14} /> {item.location}</span>
+                                                            {item.time && <span><Clock size={14} /> {item.time}</span>}
+                                                            {item.isRecurring && <span className="recurring-tag">{formatRecurrenceRule(item)}</span>}
+                                                        </div>
+                                                        <p className="event-excerpt">{item.description?.substring(0, 120)}...</p>
+                                                    </div>
+                                                </div>
+                                                <div className="event-card-actions">
+                                                    <button className="web-btn-primary" onClick={() => navigate(`/web/programs/${item.id}`)}>View Details</button>
+                                                    <button className="web-btn-outline icon-only" onClick={() => handleShare(item)}><Share2 size={18} /></button>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    )) : (
+                                        <div className="web-no-results">
+                                            <div className="no-events-icon"><Calendar size={48} /></div>
+                                            <h3>No upcoming items</h3>
+                                            <p>There are no scheduled programs at the moment. Please check back later.</p>
+                                        </div>
+                                    )}
+                                </div>
                             )}
-                        </div>
-                    )}
-                </main>
+                        </motion.div>
+                    </AnimatePresence>
+                </div>
             </div>
         </div>
     );

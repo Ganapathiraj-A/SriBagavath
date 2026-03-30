@@ -1,19 +1,22 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import {
-  FaPhone,
-  FaMapMarkerAlt,
-  FaClock,
-  FaEnvelope,
-  FaFacebookF,
-  FaInstagram,
-  FaYoutube
-} from 'react-icons/fa';
+import { FaPhone, FaMapMarkerAlt, FaClock, FaEnvelope, FaFacebookF, FaInstagram, FaYoutube, FaUser } from 'react-icons/fa';
+import { LogOut, LogIn, User } from 'lucide-react';
+import { useAdminAuth } from '../context/AdminAuthContext';
+import { auth } from '../firebase';
+import { signOut } from 'firebase/auth';
 import './WebLayout.css';
 import WebImagePrefetcher from './WebImagePrefetcher';
 
 const WebLayout = ({ children }) => {
   const location = useLocation();
+  const { user } = useAdminAuth();
+
+  const handleLogout = async () => {
+    if (window.confirm("Are you sure you want to sign out?")) {
+      await signOut(auth);
+    }
+  };
 
   const getTagline = () => {
     switch (location.pathname) {
@@ -29,6 +32,8 @@ const WebLayout = ({ children }) => {
         return "Join our upcoming satsangs and meditation camps.";
       case '/web/emedia':
         return "Listen & Read Online.";
+      case '/web/account':
+        return "Manage your registrations, orders, and donations.";
       default:
         if (location.pathname.startsWith('/web/book/')) {
           return "Discover Sri Bagavath Ayya's profound teachings in print.";
@@ -46,8 +51,10 @@ const WebLayout = ({ children }) => {
     { name: 'E Media', path: '/web/emedia' },
     { name: 'Store', path: '/web/store' },
     { name: 'Donate', path: '/web/donate' },
+    { name: 'Gallery', path: '/web/gallery' },
     { name: 'About', path: '/web/about' },
-    { name: 'Contact', path: '/web/contact' }
+    { name: 'Contact', path: '/web/contact' },
+    { name: 'My Account', path: '/web/account' }
   ];
 
   return (
@@ -70,6 +77,24 @@ const WebLayout = ({ children }) => {
               <span>Mon - Fri: 10:00 - 18:00 (Store open)</span>
             </div>
           </div>
+          <div className="web-user-nav">
+            {user && !user.isAnonymous ? (
+              <div className="web-user-profile">
+                <div className="web-user-avatar">
+                   {user.photoURL ? <img src={user.photoURL} alt="" /> : <FaUser />}
+                </div>
+                <span className="web-user-name">{user.displayName || 'Devotee'}</span>
+                <button onClick={handleLogout} className="web-logout-btn" title="Sign Out">
+                  <LogOut size={16} />
+                </button>
+              </div>
+            ) : (
+              <Link to="/web/account" className="web-login-link">
+                <LogIn size={16} />
+                <span>Sign In</span>
+              </Link>
+            )}
+          </div>
         </div>
       </div>
 
@@ -80,7 +105,7 @@ const WebLayout = ({ children }) => {
             <img 
               src="/assets/sri-bagavath-logo.png" 
               alt="Sri Bagavath" 
-              className="web-logo"
+              className="web-mission-logo"
             />
             <div className="web-logo-text">
               <p className="web-tagline">{getTagline()}</p>

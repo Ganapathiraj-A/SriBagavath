@@ -58,7 +58,7 @@ const WebContact = () => {
 
             <div className="web-contact-map">
               <iframe 
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15629.821364234567!2d78.33!3d11.66!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bab938b8b8b8b8b%3A0x8b8b8b8b8b8b8b8b!2sSri%20Bagavath%20Bhavan!5e0!3m2!1sen!2sin!4v1620000000000!5m2!1sen!2sin" 
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d62523.30615352019!2d78.17904056808347!3d11.644241571791152!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3babed73efadff25%3A0x4d247730455be4ba!2sSri%20Bagavath%20Bhavan!5e0!3m2!1sen!2sin!4v1774526434162!5m2!1sen!2sin" 
                 width="100%" 
                 height="450" 
                 style={{ border: 0, borderRadius: '12px', boxShadow: 'var(--shadow-lg)' }} 

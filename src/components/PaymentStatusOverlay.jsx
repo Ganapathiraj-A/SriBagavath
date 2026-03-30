@@ -2,8 +2,17 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, AlertCircle, Loader2, ShieldCheck, CreditCard } from 'lucide-react';
 
-const PaymentStatusOverlay = ({ status, message, errorDetails, onRetry, onClose }) => {
-    const [displayMessage, setDisplayMessage] = useState(message || "Securing your transaction...");
+const PaymentStatusOverlay = ({ 
+    status, 
+    message, 
+    errorDetails, 
+    onRetry, 
+    onClose,
+    title,
+    successTitle,
+    errorTitle
+}) => {
+    const [displayMessage, setDisplayMessage] = useState(message || "Finalizing your request...");
 
     useEffect(() => {
         if (status === 'processing' && !message) {
@@ -119,7 +128,7 @@ const PaymentStatusOverlay = ({ status, message, errorDetails, onRetry, onClose 
                                     />
                                 </div>
                                 <div>
-                                    <h3 style={{ margin: '0 0 8px 0', fontSize: '20px' }}>Verifying Payment</h3>
+                                    <h3 style={{ margin: '0 0 8px 0', fontSize: '20px' }}>{title || "Verifying Payment"}</h3>
                                     <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '15px' }}>{displayMessage}</p>
                                 </div>
                             </>
@@ -145,8 +154,8 @@ const PaymentStatusOverlay = ({ status, message, errorDetails, onRetry, onClose 
                                     <CheckCircle2 size={48} />
                                 </motion.div>
                                 <div>
-                                    <h3 style={{ margin: '0 0 8px 0', fontSize: '22px', color: '#10B981' }}>Payment Successful!</h3>
-                                    <p style={{ color: 'var(--color-text-muted)', margin: 0 }}>Your registration is being finalized...</p>
+                                    <h3 style={{ margin: '0 0 8px 0', fontSize: '22px', color: '#10B981' }}>{successTitle || "Payment Successful!"}</h3>
+                                    <p style={{ color: 'var(--color-text-muted)', margin: 0 }}>Finalizing your registration...</p>
                                 </div>
                             </>
                         )}
@@ -166,9 +175,9 @@ const PaymentStatusOverlay = ({ status, message, errorDetails, onRetry, onClose 
                                     <AlertCircle size={48} />
                                 </div>
                                 <div>
-                                    <h3 style={{ margin: '0 0 8px 0', fontSize: '20px', color: '#EF4444' }}>Verification Failed</h3>
+                                    <h3 style={{ margin: '0 0 8px 0', fontSize: '20px', color: '#EF4444' }}>{errorTitle || "Verification Failed"}</h3>
                                     <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '14px' }}>
-                                        {errorDetails || "Something went wrong during verification. Please contact support if the amount was debited."}
+                                        {errorDetails || "Something went wrong. Please check your network and try again."}
                                     </p>
                                 </div>
                                 <div style={{ display: 'flex', gap: '12px', width: '100%', marginTop: '8px' }}>
