@@ -139,9 +139,54 @@ const EventRegistration = () => {
 
     // Calculate Total
     const calculateTotal = () => {
-        const programTotal = participants.length * fees.programFee;
+        let programTotal = 0;
+        const ageRules = program?.ageRules || [];
+        const baseFee = program?.isFree ? 0 : (Number(program?.programFee) || 0);
+
+        participants.forEach(p => {
+            const age = parseInt(p.age);
+            let fee = baseFee;
+
+            if (!isNaN(age)) {
+                const rule = ageRules.find(r => age >= parseInt(r.minAge) && age <= parseInt(r.maxAge));
+                if (rule) {
+                    fee = Number(rule.amount) || 0;
+                }
+            }
+            programTotal += fee;
+        });
+
         const optionsTotal = selectedOptions.reduce((acc, opt) => acc + (Number(opt.fee) || 0), 0);
         return programTotal + optionsTotal;
+    };
+
+    // Cost Breakdown Helper
+    const getBreakdown = () => {
+        const breakdown = {};
+        const ageRules = program?.ageRules || [];
+        const baseFee = program?.isFree ? 0 : (Number(program?.programFee) || 0);
+
+        participants.forEach(p => {
+            const age = parseInt(p.age);
+            let fee = baseFee;
+            let label = "Default Fee";
+
+            if (!isNaN(age)) {
+                const rule = ageRules.find(r => age >= parseInt(r.minAge) && age <= parseInt(r.maxAge));
+                if (rule) {
+                    fee = Number(rule.amount) || 0;
+                    label = `Age ${rule.minAge}-${rule.maxAge}`;
+                }
+            }
+
+            const key = `${label}_${fee}`;
+            if (!breakdown[key]) {
+                breakdown[key] = { label, fee, count: 0 };
+            }
+            breakdown[key].count += 1;
+        });
+
+        return Object.values(breakdown);
     };
 
     const handleProceed = () => {
@@ -509,6 +554,25 @@ const EventRegistration = () => {
             )}
 
             <div className="card" style={{ position: 'sticky', bottom: '10px', background: 'var(--color-primary-transparent)', border: '1px solid var(--color-primary-light)', zIndex: 10 }}>
+                {/* Cost Breakdown */}
+                <div style={{ marginBottom: '10px', borderBottom: '1px solid var(--color-primary-light)', paddingBottom: '8px' }}>
+                    <h4 style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-primary)', marginBottom: '4px', marginTop: 0 }}>Fee Breakdown</h4>
+                    <div style={{ display: 'grid', gap: '4px' }}>
+                        {getBreakdown().map((item, idx) => (
+                            <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--color-text)' }}>
+                                <span>{item.count} x {item.label}</span>
+                                <span>₹{item.fee * item.count} ({item.count} @ ₹{item.fee})</span>
+                            </div>
+                        ))}
+                        {selectedOptions.length > 0 && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--color-text)', fontWeight: 600, marginTop: '4px', borderTop: '1px dashed var(--color-primary-light)', paddingTop: '4px' }}>
+                                <span>Additional Options ({selectedOptions.length})</span>
+                                <span>₹{selectedOptions.reduce((acc, opt) => acc + (Number(opt.fee) || 0), 0)}</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontWeight: 600 }}>Total Estimated Amount:</span>
                     <span style={{ fontSize: '18px', fontWeight: 'bold' }}>{calculateTotal() > 0 ? `₹${calculateTotal()}` : 'FREE'}</span>

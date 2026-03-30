@@ -86,7 +86,8 @@ const ProgramManagement = () => {
 
         consentQuestion: '',
         isFree: false,
-        additionalOptions: []
+        additionalOptions: [],
+        ageRules: []
     });
 
     // Load programs from Firebase when tab changes
@@ -120,7 +121,8 @@ const ProgramManagement = () => {
 
                 consentQuestion: editingProgram.consentQuestion || '',
                 isFree: editingProgram.isFree || false,
-                additionalOptions: editingProgram.additionalOptions || []
+                additionalOptions: editingProgram.additionalOptions || [],
+                ageRules: editingProgram.ageRules || []
             });
 
             if (isOtherCity) {
@@ -253,6 +255,7 @@ const ProgramManagement = () => {
                         updates.consentQuestion = selectedType.consentQuestion || '';
                         updates.isFree = selectedType.isFree || false,
                         updates.additionalOptions = selectedType.additionalOptions || [];
+                        updates.ageRules = selectedType.ageRules || [];
                     }
                 }
             }
@@ -339,6 +342,7 @@ const ProgramManagement = () => {
                 consentQuestion: formData.consentQuestion || '',
                 isFree: formData.isFree || false,
                 additionalOptions: formData.additionalOptions || [],
+                ageRules: formData.ageRules || [],
                 createdAt: new Date().toISOString()
             };
 
@@ -447,7 +451,8 @@ const ProgramManagement = () => {
 
             consentQuestion: '',
             isFree: false,
-            additionalOptions: []
+            additionalOptions: [],
+            ageRules: []
         });
 
         setBannerImage(null);
@@ -1136,6 +1141,96 @@ const ProgramManagement = () => {
                                     <label htmlFor="isFree" style={{ fontWeight: 600, color: 'var(--color-primary)', cursor: 'pointer' }}>
                                         Mark as FREE Program
                                     </label>
+                                </div>
+                                
+                                {/* Age-Based Pricing Rules */}
+                                <div style={{ border: '1px solid var(--color-border)', borderRadius: '0.75rem', padding: '1rem', backgroundColor: 'var(--color-surface)' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                                        <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-text)' }}>Age-Based Pricing Rules (Optional)</h3>
+                                        {!formData.isFree && (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setFormData(prev => ({
+                                                        ...prev,
+                                                        ageRules: [...prev.ageRules, { id: Date.now(), minAge: '', maxAge: '', amount: '' }]
+                                                    }));
+                                                }}
+                                                className="btn-text"
+                                                style={{ color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem' }}
+                                            >
+                                                <Plus size={16} /> Add Rule
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {formData.ageRules.length === 0 ? (
+                                        <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', margin: 0 }}>No age-based rules defined. Default fee will apply to everyone.</p>
+                                    ) : (
+                                        <div style={{ display: 'grid', gap: '0.75rem' }}>
+                                            {formData.ageRules.map((rule, idx) => (
+                                                <div key={rule.id || idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '0.5rem', alignItems: 'end' }}>
+                                                    <div>
+                                                        <label style={{ display: 'block', fontSize: '0.7rem', color: 'var(--color-text-muted)', marginBottom: '2px' }}>Min Age</label>
+                                                        <input
+                                                            type="number"
+                                                            placeholder="0"
+                                                            value={rule.minAge}
+                                                            onChange={(e) => {
+                                                                const updated = [...formData.ageRules];
+                                                                updated[idx].minAge = e.target.value;
+                                                                setFormData(prev => ({ ...prev, ageRules: updated }));
+                                                            }}
+                                                            style={{ width: '100%', padding: '0.5rem', borderRadius: '0.4rem', border: '1px solid var(--color-border)' }}
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label style={{ display: 'block', fontSize: '0.7rem', color: 'var(--color-text-muted)', marginBottom: '2px' }}>Max Age</label>
+                                                        <input
+                                                            type="number"
+                                                            placeholder="12"
+                                                            value={rule.maxAge}
+                                                            onChange={(e) => {
+                                                                const updated = [...formData.ageRules];
+                                                                updated[idx].maxAge = e.target.value;
+                                                                setFormData(prev => ({ ...prev, ageRules: updated }));
+                                                            }}
+                                                            style={{ width: '100%', padding: '0.5rem', borderRadius: '0.4rem', border: '1px solid var(--color-border)' }}
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label style={{ display: 'block', fontSize: '0.7rem', color: 'var(--color-text-muted)', marginBottom: '2px' }}>Amount (₹)</label>
+                                                        <input
+                                                            type="number"
+                                                            placeholder="0"
+                                                            value={rule.amount}
+                                                            onChange={(e) => {
+                                                                const updated = [...formData.ageRules];
+                                                                updated[idx].amount = e.target.value;
+                                                                setFormData(prev => ({ ...prev, ageRules: updated }));
+                                                            }}
+                                                            style={{ width: '100%', padding: '0.5rem', borderRadius: '0.4rem', border: '1px solid var(--color-border)' }}
+                                                        />
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setFormData(prev => ({
+                                                                ...prev,
+                                                                ageRules: prev.ageRules.filter((_, i) => i !== idx)
+                                                            }));
+                                                        }}
+                                                        style={{ padding: '0.5rem', color: 'var(--color-error)', background: 'none', border: 'none', cursor: 'pointer' }}
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
+                                                * Participants within these age ranges will pay the specified amount. Others pay the default Program Fee.
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
