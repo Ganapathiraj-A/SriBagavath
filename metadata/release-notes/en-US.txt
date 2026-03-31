@@ -1,9 +1,11 @@
-- Google Maps integration for program locations.
-- Redesigned Program Details with Banner/Details tabs.
+- New: Share gallery images directly to WhatsApp.
+- Improved Events Tab: Cleaner layout and navigation.
+- Google Maps integration with venue links.
+- Redesigned Program Details with tabs.
 - Bolder typography and clearer date formatting.
-- Interactive Photo Gallery with social sharing.
+- Photo Gallery with social sharing.
 - Unified Retreat, Schedule, and Meeting hub.
 - Streamlined Free Program registration.
-- Faster Razorpay payments and "My Registrations" status.
-- New visual Magazine and E-Media portal.
-- Improved Tamil fonts and performance fixes.
+- Faster Razorpay payments and status tracking.
+- New Magazine and E-Media portal.
+- Improved Tamil fonts and stability fixes.
