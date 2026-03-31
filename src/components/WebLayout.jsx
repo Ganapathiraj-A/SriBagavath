@@ -103,7 +103,7 @@ const WebLayout = ({ children }) => {
         <div className="web-container">
           <div className="web-logo-container">
             <img 
-              src="/assets/sri-bagavath-logo.png" 
+              src="/assets/sri-bagavath-logo.png?v=3.3.4" 
               alt="Sri Bagavath" 
               className="web-mission-logo"
             />

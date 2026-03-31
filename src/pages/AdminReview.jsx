@@ -1016,6 +1016,7 @@ const AdminReview = () => {
                                 )}
                                 <div style={{ fontSize: '14px', color: 'var(--color-text)' }}>
                                     <strong>Applied By:</strong> {(() => {
+                                        if (tx.paymentSource === 'razorpay_native' || tx.razorpayPaymentId) return 'Razorpay System';
                                         const text = tx.ocrText || "";
                                         const lines = text.split('\n');
                                         const fromLine = lines.find(l => l.toLowerCase().includes("from"));
@@ -1025,9 +1026,13 @@ const AdminReview = () => {
                                 <div style={{ fontSize: '14px', color: 'var(--color-text-muted)' }}>
                                     <strong>Date Time:</strong> {new Date(tx.timestamp?.seconds * 1000 || Date.now()).toLocaleString()}
                                 </div>
-                                <div style={{ fontSize: '14px', fontWeight: 'bold', color: amountColor, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    <strong>Detected Amount:</strong> ₹{tx.parsedAmount || '0'}
-                                    {isMatch ? <Check size={16} color="var(--color-success)" /> : <X size={16} color="var(--color-error)" />}
+                                <div style={{ fontSize: '14px', fontWeight: 'bold', color: (tx.paymentSource === 'razorpay_native' || tx.razorpayPaymentId) ? 'var(--color-success)' : amountColor, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    <strong>{(tx.paymentSource === 'razorpay_native' || tx.razorpayPaymentId) ? 'Online Transaction Amount:' : 'Detected Amount:'}</strong> ₹{(tx.paymentSource === 'razorpay_native' || tx.razorpayPaymentId) ? tx.amount : (tx.parsedAmount || '0')}
+                                    {(tx.paymentSource === 'razorpay_native' || tx.razorpayPaymentId) ? (
+                                        <span style={{ fontSize: '11px', color: 'var(--color-primary)', marginLeft: '4px', fontStyle: 'italic' }}>(Razorpay Transaction)</span>
+                                    ) : (
+                                        isMatch ? <Check size={16} color="var(--color-success)" /> : <X size={16} color="var(--color-error)" />
+                                    )}
                                 </div>
                                 {tx.utr && (
                                     <div style={{ fontSize: '14px', color: 'var(--color-primary)', fontWeight: 600 }}>
