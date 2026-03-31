@@ -1,6 +1,6 @@
 - Share gallery images to WhatsApp.
-- Improved Events layout.
-- Google Maps integration.
+- Improved Events & Programs layout.
+- Google Maps venue integration.
 - Tabbed program details.
 - Bolder typography & dates.
 - Gallery with social sharing.
@@ -9,14 +9,3 @@
 - Faster payments.
 - New E-Media & Magazine.
 - Performance fixes.
-
-- கேலரி படங்களை பகிரும் வசதி.
-- புதிய தோற்றத்தில் நிகழ்வுகள் பக்கம்.
-- கூகுள் மேப்ஸ் இணைப்பு.
-- தாவல் அமைப்புடன் நிகழ்ச்சி விவரங்கள்.
-- தடிமனான தலைப்புகள் மற்றும் தேதி.
-- புதிய புகைப்பட தொகுப்பு.
-- இலவச நிகழ்ச்சிகளுக்கு எளிதான முன்பதிவு.
-- வேகமான பேமென்ட்.
-- புதிய இதழ் மற்றும் மின்-ஊடக தளம்.
-- எழுத்துரு மேம்பாடுகள்.
