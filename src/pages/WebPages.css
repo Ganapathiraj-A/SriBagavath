@@ -161,6 +161,343 @@
   padding-top: 20px;
 }
 
+/* --- Events Page Layout Refinements --- */
+.web-events-page {
+  padding-bottom: 80px;
+  background-color: var(--web-bg);
+  min-height: 100vh;
+}
+
+.page-section-header {
+  text-align: center;
+  padding: 40px 0;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.page-section-header h1 {
+  font-size: 2.8rem;
+  color: var(--web-header-bg);
+  margin-bottom: 15px;
+  font-weight: 800;
+}
+
+.page-section-header p {
+  font-size: 1.15rem;
+  color: #666;
+  line-height: 1.6;
+}
+
+/* Events Page Tabs */
+.events-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin: 0 auto 50px;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+  position: sticky;
+  top: 70px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  z-index: 10;
+  padding: 0 40px;
+  max-width: 1200px;
+}
+
+.event-tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 12px;
+  border: none;
+  background: none;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #64748b;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.event-tab-btn svg {
+  color: currentColor;
+  opacity: 0.7;
+  transition: transform 0.3s ease;
+}
+
+.event-tab-btn:hover {
+  color: var(--web-nav-bg);
+}
+
+.event-tab-btn:hover svg {
+  transform: translateY(-2px);
+  opacity: 1;
+}
+
+.event-tab-btn.active {
+  color: var(--web-nav-bg);
+}
+
+.event-tab-btn.active svg {
+  opacity: 1;
+}
+
+.event-tab-btn .tab-underline {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background-color: var(--web-nav-bg);
+  border-radius: 4px 4px 0 0;
+}
+
+/* Event List & Cards */
+.events-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.web-event-card {
+  background: white;
+  border-radius: 20px;
+  border: 1px solid rgba(0,0,0,0.06);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  height: 100%;
+}
+
+.web-event-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.07);
+  border-color: var(--web-nav-bg);
+}
+
+.event-card-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 24px;
+}
+
+.event-card-main {
+  display: flex;
+  gap: 24px;
+  flex: 1;
+}
+
+.event-date-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 70px;
+  height: 70px;
+  background: #fff7ed;
+  border-radius: 16px;
+  color: #c2410c;
+  flex-shrink: 0;
+  border: 1px solid #ffedd5;
+}
+
+.event-day {
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.event-month {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.event-card-body {
+  flex: 1;
+}
+
+.event-card-body h3 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--web-header-bg);
+  margin-bottom: 12px;
+  line-height: 1.3;
+}
+
+.event-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 16px;
+  color: #64748b;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.event-meta span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.recurring-tag {
+  color: #0891b2;
+  background: #ecfeff;
+  padding: 2px 10px;
+  border-radius: 99px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: 1px solid #cffafe;
+}
+
+.event-excerpt {
+  color: #475569;
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.event-card-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 24px;
+  border-top: 1px solid rgba(0,0,0,0.04);
+}
+
+.event-card-actions .web-btn-primary {
+  flex: 1;
+  padding: 12px;
+  font-weight: 700;
+}
+
+.icon-only {
+  width: 48px;
+  height: 48px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 0 !important;
+  border-radius: 12px !important;
+}
+
+/* No Results State */
+.web-no-results {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 24px;
+  border: 1px dashed #cbd5e1;
+  max-width: 600px;
+  margin: 40px auto;
+}
+
+.no-events-icon {
+  margin-bottom: 20px;
+  color: #cbd5e1;
+}
+
+.web-no-results h3 {
+  font-size: 1.5rem;
+  color: var(--web-header-bg);
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.web-no-results p {
+  color: #64748b;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+  .events-tabs {
+    gap: 20px;
+    overflow-x: auto;
+    justify-content: flex-start;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 0 20px;
+  }
+  .events-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .events-list {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .page-section-header h1 {
+    font-size: 2.2rem;
+  }
+  .event-card-main {
+    flex-direction: column;
+    gap: 16px;
+  }
+  .event-date-badge {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+/* Events Page Tabs */
+.events-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-bottom: 45px;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+  position: sticky;
+  top: 70px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  z-index: 10;
+  padding: 0 20px;
+}
+
+.event-tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 8px;
+  border: none;
+  background: none;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #666;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.event-tab-btn:hover {
+  color: var(--web-nav-bg);
+}
+
+.event-tab-btn.active {
+  color: var(--web-nav-bg);
+}
+
+.event-tab-btn .tab-underline {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: var(--web-nav-bg);
+  border-radius: 3px 3px 0 0;
+}
+
 .emedia-language-tabs {
   display: flex;
   flex-wrap: wrap;

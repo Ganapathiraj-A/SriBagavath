@@ -1,4 +1,7 @@
 import { Share } from '@capacitor/share';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Toast } from '@capacitor/toast';
+import { Capacitor } from '@capacitor/core';
 
 /**
  * Formats and shares multiple transaction records.
@@ -91,17 +94,75 @@ export const shareTransactions = async (items, type, allPrograms = []) => {
  */
 export const shareImage = async (img) => {
     if (!img || !img.url) return;
+    
+    const isNative = Capacitor.isNativePlatform();
+    
     try {
+        if (isNative) {
+            // Show a "Preparing image" toast for better UX
+            await Toast.show({
+                text: 'Preparing image for sharing...',
+                duration: 'short'
+            });
+
+            // 1. Fetch image
+            const response = await fetch(img.url);
+            const blob = await response.blob();
+            
+            // 2. Convert to Base64 (Filesystem.writeFile expects base64 or string)
+            const reader = new FileReader();
+            const base64Data = await new Promise((resolve, reject) => {
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+
+            // 3. Save to temporary file
+            const fileName = `share_${Date.now()}.jpg`;
+            const result = await Filesystem.writeFile({
+                path: fileName,
+                data: base64Data,
+                directory: Directory.Cache
+            });
+
+            // 4. Share the file URI
+            await Share.share({
+                title: 'Sri Bagavath Gallery',
+                text: img.caption || '',
+                files: [result.uri],
+                dialogTitle: 'Share Image'
+            });
+            
+            return; // Success
+        }
+
+        // Web Fallback (or if not native)
         await Share.share({
             title: 'Sri Bagavath Gallery',
             text: img.caption || 'Check out this image from Sri Bagavath Gallery',
             url: img.url,
             dialogTitle: 'Share Image'
         });
+
     } catch (error) {
         console.error("Sharing failed", error);
-        // Fallback for web if navigator.share is available but Share plugin fails
-        if (navigator.share) {
+        
+        // Final fallback to URL if native file sharing fails
+        if (isNative) {
+            try {
+                await Share.share({
+                    title: 'Sri Bagavath Gallery',
+                    text: img.caption || 'Check out this image from Sri Bagavath Gallery',
+                    url: img.url,
+                    dialogTitle: 'Share Image'
+                });
+            } catch (err2) {
+                console.error("Secondary share failed", err2);
+            }
+        }
+        
+        // Browser Navigator.share fallback
+        if (!isNative && navigator.share) {
             await navigator.share({
                 title: 'Sri Bagavath Gallery',
                 text: img.caption || 'Check out this image from Sri Bagavath Gallery',

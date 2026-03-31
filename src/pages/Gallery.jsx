@@ -320,7 +320,7 @@ const Gallery = () => {
 
                         <button 
                             onClick={prevImage}
-                            style={{ position: 'absolute', left: '1rem', color: 'white', background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', p: '0.5rem', cursor: 'pointer' }}
+                            style={{ position: 'absolute', left: '1rem', color: 'white', background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '50%', padding: '0.5rem', cursor: 'pointer', zIndex: 10 }}
                         >
                             <ChevronLeft size={40} />
                         </button>
@@ -356,7 +356,7 @@ const Gallery = () => {
 
                         <button 
                             onClick={nextImage}
-                            style={{ position: 'absolute', right: '1rem', color: 'white', background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', p: '0.5rem', cursor: 'pointer' }}
+                            style={{ position: 'absolute', right: '1rem', color: 'white', background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '50%', padding: '0.5rem', cursor: 'pointer', zIndex: 10 }}
                         >
                             <ChevronRight size={40} />
                         </button>

@@ -318,12 +318,24 @@ const Programs = ({ hideHeader = false }) => {
         const text = `
 *${program.programName}*
 
-📅 *Date:* ${new Date(program.programDate).toLocaleDateString()} ${program.programEndDate ? `- ${new Date(program.programEndDate).toLocaleDateString()}` : ''}
+📅 *Date:* ${(() => {
+    const startDate = new Date(program.programDate);
+    const startDay = startDate.getDate();
+    const startMonth = startDate.toLocaleDateString(undefined, { month: 'short' });
+    const startWeekday = startDate.toLocaleDateString(undefined, { weekday: 'short' });
 
-📍 *City:* ${program.programCity}
+    if (program.programEndDate) {
+        const endDate = new Date(program.programEndDate);
+        const endDay = endDate.getDate();
+        const endMonth = endDate.toLocaleDateString(undefined, { month: 'short' });
+        const endWeekday = endDate.toLocaleDateString(undefined, { weekday: 'short' });
+        return `${startDay} ${startMonth} to ${endDay} ${endMonth} (${startWeekday} - ${endWeekday})`;
+    }
+    return `${startDay} ${startMonth} (${startWeekday})`;
+})()}
 
 🏢 *Venue:* ${program.programVenue}
-
+${program.googleMapsUrl ? `📍 *Location:* ${program.googleMapsUrl}\n` : ''}
 ${program.programDescription ? `📝 *Description:*\n${program.programDescription}\n\n` : ''}${program.registrationStatus === 'Open' ? `✅ Registration Open until ${new Date(program.lastDateToRegister).toLocaleDateString()}` : '🚫 Registration Closed'}
 ━━━━━━━━━━━━━━━━━━━━
 Download Sri Bagavath App for latest updates`.trim();
