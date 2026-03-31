@@ -34,6 +34,8 @@ const AyyasSchedule = () => {
                 }
                 getDocsFromServer(q).then(serverSnap => {
                     setSchedules(filterSchedules(serverSnap.docs.map(d => ({ id: d.id, ...d.data() }))));
+                }).catch(() => {
+                    // Silently fail as we likely have cached data or loading is handled by finally
                 }).finally(() => setLoading(false));
             } catch (_err) { setLoading(false); }
         };

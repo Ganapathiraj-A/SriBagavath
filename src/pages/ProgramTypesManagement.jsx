@@ -44,7 +44,8 @@ const ProgramTypesManagement = () => {
         consentText: '',
 
         consentQuestion: '',
-        additionalOptions: []
+        additionalOptions: [],
+        googleMapsUrl: ''
     });
 
     useEffect(() => {
@@ -83,7 +84,8 @@ const ProgramTypesManagement = () => {
             consentText: '',
 
             consentQuestion: '',
-            additionalOptions: []
+            additionalOptions: [],
+            googleMapsUrl: ''
         });
         setIsEditing(false);
         setEditingId(null);
@@ -120,7 +122,8 @@ const ProgramTypesManagement = () => {
             consentText: type.consentText || '',
 
             consentQuestion: type.consentQuestion || '',
-            additionalOptions: type.additionalOptions || []
+            additionalOptions: type.additionalOptions || [],
+            googleMapsUrl: type.googleMapsUrl || ''
         });
         setEditingId(type.id);
         setIsEditing(true);
@@ -227,6 +230,17 @@ const ProgramTypesManagement = () => {
                             </div>
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
+                                <div style={{ display: 'grid', gap: '0.5rem' }}>
+                                    <label style={{ fontWeight: 500, color: 'var(--color-text)' }}>Default Google Maps Link</label>
+                                    <input
+                                        type="url"
+                                        name="googleMapsUrl"
+                                        value={formData.googleMapsUrl}
+                                        onChange={handleInputChange}
+                                        placeholder="https://maps.app.goo.gl/..."
+                                        style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', width: '100%', backgroundColor: 'var(--color-card)', color: 'var(--color-text)' }}
+                                    />
+                                </div>
                                 <div style={{ display: 'grid', gap: '0.5rem' }}>
                                     <label style={{ fontWeight: 500, color: 'var(--color-text)' }}>Is Consent Needed?</label>
                                     <select

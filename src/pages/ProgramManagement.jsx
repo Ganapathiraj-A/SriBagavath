@@ -87,7 +87,8 @@ const ProgramManagement = () => {
         consentQuestion: '',
         isFree: false,
         additionalOptions: [],
-        ageRules: []
+        ageRules: [],
+        googleMapsUrl: ''
     });
 
     // Load programs from Firebase when tab changes
@@ -122,7 +123,8 @@ const ProgramManagement = () => {
                 consentQuestion: editingProgram.consentQuestion || '',
                 isFree: editingProgram.isFree || false,
                 additionalOptions: editingProgram.additionalOptions || [],
-                ageRules: editingProgram.ageRules || []
+                ageRules: editingProgram.ageRules || [],
+                googleMapsUrl: editingProgram.googleMapsUrl || ''
             });
 
             if (isOtherCity) {
@@ -256,6 +258,7 @@ const ProgramManagement = () => {
                         updates.isFree = selectedType.isFree || false,
                         updates.additionalOptions = selectedType.additionalOptions || [];
                         updates.ageRules = selectedType.ageRules || [];
+                        updates.googleMapsUrl = selectedType.googleMapsUrl || '';
                     }
                 }
             }
@@ -348,6 +351,7 @@ const ProgramManagement = () => {
                     maxAge: Number(r.maxAge) || 0,
                     amount: Number(r.amount) || 0
                 })),
+                googleMapsUrl: formData.googleMapsUrl,
                 createdAt: new Date().toISOString()
             };
 
@@ -457,7 +461,8 @@ const ProgramManagement = () => {
             consentQuestion: '',
             isFree: false,
             additionalOptions: [],
-            ageRules: []
+            ageRules: [],
+            googleMapsUrl: ''
         });
 
         setBannerImage(null);
@@ -952,6 +957,52 @@ const ProgramManagement = () => {
                                             color: 'var(--color-text)'
                                         }}
                                     />
+                                </div>
+
+                                {/* Google Maps Link */}
+                                <div>
+                                    <label
+                                        style={{
+                                            display: 'block',
+                                            marginBottom: '0.5rem',
+                                            fontWeight: 500,
+                                            color: '#374151'
+                                        }}
+                                    >
+                                        Google Maps Link (Optional)
+                                    </label>
+                                    <div style={{ position: 'relative' }}>
+                                        <input
+                                            type="url"
+                                            name="googleMapsUrl"
+                                            value={formData.googleMapsUrl}
+                                            onChange={handleInputChange}
+                                            placeholder="https://maps.app.goo.gl/..."
+                                            style={{
+                                                width: '100%',
+                                                padding: '0.75rem',
+                                                paddingLeft: '2.5rem',
+                                                borderRadius: '0.5rem',
+                                                border: '1px solid #d1d5db',
+                                                fontSize: '1rem',
+                                                position: 'relative',
+                                                zIndex: 1,
+                                                backgroundColor: 'var(--color-surface)',
+                                                color: 'var(--color-text)'
+                                            }}
+                                        />
+                                        <MapPin 
+                                            size={18} 
+                                            style={{ 
+                                                position: 'absolute', 
+                                                left: '0.75rem', 
+                                                top: '50%', 
+                                                transform: 'translateY(-50%)', 
+                                                color: 'var(--color-primary)',
+                                                zIndex: 2
+                                            }} 
+                                        />
+                                    </div>
                                 </div>
 
                                 {/* Program Banner */}

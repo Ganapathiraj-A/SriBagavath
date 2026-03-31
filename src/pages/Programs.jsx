@@ -406,6 +406,52 @@ Download Sri Bagavath App for latest updates`.trim();
             <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ maxWidth: '42rem', margin: '0 auto', width: '100%' }}>
 
+                    {/* Tab Switcher - Outside the card, right under header */}
+                    {viewingProgram && viewingBanner && (
+                        <div style={{
+                            maxWidth: '42rem',
+                            margin: '0 auto 1.5rem auto',
+                            width: '100%',
+                            display: 'flex',
+                            borderBottom: '1px solid var(--color-border)',
+                            gap: '24px',
+                            padding: '0 0.5rem'
+                        }}>
+                            <button
+                                onClick={() => setShowTextDetails(false)}
+                                style={{
+                                    padding: '12px 4px',
+                                    border: 'none',
+                                    borderBottom: !showTextDetails ? `2px solid var(--color-primary)` : '2px solid transparent',
+                                    backgroundColor: 'transparent',
+                                    color: !showTextDetails ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                    fontWeight: !showTextDetails ? 700 : 500,
+                                    fontSize: '0.95rem',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                Banner
+                            </button>
+                            <button
+                                onClick={() => setShowTextDetails(true)}
+                                style={{
+                                    padding: '12px 4px',
+                                    border: 'none',
+                                    borderBottom: showTextDetails ? `2px solid var(--color-primary)` : '2px solid transparent',
+                                    backgroundColor: 'transparent',
+                                    color: showTextDetails ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                    fontWeight: showTextDetails ? 700 : 500,
+                                    fontSize: '0.95rem',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                Details
+                            </button>
+                        </div>
+                    )}
+
                     <AnimatePresence mode="wait">
                         {viewingProgram ? (
                             <motion.div
@@ -421,12 +467,9 @@ Download Sri Bagavath App for latest updates`.trim();
                                     border: '1px solid var(--color-border)'
                                 }}
                             >
-                                {/* Image First - Only if no text details shown */}
+                                {/* Banner Section - Only if Banner tab active */}
                                 {viewingBanner && !showTextDetails && (
-                                    <div
-                                        style={{ marginBottom: '1.5rem', cursor: 'pointer' }}
-                                        onClick={() => setShowTextDetails(true)}
-                                    >
+                                    <div style={{ marginBottom: '1.5rem' }}>
                                         <LazyImage
                                             src={viewingBanner}
                                             alt="Program Banner"
@@ -440,45 +483,71 @@ Download Sri Bagavath App for latest updates`.trim();
                                     </div>
                                 )}
 
-
-                                {/* Details Section - Logic: Show if NO banner OR if toggle is active (REPLACES banner) */}
+                                {/* Details Section - Logic: Show if NO banner OR if Details tab active */}
                                 {(!viewingBanner || showTextDetails) && (
                                     <div
                                         style={{
                                             display: 'grid',
                                             gap: '1.5rem',
                                             color: 'var(--color-text)',
-                                            cursor: viewingBanner ? 'pointer' : 'default',
                                             marginBottom: '1.5rem'
                                         }}
-                                        onClick={() => viewingBanner && setShowTextDetails(false)}
                                     >
                                         <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: 'var(--color-text)', margin: 0 }}>
                                             {viewingProgram.programName}
                                         </h1>
                                         <div>
-                                            <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>
+                                            <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 800, color: 'var(--color-text)', marginBottom: '0.25rem' }}>
                                                 Date & Time
                                             </span>
                                             <div style={{ fontSize: '1.125rem' }}>
-                                                {new Date(viewingProgram.programDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', weekday: 'short' })}
-                                                {viewingProgram.programEndDate && (
-                                                    <>
-                                                        {' '}- {new Date(viewingProgram.programEndDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', weekday: 'short' })}
-                                                    </>
-                                                )}
+                                                {(() => {
+                                                    const startDate = new Date(viewingProgram.programDate);
+                                                    const startDay = startDate.getDate();
+                                                    const startMonth = startDate.toLocaleDateString(undefined, { month: 'short' });
+                                                    const startWeekday = startDate.toLocaleDateString(undefined, { weekday: 'short' });
+
+                                                    if (viewingProgram.programEndDate) {
+                                                        const endDate = new Date(viewingProgram.programEndDate);
+                                                        const endDay = endDate.getDate();
+                                                        const endMonth = endDate.toLocaleDateString(undefined, { month: 'short' });
+                                                        const endWeekday = endDate.toLocaleDateString(undefined, { weekday: 'short' });
+                                                        return `${startDay} ${startMonth} to ${endDay} ${endMonth} (${startWeekday} - ${endWeekday})`;
+                                                    }
+                                                    return `${startDay} ${startMonth} (${startWeekday})`;
+                                                })()}
                                             </div>
                                         </div>
 
                                         <div>
-                                            <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>
+                                            <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 800, color: 'var(--color-text)', marginBottom: '0.25rem' }}>
                                                 Location
                                             </span>
                                             <div style={{ fontSize: '1.125rem' }}>
                                                 {viewingProgram.programCity}
                                             </div>
-                                            <div style={{ marginTop: '0.25rem', color: 'var(--color-text-muted)' }}>
-                                                {viewingProgram.programVenue}
+                                            <div style={{ marginTop: '0.25rem', color: 'var(--color-text-muted)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                                <div>{viewingProgram.programVenue}</div>
+                                                {viewingProgram.googleMapsUrl && (
+                                                    <a
+                                                        href={viewingProgram.googleMapsUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        style={{
+                                                            display: 'inline-flex',
+                                                            alignItems: 'center',
+                                                            gap: '0.4rem',
+                                                            color: 'var(--color-primary)',
+                                                            textDecoration: 'none',
+                                                            fontSize: '0.9rem',
+                                                            fontWeight: 600,
+                                                            width: 'fit-content'
+                                                        }}
+                                                    >
+                                                        <MapPin size={16} />
+                                                        View on Google Maps
+                                                    </a>
+                                                )}
                                             </div>
                                         </div>
 
@@ -498,7 +567,7 @@ Download Sri Bagavath App for latest updates`.trim();
 
                                         {viewingProgram.programDescription && (
                                             <div>
-                                                <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>
+                                                <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 800, color: 'var(--color-text)', marginBottom: '0.25rem' }}>
                                                     Description
                                                 </span>
                                                 <div style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
@@ -508,7 +577,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                         )}
 
                                         <div>
-                                            <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>
+                                            <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 800, color: 'var(--color-text)', marginBottom: '0.25rem' }}>
                                                 Registration Details
                                             </span>
                                             <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
@@ -529,28 +598,9 @@ Download Sri Bagavath App for latest updates`.trim();
                                     </div>
                                 )}
 
-                                <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
-                                    <div style={{ display: 'flex', gap: '1rem' }}>
-                                        <button
-                                            onClick={() => handleShare(viewingProgram)}
-                                            style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '0.5rem',
-                                                color: 'var(--color-primary)',
-                                                background: 'none',
-                                                border: '1px solid var(--color-primary)',
-                                                padding: '0.5rem 1rem',
-                                                borderRadius: '0.375rem',
-                                                fontSize: '0.875rem',
-                                                fontWeight: 500,
-                                                cursor: 'pointer'
-                                            }}
-                                            title="Share Text"
-                                        >
-                                            <Share2 size={16} />
-                                            Text
-                                        </button>
+                                {/* Bottom Action Row (Sharing only) */}
+                                <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: '1rem' }}>
+                                    <div style={{ display: 'flex', gap: '0.75rem' }}>
                                         {viewingBanner && (
                                             <button
                                                 onClick={() => handleShareBanner(viewingProgram)}
@@ -574,6 +624,26 @@ Download Sri Bagavath App for latest updates`.trim();
                                                 Banner
                                             </button>
                                         )}
+                                        <button
+                                            onClick={() => handleShare(viewingProgram)}
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.5rem',
+                                                color: 'var(--color-primary)',
+                                                background: 'none',
+                                                border: '1px solid var(--color-primary)',
+                                                padding: '0.5rem 1rem',
+                                                borderRadius: '0.375rem',
+                                                fontSize: '0.875rem',
+                                                fontWeight: 500,
+                                                cursor: 'pointer'
+                                            }}
+                                            title="Share Text"
+                                        >
+                                            <Share2 size={16} />
+                                            Text
+                                        </button>
                                     </div>
                                 </div>
                             </motion.div>
