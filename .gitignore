@@ -16,6 +16,7 @@ AgentCompanion.apk
 venv/
 temp/
 *.txt
+!metadata/release-notes/*.txt
 *.mjs
 *.js
 !src/**/*.js
