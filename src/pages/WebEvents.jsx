@@ -23,30 +23,44 @@ const formatRecurrenceRule = (master) => {
 
 const getNextOccurrence = (master, todayStr) => {
     if (!master.isRecurring) return master;
-    let currentDate = new Date(master.date || master.programDate);
+
+    let currentDate = new Date(master.date);
     const today = new Date(todayStr);
-    
-    // Safety check for invalid dates
-    if (isNaN(currentDate.getTime())) return master;
+    const ruleEndDate = master.recurringEndDateType === 'date' ? new Date(master.recurringEndDate) : null;
+    const exceptions = master.exceptions || [];
 
-    // Simple forward skip for recurring
-    if (master.frequency === 'daily') {
-        if (currentDate < today) currentDate = new Date(today);
-    } else if (master.frequency === 'weekly') {
-        while (currentDate < today) {
-            currentDate.setDate(currentDate.getDate() + 7);
+    // Max search window: 1 year
+    const maxDate = new Date();
+    maxDate.setFullYear(maxDate.getFullYear() + 1);
+
+    while (currentDate <= maxDate) {
+        if (ruleEndDate && currentDate > ruleEndDate) break;
+
+        const d = new Date(currentDate);
+        const dateStr = d.toLocaleDateString('en-CA');
+        let isMatch = false;
+
+        if (master.frequency === 'daily') isMatch = true;
+        else if (master.frequency === 'weekly') {
+            if (master.recurringDays?.includes(currentDate.getDay().toString())) isMatch = true;
+        } else if (master.frequency === 'monthly') {
+            const startDay = new Date(master.date).getDate();
+            if (currentDate.getDate() === startDay) isMatch = true;
         }
-    } else if (master.frequency === 'monthly') {
-        while (currentDate < today) {
-            currentDate.setMonth(currentDate.getMonth() + 1);
+
+        if (isMatch && !exceptions.includes(dateStr) && dateStr >= todayStr) {
+            return {
+                ...master,
+                id: `${master.id}_${dateStr}`,
+                masterId: master.id,
+                date: dateStr,
+                isVirtual: true,
+                recurrenceText: formatRecurrenceRule(master)
+            };
         }
+        currentDate.setDate(currentDate.getDate() + 1);
     }
-
-    return {
-        ...master,
-        date: currentDate.toLocaleDateString('en-CA'),
-        programDate: currentDate.toLocaleDateString('en-CA')
-    };
+    return null;
 };
 
 const WebEvents = () => {
@@ -84,72 +98,52 @@ const WebEvents = () => {
                         console.log("[WebEvents] Programs Snap:", snap.size);
                         const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                         setData(prev => ({ ...prev, retreats: list }));
-                        setLoading(false);
+                        // If current tab is retreats and we have data, we can stop global loading
+                        if (activeTab === 'retreats') setLoading(false);
                     },
                     (err) => {
                         console.error("[WebEvents] Programs listener failed:", err);
-                        setLoading(false);
                     }
                 );
 
-                // 2. Parallel Fetches for other tabs (Non-blocking)
+                // 2. Fetch Other Collections (Satsangs, Online Meetings, Teachers)
                 const fetchOthers = async () => {
-                    const results = await Promise.allSettled([
-                        getDocsCacheFirst(collection(db, 'satsangs')),
-                        getDocsCacheFirst(collection(db, 'online_meetings')),
-                        getDocsCacheFirst(query(collection(db, 'daily_zoom_meetings'), where('date', '>=', today), orderBy('date', 'asc'))),
-                        getDocsCacheFirst(collection(db, 'teachers'))
-                    ]);
+                    try {
+                        const [snapSatsang, snapZoom, snapLegacyZoom, snapTeachers] = await Promise.all([
+                            getDocsCacheFirst(collection(db, 'satsangs')),
+                            getDocsCacheFirst(collection(db, 'online_meetings')),
+                            getDocsCacheFirst(query(collection(db, 'daily_zoom_meetings'), where('date', '>=', today), orderBy('date', 'asc'))),
+                            getDocsCacheFirst(collection(db, 'teachers'))
+                        ]);
 
-                    const newData = { ...data };
+                        const newData = {};
 
-                    // Handle Satsangs (Schedules)
-                    if (results[0].status === 'fulfilled') {
-                        const raw = results[0].value.docs.map(d => ({ id: d.id, ...d.data() }));
-                        const processed = [];
-                        raw.forEach(m => {
-                            if (m.isRecurringInstance || m.masterId) return;
-                            if (m.isRecurring) {
-                                const next = getNextOccurrence(m, today);
-                                if (next) processed.push(next);
-                            } else {
-                                const d = m.date?.toDate ? m.date.toDate().toLocaleDateString('en-CA') : m.date;
-                                if (d >= today) processed.push({ ...m, date: d });
-                            }
-                        });
-                        processed.sort((a, b) => (a.date || "").toString().localeCompare((b.date || "").toString()));
-                        newData.schedules = processed;
+                        // Process Satsangs (Ayya's Schedule) with Recursion
+                        const rawSatsangs = snapSatsang.docs.map(d => ({ id: d.id, ...d.data() }));
+                        newData.schedules = rawSatsangs
+                            .map(m => getNextOccurrence(m, today))
+                            .filter(m => m !== null)
+                            .sort((a, b) => a.date.localeCompare(b.date));
+
+                        // Process Online Meetings with Recursion
+                        const rawZoom = snapZoom.docs.map(d => ({ id: d.id, ...d.data() }));
+                        const expandedZoom = rawZoom
+                            .map(m => getNextOccurrence(m, today))
+                            .filter(m => m !== null);
+
+                        const legacyZoom = snapLegacyZoom.docs.map(d => ({ id: d.id, ...d.data() }));
+                        newData.dailyZoom = [...expandedZoom, ...legacyZoom]
+                            .sort((a, b) => a.date.localeCompare(b.date));
+
+                        // Set Teachers
+                        setTeachers(snapTeachers.docs.map(d => ({ id: d.id, ...d.data() })));
+
+                        setData(prev => ({ ...prev, ...newData }));
+                    } catch (err) {
+                        console.error("[WebEvents] fetchOthers failed:", err);
+                    } finally {
+                        setLoading(false);
                     }
-
-                    // Handle Online Meetings (Daily Zoom)
-                    if (results[1].status === 'fulfilled') {
-                        const raw = results[1].value.docs.map(d => ({ id: d.id, ...d.data() }));
-                        const processed = [];
-                        raw.forEach(m => {
-                            if (m.isRecurringInstance || m.masterId) return;
-                            if (m.isRecurring) {
-                                const next = getNextOccurrence(m, today);
-                                if (next) processed.push(next);
-                            } else {
-                                const d = m.date?.toDate ? m.date.toDate().toLocaleDateString('en-CA') : m.date;
-                                if (d >= today) processed.push({ ...m, date: d });
-                            }
-                        });
-                        processed.sort((a, b) => (a.date || "").toString().localeCompare((b.date || "").toString()));
-                        newData.dailyZoom = processed;
-                    }
-
-                    // Handle Daily Zoom Meetings tab (Legacy/Specific)
-                    if (results[2].status === 'fulfilled') {
-                        // Merge or override if needed
-                    }
-
-                    // Handle Teachers
-                    if (results[3].status === 'fulfilled') {
-                        setTeachers(results[3].value.docs.map(d => ({ id: d.id, ...d.data() })));
-                    }
-
-                    setData(prev => ({ ...prev, ...newData }));
                 };
 
                 fetchOthers();
@@ -230,14 +224,14 @@ const WebEvents = () => {
                                     {teachers.length > 0 ? teachers.map(teacher => (
                                         <div key={teacher.id} className="consultation-card">
                                             <div className="teacher-photo-container">
-                                                <LazyImage src={teacher.photo} alt={teacher.name} className="teacher-photo" />
+                                                <LazyImage src={teacher.image} alt={teacher.name} className="teacher-photo" />
                                             </div>
                                             <div className="teacher-info">
                                                 <h3>{teacher.name}</h3>
                                                 <p className="teacher-location"><MapPin size={14} /> {teacher.location || 'Salem'}</p>
                                                 <div className="teacher-contact-actions">
-                                                    {teacher.phone && (
-                                                        <a href={`tel:${teacher.phone}`} className="teacher-action-btn">
+                                                    {teacher.phoneNumber && (
+                                                        <a href={`tel:${teacher.phoneNumber}`} className="teacher-action-btn">
                                                             <Phone size={16} /> Call
                                                         </a>
                                                     )}
@@ -272,17 +266,26 @@ const WebEvents = () => {
                                                         <span className="event-month">{new Date(item.programDate || item.date).toLocaleString('default', { month: 'short' })}</span>
                                                     </div>
                                                     <div className="event-card-body">
-                                                        <h3>{item.title}</h3>
+                                                        <h3>{item.programName || item.conductedBy || item.name || item.title || 'Untitled Event'}</h3>
                                                         <div className="event-meta">
-                                                            <span><MapPin size={14} /> {item.location}</span>
-                                                            {item.time && <span><Clock size={14} /> {item.time}</span>}
+                                                            {(item.programVenue || item.city || item.location) && (
+                                                                <span><MapPin size={14} /> {item.programVenue || item.city || item.location}</span>
+                                                            )}
+                                                            {(item.startTime || item.time) && <span><Clock size={14} /> {item.startTime || item.time}</span>}
                                                             {item.isRecurring && <span className="recurring-tag">{formatRecurrenceRule(item)}</span>}
                                                         </div>
-                                                        <p className="event-excerpt">{item.description?.substring(0, 120)}...</p>
+                                                        <p className="event-excerpt">
+                                                            {(item.programDescription || item.description || '')?.substring(0, 150) || 'No description available.'}
+                                                            {((item.programDescription || item.description || '')?.length > 150) && '...'}
+                                                        </p>
                                                     </div>
                                                 </div>
                                                 <div className="event-card-actions">
-                                                    <button className="web-btn-primary" onClick={() => navigate(`/web/programs/${item.id}`)}>View Details</button>
+                                                    {(item.joinLink || item.joinUrl) ? (
+                                                        <a href={item.joinLink || item.joinUrl} target="_blank" rel="noreferrer" className="web-btn-primary">Join Meeting</a>
+                                                    ) : (
+                                                        <button className="web-btn-primary" onClick={() => navigate(`/web/programs/${item.id}`)}>View Details</button>
+                                                    )}
                                                     <button className="web-btn-outline icon-only" onClick={() => handleShare(item)}><Share2 size={18} /></button>
                                                 </div>
                                             </div>

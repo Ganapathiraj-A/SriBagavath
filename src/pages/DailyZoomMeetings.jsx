@@ -232,7 +232,7 @@ const DailyZoomMeetings = () => {
                 (async () => {
                     try {
                         const { collection, query, orderBy, getDocsFromServer } = await import('@/utils/FirestoreProxy');
-                        const ref = collection(db, 'daily_zoom_teachers');
+                        const ref = collection(db, 'teachers');
                         const q = query(ref, orderBy('name', 'asc'));
                         const snap = await getDocsFromServer(q);
                         const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -247,7 +247,7 @@ const DailyZoomMeetings = () => {
 
             try {
                 const { collection, query, orderBy, getDocsCacheFirst } = await import('@/utils/FirestoreProxy');
-                const ref = collection(db, 'daily_zoom_teachers');
+                const ref = collection(db, 'teachers');
                 const q = query(ref, orderBy('name', 'asc'));
                 const snap = await getDocsCacheFirst(q);
                 const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
