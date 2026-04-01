@@ -557,7 +557,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                     style={{
                                         backgroundColor: 'var(--color-card)',
                                         borderRadius: '1rem',
-                                        padding: '2.5rem 1.25rem 1.25rem 1.25rem',
+                                        padding: '3rem 1.25rem',
                                         boxShadow: 'var(--shadow-md)',
                                         border: '1px solid var(--color-border)',
                                         position: 'relative'
@@ -568,8 +568,8 @@ Download Sri Bagavath App for latest updates`.trim();
                                         onClick={() => handleShare(viewingProgram)}
                                         style={{
                                             position: 'absolute',
-                                            top: '0.75rem',
-                                            right: '0.75rem',
+                                            top: '1rem',
+                                            right: '1rem',
                                             background: 'var(--color-card-transparent)',
                                             backdropFilter: 'blur(4px)',
                                             border: 'none',
