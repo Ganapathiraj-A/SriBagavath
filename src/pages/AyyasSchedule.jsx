@@ -102,9 +102,9 @@ const AyyasSchedule = () => {
                 leftAction={<button onClick={() => navigate('/programs')} style={{ background: 'none', border: 'none', padding: '8px' }}><ChevronLeft size={24} /></button>}
                 rightAction={
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        {(isAdmin || hasAccess('SCHEDULE_MANAGEMENT')) && !currentHiddenScreens.includes('/admin/schedules') && (
+                        {(isAdmin || hasAccess('SCHEDULE_MANAGEMENT')) && !currentHiddenScreens.includes('/schedule/manage') && (
                             <button
-                                onClick={() => navigate('/admin/schedules', { state: { returnPath: location.pathname } })}
+                                onClick={() => navigate('/schedule/manage', { state: { returnPath: location.pathname } })}
                                 style={{
                                     display: 'flex',
                                     alignItems: 'center',
