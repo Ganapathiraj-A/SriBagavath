@@ -557,7 +557,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                     style={{
                                         backgroundColor: 'var(--color-card)',
                                         borderRadius: '1rem',
-                                        padding: '3rem 1.25rem',
+                                        padding: '4rem 1.25rem',
                                         boxShadow: 'var(--shadow-md)',
                                         border: '1px solid var(--color-border)',
                                         position: 'relative'
