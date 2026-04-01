@@ -565,7 +565,11 @@ Download Sri Bagavath App for latest updates`.trim();
                                 >
                                     {/* Top Right Share Icon */}
                                     <button
-                                        onClick={() => handleShare(viewingProgram)}
+                                        onClick={() => {
+                                            if (activeTab === 'intro') handleShareIntro(viewingProgram);
+                                            else if (activeTab === 'banner') handleShareBanner(viewingProgram);
+                                            else handleShare(viewingProgram);
+                                        }}
                                         style={{
                                             position: 'absolute',
                                             top: '1rem',
