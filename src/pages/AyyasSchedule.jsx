@@ -14,6 +14,10 @@ import { useLocation } from 'react-router-dom';
 const AyyasSchedule = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const [schedules, setSchedules] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [isSharingAll, setIsSharingAll] = useState(false);
+    const [isSharingScheduleId, setIsSharingScheduleId] = useState(null);
     const { isAdmin, hasAccess, loading: authGlobalLoading } = useAdminAuth();
     const { hiddenScreens, devMode } = useGlobalSettings();
 
