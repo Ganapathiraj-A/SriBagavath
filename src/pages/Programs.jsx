@@ -560,7 +560,11 @@ Download Sri Bagavath App for latest updates`.trim();
                                         padding: '2rem',
                                         boxShadow: 'var(--shadow-md)',
                                         border: '1px solid var(--color-border)',
-                                        position: 'relative'
+                                        position: 'relative',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        justifyContent: 'center',
+                                        minHeight: '480px'
                                     }}
                                 >
                                     {/* Top Right Share Icon */}
@@ -568,14 +572,16 @@ Download Sri Bagavath App for latest updates`.trim();
                                         onClick={() => handleShare(viewingProgram)}
                                         style={{
                                             position: 'absolute',
-                                            top: '1rem',
-                                            right: '1rem',
-                                            background: 'none',
+                                            top: '0.75rem',
+                                            right: '0.75rem',
+                                            background: 'var(--color-card-transparent)',
+                                            backdropFilter: 'blur(4px)',
                                             border: 'none',
                                             color: 'var(--color-primary)',
                                             cursor: 'pointer',
-                                            zIndex: 10,
-                                            padding: '0.5rem'
+                                            zIndex: 20,
+                                            padding: '0.5rem',
+                                            borderRadius: '50%'
                                         }}
                                         title="Share Details"
                                     >
@@ -583,7 +589,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                     </button>
                                 {/* Banner (Invitation) Section - Only if Banner tab active */}
                                 {activeTab === 'banner' && viewingBanner && (
-                                    <div style={{ marginBottom: '1.5rem' }}>
+                                    <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
                                         <LazyImage
                                             src={viewingBanner}
                                             alt="Program Invitation"
@@ -591,7 +597,8 @@ Download Sri Bagavath App for latest updates`.trim();
                                             borderRadius="0.5rem"
                                             style={{
                                                 width: '100%',
-                                                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                                                maxWidth: '100%',
+                                                boxShadow: '0 4px 12px rgb(0 0 0 / 0.1)'
                                             }}
                                         />
                                     </div>
@@ -599,7 +606,7 @@ Download Sri Bagavath App for latest updates`.trim();
 
                                 {/* Intro Video Section */}
                                 {activeTab === 'intro' && viewingProgram.introYoutubeUrl && (
-                                    <div style={{ marginBottom: '1.5rem', borderRadius: '0.5rem', overflow: 'hidden', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', backgroundColor: '#000' }}>
+                                    <div style={{ width: '100%', borderRadius: '0.5rem', overflow: 'hidden', boxShadow: '0 4px 12px rgb(0 0 0 / 0.1)', backgroundColor: '#000' }}>
                                         <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0 }}>
                                             <iframe
                                                 width="100%"
