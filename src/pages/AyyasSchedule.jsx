@@ -93,8 +93,25 @@ const AyyasSchedule = () => {
                 title="Ayya's Schedule"
                 leftAction={<button onClick={() => navigate('/programs')} style={{ background: 'none', border: 'none', padding: '8px' }}><ChevronLeft size={24} /></button>}
                 rightAction={
-                    <button onClick={handleShareAll} disabled={isSharingAll || schedules.length === 0} style={{ width: '40px', height: '40px', backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        {isSharingAll ? <Loader2 size={20} className="animate-spin" /> : <Share2 size={20} />}
+                    <button 
+                        onClick={handleShareAll} 
+                        disabled={isSharingAll || schedules.length === 0} 
+                        style={{ 
+                            width: '40px', 
+                            height: '40px', 
+                            backgroundColor: 'var(--color-card-transparent)', 
+                            backdropFilter: 'blur(4px)',
+                            border: 'none', 
+                            color: 'var(--color-primary)',
+                            borderRadius: '50%', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        {isSharingAll ? <Loader2 size={18} className="animate-spin" /> : <Share2 size={20} />}
                     </button>
                 }
             />
