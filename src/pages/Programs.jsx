@@ -362,7 +362,7 @@ const Programs = ({ hideHeader = false }) => {
         try {
             await Share.share({
                 title: `${program.programName} - Intro Video`,
-                text: `Watch the intro video for ${program.programName}: ${program.introYoutubeUrl}\n\nDownload Sri Bagavath App for more: https://play.google.com/store/apps/details?id=com.bhavathpathai.app`,
+                text: `Watch the intro video for ${program.programName}:`,
                 url: program.introYoutubeUrl
             });
         } catch (err) {
