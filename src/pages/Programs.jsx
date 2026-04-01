@@ -557,14 +557,10 @@ Download Sri Bagavath App for latest updates`.trim();
                                     style={{
                                         backgroundColor: 'var(--color-card)',
                                         borderRadius: '1rem',
-                                        padding: '2rem',
+                                        padding: '2.5rem 1.25rem 1.25rem 1.25rem',
                                         boxShadow: 'var(--shadow-md)',
                                         border: '1px solid var(--color-border)',
-                                        position: 'relative',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        justifyContent: 'center',
-                                        minHeight: '480px'
+                                        position: 'relative'
                                     }}
                                 >
                                     {/* Top Right Share Icon */}
@@ -585,7 +581,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                         }}
                                         title="Share Details"
                                     >
-                                        <Share2 size={24} />
+                                        <Share2 size={20} />
                                     </button>
                                 {/* Banner (Invitation) Section - Only if Banner tab active */}
                                 {activeTab === 'banner' && viewingBanner && (
