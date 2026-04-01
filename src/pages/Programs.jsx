@@ -218,7 +218,10 @@ const Programs = ({ hideHeader = false }) => {
             if (tabParam && ['banner', 'details', 'intro'].includes(tabParam)) {
                 setActiveTab(tabParam);
             } else if (viewingProgram.hasBanner || viewingProgram.programBanner) {
+                // Clicking "Details" from listing should land on Invitation (banner) if it exists
                 setActiveTab('banner');
+            } else if (viewingProgram.introYoutubeUrl) {
+                setActiveTab('intro');
             } else {
                 setActiveTab('details');
             }
@@ -354,6 +357,19 @@ const Programs = ({ hideHeader = false }) => {
         }
     };
 
+    const handleShareIntro = async (program) => {
+        if (!program.introYoutubeUrl) return;
+        try {
+            await Share.share({
+                title: `${program.programName} - Intro Video`,
+                text: `Watch the intro video for ${program.programName}: ${program.introYoutubeUrl}\n\nDownload Sri Bagavath App for more: https://play.google.com/store/apps/details?id=com.bhavathpathai.app`,
+                url: program.introYoutubeUrl
+            });
+        } catch (err) {
+            console.error("Share intro failed", err);
+        }
+    };
+
     const handleShare = async (program) => {
         if (!program) return;
 
@@ -472,42 +488,6 @@ Download Sri Bagavath App for latest updates`.trim();
                             padding: '0 0.5rem',
                             overflowX: 'auto'
                         }}>
-                            {viewingBanner && (
-                                <button
-                                    onClick={() => setActiveTab('banner')}
-                                    style={{
-                                        padding: '12px 4px',
-                                        border: 'none',
-                                        borderBottom: activeTab === 'banner' ? `2px solid var(--color-primary)` : '2px solid transparent',
-                                        backgroundColor: 'transparent',
-                                        color: activeTab === 'banner' ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                                        fontWeight: activeTab === 'banner' ? 700 : 500,
-                                        fontSize: '0.95rem',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s',
-                                        whiteSpace: 'nowrap'
-                                    }}
-                                >
-                                    Banner
-                                </button>
-                            )}
-                            <button
-                                onClick={() => setActiveTab('details')}
-                                style={{
-                                    padding: '12px 4px',
-                                    border: 'none',
-                                    borderBottom: activeTab === 'details' ? `2px solid var(--color-primary)` : '2px solid transparent',
-                                    backgroundColor: 'transparent',
-                                    color: activeTab === 'details' ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                                    fontWeight: activeTab === 'details' ? 700 : 500,
-                                    fontSize: '0.95rem',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s',
-                                    whiteSpace: 'nowrap'
-                                }}
-                            >
-                                Details
-                            </button>
                             {viewingProgram.introYoutubeUrl && (
                                 <button
                                     onClick={() => setActiveTab('intro')}
@@ -527,6 +507,42 @@ Download Sri Bagavath App for latest updates`.trim();
                                     Intro
                                 </button>
                             )}
+                            {viewingBanner && (
+                                <button
+                                    onClick={() => setActiveTab('banner')}
+                                    style={{
+                                        padding: '12px 4px',
+                                        border: 'none',
+                                        borderBottom: activeTab === 'banner' ? `2px solid var(--color-primary)` : '2px solid transparent',
+                                        backgroundColor: 'transparent',
+                                        color: activeTab === 'banner' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                        fontWeight: activeTab === 'banner' ? 700 : 500,
+                                        fontSize: '0.95rem',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                        whiteSpace: 'nowrap'
+                                    }}
+                                >
+                                    Invitation
+                                </button>
+                            )}
+                            <button
+                                onClick={() => setActiveTab('details')}
+                                style={{
+                                    padding: '12px 4px',
+                                    border: 'none',
+                                    borderBottom: activeTab === 'details' ? `2px solid var(--color-primary)` : '2px solid transparent',
+                                    backgroundColor: 'transparent',
+                                    color: activeTab === 'details' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                    fontWeight: activeTab === 'details' ? 700 : 500,
+                                    fontSize: '0.95rem',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s',
+                                    whiteSpace: 'nowrap'
+                                }}
+                            >
+                                Details
+                            </button>
                         </div>
                     )}
 
@@ -545,12 +561,12 @@ Download Sri Bagavath App for latest updates`.trim();
                                     border: '1px solid var(--color-border)'
                                 }}
                             >
-                                {/* Banner Section - Only if Banner tab active */}
+                                {/* Banner (Invitation) Section - Only if Banner tab active */}
                                 {activeTab === 'banner' && viewingBanner && (
                                     <div style={{ marginBottom: '1.5rem' }}>
                                         <LazyImage
                                             src={viewingBanner}
-                                            alt="Program Banner"
+                                            alt="Program Invitation"
                                             height="auto"
                                             borderRadius="0.5rem"
                                             style={{
@@ -694,9 +710,33 @@ Download Sri Bagavath App for latest updates`.trim();
                                     </div>
                                 )}
 
-                                {/* Bottom Action Row (Sharing only) */}
-                                <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: '1rem' }}>
-                                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                                {/* Bottom Action Row (Sharing) */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.5rem' }}>
+                                    <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                        Share Program
+                                    </span>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
+                                        {viewingProgram.introYoutubeUrl && (
+                                            <button
+                                                onClick={() => handleShareIntro(viewingProgram)}
+                                                style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '0.5rem',
+                                                    color: 'var(--color-primary)',
+                                                    background: 'var(--color-card)',
+                                                    border: '1px solid var(--color-primary)',
+                                                    padding: '0.5rem 1rem',
+                                                    borderRadius: '0.375rem',
+                                                    fontSize: '0.875rem',
+                                                    fontWeight: 500,
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                <Share2 size={16} />
+                                                Intro
+                                            </button>
+                                        )}
                                         {viewingBanner && (
                                             <button
                                                 onClick={() => handleShareBanner(viewingProgram)}
@@ -714,10 +754,10 @@ Download Sri Bagavath App for latest updates`.trim();
                                                     fontWeight: 500,
                                                     cursor: 'pointer'
                                                 }}
-                                                title="Share Banner"
+                                                title="Share Invitation"
                                             >
                                                 <Share2 size={16} />
-                                                Banner
+                                                Invitation
                                             </button>
                                         )}
                                         <button
@@ -735,10 +775,10 @@ Download Sri Bagavath App for latest updates`.trim();
                                                 fontWeight: 500,
                                                 cursor: 'pointer'
                                             }}
-                                            title="Share Text"
+                                            title="Share Details"
                                         >
                                             <Share2 size={16} />
-                                            Text
+                                            Details
                                         </button>
                                     </div>
                                 </div>
@@ -917,6 +957,26 @@ Download Sri Bagavath App for latest updates`.trim();
 
                                                     {program.registrationStatus === 'Open' && (
                                                         <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                            {program.introYoutubeUrl && (
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setSearchParams({ id: program.id, tab: 'intro' });
+                                                                    }}
+                                                                    style={{
+                                                                        padding: '0.4rem 0.875rem',
+                                                                        backgroundColor: 'var(--color-card)',
+                                                                        color: 'var(--color-text)',
+                                                                        border: '1px solid var(--color-border)',
+                                                                        borderRadius: '0.5rem',
+                                                                        cursor: 'pointer',
+                                                                        fontSize: '0.8125rem',
+                                                                        fontWeight: 500
+                                                                    }}
+                                                                >
+                                                                    Intro
+                                                                </button>
+                                                            )}
                                                             <button
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
@@ -935,26 +995,6 @@ Download Sri Bagavath App for latest updates`.trim();
                                                             >
                                                                 Details
                                                             </button>
-                                                            {program.introYoutubeUrl && (
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        setSearchParams({ id: program.id, tab: 'intro' });
-                                                                    }}
-                                                                    style={{
-                                                                        padding: '0.4rem 0.875rem',
-                                                                        backgroundColor: 'var(--color-primary-transparent)',
-                                                                        color: 'var(--color-primary)',
-                                                                        border: '1px solid var(--color-primary-light)',
-                                                                        borderRadius: '0.5rem',
-                                                                        cursor: 'pointer',
-                                                                        fontSize: '0.8125rem',
-                                                                        fontWeight: 600
-                                                                    }}
-                                                                >
-                                                                    Intro
-                                                                </button>
-                                                            )}
                                                         </div>
                                                     )}
                                                 </div>
