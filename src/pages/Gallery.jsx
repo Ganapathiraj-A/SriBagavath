@@ -11,7 +11,7 @@ import LazyImage from '@/components/LazyImage';
 
 const Gallery = () => {
     const navigate = useNavigate();
-    const { isAdmin } = useAdminAuth();
+    const { isAdmin, hasAccess, loading: authLoading } = useAdminAuth();
     const [images, setImages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('general');

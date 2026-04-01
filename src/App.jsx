@@ -16,80 +16,100 @@ const RootRedirect = () => {
     return <Navigate to={isMobile ? "/mobile" : "/web"} replace />;
 };
 
-// Lazy load all other pages
-const About = lazy(() => import('./pages/About'));
-const Gallery = lazy(() => import('./pages/Gallery'));
-const Programs = lazy(() => import('./pages/Programs'));
-const Books = lazy(() => import('./pages/Books'));
-const MonthlyMagazine = lazy(() => import('./pages/MonthlyMagazine'));
-const AudioBooks = lazy(() => import('./pages/AudioBooks'));
-const Videos = lazy(() => import('./pages/Videos'));
-const PdfBooks = lazy(() => import('./pages/PdfBooks'));
-const Contact = lazy(() => import('./pages/Contact'));
-const WhatsAppMessages = lazy(() => import('./pages/WhatsAppMessages'));
-const Configuration = lazy(() => import('./pages/Configuration'));
-const ProgramManagement = lazy(() => import('./pages/ProgramManagement'));
-const ProgramTypesManagement = lazy(() => import('./pages/ProgramTypesManagement'));
-const ManageUsers = lazy(() => import('./pages/ManageUsers'));
-const ProgramConversations = lazy(() => import('./pages/ProgramConversations'));
-const UrlSettings = lazy(() => import('./pages/UrlSettings'));
-const DigitalBookSettings = lazy(() => import('./pages/DigitalBookSettings'));
-const RelatedVideosManagement = lazy(() => import('./pages/RelatedVideosManagement'));
-const RecordedPrograms = lazy(() => import('./pages/RecordedPrograms'));
-const DigitalBooksHub = lazy(() => import('./pages/DigitalBooksHub'));
-const AyyasSchedule = lazy(() => import('./pages/AyyasSchedule'));
-const ScheduleManagement = lazy(() => import('./pages/ScheduleManagement'));
-const MyRegistrations = lazy(() => import('./pages/MyRegistrations'));
-const AdminReview = lazy(() => import('./pages/AdminReview'));
-const EventRegistration = lazy(() => import('./pages/EventRegistration'));
-const PaymentFlow = lazy(() => import('./pages/PaymentFlow'));
-const AdminLogin = lazy(() => import('./pages/AdminLogin'));
-const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
-const AdminProgramManagement = lazy(() => import('./pages/AdminProgramManagement'));
-const ConsultationManagement = lazy(() => import('./pages/ConsultationManagement'));
-const ProgramCategories = lazy(() => import('./pages/ProgramCategories'));
-const Consultation = lazy(() => import('./pages/Consultation'));
-const OnlineMeetings = lazy(() => import('./pages/OnlineMeetings'));
-const OnlineMeetingDetails = lazy(() => import('./pages/OnlineMeetingDetails'));
-const OnlineMeetingManagement = lazy(() => import('./pages/OnlineMeetingManagement'));
-const SatsangManagement = lazy(() => import('./pages/SatsangManagement'));
-const SatsangListing = lazy(() => import('./pages/SatsangListing'));
-const SatsangDetails = lazy(() => import('./pages/SatsangDetails'));
-const DailyZoomMeetings = lazy(() => import('./pages/DailyZoomMeetings'));
-const DailyZoomManagement = lazy(() => import('./pages/DailyZoomManagement'));
-const DailyZoomTeacherManagement = lazy(() => import('./pages/DailyZoomTeacherManagement'));
-const DailyZoomLinkManagement = lazy(() => import('./pages/DailyZoomLinkManagement'));
-const BookStore = lazy(() => import('./pages/BookStore'));
-const BookStoreCheckout = lazy(() => import('./pages/BookStoreCheckout'));
-const BookStoreManagement = lazy(() => import('./pages/BookStoreManagement'));
-const DonationManagement = lazy(() => import('./pages/DonationManagement'));
-const MyOrders = lazy(() => import('./pages/MyOrders'));
-const Donations = lazy(() => import('./pages/Donations'));
-const MyDonations = lazy(() => import('./pages/MyDonations'));
-const AdminSettings = lazy(() => import('./pages/AdminSettings'));
-const PersonalProfile = lazy(() => import('./pages/PersonalProfile'));
-const CloudGlobalSettings = lazy(() => import('./pages/CloudGlobalSettings'));
-const AdminGallery = lazy(() => import('./pages/AdminGallery'));
-const BooksAndMediaManagement = lazy(() => import('./pages/BooksAndMediaManagement'));
-const AnalyticsAndSystem = lazy(() => import('./pages/AnalyticsAndSystem'));
-const HideScreens = lazy(() => import('./pages/HideScreens'));
-const PageAndUserManagement = lazy(() => import('./pages/PageAndUserManagement.jsx'));
-const AdminBookManagement = lazy(() => import('./pages/AdminBookManagement'));
-const AdminAudioBookManagement = lazy(() => import('./pages/AdminAudioBookManagement'));
-const BookDetails = lazy(() => import('./pages/BookDetails'));
-const BackOffice = lazy(() => import('./pages/BackOffice'));
-const BackOfficeReporting = lazy(() => import('./pages/BackOfficeReporting'));
-const BackOfficePrograms = lazy(() => import('./pages/BackOfficePrograms'));
-const BackOfficeAttendance = lazy(() => import('./pages/BackOfficeAttendance'));
-const BackOfficeOfflineRegistration = lazy(() => import('./pages/BackOfficeOfflineRegistration'));
-const BackOfficeOfflineBooks = lazy(() => import('./pages/BackOfficeOfflineBooks'));
-const BackOfficeOfflineDonation = lazy(() => import('./pages/BackOfficeOfflineDonation'));
-const BackOfficeImportExport = lazy(() => import('./pages/BackOfficeImportExport'));
-const BankReconciliation = lazy(() => import('./pages/BankReconciliation'));
-const BankStatementUpload = lazy(() => import('./pages/BankStatementUpload'));
-const BankReconciliationRegs = lazy(() => import('./pages/BankReconciliationRegs'));
-const BankStatementView = lazy(() => import('./pages/BankStatementView'));
-const MediaMigration = lazy(() => import('./pages/MediaMigration'));
+// Helper to handle lazy loading errors after deployments
+const lazyWithRetry = (componentImport) =>
+    lazy(async () => {
+        const pageHasBeenRefreshed = JSON.parse(
+            window.sessionStorage.getItem('page-has-been-refreshed') || 'false'
+        );
+
+        try {
+            const component = await componentImport();
+            window.sessionStorage.setItem('page-has-been-refreshed', 'false');
+            return component;
+        } catch (error) {
+            if (!pageHasBeenRefreshed) {
+                window.sessionStorage.setItem('page-has-been-refreshed', 'true');
+                return window.location.reload();
+            }
+            throw error;
+        }
+    });
+
+// Lazy load all other pages using the retry helper
+const About = lazyWithRetry(() => import('./pages/About'));
+const Gallery = lazyWithRetry(() => import('./pages/Gallery'));
+const Programs = lazyWithRetry(() => import('./pages/Programs'));
+const Books = lazyWithRetry(() => import('./pages/Books'));
+const MonthlyMagazine = lazyWithRetry(() => import('./pages/MonthlyMagazine'));
+const AudioBooks = lazyWithRetry(() => import('./pages/AudioBooks'));
+const Videos = lazyWithRetry(() => import('./pages/Videos'));
+const PdfBooks = lazyWithRetry(() => import('./pages/PdfBooks'));
+const Contact = lazyWithRetry(() => import('./pages/Contact'));
+const WhatsAppMessages = lazyWithRetry(() => import('./pages/WhatsAppMessages'));
+const Configuration = lazyWithRetry(() => import('./pages/Configuration'));
+const ProgramManagement = lazyWithRetry(() => import('./pages/ProgramManagement'));
+const ProgramTypesManagement = lazyWithRetry(() => import('./pages/ProgramTypesManagement'));
+const ManageUsers = lazyWithRetry(() => import('./pages/ManageUsers'));
+const ProgramConversations = lazyWithRetry(() => import('./pages/ProgramConversations'));
+const UrlSettings = lazyWithRetry(() => import('./pages/UrlSettings'));
+const DigitalBookSettings = lazyWithRetry(() => import('./pages/DigitalBookSettings'));
+const RelatedVideosManagement = lazyWithRetry(() => import('./pages/RelatedVideosManagement'));
+const RecordedPrograms = lazyWithRetry(() => import('./pages/RecordedPrograms'));
+const DigitalBooksHub = lazyWithRetry(() => import('./pages/DigitalBooksHub'));
+const AyyasSchedule = lazyWithRetry(() => import('./pages/AyyasSchedule'));
+const ScheduleManagement = lazyWithRetry(() => import('./pages/ScheduleManagement'));
+const MyRegistrations = lazyWithRetry(() => import('./pages/MyRegistrations'));
+const AdminReview = lazyWithRetry(() => import('./pages/AdminReview'));
+const EventRegistration = lazyWithRetry(() => import('./pages/EventRegistration'));
+const PaymentFlow = lazyWithRetry(() => import('./pages/PaymentFlow'));
+const AdminLogin = lazyWithRetry(() => import('./pages/AdminLogin'));
+const AdminDashboard = lazyWithRetry(() => import('./pages/AdminDashboard'));
+const AdminProgramManagement = lazyWithRetry(() => import('./pages/AdminProgramManagement'));
+const ConsultationManagement = lazyWithRetry(() => import('./pages/ConsultationManagement'));
+const ProgramCategories = lazyWithRetry(() => import('./pages/ProgramCategories'));
+const Consultation = lazyWithRetry(() => import('./pages/Consultation'));
+const OnlineMeetings = lazyWithRetry(() => import('./pages/OnlineMeetings'));
+const OnlineMeetingDetails = lazyWithRetry(() => import('./pages/OnlineMeetingDetails'));
+const OnlineMeetingManagement = lazyWithRetry(() => import('./pages/OnlineMeetingManagement'));
+const SatsangManagement = lazyWithRetry(() => import('./pages/SatsangManagement'));
+const SatsangListing = lazyWithRetry(() => import('./pages/SatsangListing'));
+const SatsangDetails = lazyWithRetry(() => import('./pages/SatsangDetails'));
+const DailyZoomMeetings = lazyWithRetry(() => import('./pages/DailyZoomMeetings'));
+const DailyZoomManagement = lazyWithRetry(() => import('./pages/DailyZoomManagement'));
+const DailyZoomTeacherManagement = lazyWithRetry(() => import('./pages/DailyZoomTeacherManagement'));
+const DailyZoomLinkManagement = lazyWithRetry(() => import('./pages/DailyZoomLinkManagement'));
+const BookStore = lazyWithRetry(() => import('./pages/BookStore'));
+const BookStoreCheckout = lazyWithRetry(() => import('./pages/BookStoreCheckout'));
+const BookStoreManagement = lazyWithRetry(() => import('./pages/BookStoreManagement'));
+const DonationManagement = lazyWithRetry(() => import('./pages/DonationManagement'));
+const MyOrders = lazyWithRetry(() => import('./pages/MyOrders'));
+const Donations = lazyWithRetry(() => import('./pages/Donations'));
+const MyDonations = lazyWithRetry(() => import('./pages/MyDonations'));
+const AdminSettings = lazyWithRetry(() => import('./pages/AdminSettings'));
+const PersonalProfile = lazyWithRetry(() => import('./pages/PersonalProfile'));
+const CloudGlobalSettings = lazyWithRetry(() => import('./pages/CloudGlobalSettings'));
+const AdminGallery = lazyWithRetry(() => import('./pages/AdminGallery'));
+const BooksAndMediaManagement = lazyWithRetry(() => import('./pages/BooksAndMediaManagement'));
+const AnalyticsAndSystem = lazyWithRetry(() => import('./pages/AnalyticsAndSystem'));
+const HideScreens = lazyWithRetry(() => import('./pages/HideScreens'));
+const PageAndUserManagement = lazyWithRetry(() => import('./pages/PageAndUserManagement.jsx'));
+const AdminBookManagement = lazyWithRetry(() => import('./pages/AdminBookManagement'));
+const AdminAudioBookManagement = lazyWithRetry(() => import('./pages/AdminAudioBookManagement'));
+const BookDetails = lazyWithRetry(() => import('./pages/BookDetails'));
+const BackOffice = lazyWithRetry(() => import('./pages/BackOffice'));
+const BackOfficeReporting = lazyWithRetry(() => import('./pages/BackOfficeReporting'));
+const BackOfficePrograms = lazyWithRetry(() => import('./pages/BackOfficePrograms'));
+const BackOfficeAttendance = lazyWithRetry(() => import('./pages/BackOfficeAttendance'));
+const BackOfficeOfflineRegistration = lazyWithRetry(() => import('./pages/BackOfficeOfflineRegistration'));
+const BackOfficeOfflineBooks = lazyWithRetry(() => import('./pages/BackOfficeOfflineBooks'));
+const BackOfficeOfflineDonation = lazyWithRetry(() => import('./pages/BackOfficeOfflineDonation'));
+const BackOfficeImportExport = lazyWithRetry(() => import('./pages/BackOfficeImportExport'));
+const BankReconciliation = lazyWithRetry(() => import('./pages/BankReconciliation'));
+const BankStatementUpload = lazyWithRetry(() => import('./pages/BankStatementUpload'));
+const BankReconciliationRegs = lazyWithRetry(() => import('./pages/BankReconciliationRegs'));
+const BankStatementView = lazyWithRetry(() => import('./pages/BankStatementView'));
+const MediaMigration = lazyWithRetry(() => import('./pages/MediaMigration'));
 
 // Website Replica Components
 import WebLayout from './components/WebLayout';
@@ -101,9 +121,9 @@ import WebBookStore from './pages/WebBookStore';
 import WebDonations from './pages/WebDonations';
 import WebEvents from './pages/WebEvents';
 import WebAccount from './pages/WebAccount';
-const WebBookDetails = lazy(() => import('./pages/WebBookDetails'));
-const WebCheckout = lazy(() => import('./pages/WebCheckout'));
-const WebGallery = lazy(() => import('./pages/WebGallery'));
+const WebBookDetails = lazyWithRetry(() => import('./pages/WebBookDetails'));
+const WebCheckout = lazyWithRetry(() => import('./pages/WebCheckout'));
+const WebGallery = lazyWithRetry(() => import('./pages/WebGallery'));
 
 import ProtectedRoute from './components/ProtectedRoute';
 import { AdminAuthProvider } from './context/AdminAuthContext';
