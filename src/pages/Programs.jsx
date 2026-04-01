@@ -214,15 +214,16 @@ const Programs = ({ hideHeader = false }) => {
     // Determine initial active tab based on availability
     useEffect(() => {
         if (viewingProgram && viewingProgram.id !== lastViewingId) {
-            if (viewingProgram.hasBanner || viewingProgram.programBanner) {
+            const tabParam = searchParams.get('tab');
+            if (tabParam && ['banner', 'details', 'intro'].includes(tabParam)) {
+                setActiveTab(tabParam);
+            } else if (viewingProgram.hasBanner || viewingProgram.programBanner) {
                 setActiveTab('banner');
-            } else if (viewingProgram.introYoutubeUrl) {
-                setActiveTab('intro');
             } else {
                 setActiveTab('details');
             }
         }
-    }, [viewingProgram]);
+    }, [viewingProgram, searchParams]);
 
     // Fetch Banner on Demand
     useEffect(() => {
@@ -490,6 +491,23 @@ Download Sri Bagavath App for latest updates`.trim();
                                     Banner
                                 </button>
                             )}
+                            <button
+                                onClick={() => setActiveTab('details')}
+                                style={{
+                                    padding: '12px 4px',
+                                    border: 'none',
+                                    borderBottom: activeTab === 'details' ? `2px solid var(--color-primary)` : '2px solid transparent',
+                                    backgroundColor: 'transparent',
+                                    color: activeTab === 'details' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                    fontWeight: activeTab === 'details' ? 700 : 500,
+                                    fontSize: '0.95rem',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s',
+                                    whiteSpace: 'nowrap'
+                                }}
+                            >
+                                Details
+                            </button>
                             {viewingProgram.introYoutubeUrl && (
                                 <button
                                     onClick={() => setActiveTab('intro')}
@@ -509,23 +527,6 @@ Download Sri Bagavath App for latest updates`.trim();
                                     Intro
                                 </button>
                             )}
-                            <button
-                                onClick={() => setActiveTab('details')}
-                                style={{
-                                    padding: '12px 4px',
-                                    border: 'none',
-                                    borderBottom: activeTab === 'details' ? `2px solid var(--color-primary)` : '2px solid transparent',
-                                    backgroundColor: 'transparent',
-                                    color: activeTab === 'details' ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                                    fontWeight: activeTab === 'details' ? 700 : 500,
-                                    fontSize: '0.95rem',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s',
-                                    whiteSpace: 'nowrap'
-                                }}
-                            >
-                                Details
-                            </button>
                         </div>
                     )}
 
@@ -915,24 +916,46 @@ Download Sri Bagavath App for latest updates`.trim();
                                                     )}
 
                                                     {program.registrationStatus === 'Open' && (
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setSearchParams({ id: program.id });
-                                                            }}
-                                                            style={{
-                                                                padding: '0.4rem 0.875rem',
-                                                                backgroundColor: 'var(--color-card)',
-                                                                color: 'var(--color-text)',
-                                                                border: '1px solid var(--color-border)',
-                                                                borderRadius: '0.5rem',
-                                                                cursor: 'pointer',
-                                                                fontSize: '0.8125rem',
-                                                                fontWeight: 500
-                                                            }}
-                                                        >
-                                                            Details
-                                                        </button>
+                                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setSearchParams({ id: program.id });
+                                                                }}
+                                                                style={{
+                                                                    padding: '0.4rem 0.875rem',
+                                                                    backgroundColor: 'var(--color-card)',
+                                                                    color: 'var(--color-text)',
+                                                                    border: '1px solid var(--color-border)',
+                                                                    borderRadius: '0.5rem',
+                                                                    cursor: 'pointer',
+                                                                    fontSize: '0.8125rem',
+                                                                    fontWeight: 500
+                                                                }}
+                                                            >
+                                                                Details
+                                                            </button>
+                                                            {program.introYoutubeUrl && (
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setSearchParams({ id: program.id, tab: 'intro' });
+                                                                    }}
+                                                                    style={{
+                                                                        padding: '0.4rem 0.875rem',
+                                                                        backgroundColor: 'var(--color-primary-transparent)',
+                                                                        color: 'var(--color-primary)',
+                                                                        border: '1px solid var(--color-primary-light)',
+                                                                        borderRadius: '0.5rem',
+                                                                        cursor: 'pointer',
+                                                                        fontSize: '0.8125rem',
+                                                                        fontWeight: 600
+                                                                    }}
+                                                                >
+                                                                    Intro
+                                                                </button>
+                                                            )}
+                                                        </div>
                                                     )}
                                                 </div>
                                             </motion.div>
