@@ -90,14 +90,21 @@ const MeetingCard = ({ meeting, teacher, delay, isAdmin, onShare, isSharing }) =
                         onClick={() => onShare(meeting, displayName, displayImage)}
                         aria-label={`Share ${displayName}`}
                         style={{
-                            background: 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '32px',
+                            height: '32px',
+                            backgroundColor: 'var(--color-card-transparent)',
+                            backdropFilter: 'blur(4px)',
+                            color: 'var(--color-primary)',
                             border: 'none',
-                            color: 'var(--color-text-muted)',
-                            padding: '0.25rem',
-                            cursor: 'pointer'
+                            borderRadius: '50%',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
                         }}
                     >
-                        {isSharing ? <Loader2 size={18} className="animate-spin" color="var(--color-primary)" /> : <Share2 size={18} />}
+                        {isSharing ? <Loader2 size={16} className="animate-spin" /> : <Share2 size={16} />}
                     </button>
                 </div>
 
@@ -663,20 +670,21 @@ const DailyZoomMeetings = () => {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            width: '3.25rem',
-                            height: '3.25rem',
-                            backgroundColor: ORANGE,
-                            color: 'white',
+                            width: '40px',
+                            height: '40px',
+                            backgroundColor: 'var(--color-card-transparent)',
+                            backdropFilter: 'blur(4px)',
+                            color: 'var(--color-primary)',
                             border: 'none',
-                            borderRadius: '0.75rem',
+                            borderRadius: '50%',
                             cursor: 'pointer',
                             opacity: (isSharingList || loading) ? 0.6 : 1,
-                            boxShadow: 'var(--shadow-md)',
-                            flexShrink: 0
+                            flexShrink: 0,
+                            transition: 'all 0.2s'
                         }}
                         title="Share meetings list"
                     >
-                        {isSharingList ? <Loader2 size={20} className="animate-spin" /> : <Share2 size={20} />}
+                        {isSharingList ? <Loader2 size={18} className="animate-spin" /> : <Share2 size={20} />}
                     </button>
                 </div>
 
