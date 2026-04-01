@@ -235,16 +235,30 @@ const ScheduleManagement = () => {
                                     {schedule.place}
                                 </h3>
                             </div>
-                            <div style={{ display: 'flex', gap: '1rem' }}>
-                                <div style={{ backgroundColor: 'var(--color-background)', padding: '0.5rem 0.75rem', borderRadius: '10px' }}>
-                                    <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>From</span>
-                                    <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-text)' }}>
+                            <div style={{ display: 'flex', gap: '0.75rem' }}>
+                                <div style={{ 
+                                    flex: 1,
+                                    backgroundColor: 'var(--color-primary-transparent)', 
+                                    padding: '0.5rem 0.75rem', 
+                                    borderRadius: '12px',
+                                    border: '1px solid var(--color-primary)',
+                                    textAlign: 'center'
+                                }}>
+                                    <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--color-primary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '2px' }}>From</span>
+                                    <span style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--color-primary)' }}>
                                         {new Date(schedule.fromDate).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
                                     </span>
                                 </div>
-                                <div style={{ backgroundColor: 'var(--color-background)', padding: '0.5rem 0.75rem', borderRadius: '10px' }}>
-                                    <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>To</span>
-                                    <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-text)' }}>
+                                <div style={{ 
+                                    flex: 1,
+                                    backgroundColor: 'var(--color-primary-transparent)', 
+                                    padding: '0.5rem 0.75rem', 
+                                    borderRadius: '12px',
+                                    border: '1px solid var(--color-primary)',
+                                    textAlign: 'center'
+                                }}>
+                                    <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--color-primary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '2px' }}>To</span>
+                                    <span style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--color-primary)' }}>
                                         {new Date(schedule.toDate).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
                                     </span>
                                 </div>
