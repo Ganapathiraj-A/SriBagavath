@@ -548,19 +548,20 @@ Download Sri Bagavath App for latest updates`.trim();
 
                     <AnimatePresence mode="wait">
                         {viewingProgram ? (
-                            <motion.div
-                                key="details"
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -20 }}
-                                style={{
-                                    backgroundColor: 'var(--color-card)',
-                                    borderRadius: '1rem',
-                                    padding: '2rem',
-                                    boxShadow: 'var(--shadow-md)',
-                                    border: '1px solid var(--color-border)'
-                                }}
-                            >
+                            <>
+                                <motion.div
+                                    key="details"
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -20 }}
+                                    style={{
+                                        backgroundColor: 'var(--color-card)',
+                                        borderRadius: '1rem',
+                                        padding: '2rem',
+                                        boxShadow: 'var(--shadow-md)',
+                                        border: '1px solid var(--color-border)'
+                                    }}
+                                >
                                 {/* Banner (Invitation) Section - Only if Banner tab active */}
                                 {activeTab === 'banner' && viewingBanner && (
                                     <div style={{ marginBottom: '1.5rem' }}>
@@ -707,82 +708,89 @@ Download Sri Bagavath App for latest updates`.trim();
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                )}
+                                        </div>
+                                    )}
+                                </motion.div>
 
-                                {/* Bottom Action Row (Sharing) */}
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.5rem' }}>
-                                    <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                        Share Program
-                                    </span>
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
-                                        {viewingProgram.introYoutubeUrl && (
-                                            <button
-                                                onClick={() => handleShareIntro(viewingProgram)}
-                                                style={{
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '0.5rem',
-                                                    color: 'var(--color-primary)',
-                                                    background: 'var(--color-card)',
-                                                    border: '1px solid var(--color-primary)',
-                                                    padding: '0.5rem 1rem',
-                                                    borderRadius: '0.375rem',
-                                                    fontSize: '0.875rem',
-                                                    fontWeight: 500,
-                                                    cursor: 'pointer'
-                                                }}
-                                            >
-                                                <Share2 size={16} />
-                                                Intro
-                                            </button>
-                                        )}
-                                        {viewingBanner && (
-                                            <button
-                                                onClick={() => handleShareBanner(viewingProgram)}
-                                                className="btn-share-banner"
-                                                style={{
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '0.5rem',
-                                                    color: 'var(--color-primary)',
-                                                    background: 'var(--color-card)',
-                                                    border: '1px solid var(--color-primary)',
-                                                    padding: '0.5rem 1rem',
-                                                    borderRadius: '0.375rem',
-                                                    fontSize: '0.875rem',
-                                                    fontWeight: 500,
-                                                    cursor: 'pointer'
-                                                }}
-                                                title="Share Invitation"
-                                            >
-                                                <Share2 size={16} />
-                                                Invitation
-                                            </button>
-                                        )}
+                            {/* Bottom Action Row (Sharing) - Moved outside the card */}
+                            <div style={{ 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                gap: '1rem', 
+                                marginTop: '1.25rem',
+                                padding: '0 0.5rem'
+                            }}>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>
+                                    Share:
+                                </span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                    {viewingProgram.introYoutubeUrl && (
                                         <button
-                                            onClick={() => handleShare(viewingProgram)}
+                                            onClick={() => handleShareIntro(viewingProgram)}
                                             style={{
                                                 display: 'flex',
                                                 alignItems: 'center',
-                                                gap: '0.5rem',
+                                                gap: '0.3rem',
                                                 color: 'var(--color-primary)',
                                                 background: 'none',
-                                                border: '1px solid var(--color-primary)',
-                                                padding: '0.5rem 1rem',
+                                                border: 'none',
+                                                padding: '0.4rem 0.6rem',
                                                 borderRadius: '0.375rem',
                                                 fontSize: '0.875rem',
-                                                fontWeight: 500,
+                                                fontWeight: 600,
                                                 cursor: 'pointer'
                                             }}
-                                            title="Share Details"
                                         >
-                                            <Share2 size={16} />
-                                            Details
+                                            <Share2 size={14} />
+                                            Intro
                                         </button>
-                                    </div>
+                                    )}
+                                    {viewingBanner && (
+                                        <button
+                                            onClick={() => handleShareBanner(viewingProgram)}
+                                            className="btn-share-banner"
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.3rem',
+                                                color: 'var(--color-primary)',
+                                                background: 'none',
+                                                border: 'none',
+                                                padding: '0.4rem 0.6rem',
+                                                borderRadius: '0.375rem',
+                                                fontSize: '0.875rem',
+                                                fontWeight: 600,
+                                                cursor: 'pointer'
+                                            }}
+                                            title="Share Invitation"
+                                        >
+                                            <Share2 size={14} />
+                                            Invitation
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={() => handleShare(viewingProgram)}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.3rem',
+                                            color: 'var(--color-primary)',
+                                            background: 'none',
+                                            border: 'none',
+                                            padding: '0.4rem 0.6rem',
+                                            borderRadius: '0.375rem',
+                                            fontSize: '0.875rem',
+                                            fontWeight: 600,
+                                            cursor: 'pointer'
+                                        }}
+                                        title="Share Details"
+                                    >
+                                        <Share2 size={14} />
+                                        Details
+                                    </button>
                                 </div>
-                            </motion.div>
+                                </div>
+                            </>
                         ) : (
                             <motion.div
                                 key="list"
