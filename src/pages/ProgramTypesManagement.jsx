@@ -45,7 +45,8 @@ const ProgramTypesManagement = () => {
 
         consentQuestion: '',
         additionalOptions: [],
-        googleMapsUrl: ''
+        googleMapsUrl: '',
+        introYoutubeUrl: ''
     });
 
     useEffect(() => {
@@ -85,7 +86,8 @@ const ProgramTypesManagement = () => {
 
             consentQuestion: '',
             additionalOptions: [],
-            googleMapsUrl: ''
+            googleMapsUrl: '',
+            introYoutubeUrl: ''
         });
         setIsEditing(false);
         setEditingId(null);
@@ -123,7 +125,8 @@ const ProgramTypesManagement = () => {
 
             consentQuestion: type.consentQuestion || '',
             additionalOptions: type.additionalOptions || [],
-            googleMapsUrl: type.googleMapsUrl || ''
+            googleMapsUrl: type.googleMapsUrl || '',
+            introYoutubeUrl: type.introYoutubeUrl || ''
         });
         setEditingId(type.id);
         setIsEditing(true);
@@ -238,6 +241,17 @@ const ProgramTypesManagement = () => {
                                         value={formData.googleMapsUrl}
                                         onChange={handleInputChange}
                                         placeholder="https://maps.app.goo.gl/..."
+                                        style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', width: '100%', backgroundColor: 'var(--color-card)', color: 'var(--color-text)' }}
+                                    />
+                                </div>
+                                <div style={{ display: 'grid', gap: '0.5rem' }}>
+                                    <label style={{ fontWeight: 500, color: 'var(--color-text)' }}>Intro YouTube Video URL (Optional)</label>
+                                    <input
+                                        type="url"
+                                        name="introYoutubeUrl"
+                                        value={formData.introYoutubeUrl}
+                                        onChange={handleInputChange}
+                                        placeholder="https://youtu.be/..."
                                         style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', width: '100%', backgroundColor: 'var(--color-card)', color: 'var(--color-text)' }}
                                     />
                                 </div>

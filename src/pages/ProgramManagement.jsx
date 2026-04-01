@@ -88,7 +88,8 @@ const ProgramManagement = () => {
         isFree: false,
         additionalOptions: [],
         ageRules: [],
-        googleMapsUrl: ''
+        googleMapsUrl: '',
+        introYoutubeUrl: ''
     });
 
     // Load programs from Firebase when tab changes
@@ -124,7 +125,8 @@ const ProgramManagement = () => {
                 isFree: editingProgram.isFree || false,
                 additionalOptions: editingProgram.additionalOptions || [],
                 ageRules: editingProgram.ageRules || [],
-                googleMapsUrl: editingProgram.googleMapsUrl || ''
+                googleMapsUrl: editingProgram.googleMapsUrl || '',
+                introYoutubeUrl: editingProgram.introYoutubeUrl || ''
             });
 
             if (isOtherCity) {
@@ -259,6 +261,7 @@ const ProgramManagement = () => {
                         updates.additionalOptions = selectedType.additionalOptions || [];
                         updates.ageRules = selectedType.ageRules || [];
                         updates.googleMapsUrl = selectedType.googleMapsUrl || '';
+                        updates.introYoutubeUrl = selectedType.introYoutubeUrl || '';
                     }
                 }
             }
@@ -352,6 +355,7 @@ const ProgramManagement = () => {
                     amount: Number(r.amount) || 0
                 })),
                 googleMapsUrl: formData.googleMapsUrl,
+                introYoutubeUrl: formData.introYoutubeUrl,
                 createdAt: new Date().toISOString()
             };
 
@@ -462,7 +466,8 @@ const ProgramManagement = () => {
             isFree: false,
             additionalOptions: [],
             ageRules: [],
-            googleMapsUrl: ''
+            googleMapsUrl: '',
+            introYoutubeUrl: ''
         });
 
         setBannerImage(null);
@@ -1003,6 +1008,36 @@ const ProgramManagement = () => {
                                             }} 
                                         />
                                     </div>
+                                </div>
+
+                                {/* Intro YouTube Video URL */}
+                                <div>
+                                    <label
+                                        style={{
+                                            display: 'block',
+                                            marginBottom: '0.5rem',
+                                            fontWeight: 500,
+                                            color: '#374151'
+                                        }}
+                                    >
+                                        Intro YouTube Video URL (Optional)
+                                    </label>
+                                    <input
+                                        type="url"
+                                        name="introYoutubeUrl"
+                                        value={formData.introYoutubeUrl}
+                                        onChange={handleInputChange}
+                                        placeholder="https://youtu.be/..."
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.75rem',
+                                            borderRadius: '0.5rem',
+                                            border: '1px solid #d1d5db',
+                                            fontSize: '1rem',
+                                            backgroundColor: 'var(--color-surface)',
+                                            color: 'var(--color-text)'
+                                        }}
+                                    />
                                 </div>
 
                                 {/* Program Banner */}

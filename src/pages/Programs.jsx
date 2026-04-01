@@ -26,7 +26,26 @@ const Programs = ({ hideHeader = false }) => {
     const [loading, setLoading] = useState(true);
     const [specificLoading, setSpecificLoading] = useState(false);
     const [viewingBanner, setViewingBanner] = useState(null);
-    const [showTextDetails, setShowTextDetails] = useState(false);
+    const [activeTab, setActiveTab] = useState('banner'); // 'banner', 'details', 'intro'
+    const [lastViewingId, setLastViewingId] = useState(null);
+
+    const getEmbedUrl = (url) => {
+        if (!url) return null;
+        try {
+            let videoId = '';
+            if (url.includes('youtu.be/')) {
+                videoId = url.split('youtu.be/')[1].split('?')[0];
+            } else if (url.includes('youtube.com/watch?v=')) {
+                videoId = new URLSearchParams(new URL(url).search).get('v');
+            } else if (url.includes('youtube.com/embed/')) {
+                videoId = url.split('embed/')[1].split('?')[0];
+            }
+            return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+        } catch (e) {
+            console.error("YouTube URL parsing failed:", e);
+            return null;
+        }
+    };
 
 
     const viewingProgramId = searchParams.get('id');
@@ -182,6 +201,28 @@ const Programs = ({ hideHeader = false }) => {
         };
         fetchSpecificProgram();
     }, [viewingProgramId, programs, specificProgram, authGlobalLoading]);
+
+    // Reset tab when viewing a new program
+    useEffect(() => {
+        if (viewingProgramId && viewingProgramId !== lastViewingId) {
+            setLastViewingId(viewingProgramId);
+            // Default to 'banner' if it exists, else 'details'
+            // We'll let the banner/intro existence logic handle the default below
+        }
+    }, [viewingProgramId]);
+
+    // Determine initial active tab based on availability
+    useEffect(() => {
+        if (viewingProgram && viewingProgram.id !== lastViewingId) {
+            if (viewingProgram.hasBanner || viewingProgram.programBanner) {
+                setActiveTab('banner');
+            } else if (viewingProgram.introYoutubeUrl) {
+                setActiveTab('intro');
+            } else {
+                setActiveTab('details');
+            }
+        }
+    }, [viewingProgram]);
 
     // Fetch Banner on Demand
     useEffect(() => {
@@ -419,7 +460,7 @@ Download Sri Bagavath App for latest updates`.trim();
                 <div style={{ maxWidth: '42rem', margin: '0 auto', width: '100%' }}>
 
                     {/* Tab Switcher - Outside the card, right under header */}
-                    {viewingProgram && viewingBanner && (
+                    {viewingProgram && (viewingBanner || viewingProgram.introYoutubeUrl) && (
                         <div style={{
                             maxWidth: '42rem',
                             margin: '0 auto 1.5rem auto',
@@ -427,36 +468,60 @@ Download Sri Bagavath App for latest updates`.trim();
                             display: 'flex',
                             borderBottom: '1px solid var(--color-border)',
                             gap: '24px',
-                            padding: '0 0.5rem'
+                            padding: '0 0.5rem',
+                            overflowX: 'auto'
                         }}>
+                            {viewingBanner && (
+                                <button
+                                    onClick={() => setActiveTab('banner')}
+                                    style={{
+                                        padding: '12px 4px',
+                                        border: 'none',
+                                        borderBottom: activeTab === 'banner' ? `2px solid var(--color-primary)` : '2px solid transparent',
+                                        backgroundColor: 'transparent',
+                                        color: activeTab === 'banner' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                        fontWeight: activeTab === 'banner' ? 700 : 500,
+                                        fontSize: '0.95rem',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                        whiteSpace: 'nowrap'
+                                    }}
+                                >
+                                    Banner
+                                </button>
+                            )}
+                            {viewingProgram.introYoutubeUrl && (
+                                <button
+                                    onClick={() => setActiveTab('intro')}
+                                    style={{
+                                        padding: '12px 4px',
+                                        border: 'none',
+                                        borderBottom: activeTab === 'intro' ? `2px solid var(--color-primary)` : '2px solid transparent',
+                                        backgroundColor: 'transparent',
+                                        color: activeTab === 'intro' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                        fontWeight: activeTab === 'intro' ? 700 : 500,
+                                        fontSize: '0.95rem',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                        whiteSpace: 'nowrap'
+                                    }}
+                                >
+                                    Intro
+                                </button>
+                            )}
                             <button
-                                onClick={() => setShowTextDetails(false)}
+                                onClick={() => setActiveTab('details')}
                                 style={{
                                     padding: '12px 4px',
                                     border: 'none',
-                                    borderBottom: !showTextDetails ? `2px solid var(--color-primary)` : '2px solid transparent',
+                                    borderBottom: activeTab === 'details' ? `2px solid var(--color-primary)` : '2px solid transparent',
                                     backgroundColor: 'transparent',
-                                    color: !showTextDetails ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                                    fontWeight: !showTextDetails ? 700 : 500,
+                                    color: activeTab === 'details' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                    fontWeight: activeTab === 'details' ? 700 : 500,
                                     fontSize: '0.95rem',
                                     cursor: 'pointer',
-                                    transition: 'all 0.2s'
-                                }}
-                            >
-                                Banner
-                            </button>
-                            <button
-                                onClick={() => setShowTextDetails(true)}
-                                style={{
-                                    padding: '12px 4px',
-                                    border: 'none',
-                                    borderBottom: showTextDetails ? `2px solid var(--color-primary)` : '2px solid transparent',
-                                    backgroundColor: 'transparent',
-                                    color: showTextDetails ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                                    fontWeight: showTextDetails ? 700 : 500,
-                                    fontSize: '0.95rem',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s'
+                                    transition: 'all 0.2s',
+                                    whiteSpace: 'nowrap'
                                 }}
                             >
                                 Details
@@ -480,7 +545,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                 }}
                             >
                                 {/* Banner Section - Only if Banner tab active */}
-                                {viewingBanner && !showTextDetails && (
+                                {activeTab === 'banner' && viewingBanner && (
                                     <div style={{ marginBottom: '1.5rem' }}>
                                         <LazyImage
                                             src={viewingBanner}
@@ -495,8 +560,26 @@ Download Sri Bagavath App for latest updates`.trim();
                                     </div>
                                 )}
 
-                                {/* Details Section - Logic: Show if NO banner OR if Details tab active */}
-                                {(!viewingBanner || showTextDetails) && (
+                                {/* Intro Video Section */}
+                                {activeTab === 'intro' && viewingProgram.introYoutubeUrl && (
+                                    <div style={{ marginBottom: '1.5rem', borderRadius: '0.5rem', overflow: 'hidden', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', backgroundColor: '#000' }}>
+                                        <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0 }}>
+                                            <iframe
+                                                width="100%"
+                                                height="100%"
+                                                src={getEmbedUrl(viewingProgram.introYoutubeUrl)}
+                                                title="YouTube video player"
+                                                frameBorder="0"
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                                allowFullScreen
+                                                style={{ position: 'absolute', top: 0, left: 0 }}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Details Section - Show if 'details' tab is active OR if no other tabs are possible */}
+                                {(activeTab === 'details' || (!viewingBanner && !viewingProgram.introYoutubeUrl)) && (
                                     <div
                                         style={{
                                             display: 'grid',
