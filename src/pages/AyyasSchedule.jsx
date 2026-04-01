@@ -8,14 +8,18 @@ import { db } from '@/firebase';
 import { collection, query, orderBy } from '@/utils/FirestoreProxy';
 import { getLocalDateString } from '@/utils/dateUtils';
 import { useAdminAuth } from '@/context/AdminAuthContext';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
+import { useLocation } from 'react-router-dom';
 
 const AyyasSchedule = () => {
     const navigate = useNavigate();
-    const [schedules, setSchedules] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [isSharingAll, setIsSharingAll] = useState(false);
-    const [isSharingScheduleId, setIsSharingScheduleId] = useState(null);
-    const { loading: authGlobalLoading } = useAdminAuth();
+    const location = useLocation();
+    const { isAdmin, hasAccess, loading: authGlobalLoading } = useAdminAuth();
+    const { hiddenScreens, devMode } = useGlobalSettings();
+
+    const effectiveRole = isAdmin ? (devMode ? 'dev' : 'admin') : 'public';
+    const currentHiddenScreens = hiddenScreens?.[effectiveRole] || [];
+    const orange = 'var(--color-primary)';
 
     useEffect(() => {
         const fetchSchedules = async () => {
@@ -93,26 +97,48 @@ const AyyasSchedule = () => {
                 title="Ayya's Schedule"
                 leftAction={<button onClick={() => navigate('/programs')} style={{ background: 'none', border: 'none', padding: '8px' }}><ChevronLeft size={24} /></button>}
                 rightAction={
-                    <button 
-                        onClick={handleShareAll} 
-                        disabled={isSharingAll || schedules.length === 0} 
-                        style={{ 
-                            width: '40px', 
-                            height: '40px', 
-                            backgroundColor: 'var(--color-card-transparent)', 
-                            backdropFilter: 'blur(4px)',
-                            border: 'none', 
-                            color: 'var(--color-primary)',
-                            borderRadius: '50%', 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            justifyContent: 'center',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s'
-                        }}
-                    >
-                        {isSharingAll ? <Loader2 size={18} className="animate-spin" /> : <Share2 size={20} />}
-                    </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        {(isAdmin || hasAccess('SCHEDULE_MANAGEMENT')) && !currentHiddenScreens.includes('/admin/schedules') && (
+                            <button
+                                onClick={() => navigate('/admin/schedules', { state: { returnPath: location.pathname } })}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.4rem',
+                                    padding: '0.5rem 0.8rem',
+                                    backgroundColor: 'var(--color-primary-transparent)',
+                                    color: orange,
+                                    border: '1px solid var(--color-primary)',
+                                    borderRadius: '0.75rem',
+                                    fontSize: '0.85rem',
+                                    fontWeight: 700,
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Edit
+                            </button>
+                        )}
+                        <button 
+                            onClick={handleShareAll} 
+                            disabled={isSharingAll || schedules.length === 0} 
+                            style={{ 
+                                width: '40px', 
+                                height: '40px', 
+                                backgroundColor: 'var(--color-card-transparent)', 
+                                backdropFilter: 'blur(4px)',
+                                border: 'none', 
+                                color: 'var(--color-primary)',
+                                borderRadius: '50%', 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                            }}
+                        >
+                            {isSharingAll ? <Loader2 size={18} className="animate-spin" /> : <Share2 size={20} />}
+                        </button>
+                    </div>
                 }
             />
 
