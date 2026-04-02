@@ -247,38 +247,55 @@ const Gallery = () => {
                         )}
                         <div style={{
                             position: 'absolute',
-                            top: '0.5rem',
-                            right: '0.5rem',
+                            top: '0.6rem',
+                            right: '0.6rem',
                             display: 'flex',
-                            gap: '0.4rem'
+                            flexDirection: 'column',
+                            gap: '0.5rem',
+                            zIndex: 20
                         }}>
-                            <button 
-                                onClick={(e) => { e.stopPropagation(); shareImage(img); }}
+                            <div 
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    openLightbox(index);
+                                }}
                                 style={{
-                                    padding: '0.4rem',
+                                    padding: '0.5rem',
                                     borderRadius: '50%',
-                                    backgroundColor: 'rgba(0,0,0,0.4)',
+                                    backgroundColor: 'rgba(0,0,0,0.5)',
+                                    backdropFilter: 'blur(4px)',
+                                    color: 'white',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                }}
+                            >
+                                <Maximize2 size={16} />
+                            </div>
+                            <motion.button 
+                                whileTap={{ scale: 0.85 }}
+                                onClick={(e) => { 
+                                    e.stopPropagation(); 
+                                    shareImage(img); 
+                                }}
+                                style={{
+                                    padding: '0.5rem',
+                                    borderRadius: '50%',
+                                    backgroundColor: 'rgba(0,0,0,0.5)',
+                                    backdropFilter: 'blur(4px)',
                                     color: 'white',
                                     border: 'none',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    cursor: 'pointer'
+                                    cursor: 'pointer',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
                                 }}
                             >
-                                <Share2 size={14} />
-                            </button>
-                            <div style={{
-                                padding: '0.4rem',
-                                borderRadius: '50%',
-                                backgroundColor: 'rgba(0,0,0,0.4)',
-                                color: 'white',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                            }}>
-                                <Maximize2 size={14} />
-                            </div>
+                                <Share2 size={16} />
+                            </motion.button>
                         </div>
                     </motion.div>
                 ))}
