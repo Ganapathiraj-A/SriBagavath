@@ -101,13 +101,33 @@ const AyyasSchedule = () => {
                 title="Ayya's Schedule"
                 leftAction={<button onClick={() => navigate('/programs')} style={{ background: 'none', border: 'none', padding: '8px' }}><ChevronLeft size={24} /></button>}
                 rightAction={
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem', marginRight: '-0.5rem' }}>
+                        {(isAdmin || hasAccess('SCHEDULE_MANAGEMENT')) && !currentHiddenScreens.includes('/schedule/manage') && (
+                            <button
+                                onClick={() => navigate('/schedule/manage', { state: { returnPath: location.pathname } })}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.4rem',
+                                    padding: '0.4rem 0.6rem', // Slightly more compact padding
+                                    backgroundColor: 'var(--color-primary-transparent)',
+                                    color: orange,
+                                    border: '1px solid var(--color-primary)',
+                                    borderRadius: '0.6rem',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 700,
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Edit
+                            </button>
+                        )}
                         <button 
                             onClick={handleShareAll} 
                             disabled={isSharingAll || schedules.length === 0} 
                             style={{ 
-                                width: '40px', 
-                                height: '40px', 
+                                width: '32px', // Slightly smaller for vertical stack
+                                height: '32px', 
                                 backgroundColor: 'var(--color-card-transparent)', 
                                 backdropFilter: 'blur(4px)',
                                 border: 'none', 
@@ -120,28 +140,8 @@ const AyyasSchedule = () => {
                                 transition: 'all 0.2s'
                             }}
                         >
-                            {isSharingAll ? <Loader2 size={18} className="animate-spin" /> : <Share2 size={20} />}
+                            {isSharingAll ? <Loader2 size={14} className="animate-spin" /> : <Share2 size={16} />}
                         </button>
-                        {(isAdmin || hasAccess('SCHEDULE_MANAGEMENT')) && !currentHiddenScreens.includes('/schedule/manage') && (
-                            <button
-                                onClick={() => navigate('/schedule/manage', { state: { returnPath: location.pathname } })}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.4rem',
-                                    padding: '0.5rem 0.8rem',
-                                    backgroundColor: 'var(--color-primary-transparent)',
-                                    color: orange,
-                                    border: '1px solid var(--color-primary)',
-                                    borderRadius: '0.75rem',
-                                    fontSize: '0.85rem',
-                                    fontWeight: 700,
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                Edit
-                            </button>
-                        )}
                     </div>
                 }
             />
