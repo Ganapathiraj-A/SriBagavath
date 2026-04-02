@@ -101,7 +101,14 @@ const AyyasSchedule = () => {
                 title="Ayya's Schedule"
                 leftAction={<button onClick={() => navigate('/programs')} style={{ background: 'none', border: 'none', padding: '8px' }}><ChevronLeft size={24} /></button>}
                 rightAction={
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem', marginRight: '-0.5rem' }}>
+                    <div style={{ 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        alignItems: 'flex-end', 
+                        gap: '0.4rem', 
+                        marginRight: '0.5rem', // Push left from standard container edge
+                        marginTop: '1.2rem' // Push down from centered vertical center
+                    }}>
                         {(isAdmin || hasAccess('SCHEDULE_MANAGEMENT')) && !currentHiddenScreens.includes('/schedule/manage') && (
                             <button
                                 onClick={() => navigate('/schedule/manage', { state: { returnPath: location.pathname } })}
@@ -109,7 +116,7 @@ const AyyasSchedule = () => {
                                     display: 'flex',
                                     alignItems: 'center',
                                     gap: '0.4rem',
-                                    padding: '0.4rem 0.6rem', // Slightly more compact padding
+                                    padding: '0.4rem 0.6rem',
                                     backgroundColor: 'var(--color-primary-transparent)',
                                     color: orange,
                                     border: '1px solid var(--color-primary)',
@@ -126,7 +133,7 @@ const AyyasSchedule = () => {
                             onClick={handleShareAll} 
                             disabled={isSharingAll || schedules.length === 0} 
                             style={{ 
-                                width: '32px', // Slightly smaller for vertical stack
+                                width: '32px', 
                                 height: '32px', 
                                 backgroundColor: 'var(--color-card-transparent)', 
                                 backdropFilter: 'blur(4px)',
