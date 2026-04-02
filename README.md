@@ -55,7 +55,11 @@ To set up the development environment, follow these steps:
     ```
     *(See [README_SETUP.md](README_SETUP.md) for more details on secrets management)*.
 
-3.  **Run Development Build**:
+3.  **Firebase Access**:
+    - **Production**: [antigravity-app-5c1ff](https://console.firebase.google.com/project/antigravity-app-5c1ff)
+    - **Development**: [sri-bagavath-dev](https://console.firebase.google.com/project/sri-bagavath-dev)
+
+4.  **Run Development Build**:
     ```bash
     ./publish.sh dev
     ```
