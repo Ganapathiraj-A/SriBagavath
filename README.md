@@ -1,6 +1,7 @@
 # Sri Bagavath Mobile Application
 
 [![Release](https://img.shields.io/github/v/release/Ganapathiraj-A/SriBagavath?label=Latest%20APK)](https://github.com/Ganapathiraj-A/SriBagavath/releases/latest)
+[![Play Store](https://img.shields.io/badge/Google%20Play-Store-green.svg?logo=google-play)](https://play.google.com/store/apps/details?id=com.bhavathpathai.app)
 [![Build](https://img.shields.io/badge/Platform-Android-green.svg)](https://developer.android.com/studio)
 [![Framework](https://img.shields.io/badge/Framework-React%20%2B%20Capacitor-blue.svg)](https://capacitorjs.com/)
 
@@ -63,6 +64,10 @@ To set up the development environment, follow these steps:
     ```bash
     ./publish.sh dev
     ```
+
+### 📱 App Links
+- **Google Play Store**: [Install from Play Store](https://play.google.com/store/apps/details?id=com.bhavathpathai.app)
+- **Direct Download**: [Latest APK (GitHub)](https://github.com/Ganapathiraj-A/SriBagavath/releases/latest)
 
 ---
 
