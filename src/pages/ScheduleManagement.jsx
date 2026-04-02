@@ -239,12 +239,14 @@ const ScheduleManagement = () => {
                                 <div style={{ 
                                     flex: 1,
                                     backgroundColor: 'var(--color-primary-transparent)', 
-                                    padding: '0.5rem 0.75rem', 
+                                    padding: '0.75rem', 
                                     borderRadius: '12px',
                                     border: '1px solid var(--color-primary)',
-                                    textAlign: 'center'
+                                    textAlign: 'center',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
                                 }}>
-                                    <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--color-primary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '2px' }}>From</span>
                                     <span style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--color-primary)' }}>
                                         {new Date(schedule.fromDate).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
                                     </span>
@@ -252,12 +254,14 @@ const ScheduleManagement = () => {
                                 <div style={{ 
                                     flex: 1,
                                     backgroundColor: 'var(--color-primary-transparent)', 
-                                    padding: '0.5rem 0.75rem', 
+                                    padding: '0.75rem', 
                                     borderRadius: '12px',
                                     border: '1px solid var(--color-primary)',
-                                    textAlign: 'center'
+                                    textAlign: 'center',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
                                 }}>
-                                    <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--color-primary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '2px' }}>To</span>
                                     <span style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--color-primary)' }}>
                                         {new Date(schedule.toDate).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
                                     </span>

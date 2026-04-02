@@ -102,26 +102,6 @@ const AyyasSchedule = () => {
                 leftAction={<button onClick={() => navigate('/programs')} style={{ background: 'none', border: 'none', padding: '8px' }}><ChevronLeft size={24} /></button>}
                 rightAction={
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        {(isAdmin || hasAccess('SCHEDULE_MANAGEMENT')) && !currentHiddenScreens.includes('/schedule/manage') && (
-                            <button
-                                onClick={() => navigate('/schedule/manage', { state: { returnPath: location.pathname } })}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.4rem',
-                                    padding: '0.5rem 0.8rem',
-                                    backgroundColor: 'var(--color-primary-transparent)',
-                                    color: orange,
-                                    border: '1px solid var(--color-primary)',
-                                    borderRadius: '0.75rem',
-                                    fontSize: '0.85rem',
-                                    fontWeight: 700,
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                Edit
-                            </button>
-                        )}
                         <button 
                             onClick={handleShareAll} 
                             disabled={isSharingAll || schedules.length === 0} 
@@ -142,6 +122,26 @@ const AyyasSchedule = () => {
                         >
                             {isSharingAll ? <Loader2 size={18} className="animate-spin" /> : <Share2 size={20} />}
                         </button>
+                        {(isAdmin || hasAccess('SCHEDULE_MANAGEMENT')) && !currentHiddenScreens.includes('/schedule/manage') && (
+                            <button
+                                onClick={() => navigate('/schedule/manage', { state: { returnPath: location.pathname } })}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.4rem',
+                                    padding: '0.5rem 0.8rem',
+                                    backgroundColor: 'var(--color-primary-transparent)',
+                                    color: orange,
+                                    border: '1px solid var(--color-primary)',
+                                    borderRadius: '0.75rem',
+                                    fontSize: '0.85rem',
+                                    fontWeight: 700,
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Edit
+                            </button>
+                        )}
                     </div>
                 }
             />
