@@ -81,9 +81,6 @@ const UrlSettings = () => {
         driveAudioBooksId,
         onlineRegistrationContact,
         offlineRegistrationContact,
-        whatsappInstanceId, setWhatsappInstanceId,
-        whatsappApiToken, setWhatsappApiToken,
-        whatsappChatId, setWhatsappChatId,
         setPublicSettings
     } = useGlobalSettings();
 
@@ -146,36 +143,6 @@ const UrlSettings = () => {
                     </div>
                 </div>
 
-                {/* WhatsApp API Configuration */}
-                <div style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '1.5rem', border: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.25rem' }}>
-                        <LinkIcon size={18} color="#25D366" />
-                        <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>WhatsApp API (Green-API)</h3>
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.25rem' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
-                            <CopyableInput
-                                label="Instance ID"
-                                value={whatsappInstanceId}
-                                onChange={(e) => setWhatsappInstanceId(e.target.value)}
-                                placeholder="e.g. 7107560503"
-                            />
-                            <CopyableInput
-                                label="Chat ID (Group)"
-                                value={whatsappChatId}
-                                onChange={(e) => setWhatsappChatId(e.target.value)}
-                                placeholder="e.g. 120363... @g.us"
-                            />
-                        </div>
-                        <CopyableInput
-                            label="API Token Instance"
-                            value={whatsappApiToken}
-                            type="password"
-                            onChange={(e) => setWhatsappApiToken(e.target.value)}
-                            placeholder="de69eb56ba..."
-                        />
-                    </div>
-                </div>
 
                 {/* Google Drive Folder IDs */}
                 <div style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '1.5rem', border: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>

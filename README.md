@@ -24,7 +24,6 @@ The official **Sri Bagavath** mobile application, designed to provide seamless a
 
 ### 🔐 Admin & Management
 - **Unified Hub**: Centralized control for books, media, and user permissions.
-- **WhatsApp Integration**: Automated messaging for program updates and notifications.
 - **Analytics**: Built-in tracking for app usage and system health.
 
 ---
@@ -36,7 +35,6 @@ The official **Sri Bagavath** mobile application, designed to provide seamless a
 - **Backend**: [Firebase](https://firebase.google.com/) (Auth, Firestore, Cloud Functions, Storage)
 - **Styling**: Vanilla CSS with [Framer Motion](https://www.framer.com/motion/) animations.
 - **Payments**: [Razorpay](https://razorpay.com/)
-- **Messaging**: [Green-API](https://green-api.com/) for WhatsApp integration.
 
 ---
 

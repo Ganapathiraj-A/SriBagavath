@@ -46,7 +46,6 @@ const AudioBooks = lazyWithRetry(() => import('./pages/AudioBooks'));
 const Videos = lazyWithRetry(() => import('./pages/Videos'));
 const PdfBooks = lazyWithRetry(() => import('./pages/PdfBooks'));
 const Contact = lazyWithRetry(() => import('./pages/Contact'));
-const WhatsAppMessages = lazyWithRetry(() => import('./pages/WhatsAppMessages'));
 const Configuration = lazyWithRetry(() => import('./pages/Configuration'));
 const ProgramManagement = lazyWithRetry(() => import('./pages/ProgramManagement'));
 const ProgramTypesManagement = lazyWithRetry(() => import('./pages/ProgramTypesManagement'));
@@ -364,7 +363,6 @@ function AnimatedRoutes() {
           <Route path="/pdf-books" element={<PdfBooks />} />
           <Route path="/digital-books" element={<DigitalBooksHub />} />
           <Route path="/contact" element={<Contact />} />
-          <Route path="/messages" element={<WhatsAppMessages />} />
           <Route path="/my-registrations" element={<MyRegistrations />} />
           <Route path="/event-registration" element={<EventRegistration />} />
           <Route path="/payment-flow" element={<PaymentFlow />} />

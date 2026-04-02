@@ -81,7 +81,7 @@ export const shareTransactions = async (items, type, allPrograms = []) => {
         await Share.share({
             title: `Sri Bagavath Admin Share (${type})`,
             text: text,
-            dialogTitle: 'Share via WhatsApp'
+            dialogTitle: 'Share Transactions'
         });
     } catch (error) {
         console.error("Sharing failed", error);

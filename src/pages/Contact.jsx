@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Phone, MapPin, Globe, Home, ChevronLeft, MessageSquare } from 'lucide-react';
+import { Phone, MapPin, Globe, Home, ChevronLeft } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 
 const ContactItem = ({ icon: Icon, content, href }) => (
@@ -81,14 +81,6 @@ const Contact = () => {
                                 href="tel:+917904118421"
                             />
 
-{/* 
-                            <div onClick={() => navigate('/messages')} style={{ cursor: 'pointer' }}>
-                                <ContactItem
-                                    icon={MessageSquare}
-                                    content="Group Messages"
-                                />
-                            </div>
-                            */}
 
                             <ContactItem
                                 icon={Phone}
