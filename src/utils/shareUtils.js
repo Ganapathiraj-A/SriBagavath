@@ -105,8 +105,8 @@ export const shareImage = async (img) => {
                 duration: 'short'
             });
 
-            // 1. Fetch image
-            const response = await fetch(img.url);
+            // 1. Fetch image with proper CORS and cache-busting
+            const response = await fetch(`${img.url}${img.url.includes('?') ? '&' : '?'}t=${Date.now()}`);
             const blob = await response.blob();
             
             // 2. Convert to Base64 (Filesystem.writeFile expects base64 or string)
@@ -117,8 +117,8 @@ export const shareImage = async (img) => {
                 reader.readAsDataURL(blob);
             });
 
-            // 3. Save to temporary file
-            const fileName = `share_${Date.now()}.jpg`;
+            // 3. Save to temporary file in a share-friendly directory
+            const fileName = `gallery_share_${Date.now()}.jpg`;
             const result = await Filesystem.writeFile({
                 path: fileName,
                 data: base64Data,
@@ -126,9 +126,10 @@ export const shareImage = async (img) => {
             });
 
             // 4. Share the file URI
+            // On some platforms, Share.share needs the files array even if title/text are present
             await Share.share({
                 title: 'Sri Bagavath Gallery',
-                text: img.caption || '',
+                text: img.caption || 'Shared from Sri Bagavath Gallery',
                 files: [result.uri],
                 dialogTitle: 'Share Image'
             });
