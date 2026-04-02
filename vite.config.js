@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { VitePWA } from 'vite-plugin-pwa'
 import { readFileSync } from 'fs'
 import path from 'path'
 
@@ -8,7 +9,40 @@ const pkg = JSON.parse(readFileSync('./package.json', 'utf-8'))
 // https://vite.dev/config/
 export default defineConfig({
   base: '/',
-  plugins: [react()],
+  plugins: [
+    react(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      injectRegister: 'auto',
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,jpg,jpeg,mjs}'],
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB limit
+      },
+      manifest: {
+        name: 'Sri Bagavath',
+        short_name: 'Sri Bagavath',
+        description: 'Inner Path to Spiritual Enlightenment. Satsangs, Books, and Teachings of Sri Bagavath Ayya.',
+        theme_color: '#ff9800',
+        background_color: '#ffffff',
+        display: 'standalone',
+        orientation: 'portrait',
+        icons: [
+          {
+            src: '/assets/sri-bagavath-logo.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'any maskable'
+          },
+          {
+            src: '/assets/sri-bagavath-logo.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable'
+          }
+        ]
+      }
+    })
+  ],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src')
@@ -22,6 +56,7 @@ export default defineConfig({
     minify: 'esbuild',
     sourcemap: false,
     rollupOptions: {
+      external: ['capacitor-razorpay'],
       output: {
         manualChunks: {
           'firebase-vendor': ['firebase/app', 'firebase/auth', 'firebase/firestore'],

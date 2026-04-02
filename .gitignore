@@ -34,3 +34,7 @@ android/app/signing.properties
 # Secrets Management
 secrets/
 !secrets.zip
+
+# Temporary downloads and local binaries
+downloads/
+.local/

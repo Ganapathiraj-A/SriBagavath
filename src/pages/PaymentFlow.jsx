@@ -10,7 +10,7 @@ import { auth } from '@/firebase';
 import { TransactionService } from '@/services/TransactionService';
 import OCR from '@/plugins/OCRPlugin';
 import { GPayUtils } from '@/utils/GPayUtils';
-import { Checkout } from 'capacitor-razorpay';
+// import { Checkout } from 'capacitor-razorpay'; // Removed static import for web compatibility
 import qrImage from '@/assets/qr_code.jpg';
 import instructionGif from '@/assets/payment_instruction.gif';
 import '../components/RegistrationStyles.css';
@@ -224,9 +224,46 @@ const PaymentFlow = () => {
                 }
             };
 
-            const result = await Checkout.open(options);
-            const response = result.response;
-            console.log(`Native Razorpay Success (${accountType}):`, response);
+            let response;
+            if (Capacitor.isNativePlatform()) {
+                const { Checkout } = await import('capacitor-razorpay');
+                const result = await Checkout.open(options);
+                response = result.response;
+                console.log(`Native Razorpay Success (${accountType}):`, response);
+            } else {
+                // Web Fallback: Use standard Razorpay Web SDK
+                // We'll need to load the script if not present
+                response = await new Promise((resolve, reject) => {
+                    const rzpOptions = {
+                        ...options,
+                        handler: (resp) => resolve(resp),
+                        modal: {
+                            ...options.modal,
+                            ondismiss: () => reject(new Error('Payment cancelled by user'))
+                        }
+                    };
+                    
+                    const loadScript = () => {
+                        const script = document.createElement('script');
+                        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+                        script.async = true;
+                        script.onload = () => {
+                            const rzp = new window.Razorpay(rzpOptions);
+                            rzp.open();
+                        };
+                        script.onerror = () => reject(new Error('Failed to load Razorpay SDK'));
+                        document.body.appendChild(script);
+                    };
+
+                    if (window.Razorpay) {
+                        const rzp = new window.Razorpay(rzpOptions);
+                        rzp.open();
+                    } else {
+                        loadScript();
+                    }
+                });
+                console.log(`Web Razorpay Success (${accountType}):`, response);
+            }
 
             setPaymentStatus('processing');
 
