@@ -102,31 +102,11 @@ const AyyasSchedule = () => {
                 leftAction={<button onClick={() => navigate('/programs')} style={{ background: 'none', border: 'none', padding: '8px' }}><ChevronLeft size={24} /></button>}
                 rightAction={
                     <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '0.5rem', 
-                        marginRight: '-0.25rem' 
+                        position: 'relative',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'flex-end'
                     }}>
-                        <button 
-                            onClick={handleShareAll} 
-                            disabled={isSharingAll || schedules.length === 0} 
-                            style={{ 
-                                width: '34px', 
-                                height: '34px', 
-                                backgroundColor: 'var(--color-card-transparent)', 
-                                backdropFilter: 'blur(4px)',
-                                border: 'none', 
-                                color: 'var(--color-primary)',
-                                borderRadius: '50%', 
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                justifyContent: 'center',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s'
-                            }}
-                        >
-                            {isSharingAll ? <Loader2 size={16} className="animate-spin" /> : <Share2 size={18} />}
-                        </button>
                         {(isAdmin || hasAccess('SCHEDULE_MANAGEMENT')) && !currentHiddenScreens.includes('/schedule/manage') && (
                             <button
                                 onClick={() => navigate('/schedule/manage', { state: { returnPath: location.pathname } })}
@@ -134,12 +114,12 @@ const AyyasSchedule = () => {
                                     display: 'flex',
                                     alignItems: 'center',
                                     gap: '0.4rem',
-                                    padding: '0.4rem 0.6rem',
+                                    padding: '0.5rem 0.8rem',
                                     backgroundColor: 'var(--color-primary-transparent)',
-                                    color: orange,
+                                    color: 'var(--color-primary)',
                                     border: '1px solid var(--color-primary)',
-                                    borderRadius: '0.6rem',
-                                    fontSize: '0.75rem',
+                                    borderRadius: '0.75rem',
+                                    fontSize: '0.85rem',
                                     fontWeight: 700,
                                     cursor: 'pointer'
                                 }}
@@ -147,6 +127,34 @@ const AyyasSchedule = () => {
                                 Edit
                             </button>
                         )}
+                        <div style={{ 
+                            position: 'absolute', 
+                            top: '100%', 
+                            right: 0, 
+                            marginTop: '0.5rem',
+                            paddingRight: '0.2rem' // Tiny nudge to align circle visually with pill edge
+                        }}>
+                             <button 
+                                onClick={handleShareAll} 
+                                disabled={isSharingAll || schedules.length === 0} 
+                                style={{ 
+                                    width: '32px', 
+                                    height: '32px', 
+                                    backgroundColor: 'var(--color-card-transparent)', 
+                                    backdropFilter: 'blur(4px)',
+                                    border: 'none', 
+                                    color: 'var(--color-primary)',
+                                    borderRadius: '50%', 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                {isSharingAll ? <Loader2 size={14} className="animate-spin" /> : <Share2 size={16} />}
+                            </button>
+                        </div>
                     </div>
                 }
             />
