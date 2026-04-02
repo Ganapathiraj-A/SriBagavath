@@ -54,18 +54,19 @@ const Videos = () => {
                         style={{
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'center',
-                            width: '40px',
-                            height: '40px',
-                            backgroundColor: 'var(--color-card)',
-                            border: '1px solid var(--color-border)',
-                            borderRadius: '50%',
-                            cursor: 'pointer',
-                            boxShadow: 'var(--shadow-sm)'
+                            gap: '0.4rem',
+                            padding: '0.4rem 0.8rem',
+                            backgroundColor: 'var(--color-primary-transparent)',
+                            color: 'var(--color-primary)',
+                            border: '1px solid var(--color-primary)',
+                            borderRadius: '0.75rem',
+                            fontSize: '0.85rem',
+                            fontWeight: 700,
+                            cursor: 'pointer'
                         }}
-                        title="Edit"
                     >
-                        <Edit2 size={20} color="var(--color-primary)" />
+                        <Edit2 size={16} />
+                        Edit
                     </button>
                 )}
             />

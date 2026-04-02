@@ -71,9 +71,22 @@ const Gallery = () => {
                 rightAction={(isAdmin || hasAccess('GALLERY_MANAGEMENT')) ? (
                     <button 
                         onClick={() => navigate('/admin/gallery')}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', color: 'var(--color-text)' }}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.4rem',
+                            padding: '0.4rem 0.8rem',
+                            backgroundColor: 'var(--color-primary-transparent)',
+                            color: 'var(--color-primary)',
+                            border: '1px solid var(--color-primary)',
+                            borderRadius: '0.75rem',
+                            fontSize: '0.85rem',
+                            fontWeight: 700,
+                            cursor: 'pointer'
+                        }}
                     >
-                        <Edit2 size={20} />
+                        <Edit2 size={16} />
+                        Edit
                     </button>
                 ) : null}
             />
