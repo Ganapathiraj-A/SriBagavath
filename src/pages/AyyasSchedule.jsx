@@ -103,12 +103,30 @@ const AyyasSchedule = () => {
                 rightAction={
                     <div style={{ 
                         display: 'flex', 
-                        flexDirection: 'column', 
-                        alignItems: 'flex-end', 
-                        gap: '0.4rem', 
-                        marginRight: '0.5rem', 
-                        marginTop: '2.5rem' // Increased from 1.2rem to push further down
+                        alignItems: 'center', 
+                        gap: '0.5rem', 
+                        marginRight: '-0.25rem' 
                     }}>
+                        <button 
+                            onClick={handleShareAll} 
+                            disabled={isSharingAll || schedules.length === 0} 
+                            style={{ 
+                                width: '34px', 
+                                height: '34px', 
+                                backgroundColor: 'var(--color-card-transparent)', 
+                                backdropFilter: 'blur(4px)',
+                                border: 'none', 
+                                color: 'var(--color-primary)',
+                                borderRadius: '50%', 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                            }}
+                        >
+                            {isSharingAll ? <Loader2 size={16} className="animate-spin" /> : <Share2 size={18} />}
+                        </button>
                         {(isAdmin || hasAccess('SCHEDULE_MANAGEMENT')) && !currentHiddenScreens.includes('/schedule/manage') && (
                             <button
                                 onClick={() => navigate('/schedule/manage', { state: { returnPath: location.pathname } })}
@@ -129,26 +147,6 @@ const AyyasSchedule = () => {
                                 Edit
                             </button>
                         )}
-                        <button 
-                            onClick={handleShareAll} 
-                            disabled={isSharingAll || schedules.length === 0} 
-                            style={{ 
-                                width: '32px', 
-                                height: '32px', 
-                                backgroundColor: 'var(--color-card-transparent)', 
-                                backdropFilter: 'blur(4px)',
-                                border: 'none', 
-                                color: 'var(--color-primary)',
-                                borderRadius: '50%', 
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                justifyContent: 'center',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s'
-                            }}
-                        >
-                            {isSharingAll ? <Loader2 size={14} className="animate-spin" /> : <Share2 size={16} />}
-                        </button>
                     </div>
                 }
             />
