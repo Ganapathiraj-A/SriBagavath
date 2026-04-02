@@ -106,8 +106,8 @@ const AyyasSchedule = () => {
                         flexDirection: 'column', 
                         alignItems: 'flex-end', 
                         gap: '0.4rem', 
-                        marginRight: '0.5rem', // Push left from standard container edge
-                        marginTop: '1.2rem' // Push down from centered vertical center
+                        marginRight: '0.5rem', 
+                        marginTop: '2.5rem' // Increased from 1.2rem to push further down
                     }}>
                         {(isAdmin || hasAccess('SCHEDULE_MANAGEMENT')) && !currentHiddenScreens.includes('/schedule/manage') && (
                             <button
