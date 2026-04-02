@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Headphones, BookOpen, Video, FileText, Youtube, Image as ImageIcon, Edit2 } from 'lucide-react';
+import { Headphones, BookOpen, Video, FileText, Youtube, Image as ImageIcon } from 'lucide-react';
 import { collection, query, getDocs, orderBy } from '@/utils/FirestoreProxy';
 import { db } from '@/firebase';
 import { useGlobalSettings } from '@/context/GlobalSettingsContext';
@@ -86,30 +86,7 @@ const Books = () => {
             backgroundColor: 'var(--color-surface)',
             padding: '1.5rem'
         }}>
-            <PageHeader 
-                title="Books & Media" 
-                rightAction={isAdmin && (
-                    <button
-                        onClick={() => navigate('/admin/books-and-media')}
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.4rem',
-                            padding: '0.4rem 0.8rem',
-                            backgroundColor: 'var(--color-primary-transparent)',
-                            color: 'var(--color-primary)',
-                            border: '1px solid var(--color-primary)',
-                            borderRadius: '0.75rem',
-                            fontSize: '0.85rem',
-                            fontWeight: 700,
-                            cursor: 'pointer'
-                        }}
-                    >
-                        <Edit2 size={16} />
-                        Edit
-                    </button>
-                )}
-            />
+            <PageHeader title="Books & Media" />
 
             <div style={{ maxWidth: '28rem', margin: '0 auto' }}>
 
