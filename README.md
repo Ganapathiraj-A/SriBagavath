@@ -35,6 +35,7 @@ The official **Sri Bagavath** mobile application, designed to provide seamless a
 - **Backend**: [Firebase](https://firebase.google.com/) (Auth, Firestore, Cloud Functions, Storage)
 - **Styling**: Vanilla CSS with [Framer Motion](https://www.framer.com/motion/) animations.
 - **Payments**: [Razorpay](https://razorpay.com/)
+- **DNS & Hosting**: [Cloudflare](https://www.cloudflare.com/) (Domain registration & protection for sribagavath.org)
 
 ---
 
