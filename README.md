@@ -72,11 +72,31 @@ To set up the development environment, follow these steps:
 
 ## 🏗 Build & Maintenance
 
-The project features a **Unified Build System** to handle different environments:
+The project features a **Unified Build System** to handle different environments and deployment targets:
 
+### 📦 Build Artifacts
 - **Dev Build**: `npm run build:apk:dev` (Package: `com.bhavathpathai.app.dev`)
 - **Production APK**: `npm run build:apk:prod` (Package: `com.bhavathpathai.app`)
 - **Play Store AAB**: `npm run build:aab:prod`
+
+### 🚀 Deployment Options
+
+#### 1. Direct Play Store Deployment
+The project includes an automated script to upload the production bundle (.aab) directly to the Google Play Console tracks (Internal, Alpha, or Production).
+- **Automated Flow**: Run `./publish.sh prod-aab`. This builds the AAB and triggers the `upload_playstore.js` script.
+- **Manual Upload**: `npm run publish:playstore:prod` (Requires `service-account.json` in root).
+
+#### 2. Deployment to Connected Phone
+For local testing and debugging on a physical Android device:
+- **Wireless Debugging**: Use the `./adb_auto_connect.sh` script to automatically pair and connect to your phone over the local network (ensure Wireless Debugging is enabled in Developer Options).
+- **Direct Install**: Once connected, you can install the latest build using:
+  ```bash
+  adb install -r SriBagavath.apk
+  ```
+- **Live Run**: For real-time debugging with logs:
+  ```bash
+  npx cap run android
+  ```
 
 For detailed build system information, see [BUILD_SYSTEM.md](BUILD_SYSTEM.md).
 
