@@ -98,6 +98,15 @@ For local testing and debugging on a physical Android device:
   npx cap run android
   ```
 
+#### 3. Website Deployment
+The website is hosted on Firebase and includes both the main user application and the admin portal.
+- **Full Production Deploy**: Run the following to refresh E-Media data from the database and deploy all hosting targets:
+  ```bash
+  npm run deploy:prod
+  ```
+- **Web App Only**: `npm run deploy:web`
+- **Admin Portal Only**: `npm run deploy:hosting:prod` (Skips the data-fetch step).
+
 For detailed build system information, see [BUILD_SYSTEM.md](BUILD_SYSTEM.md).
 
 ---
