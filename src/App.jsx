@@ -129,6 +129,7 @@ import { AdminAuthProvider } from './context/AdminAuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { CartProvider } from './context/CartContext';
 import { GlobalSettingsProvider, useGlobalSettings } from './context/GlobalSettingsContext';
+import { PWAProvider } from './context/PWAContext';
 import { useAdminAuth } from './context/AdminAuthContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import ApiCounterOverlay from './components/ApiCounterOverlay';
@@ -516,15 +517,17 @@ function AppContent() {
 function App() {
   return (
     <GlobalSettingsProvider>
-      <CartProvider>
-        <Router>
-          <AdminAuthProvider>
-            <NotificationProvider>
-              <AppContent />
-            </NotificationProvider>
-          </AdminAuthProvider>
-        </Router>
-      </CartProvider>
+      <PWAProvider>
+        <CartProvider>
+          <Router>
+            <AdminAuthProvider>
+              <NotificationProvider>
+                <AppContent />
+              </NotificationProvider>
+            </AdminAuthProvider>
+          </Router>
+        </CartProvider>
+      </PWAProvider>
     </GlobalSettingsProvider>
   );
 }

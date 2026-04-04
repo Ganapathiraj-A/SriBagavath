@@ -89,86 +89,96 @@ export const shareTransactions = async (items, type, allPrograms = []) => {
 };
 
 /**
- * Shares a gallery image URL.
- * @param {Object} img - Image object with url and caption
+ * Central sharing utility that handles both Native and Web/PWA platforms.
  */
-export const shareImage = async (img) => {
-    if (!img || !img.url) return;
-    
+export const shareItem = async ({ title, text, url, imageUrl, dialogTitle = 'Share' }) => {
     const isNative = Capacitor.isNativePlatform();
-    
+    const shareText = `${text}\n\n${url}`;
+
     try {
         if (isNative) {
-            // Show a "Preparing image" toast for better UX
-            await Toast.show({
-                text: 'Preparing image for sharing...',
-                duration: 'short'
-            });
+            // Native Platform (Capacitor)
+            let files = [];
+            if (imageUrl) {
+                try {
+                    const response = await fetch(`${imageUrl}${imageUrl.includes('?') ? '&' : '?'}t=${Date.now()}`);
+                    const blob = await response.blob();
+                    const reader = new FileReader();
+                    const base64Data = await new Promise((resolve, reject) => {
+                        reader.onload = () => resolve(reader.result.split(',')[1]);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(blob);
+                    });
 
-            // 1. Fetch image with proper CORS and cache-busting
-            const response = await fetch(`${img.url}${img.url.includes('?') ? '&' : '?'}t=${Date.now()}`);
-            const blob = await response.blob();
-            
-            // 2. Convert to Base64 (Filesystem.writeFile expects base64 or string)
-            const reader = new FileReader();
-            const base64Data = await new Promise((resolve, reject) => {
-                reader.onload = () => resolve(reader.result.split(',')[1]);
-                reader.onerror = reject;
-                reader.readAsDataURL(blob);
-            });
+                    const fileName = `share_${Date.now()}.jpg`;
+                    const result = await Filesystem.writeFile({
+                        path: fileName,
+                        data: base64Data,
+                        directory: Directory.Cache
+                    });
+                    files = [result.uri];
+                } catch (err) {
+                    console.error("Native image prep failed", err);
+                }
+            }
 
-            // 3. Save to temporary file in a share-friendly directory
-            const fileName = `gallery_share_${Date.now()}.jpg`;
-            const result = await Filesystem.writeFile({
-                path: fileName,
-                data: base64Data,
-                directory: Directory.Cache
-            });
-
-            // 4. Share the file URI
-            // On some platforms, Share.share needs the files array even if title/text are present
             await Share.share({
-                title: 'Sri Bagavath Gallery',
-                text: img.caption || 'Shared from Sri Bagavath Gallery',
-                files: [result.uri],
-                dialogTitle: 'Share Image'
+                title: title,
+                text: shareText,
+                files: files,
+                dialogTitle: dialogTitle
             });
-            
-            return; // Success
+            return;
         }
 
-        // Web Fallback (or if not native)
-        await Share.share({
-            title: 'Sri Bagavath Gallery',
-            text: img.caption || 'Check out this image from Sri Bagavath Gallery',
-            url: img.url,
-            dialogTitle: 'Share Image'
-        });
+        // Web / PWA Platform
+        if (navigator.share) {
+            // Check if we can share files
+            if (imageUrl && navigator.canShare) {
+                try {
+                    const response = await fetch(imageUrl);
+                    const blob = await response.blob();
+                    const file = new File([blob], 'share-image.jpg', { type: 'image/jpeg' });
 
+                    if (navigator.canShare({ files: [file] })) {
+                        await navigator.share({
+                            title: title,
+                            text: shareText,
+                            files: [file]
+                        });
+                        return;
+                    }
+                } catch (err) {
+                    console.error("PWA file share prep failed", err);
+                }
+            }
+
+            // Fallback for Web Text/URL Share
+            await navigator.share({
+                title: title,
+                text: shareText,
+                url: url
+            });
+        } else {
+            // Final fallback: Clipboard
+            await navigator.clipboard.writeText(shareText);
+            await Toast.show({ text: 'Link copied to clipboard!', duration: 'short' });
+        }
     } catch (error) {
         console.error("Sharing failed", error);
-        
-        // Final fallback to URL if native file sharing fails
-        if (isNative) {
-            try {
-                await Share.share({
-                    title: 'Sri Bagavath Gallery',
-                    text: img.caption || 'Check out this image from Sri Bagavath Gallery',
-                    url: img.url,
-                    dialogTitle: 'Share Image'
-                });
-            } catch (err2) {
-                console.error("Secondary share failed", err2);
-            }
-        }
-        
-        // Browser Navigator.share fallback
-        if (!isNative && navigator.share) {
-            await navigator.share({
-                title: 'Sri Bagavath Gallery',
-                text: img.caption || 'Check out this image from Sri Bagavath Gallery',
-                url: img.url
-            }).catch(() => {});
-        }
     }
+};
+
+/**
+ * Legacy wrapper: Shares a gallery image URL.
+ */
+export const shareImage = async (img) => {
+    if (!img) return;
+    return shareItem({
+        title: 'Sri Bagavath Gallery',
+        text: img.caption || 'Check out this image from Sri Bagavath Gallery',
+        url: img.url,
+        imageUrl: img.url,
+        dialogTitle: 'Share Image'
+    });
 };

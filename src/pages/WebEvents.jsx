@@ -6,6 +6,7 @@ import { db } from '../firebase';
 import { collection, query, where, orderBy, getDocs, getDocsCacheFirst, onSnapshot } from '../utils/FirestoreProxy';
 import { getLocalDateString } from '../utils/dateUtils';
 import LazyImage from '../components/LazyImage';
+import { shareItem } from '../utils/shareUtils';
 import './WebPages.css';
 
 // --- Helpers for Recurring Events ---
@@ -159,15 +160,16 @@ const WebEvents = () => {
     }, []);
 
     const handleShare = async (program) => {
-        const text = `Join us for ${program.title} on ${program.programDate} at ${program.location}.\n\nRegister here: https://sribagavath.org/web/programs/${program.id}`;
-        if (navigator.share) {
-            try {
-                await navigator.share({ title: program.title, text: text, url: window.location.href });
-            } catch (err) {}
-        } else {
-            navigator.clipboard.writeText(text);
-            alert("Details copied to clipboard!");
-        }
+        const text = `Join us for ${program.programName || program.title} on ${program.programDate || program.date} at ${program.programVenue || program.location}.`;
+        const url = `https://sribagavath.org/web/programs/${program.id}`;
+        
+        await shareItem({
+            title: program.programName || program.title,
+            text: text,
+            url: url,
+            imageUrl: program.image || program.banner || program.programBanner,
+            dialogTitle: 'Share Program'
+        });
     };
 
     if (loading) {

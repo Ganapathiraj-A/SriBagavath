@@ -26,15 +26,25 @@ export default defineConfig({
         background_color: '#ffffff',
         display: 'standalone',
         orientation: 'portrait',
+        start_url: '/',
+        scope: '/',
+        prefer_related_applications: false,
+        related_applications: [
+          {
+            "platform": "play",
+            "url": "https://play.google.com/store/apps/details?id=com.bhavathpathai.app",
+            "id": "com.bhavathpathai.app"
+          }
+        ],
         icons: [
           {
-            src: '/assets/sri-bagavath-logo.png',
+            src: 'pwa-192x192.png',
             sizes: '192x192',
             type: 'image/png',
             purpose: 'any maskable'
           },
           {
-            src: '/assets/sri-bagavath-logo.png',
+            src: 'pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable'

@@ -21,6 +21,7 @@ import { ensureGoogleAuthInitialized, GET_GOOGLE_CLIENT_ID } from '@/utils/Googl
 import { db, auth } from '@/firebase';
 import { StatsService } from '@/services/StatsService';
 import { collection, addDoc } from '@/utils/FirestoreProxy';
+import { usePWA } from '@/context/PWAContext';
 
 // Module-level variable to track if this is the very first load of the app in this session.
 // This allows us to skip animations during the transition from the splash/skeleton screen.
@@ -434,50 +435,50 @@ const Home = () => {
                     <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-text)', marginBottom: '0.5rem' }}>Sri Bagavath Mission</h1>
                     <p style={{ color: 'var(--color-text-muted)' }}>Welcome to the official app</p>
 
-                    <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px' }}>
-                        {isActualUser ? (
-                            <button
-                                onClick={handleLogout}
-                                disabled={authLoading}
-                                style={{
-                                    background: 'none',
-                                    border: 'none',
-                                    color: 'var(--color-error)',
-                                    fontSize: '0.9rem',
-                                    fontWeight: 500,
-                                    cursor: 'pointer',
-                                    textDecoration: 'underline',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '4px'
-                                }}
-                            >
-                                <LogOut size={14} />
-                                Logout
-                            </button>
-                        ) : (
-                            <button
-                                onClick={handleGoogleLogin}
-                                disabled={authLoading}
-                                style={{
-                                    background: 'none',
-                                    border: 'none',
-                                    color: 'var(--color-primary)',
-                                    fontSize: '0.9rem',
-                                    fontWeight: 500,
-                                    cursor: 'pointer',
-                                    textDecoration: 'underline',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '4px'
-                                }}
-                            >
-                                <LogIn size={14} />
-                                {authLoading ? 'Signing in...' : 'Sign in for full access'}
-                            </button>
-                        )}
-
-
+                    <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px' }}>
+                            {isActualUser ? (
+                                <button
+                                    onClick={handleLogout}
+                                    disabled={authLoading}
+                                    style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        color: 'var(--color-error)',
+                                        fontSize: '0.9rem',
+                                        fontWeight: 500,
+                                        cursor: 'pointer',
+                                        textDecoration: 'underline',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '4px'
+                                    }}
+                                >
+                                    <LogOut size={14} />
+                                    Logout
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={handleGoogleLogin}
+                                    disabled={authLoading}
+                                    style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        color: 'var(--color-primary)',
+                                        fontSize: '0.9rem',
+                                        fontWeight: 500,
+                                        cursor: 'pointer',
+                                        textDecoration: 'underline',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '4px'
+                                    }}
+                                >
+                                    <LogIn size={14} />
+                                    {authLoading ? 'Signing in...' : 'Sign in for full access'}
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
 

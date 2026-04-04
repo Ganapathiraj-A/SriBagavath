@@ -5,6 +5,7 @@ import { FaArrowLeft, FaShoppingCart, FaPlus, FaMinus, FaShareAlt } from 'react-
 import { db } from '@/firebase';
 import { useCart } from '@/context/CartContext';
 import LazyImage from '@/components/LazyImage';
+import { shareItem } from '@/utils/shareUtils';
 import './WebPages.css';
 
 const WebBookDetails = () => {
@@ -84,16 +85,13 @@ const WebBookDetails = () => {
                   </button>
                 )}
                 <button className="web-btn-secondary outline" onClick={() => {
-                   if (navigator.share) {
-                     navigator.share({
-                       title: book.title,
-                       text: `Check out ${book.title} by Sri Bagavath Ayya`,
-                       url: window.location.href
-                     });
-                   } else {
-                     alert("Link copied to clipboard!");
-                     navigator.clipboard.writeText(window.location.href);
-                   }
+                   shareItem({
+                     title: book.title,
+                     text: `Check out ${book.title} by Sri Bagavath Ayya`,
+                     url: window.location.href,
+                     imageUrl: book.imageUrl || book.coverUrl,
+                     dialogTitle: 'Share Book'
+                   });
                 }}>
                   <FaShareAlt /> Share
                 </button>

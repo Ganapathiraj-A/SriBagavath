@@ -2215,23 +2215,43 @@
 .lightbox-nav.prev { left: 40px; }
 .lightbox-nav.next { right: 40px; }
 
+.lightbox-footer {
+    position: absolute;
+    bottom: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+}
+
 .lightbox-counter {
-  position: absolute;
-  bottom: 32px;
-  color: rgba(255,255,255,0.6);
-  font-size: 16px;
-  font-weight: 600;
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+.lightbox-share {
+    background: var(--web-accent);
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 25px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s ease;
+}
+
+.lightbox-share:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
 
 @media (max-width: 768px) {
-  .gallery-grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 16px;
-  }
-  
-  .lightbox-nav {
-    display: none;
-  }
   
   .lightbox-overlay {
     padding: 20px;

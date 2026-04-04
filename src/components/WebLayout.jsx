@@ -7,10 +7,12 @@ import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
 import './WebLayout.css';
 import WebImagePrefetcher from './WebImagePrefetcher';
+import { usePWA } from '../context/PWAContext';
 
 const WebLayout = ({ children }) => {
   const location = useLocation();
   const { user } = useAdminAuth();
+  const { installApp } = usePWA();
 
   const handleLogout = async () => {
     if (window.confirm("Are you sure you want to sign out?")) {
@@ -80,19 +82,23 @@ const WebLayout = ({ children }) => {
           <div className="web-user-nav">
             {user && !user.isAnonymous ? (
               <div className="web-user-profile">
-                <div className="web-user-avatar">
-                   {user.photoURL ? <img src={user.photoURL} alt="" /> : <FaUser />}
+                <div className="web-user-profile-header">
+                  <div className="web-user-avatar">
+                     {user.photoURL ? <img src={user.photoURL} alt="" /> : <FaUser />}
+                  </div>
+                  <span className="web-user-name">{user.displayName || 'Devotee'}</span>
+                  <button onClick={handleLogout} className="web-logout-btn" title="Sign Out">
+                    <LogOut size={16} />
+                  </button>
                 </div>
-                <span className="web-user-name">{user.displayName || 'Devotee'}</span>
-                <button onClick={handleLogout} className="web-logout-btn" title="Sign Out">
-                  <LogOut size={16} />
-                </button>
               </div>
             ) : (
-              <Link to="/web/account" className="web-login-link">
-                <LogIn size={16} />
-                <span>Sign In</span>
-              </Link>
+                <div className="web-login-container">
+                  <Link to="/web/account" className="web-login-link">
+                    <LogIn size={16} />
+                    <span>Sign In</span>
+                  </Link>
+                </div>
             )}
           </div>
         </div>

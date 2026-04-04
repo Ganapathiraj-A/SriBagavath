@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { collection, query, getDocs, onSnapshot, orderBy } from '../utils/FirestoreProxy';
 import { db } from '../firebase';
-import { X, ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Maximize2, Share2 } from 'lucide-react';
+import { shareImage } from '../utils/shareUtils';
 import './WebPages.css';
 
 const WebGallery = () => {
@@ -129,10 +130,18 @@ const WebGallery = () => {
                             transition={{ delay: index * 0.05 }}
                             onClick={() => openLightbox(index)}
                         >
-                            <img src={img.url} alt={img.caption || 'Gallery Image'} loading="lazy" />
                             <div className="gallery-overlay">
                                 <Maximize2 size={24} />
                                 {img.caption && <p>{img.caption}</p>}
+                                <button
+                                    className="gallery-share-btn"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        shareImage(img);
+                                    }}
+                                >
+                                    <Share2 size={20} />
+                                </button>
                             </div>
                         </motion.div>
                     ))}
@@ -173,8 +182,19 @@ const WebGallery = () => {
 
                         <button className="lightbox-nav next" onClick={nextImage}><ChevronRight size={48} /></button>
                         
-                        <div className="lightbox-counter">
-                            {selectedIndex + 1} / {filteredImages.length}
+                        <div className="lightbox-footer">
+                            <div className="lightbox-counter">
+                                {selectedIndex + 1} / {filteredImages.length}
+                            </div>
+                            <button
+                                className="lightbox-share"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    shareImage(filteredImages[selectedIndex]);
+                                }}
+                            >
+                                <Share2 size={24} /> Share
+                            </button>
                         </div>
                     </motion.div>
                 )}
