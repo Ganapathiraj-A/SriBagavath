@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { collection, query, getDocs, onSnapshot, orderBy } from '../utils/FirestoreProxy';
 import { db } from '../firebase';
 import { X, ChevronLeft, ChevronRight, Maximize2, Share2 } from 'lucide-react';
-import { shareImage } from '../utils/shareUtils';
+import { shareItem } from '../utils/shareUtils';
 import './WebPages.css';
 
 const WebGallery = () => {
@@ -137,7 +137,13 @@ const WebGallery = () => {
                                     className="gallery-share-btn"
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        shareImage(img);
+                                        shareItem({
+                                            title: 'Sri Bagavath Gallery',
+                                            text: img.caption || 'Check out this image from Sri Bagavath Gallery',
+                                            url: window.location.href,
+                                            imageUrl: img.url,
+                                            dialogTitle: 'Share Image'
+                                        });
                                     }}
                                 >
                                     <Share2 size={20} />
@@ -190,7 +196,13 @@ const WebGallery = () => {
                                 className="lightbox-share"
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    shareImage(filteredImages[selectedIndex]);
+                                    shareItem({
+                                        title: 'Sri Bagavath Gallery',
+                                        text: filteredImages[selectedIndex].caption || 'Check out this image from Sri Bagavath Gallery',
+                                        url: window.location.href,
+                                        imageUrl: filteredImages[selectedIndex].url,
+                                        dialogTitle: 'Share Image'
+                                    });
                                 }}
                             >
                                 <Share2 size={24} /> Share

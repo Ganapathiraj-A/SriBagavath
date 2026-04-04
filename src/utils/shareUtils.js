@@ -288,26 +288,6 @@ export const shareItem = async ({ title, text, url, imageUrl, dialogTitle = 'Sha
 
         // Web / PWA Platform
         if (navigator.share) {
-            // Check if we can share files
-            if (imageUrl && navigator.canShare) {
-                try {
-                    const response = await fetch(imageUrl);
-                    const blob = await response.blob();
-                    const file = new File([blob], 'share-image.jpg', { type: 'image/jpeg' });
-
-                    if (navigator.canShare({ files: [file] })) {
-                        await navigator.share({
-                            title: title,
-                            text: shareText,
-                            files: [file]
-                        });
-                        return;
-                    }
-                } catch (err) {
-                    console.error("PWA file share prep failed", err);
-                }
-            }
-
             // Fallback for Web Text/URL Share
             await navigator.share({
                 title,
