@@ -1,3 +1,4 @@
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import PWAInstallBanner from '../components/PWAInstallBanner';
 import { Capacitor } from '@capacitor/core';
 
