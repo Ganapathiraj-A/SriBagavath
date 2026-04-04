@@ -66,7 +66,6 @@ export default defineConfig({
     minify: 'esbuild',
     sourcemap: false,
     rollupOptions: {
-      external: ['capacitor-razorpay'],
       output: {
         manualChunks: {
           'firebase-vendor': ['firebase/app', 'firebase/auth', 'firebase/firestore'],

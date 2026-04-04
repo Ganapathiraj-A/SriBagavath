@@ -17,9 +17,11 @@ service cloud.firestore {
     }
 
     function hasPermission(perm) {
-      if (!isAdmin()) return false;
-      let data = getAdminData();
-      return data.role == 'SUPER_ADMIN' || data.role == 'ADMIN' || (data.role == 'POWER_USER' && data.permissions.hasAny([perm]));
+      return isAdmin() && (
+        getAdminData().role == 'SUPER_ADMIN' || 
+        getAdminData().role == 'ADMIN' || 
+        (getAdminData().role == 'POWER_USER' && getAdminData().permissions.hasAny([perm]))
+      );
     }
 
     // Admins collection: Restrict read to the specific admin. Only admins can grant roles.
@@ -47,7 +49,7 @@ service cloud.firestore {
       allow create: if request.auth != null && 
         request.resource.data.userId == request.auth.uid &&
         request.resource.data.amount is number &&
-        request.resource.data.status == 'PENDING'; // Force PENDING on creation
+        (request.resource.data.status == 'PENDING' || (request.resource.data.status == 'REGISTERED' && request.resource.data.razorpayPaymentId != null)); 
       allow update, delete: if isAdmin();
     }
     
