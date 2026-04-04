@@ -2,34 +2,54 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { collection, query, onSnapshot, orderBy } from '../utils/FirestoreProxy';
 import { db } from '../firebase';
-import { X, ChevronLeft, ChevronRight, Maximize2, Share2 } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Maximize2, Share2, Folder, ArrowLeft } from 'lucide-react';
 import { shareItem } from '../utils/shareUtils';
 import './WebPages.css';
 
 const WebGallery = () => {
     const [images, setImages] = useState([]);
+    const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('general');
+    const [selectedEventId, setSelectedEventId] = useState(null);
     const [selectedIndex, setSelectedIndex] = useState(null);
     const shareImageCacheRef = useRef(new Map());
 
     useEffect(() => {
         console.log("[WebGallery] Setting up gallery snapshot listener...");
-        const q = query(collection(db, 'gallery'), orderBy('order', 'asc'));
+        const qImages = query(collection(db, 'gallery'), orderBy('order', 'asc'));
+        const qEvents = query(collection(db, 'gallery_events'), orderBy('order', 'asc'));
         
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            console.log("[WebGallery] Snapshot received. Size:", snapshot.docs.length);
+        const unsubImages = onSnapshot(qImages, (snapshot) => {
             setImages(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
             setLoading(false);
         }, (error) => {
-            console.error("[WebGallery] Error fetching gallery:", error);
+            console.error("[WebGallery] Error fetching gallery images:", error);
             setLoading(false);
         });
 
-        return () => unsubscribe();
+        const unsubEvents = onSnapshot(qEvents, (snapshot) => {
+            setEvents(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+        }, (error) => {
+            console.error("[WebGallery] Error fetching gallery events:", error);
+        });
+
+        return () => {
+            unsubImages();
+            unsubEvents();
+        };
     }, []);
 
-    const filteredImages = images.filter(img => (img.category || 'general') === activeTab);
+    const filteredImages = images.filter(img => {
+        const cat = img.category || 'general';
+        if (cat !== activeTab) return false;
+        if (activeTab === 'events') {
+            return img.eventId === selectedEventId;
+        }
+        return true;
+    });
+
+    const selectedEvent = events.find(ev => ev.id === selectedEventId);
 
     const openLightbox = (index) => setSelectedIndex(index);
     const closeLightbox = () => setSelectedIndex(null);
@@ -125,6 +145,7 @@ const WebGallery = () => {
                                 className={`emedia-tab-btn ${activeTab === tab.id ? 'active' : ''}`}
                                 onClick={() => {
                                     setActiveTab(tab.id);
+                                    setSelectedEventId(null);
                                     setSelectedIndex(null);
                                 }}
                             >
@@ -134,52 +155,87 @@ const WebGallery = () => {
                         ))}
                     </div>
 
+                    {activeTab === 'events' && selectedEventId && (
+                        <div className="gallery-breadcrumbs">
+                            <button className="back-btn" onClick={() => setSelectedEventId(null)}>
+                                <ArrowLeft size={18} /> Back to Events
+                            </button>
+                            <span className="current-folder">/ {selectedEvent?.name}</span>
+                        </div>
+                    )}
                 </div>
 
-                <div className="gallery-grid">
-                    {filteredImages.map((img, index) => (
-                        <motion.div
-                            key={img.id}
-                            className="gallery-item"
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: index * 0.05 }}
-                            onClick={() => openLightbox(index)}
-                        >
-                            <img
-                                src={img.url}
-                                alt={img.caption || 'Sri Bagavath Gallery'}
-                                crossOrigin="anonymous"
-                                onLoad={(e) => {
-                                    cacheShareableImage(img.id, e.currentTarget);
-                                }}
-                            />
-                            <div className="gallery-overlay">
-                                <Maximize2 size={24} />
-                                {img.caption && <p>{img.caption}</p>}
-                                <button
-                                    className="gallery-share-btn"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleShareImage(img);
-                                    }}
-                                >
-                                    <Share2 size={20} />
-                                </button>
+                {activeTab === 'events' && !selectedEventId ? (
+                    <div className="events-grid">
+                        {events.map(event => (
+                            <motion.div
+                                key={event.id}
+                                className="event-folder-card"
+                                whileHover={{ y: -5 }}
+                                onClick={() => setSelectedEventId(event.id)}
+                            >
+                                <div className="folder-icon-wrapper">
+                                    <Folder size={48} className="folder-icon" />
+                                </div>
+                                <div className="event-info">
+                                    <h3>{event.name}</h3>
+                                    <p>{images.filter(img => img.eventId === event.id).length} photos</p>
+                                </div>
+                            </motion.div>
+                        ))}
+                        {events.length === 0 && (
+                            <div className="web-no-results">
+                                <p>No events found.</p>
                             </div>
-                        </motion.div>
-                    ))}
-                </div>
-
-                {filteredImages.length === 0 && (
-                    <div className="web-no-results">
-                        <p>No images found in this category.</p>
+                        )}
                     </div>
+                ) : (
+                    <>
+                        <div className="gallery-grid">
+                            {filteredImages.map((img, index) => (
+                                <motion.div
+                                    key={img.id}
+                                    className="gallery-item"
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: index * 0.05 }}
+                                    onClick={() => openLightbox(index)}
+                                >
+                                    <img
+                                        src={img.url}
+                                        alt={img.caption || 'Sri Bagavath Gallery'}
+                                        crossOrigin="anonymous"
+                                        onLoad={(e) => {
+                                            cacheShareableImage(img.id, e.currentTarget);
+                                        }}
+                                    />
+                                    <div className="gallery-overlay">
+                                        <Maximize2 size={24} />
+                                        {img.caption && <p>{img.caption}</p>}
+                                        <button
+                                            className="gallery-share-btn"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleShareImage(img);
+                                            }}
+                                        >
+                                            <Share2 size={20} />
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                        {filteredImages.length === 0 && (
+                            <div className="web-no-results">
+                                <p>No images found in this folder.</p>
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
 
             <AnimatePresence>
-                {selectedIndex !== null && (
+                {selectedIndex !== null && filteredImages[selectedIndex] && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Save, X, ChevronUp, ChevronDown, Share2 } from 'lucide-react';
-import { collection, query, getDocs, orderBy, addDoc, updateDoc, deleteDoc, doc, Timestamp } from 'firebase/firestore';
+import { Plus, Trash2, Save, X, ChevronUp, ChevronDown, Share2, Folder, FolderPlus, ArrowLeft } from 'lucide-react';
+import { collection, query, getDocs, orderBy, addDoc, updateDoc, deleteDoc, doc, Timestamp, where } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '@/firebase';
 import { shareImage } from '@/utils/shareUtils';
@@ -18,11 +18,26 @@ const AdminGallery = () => {
     const [showAddModal, setShowAddModal] = useState(false);
     const [activeTab, setActiveTab] = useState('general');
     const [subTab, setSubTab] = useState('events');
-    const [newForm, setNewForm] = useState({ url: '', caption: '', order: 0, category: 'general' });
+    const [selectedEventId, setSelectedEventId] = useState(null);
+    const [events, setEvents] = useState([]);
+    const [showEventModal, setShowEventModal] = useState(false);
+    const [newEventForm, setNewEventForm] = useState({ name: '', order: 0 });
+    const [newForm, setNewForm] = useState({ url: '', caption: '', order: 0, category: 'general', eventId: '' });
 
     useEffect(() => {
         fetchImages();
+        fetchEvents();
     }, []);
+
+    const fetchEvents = async () => {
+        try {
+            const q = query(collection(db, 'gallery_events'), orderBy('order', 'asc'));
+            const snapshot = await getDocs(q);
+            setEvents(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+        } catch (error) {
+            console.error("Error fetching gallery events:", error);
+        }
+    };
 
     const fetchImages = async () => {
         setLoading(true);
@@ -78,6 +93,8 @@ const AdminGallery = () => {
 
     const handleAdd = async () => {
         if (!newForm.url) return alert("URL is required");
+        if (newForm.category === 'events' && !newForm.eventId) return alert("Please select an event folder");
+        
         try {
             await addDoc(collection(db, 'gallery'), {
                 ...newForm,
@@ -85,7 +102,7 @@ const AdminGallery = () => {
                 createdAt: Timestamp.now(),
                 updatedAt: Timestamp.now()
             });
-            setNewForm({ url: '', caption: '', order: images.length, category: 'general' });
+            setNewForm({ url: '', caption: '', order: images.length, category: 'general', eventId: '' });
             setShowAddModal(false);
             fetchImages();
         } catch (error) {
@@ -142,16 +159,51 @@ const AdminGallery = () => {
             url: img.url, 
             caption: img.caption || '', 
             order: img.order || 0,
-            category: img.category || 'general'
+            category: img.category || 'general',
+            eventId: img.eventId || ''
         });
     };
 
     const filteredImages = images.filter(img => {
         const cat = img.category || 'general';
         if (activeTab === 'general') return cat === 'general';
-        if (activeTab === 'recent') return cat === subTab;
+        if (activeTab === 'recent') {
+            if (cat !== subTab) return false;
+            if (subTab === 'events') {
+                return img.eventId === selectedEventId;
+            }
+            return true;
+        }
         return false;
     });
+
+    const handleCreateEvent = async () => {
+        if (!newEventForm.name) return;
+        try {
+            await addDoc(collection(db, 'gallery_events'), {
+                ...newEventForm,
+                createdAt: Timestamp.now(),
+                updatedAt: Timestamp.now()
+            });
+            setNewEventForm({ name: '', order: events.length });
+            setShowEventModal(false);
+            fetchEvents();
+        } catch (error) {
+            alert("Error creating event: " + error.message);
+        }
+    };
+
+    const handleDeleteEvent = async (id, e) => {
+        e?.stopPropagation();
+        if (!confirm("Are you sure? This will NOT delete images, but they will be unlinked from this event.")) return;
+        try {
+            await deleteDoc(doc(db, 'gallery_events', id));
+            fetchEvents();
+            if (selectedEventId === id) setSelectedEventId(null);
+        } catch (error) {
+            alert("Error deleting event: " + error.message);
+        }
+    };
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-surface)', paddingBottom: '2rem' }}>
@@ -272,37 +324,116 @@ const AdminGallery = () => {
             </AnimatePresence>
 
             <div style={{ maxWidth: '48rem', margin: '0 auto', padding: '1rem' }}>
-                <button
-                    onClick={() => {
-                        const defaultCategory = activeTab === 'recent' ? subTab : 'general';
-                        setNewForm(prev => ({ 
-                            ...prev, 
-                            order: images.length,
-                            category: defaultCategory
-                        }));
-                        setShowAddModal(true);
-                    }}
-                    style={{
-                        width: '100%',
-                        padding: '1rem',
-                        backgroundColor: 'var(--color-primary)',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '0.75rem',
-                        fontWeight: 600,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '0.5rem',
-                        marginBottom: '1.5rem',
-                        cursor: 'pointer'
-                    }}
-                >
-                    <Plus size={20} /> Add to {activeTab === 'recent' ? (subTab === 'ayya' ? 'Ayya' : 'Events') : 'General'}
-                </button>
+                <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+                    {activeTab === 'recent' && subTab === 'events' && selectedEventId && (
+                        <button
+                            onClick={() => setSelectedEventId(null)}
+                            style={{
+                                padding: '0.8rem',
+                                backgroundColor: 'var(--color-surface)',
+                                color: 'var(--color-primary)',
+                                border: '1px solid var(--color-border)',
+                                borderRadius: '0.75rem',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem'
+                            }}
+                        >
+                            <ArrowLeft size={20} />
+                        </button>
+                    )}
+                    
+                    <button
+                        onClick={() => {
+                            const defaultCategory = activeTab === 'recent' ? subTab : 'general';
+                            setNewForm(prev => ({ 
+                                ...prev, 
+                                order: images.length,
+                                category: defaultCategory,
+                                eventId: selectedEventId || ''
+                            }));
+                            setShowAddModal(true);
+                        }}
+                        style={{
+                            flex: 1,
+                            padding: '1rem',
+                            backgroundColor: 'var(--color-primary)',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '0.75rem',
+                            fontWeight: 600,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '0.5rem',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        <Plus size={20} /> Image to {activeTab === 'recent' ? (subTab === 'ayya' ? 'Ayya' : 'Current Event') : 'General'}
+                    </button>
+
+                    {activeTab === 'recent' && subTab === 'events' && !selectedEventId && (
+                        <button
+                            onClick={() => setShowEventModal(true)}
+                            style={{
+                                padding: '1rem',
+                                backgroundColor: 'var(--color-success)',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '0.75rem',
+                                fontWeight: 600,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            <FolderPlus size={20} /> New Event
+                        </button>
+                    )}
+                </div>
+
+                {/* Event Folder List */}
+                {activeTab === 'recent' && subTab === 'events' && !selectedEventId && (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+                        {events.map(event => (
+                            <motion.div
+                                key={event.id}
+                                whileHover={{ scale: 1.05 }}
+                                onClick={() => setSelectedEventId(event.id)}
+                                style={{
+                                    backgroundColor: 'var(--color-card)',
+                                    padding: '1rem',
+                                    borderRadius: '1rem',
+                                    border: '1px solid var(--color-border)',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    cursor: 'pointer',
+                                    position: 'relative'
+                                }}
+                            >
+                                <Folder size={32} color="var(--color-primary)" fill="var(--color-primary-transparent)" />
+                                <span style={{ fontSize: '0.875rem', fontWeight: 600, textAlign: 'center' }}>{event.name}</span>
+                                <button 
+                                    onClick={(e) => handleDeleteEvent(event.id, e)}
+                                    style={{ position: 'absolute', top: '0.25rem', right: '0.25rem', background: 'none', border: 'none', color: 'var(--color-error)' }}
+                                >
+                                    <Trash2 size={14} />
+                                </button>
+                            </motion.div>
+                        ))}
+                    </div>
+                )}
 
                 {loading ? (
                     <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)' }}>Loading gallery...</div>
+                ) : activeTab === 'recent' && subTab === 'events' && !selectedEventId ? (
+                    <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)', backgroundColor: 'var(--color-surface)', borderRadius: '1rem', border: '1px dashed var(--color-border)' }}>
+                        Select an event folder above to manage its photos.
+                    </div>
                 ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         {filteredImages.map((img) => (
@@ -395,6 +526,16 @@ const AdminGallery = () => {
                                             <button onClick={() => handleUpdate(img.id)} style={{ padding: '0.5rem', color: 'var(--color-success)', background: 'none', border: 'none' }}><Save size={20} /></button>
                                             <button onClick={(e) => { e.stopPropagation(); setEditingId(null); }} style={{ padding: '0.5rem', color: 'var(--color-text-muted)', background: 'none', border: 'none' }}><X size={20} /></button>
                                         </div>
+                                        {editForm.category === 'events' && (
+                                            <select
+                                                value={editForm.eventId}
+                                                onChange={e => setEditForm({ ...editForm, eventId: e.target.value })}
+                                                style={{ width: '100%', marginTop: '0.5rem', padding: '0.4rem', borderRadius: '0.25rem', border: '1px solid var(--color-primary)', fontSize: '0.8rem' }}
+                                            >
+                                                <option value="">-- Select Event Folder --</option>
+                                                {events.map(ev => <option key={ev.id} value={ev.id}>{ev.name}</option>)}
+                                            </select>
+                                        )}
                                     </div>
                                 ) : (
                                     <div 
@@ -446,7 +587,7 @@ const AdminGallery = () => {
                 )}
             </div>
 
-            {/* Add Modal */}
+            {/* Add Image Modal */}
             <AnimatePresence>
                 {showAddModal && (
                     <motion.div
@@ -527,7 +668,7 @@ const AdminGallery = () => {
                                 </div>
                                 <div>
                                     <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Category</label>
-                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '0.5rem' }}>
                                         {['general', 'events', 'ayya'].map(cat => (
                                             <button
                                                 key={cat}
@@ -535,13 +676,13 @@ const AdminGallery = () => {
                                                 onClick={() => setNewForm({ ...newForm, category: cat })}
                                                 style={{
                                                     flex: 1,
-                                                    padding: '0.75rem',
-                                                    borderRadius: '0.5rem',
+                                                    padding: '0.6rem',
+                                                    fontSize: '0.85rem',
+                                                    borderRadius: '0.4rem',
                                                     border: `1px solid ${newForm.category === cat ? 'var(--color-primary)' : 'var(--color-border)'}`,
                                                     backgroundColor: newForm.category === cat ? 'var(--color-primary-transparent)' : 'var(--color-card)',
                                                     color: newForm.category === cat ? 'var(--color-primary)' : 'var(--color-text-muted)',
                                                     fontWeight: 600,
-                                                    cursor: 'pointer',
                                                     textTransform: 'capitalize'
                                                 }}
                                             >
@@ -549,11 +690,72 @@ const AdminGallery = () => {
                                             </button>
                                         ))}
                                     </div>
+                                    {newForm.category === 'events' && (
+                                        <select
+                                            value={newForm.eventId}
+                                            onChange={e => setNewForm({ ...newForm, eventId: e.target.value })}
+                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-primary)', backgroundColor: 'var(--color-surface)' }}
+                                        >
+                                            <option value="">-- Select Event Folder --</option>
+                                            {events.map(ev => <option key={ev.id} value={ev.id}>{ev.name}</option>)}
+                                        </select>
+                                    )}
                                 </div>
 
                                 <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
                                     <button onClick={() => setShowAddModal(false)} style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', background: 'none' }}>Cancel</button>
                                     <button onClick={handleAdd} style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: 'none', backgroundColor: 'var(--color-primary)', color: 'white', fontWeight: 600 }}>Add Image</button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Event Folder Modal */}
+            <AnimatePresence>
+                {showEventModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        style={{ position: 'fixed', inset: 0, zIndex: 110, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
+                        onClick={() => setShowEventModal(false)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            style={{ backgroundColor: 'var(--color-card)', padding: '1.5rem', borderRadius: '1rem', width: '100%', maxWidth: '24rem', boxShadow: 'var(--shadow-lg)' }}
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                                <h3 style={{ margin: 0 }}>Create Event Folder</h3>
+                                <button onClick={() => setShowEventModal(false)} style={{ background: 'none', border: 'none', color: 'var(--color-text-muted)' }}><X size={24} /></button>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '0.5rem', color: 'var(--color-text-muted)' }}>Folder Name</label>
+                                    <input
+                                        autoFocus
+                                        value={newEventForm.name}
+                                        onChange={e => setNewEventForm({ ...newEventForm, name: e.target.value })}
+                                        placeholder="e.g. Coimbatore Event 2024"
+                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
+                                    />
+                                </div>
+                                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                                    <button 
+                                        onClick={() => setShowEventModal(false)} 
+                                        style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', fontWeight: 600, cursor: 'pointer' }}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button 
+                                        onClick={handleCreateEvent} 
+                                        style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: 'none', backgroundColor: 'var(--color-primary)', color: 'white', fontWeight: 600, cursor: 'pointer' }}
+                                    >
+                                        Create Folder
+                                    </button>
                                 </div>
                             </div>
                         </motion.div>

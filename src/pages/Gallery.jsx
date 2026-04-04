@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { X, ChevronLeft, ChevronRight, Maximize2, Edit2, Share2 } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Maximize2, Edit2, Share2, Folder, ArrowLeft } from 'lucide-react';
 import { collection, query, getDocs, orderBy } from '@/utils/FirestoreProxy';
 import { db } from '@/firebase';
 import { useAdminAuth } from '@/context/AdminAuthContext';
@@ -13,26 +13,44 @@ const Gallery = () => {
     const navigate = useNavigate();
     const { isAdmin, hasAccess, loading: authLoading } = useAdminAuth();
     const [images, setImages] = useState([]);
+    const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('general');
+    const [selectedEventId, setSelectedEventId] = useState(null);
     const [selectedIndex, setSelectedIndex] = useState(null);
 
     useEffect(() => {
-        const fetchImages = async () => {
+        const fetchData = async () => {
             try {
-                const q = query(collection(db, 'gallery'), orderBy('order', 'asc'));
-                const snapshot = await getDocs(q);
-                setImages(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+                const qImages = query(collection(db, 'gallery'), orderBy('order', 'asc'));
+                const qEvents = query(collection(db, 'gallery_events'), orderBy('order', 'asc'));
+                
+                const [imgSnap, eventSnap] = await Promise.all([
+                    getDocs(qImages),
+                    getDocs(qEvents)
+                ]);
+
+                setImages(imgSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+                setEvents(eventSnap.docs.map(d => ({ id: d.id, ...d.data() })));
             } catch (error) {
-                console.error("Error fetching gallery:", error);
+                console.error("Error fetching gallery data:", error);
             } finally {
                 setLoading(false);
             }
         };
-        fetchImages();
+        fetchData();
     }, []);
 
-    const filteredImages = images.filter(img => (img.category || 'general') === activeTab);
+    const filteredImages = images.filter(img => {
+        const cat = img.category || 'general';
+        if (cat !== activeTab) return false;
+        if (activeTab === 'events') {
+            return img.eventId === selectedEventId;
+        }
+        return true;
+    });
+
+    const selectedEvent = events.find(ev => ev.id === selectedEventId);
 
     const openLightbox = (index) => setSelectedIndex(index);
     const closeLightbox = () => setSelectedIndex(null);
@@ -109,6 +127,7 @@ const Gallery = () => {
                             key={tab.id}
                             onClick={() => {
                                 setActiveTab(tab.id);
+                                setSelectedEventId(null);
                                 setSelectedIndex(null);
                             }}
                             style={{
@@ -143,110 +162,200 @@ const Gallery = () => {
                 })}
             </div>
 
-
-            <div style={{
-                padding: '1rem',
-                columns: '2 200px',
-                columnGap: '1rem',
-                maxWidth: '60rem',
-                margin: '0 auto'
-            }}>
-                {filteredImages.map((img, index) => (
-                    <motion.div
-                        key={img.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                        whileHover={{ scale: 1.02 }}
-                        onClick={() => openLightbox(index)}
+            {activeTab === 'events' && selectedEventId && (
+                <div style={{
+                    padding: '0.5rem 1rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    backgroundColor: 'var(--color-surface)',
+                    borderBottom: '1px solid var(--color-border)'
+                }}>
+                    <button 
+                        onClick={() => setSelectedEventId(null)}
                         style={{
-                            marginBottom: '1rem',
-                            breakInside: 'avoid',
+                            padding: '0.5rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.4rem',
+                            backgroundColor: 'var(--color-primary-transparent)',
+                            color: 'var(--color-primary)',
                             borderRadius: '0.75rem',
-                            overflow: 'hidden',
-                            backgroundColor: 'var(--color-card)',
-                            boxShadow: 'var(--shadow-sm)',
-                            cursor: 'pointer',
-                            position: 'relative',
-                            border: '1px solid var(--color-border)'
+                            border: 'none',
+                            fontSize: '0.85rem',
+                            fontWeight: 700,
+                            cursor: 'pointer'
                         }}
                     >
-                        <LazyImage 
-                            src={img.url} 
-                            alt={img.caption} 
-                            width="100%" 
-                            height="auto" 
-                            objectFit="cover"
-                        />
-                        {img.caption && (
+                        <ArrowLeft size={16} />
+                        Back
+                    </button>
+                    <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>
+                        / {selectedEvent?.name}
+                    </span>
+                </div>
+            )}
+
+            {activeTab === 'events' && !selectedEventId ? (
+                <div style={{
+                    padding: '1rem',
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+                    gap: '1rem',
+                    maxWidth: '60rem',
+                    margin: '0 auto'
+                }}>
+                    {events.map(event => (
+                        <motion.div
+                            key={event.id}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => setSelectedEventId(event.id)}
+                            style={{
+                                backgroundColor: 'var(--color-card)',
+                                padding: '1.5rem',
+                                borderRadius: '1rem',
+                                border: '1px solid var(--color-border)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: '0.75rem',
+                                boxShadow: 'var(--shadow-sm)'
+                            }}
+                        >
                             <div style={{
-                                padding: '0.5rem',
-                                fontSize: '0.75rem',
-                                color: 'var(--color-text-muted)',
-                                textAlign: 'center',
-                                backgroundColor: 'var(--color-card)'
+                                width: '56px',
+                                height: '56px',
+                                backgroundColor: 'var(--color-primary-transparent)',
+                                borderRadius: '1rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'var(--color-primary)'
                             }}>
-                                {img.caption}
+                                <Folder size={28} />
                             </div>
-                        )}
-                        <div style={{
-                            position: 'absolute',
-                            top: '0.6rem',
-                            right: '0.6rem',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '0.5rem',
-                            zIndex: 20
-                        }}>
-                            <div 
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    openLightbox(index);
-                                }}
-                                style={{
-                                    padding: '0.5rem',
-                                    borderRadius: '50%',
-                                    backgroundColor: 'rgba(0,0,0,0.5)',
-                                    backdropFilter: 'blur(4px)',
-                                    color: 'white',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    cursor: 'pointer',
-                                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                                }}
-                            >
-                                <Maximize2 size={16} />
+                            <div style={{ textAlign: 'center' }}>
+                                <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--color-text)', marginBottom: '0.2rem' }}>{event.name}</div>
+                                <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>{images.filter(img => img.eventId === event.id).length} photos</div>
                             </div>
-                            <motion.button 
-                                whileTap={{ scale: 0.85 }}
-                                onClick={(e) => { 
-                                    e.stopPropagation(); 
-                                    shareImage(img); 
-                                }}
-                                style={{
-                                    padding: '0.5rem',
-                                    borderRadius: '50%',
-                                    backgroundColor: 'rgba(0,0,0,0.5)',
-                                    backdropFilter: 'blur(4px)',
-                                    color: 'white',
-                                    border: 'none',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    cursor: 'pointer',
-                                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                                }}
-                            >
-                                <Share2 size={16} />
-                            </motion.button>
+                        </motion.div>
+                    ))}
+                    {events.length === 0 && (
+                        <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)' }}>
+                            No events found.
                         </div>
-                    </motion.div>
-                ))}
-            </div>
+                    )}
+                </div>
+            ) : (
+                <div style={{
+                    padding: '1rem',
+                    columns: '2 200px',
+                    columnGap: '1rem',
+                    maxWidth: '60rem',
+                    margin: '0 auto'
+                }}>
+                    {filteredImages.map((img, index) => (
+                        <motion.div
+                            key={img.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                            whileHover={{ scale: 1.02 }}
+                            onClick={() => openLightbox(index)}
+                            style={{
+                                marginBottom: '1rem',
+                                breakInside: 'avoid',
+                                borderRadius: '0.75rem',
+                                overflow: 'hidden',
+                                backgroundColor: 'var(--color-card)',
+                                boxShadow: 'var(--shadow-sm)',
+                                cursor: 'pointer',
+                                position: 'relative',
+                                border: '1px solid var(--color-border)'
+                            }}
+                        >
+                            <LazyImage 
+                                src={img.url} 
+                                alt={img.caption} 
+                                width="100%" 
+                                height="auto" 
+                                objectFit="cover"
+                            />
+                            {img.caption && (
+                                <div style={{
+                                    padding: '0.5rem',
+                                    fontSize: '0.75rem',
+                                    color: 'var(--color-text-muted)',
+                                    textAlign: 'center',
+                                    backgroundColor: 'var(--color-card)'
+                                }}>
+                                    {img.caption}
+                                </div>
+                            )}
+                            <div style={{
+                                position: 'absolute',
+                                top: '0.6rem',
+                                right: '0.6rem',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '0.5rem',
+                                zIndex: 20
+                            }}>
+                                <div 
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        openLightbox(index);
+                                    }}
+                                    style={{
+                                        padding: '0.5rem',
+                                        borderRadius: '50%',
+                                        backgroundColor: 'rgba(0,0,0,0.5)',
+                                        backdropFilter: 'blur(4px)',
+                                        color: 'white',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        cursor: 'pointer',
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                    }}
+                                >
+                                    <Maximize2 size={16} />
+                                </div>
+                                <motion.button 
+                                    whileTap={{ scale: 0.85 }}
+                                    onClick={(e) => { 
+                                        e.stopPropagation(); 
+                                        shareImage(img); 
+                                    }}
+                                    style={{
+                                        padding: '0.5rem',
+                                        borderRadius: '50%',
+                                        backgroundColor: 'rgba(0,0,0,0.5)',
+                                        backdropFilter: 'blur(4px)',
+                                        color: 'white',
+                                        border: 'none',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        cursor: 'pointer',
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                    }}
+                                >
+                                    <Share2 size={16} />
+                                </motion.button>
+                            </div>
+                        </motion.div>
+                    ))}
+                    {filteredImages.length === 0 && (
+                        <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)' }}>
+                            No images found in this section.
+                        </div>
+                    )}
+                </div>
+            )}
 
             <AnimatePresence>
-                {selectedIndex !== null && (
+                {selectedIndex !== null && filteredImages[selectedIndex] && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
