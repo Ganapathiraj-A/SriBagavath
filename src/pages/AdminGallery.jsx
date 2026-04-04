@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Save, X, ChevronUp, ChevronDown, Share2, Folder, FolderPlus, ArrowLeft } from 'lucide-react';
+import { Plus, Trash2, Save, X, ChevronUp, ChevronDown, Share2, Folder, FolderPlus, ArrowLeft, Eye } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { collection, query, getDocs, orderBy, addDoc, updateDoc, deleteDoc, doc, Timestamp, where } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '@/firebase';
@@ -8,6 +9,7 @@ import { shareImage } from '@/utils/shareUtils';
 import PageHeader from '@/components/PageHeader';
 
 const AdminGallery = () => {
+    const navigate = useNavigate();
     const [images, setImages] = useState([]);
     const [isUploading, setIsUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
@@ -31,9 +33,11 @@ const AdminGallery = () => {
 
     const fetchEvents = async () => {
         try {
-            const q = query(collection(db, 'gallery_events'), orderBy('order', 'asc'));
+            const q = query(collection(db, 'gallery_events'));
             const snapshot = await getDocs(q);
-            setEvents(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+            const loadedEvents = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            loadedEvents.sort((a, b) => (a.order || 0) - (b.order || 0));
+            setEvents(loadedEvents);
         } catch (error) {
             console.error("Error fetching gallery events:", error);
         }
@@ -42,9 +46,11 @@ const AdminGallery = () => {
     const fetchImages = async () => {
         setLoading(true);
         try {
-            const q = query(collection(db, 'gallery'), orderBy('order', 'asc'));
+            const q = query(collection(db, 'gallery'));
             const snapshot = await getDocs(q);
-            setImages(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+            const loadedImages = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            loadedImages.sort((a, b) => (a.order || 0) - (b.order || 0));
+            setImages(loadedImages);
         } catch (error) {
             console.error("Error fetching gallery:", error);
         } finally {
@@ -207,7 +213,29 @@ const AdminGallery = () => {
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-surface)', paddingBottom: '2rem' }}>
-            <PageHeader title="Gallery Management" />
+            <PageHeader 
+                title="Gallery Management" 
+                rightAction={
+                    <button
+                        onClick={() => navigate('/gallery')}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '8px 12px',
+                            backgroundColor: 'var(--color-surface)',
+                            border: '1px solid var(--color-border)',
+                            borderRadius: '20px',
+                            color: 'var(--color-text-secondary)',
+                            fontSize: '0.85rem',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                        }}
+                    >
+                        <Eye size={16} /> View Listing
+                    </button>
+                }
+            />
 
             <div style={{
                 display: 'flex',

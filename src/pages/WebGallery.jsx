@@ -17,11 +17,14 @@ const WebGallery = () => {
 
     useEffect(() => {
         console.log("[WebGallery] Setting up gallery snapshot listener...");
-        const qImages = query(collection(db, 'gallery'), orderBy('order', 'asc'));
-        const qEvents = query(collection(db, 'gallery_events'), orderBy('order', 'asc'));
+        const qImages = query(collection(db, 'gallery'));
+        const qEvents = query(collection(db, 'gallery_events'));
         
         const unsubImages = onSnapshot(qImages, (snapshot) => {
-            setImages(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+            const loadedImages = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            // Client-side sort to be resilient to missing 'order' fields
+            loadedImages.sort((a, b) => (a.order || 0) - (b.order || 0));
+            setImages(loadedImages);
             setLoading(false);
         }, (error) => {
             console.error("[WebGallery] Error fetching gallery images:", error);
@@ -29,7 +32,10 @@ const WebGallery = () => {
         });
 
         const unsubEvents = onSnapshot(qEvents, (snapshot) => {
-            setEvents(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+            const loadedEvents = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            // Client-side sort to be resilient to missing 'order' fields
+            loadedEvents.sort((a, b) => (a.order || 0) - (b.order || 0));
+            setEvents(loadedEvents);
         }, (error) => {
             console.error("[WebGallery] Error fetching gallery events:", error);
         });

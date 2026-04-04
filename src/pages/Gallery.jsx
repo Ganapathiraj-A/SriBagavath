@@ -22,16 +22,22 @@ const Gallery = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const qImages = query(collection(db, 'gallery'), orderBy('order', 'asc'));
-                const qEvents = query(collection(db, 'gallery_events'), orderBy('order', 'asc'));
+                const qImages = query(collection(db, 'gallery'));
+                const qEvents = query(collection(db, 'gallery_events'));
                 
                 const [imgSnap, eventSnap] = await Promise.all([
                     getDocs(qImages),
                     getDocs(qEvents)
                 ]);
 
-                setImages(imgSnap.docs.map(d => ({ id: d.id, ...d.data() })));
-                setEvents(eventSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+                const loadedImages = imgSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                loadedImages.sort((a, b) => (a.order || 0) - (b.order || 0));
+                
+                const loadedEvents = eventSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                loadedEvents.sort((a, b) => (a.order || 0) - (b.order || 0));
+
+                setImages(loadedImages);
+                setEvents(loadedEvents);
             } catch (error) {
                 console.error("Error fetching gallery data:", error);
             } finally {
