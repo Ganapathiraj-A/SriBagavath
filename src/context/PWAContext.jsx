@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import PWAInstallBanner from '../components/PWAInstallBanner';
+import { Capacitor } from '@capacitor/core';
 
 const PWAContext = createContext();
 
@@ -28,7 +28,8 @@ export const PWAProvider = ({ children }) => {
     const checkStandalone = async () => {
       const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || 
                                window.navigator.standalone || 
-                               document.referrer.includes('android-app://');
+                               document.referrer.includes('android-app://') ||
+                               Capacitor.isNativePlatform();
       
       let isNativeAppInstalled = false;
       if (isAndroid && navigator.getInstalledRelatedApps) {
