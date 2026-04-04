@@ -11,7 +11,8 @@ import { getLocalDateString } from '@/utils/dateUtils';
 import { needsServerSync, markSyncedLocally } from '@/utils/SyncManager';
 import { useAdminAuth } from '@/context/AdminAuthContext';
 import { useGlobalSettings } from '@/context/GlobalSettingsContext';
-import { shareCanvasImage } from '@/utils/shareUtils';
+import { shareCanvasImage, shareItem } from '@/utils/shareUtils';
+import { Capacitor } from '@capacitor/core';
 
 const MeetingCard = ({ meeting, teacher, delay, onShare, isSharing }) => {
     const date = new Date(meeting.date);
@@ -213,7 +214,6 @@ const DailyZoomMeetings = () => {
 
     const [activeTab, setActiveTab] = useState('upcoming');
     const [upcomingMeetings, setUpcomingMeetings] = useState([]);
-    const [pastMeetings, setPastMeetings] = useState([]);
     const [youtubeVideos, setYoutubeVideos] = useState([]);
     const [nextPageToken, setNextPageToken] = useState(null);
     const [isYoutubeLoading, setIsYoutubeLoading] = useState(false);
@@ -221,8 +221,6 @@ const DailyZoomMeetings = () => {
     const [selectedTeacherId, setSelectedTeacherId] = useState('all');
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
-    const [lastVisible, setLastVisible] = useState(null);
-    const [hasMorePast, setHasMorePast] = useState(true);
     const [isSharingMeetingId, setIsSharingMeetingId] = useState(null);
     const [isSharingList, setIsSharingList] = useState(false);
 
@@ -280,7 +278,7 @@ const DailyZoomMeetings = () => {
             orderBy('date', 'asc')
         );
 
-        const syncNeeded = needsServerSync('daily_zoom_meetings');
+        needsServerSync('daily_zoom_meetings');
         setLoading(true);
 
         const unsub = onSnapshot(q, (snapshot) => {
@@ -307,7 +305,7 @@ const DailyZoomMeetings = () => {
         if (activeTab === 'past' && youtubeVideos.length === 0) {
             fetchYouTubePlaylist();
         }
-    }, [authLoading, activeTab]);
+    }, [authLoading, activeTab, youtubeVideos.length]);
 
     const fetchYouTubePlaylist = async (pageToken = null) => {
         if (!pageToken) setIsYoutubeLoading(true);
@@ -349,30 +347,6 @@ const DailyZoomMeetings = () => {
         } finally {
             setIsYoutubeLoading(false);
             setLoadingMore(false);
-        }
-    };
-
-    const fetchPastMeetings = async () => {
-        setLoading(true);
-        try {
-            const { collection, query, where, orderBy, limit, getDocs } = await import('@/utils/FirestoreProxy');
-            const today = getLocalDateString();
-            const ref = collection(db, 'daily_zoom_meetings');
-            const q = query(
-                ref,
-                where('date', '<', today),
-                orderBy('date', 'desc'),
-                limit(10)
-            );
-            const snap = await getDocs(q);
-            const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            setPastMeetings(docs);
-            setLastVisible(snap.docs[snap.docs.length - 1]);
-            setHasMorePast(snap.docs.length === 10);
-        } catch (_err) {
-            console.error("Error fetching past meetings:", _err);
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -461,9 +435,20 @@ const DailyZoomMeetings = () => {
     };
 
     const handleShareMeeting = async (meeting, displayName, displayImage) => {
-        console.log("[DEBUG] handleShareMeeting triggered for:", displayName, "Image URL:", displayImage);
+        console.log("[DEBUG] handleShareMeeting triggered for:", displayName);
+        
+        // PWA/Web: Share only as text to avoid image processing overhead for daily meetings
+        if (!Capacitor.isNativePlatform()) {
+            await shareItem({
+                title: 'Daily Zoom Meeting',
+                text: `🎦 *Daily Zoom Meeting*\n\n👤 *Speaker:* ${displayName}\n📅 *Date:* ${new Date(meeting.date).toLocaleDateString()}\n\n*Join Link:*`,
+                url: meeting.joinUrl
+            });
+            return;
+        }
+
         setIsSharingMeetingId(meeting.id);
-        setSharingData({ type: 'single', meeting, displayName, displayImage: null }); // Show loader state if needed, but we do invisible render
+        setSharingData({ type: 'single', meeting, displayName, displayImage: null }); 
         try {
             const base64Img = await fetchAsBase64(displayImage);
             console.log("[DEBUG] handleShareMeeting: base64 conversion result length:", base64Img?.length);
@@ -511,11 +496,27 @@ const DailyZoomMeetings = () => {
     };
 
     const handleShareList = async () => {
-        const currentMeetings = activeTab === 'upcoming' ? upcomingMeetings : pastMeetings;
+        const currentMeetings = activeTab === 'upcoming' ? upcomingMeetings : youtubeVideos;
         const filtered = currentMeetings.filter(m => selectedTeacherId === 'all' || m.teacherId === selectedTeacherId);
 
         if (filtered.length === 0) {
             alert('No meetings to share.');
+            return;
+        }
+
+        // PWA/Web: Share list as text
+        if (!Capacitor.isNativePlatform()) {
+            let listText = `🎦 *Daily Zoom Meetings (${activeTab === 'upcoming' ? 'Upcoming' : 'Past'})*\n\n`;
+            filtered.forEach((m, i) => {
+                const teacher = teachers.find(t => t.id === m.teacherId);
+                const name = teacher?.name || m.name || 'Unknown Speaker';
+                listText += `${i + 1}. *${name}* - ${new Date(m.date).toLocaleDateString()}\n   Link: ${m.joinUrl}\n\n`;
+            });
+
+            await shareItem({
+                title: 'Daily Zoom Meetings',
+                text: listText.trim()
+            });
             return;
         }
 

@@ -209,7 +209,7 @@ const Programs = ({ hideHeader = false }) => {
             // Default to 'banner' if it exists, else 'details'
             // We'll let the banner/intro existence logic handle the default below
         }
-    }, [viewingProgramId]);
+    }, [viewingProgramId, lastViewingId]);
 
     // Determine initial active tab based on availability
     useEffect(() => {
@@ -226,7 +226,7 @@ const Programs = ({ hideHeader = false }) => {
                 setActiveTab('details');
             }
         }
-    }, [viewingProgram, searchParams]);
+    }, [viewingProgram, searchParams, lastViewingId]);
 
     // Fetch Banner on Demand
     useEffect(() => {
