@@ -10,7 +10,6 @@ const WebGallery = () => {
     const [images, setImages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('general');
-    const [subTab, setSubTab] = useState('events');
     const [selectedIndex, setSelectedIndex] = useState(null);
     const shareImageCacheRef = useRef(new Map());
 
@@ -30,12 +29,7 @@ const WebGallery = () => {
         return () => unsubscribe();
     }, []);
 
-    const filteredImages = images.filter(img => {
-        const cat = img.category || 'general';
-        if (activeTab === 'general') return cat === 'general';
-        if (activeTab === 'recent') return cat === subTab;
-        return false;
-    });
+    const filteredImages = images.filter(img => (img.category || 'general') === activeTab);
 
     const openLightbox = (index) => setSelectedIndex(index);
     const closeLightbox = () => setSelectedIndex(null);
@@ -123,7 +117,8 @@ const WebGallery = () => {
                     <div className="emedia-tabs">
                         {[
                             { id: 'general', label: 'General' },
-                            { id: 'recent', label: 'Recent' }
+                            { id: 'ayya', label: 'Ayya' },
+                            { id: 'events', label: 'Recent Events' }
                         ].map(tab => (
                             <button
                                 key={tab.id}
@@ -139,32 +134,6 @@ const WebGallery = () => {
                         ))}
                     </div>
 
-                    <AnimatePresence>
-                        {activeTab === 'recent' && (
-                            <motion.div
-                                initial={{ opacity: 0, y: -10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                className="gallery-sub-tabs"
-                            >
-                                {[
-                                    { id: 'events', label: 'Events' },
-                                    { id: 'ayya', label: 'Ayya' }
-                                ].map(tab => (
-                                    <button
-                                        key={tab.id}
-                                        className={`sub-tab-btn ${subTab === tab.id ? 'active' : ''}`}
-                                        onClick={() => {
-                                            setSubTab(tab.id);
-                                            setSelectedIndex(null);
-                                        }}
-                                    >
-                                        {tab.label}
-                                    </button>
-                                ))}
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
                 </div>
 
                 <div className="gallery-grid">

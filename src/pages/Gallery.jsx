@@ -15,7 +15,6 @@ const Gallery = () => {
     const [images, setImages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('general');
-    const [subTab, setSubTab] = useState('events');
     const [selectedIndex, setSelectedIndex] = useState(null);
 
     useEffect(() => {
@@ -33,12 +32,7 @@ const Gallery = () => {
         fetchImages();
     }, []);
 
-    const filteredImages = images.filter(img => {
-        const cat = img.category || 'general';
-        if (activeTab === 'general') return cat === 'general';
-        if (activeTab === 'recent') return cat === subTab;
-        return false;
-    });
+    const filteredImages = images.filter(img => (img.category || 'general') === activeTab);
 
     const openLightbox = (index) => setSelectedIndex(index);
     const closeLightbox = () => setSelectedIndex(null);
@@ -106,7 +100,8 @@ const Gallery = () => {
             }}>
                 {[
                     { id: 'general', label: 'General' },
-                    { id: 'recent', label: 'Recent' }
+                    { id: 'ayya', label: 'Ayya' },
+                    { id: 'events', label: 'Recent Events' }
                 ].map(tab => {
                     const isActive = activeTab === tab.id;
                     return (
@@ -148,70 +143,6 @@ const Gallery = () => {
                 })}
             </div>
 
-            {/* Sub-Tabs (only for Recent) */}
-            <AnimatePresence>
-                {activeTab === 'recent' && (
-                    <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        style={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            gap: '1.5rem',
-                            borderBottom: '1px solid var(--color-border)',
-                            backgroundColor: 'var(--color-surface)',
-                            position: 'sticky',
-                            top: '109px', // 56px PageHeader + 53px MainTabs
-                            zIndex: 9,
-                            overflow: 'hidden'
-                        }}
-                    >
-                        {[
-                            { id: 'events', label: 'Events' },
-                            { id: 'ayya', label: 'Ayya' }
-                        ].map(tab => {
-                            const isActive = subTab === tab.id;
-                            return (
-                                <button
-                                    key={tab.id}
-                                    onClick={() => {
-                                        setSubTab(tab.id);
-                                        setSelectedIndex(null);
-                                    }}
-                                    style={{
-                                        padding: '0.625rem 0.25rem',
-                                        border: 'none',
-                                        backgroundColor: 'transparent',
-                                        fontSize: '0.8125rem',
-                                        fontWeight: 600,
-                                        color: isActive ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                                        position: 'relative',
-                                        cursor: 'pointer',
-                                        transition: 'color 0.2s'
-                                    }}
-                                >
-                                    {tab.label}
-                                    {isActive && (
-                                        <motion.div
-                                            layoutId="gallerySubTabUnderline"
-                                            style={{
-                                                position: 'absolute',
-                                                bottom: 2,
-                                                left: 0,
-                                                right: 0,
-                                                height: '2px',
-                                                backgroundColor: 'var(--color-primary)',
-                                                borderRadius: '99px'
-                                            }}
-                                        />
-                                    )}
-                                </button>
-                            );
-                        })}
-                    </motion.div>
-                )}
-            </AnimatePresence>
 
             <div style={{
                 padding: '1rem',

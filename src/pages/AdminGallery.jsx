@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit2, Trash2, Save, X, ChevronUp, ChevronDown, Share2 } from 'lucide-react';
+import { Plus, Trash2, Save, X, ChevronUp, ChevronDown, Share2 } from 'lucide-react';
 import { collection, query, getDocs, orderBy, addDoc, updateDoc, deleteDoc, doc, Timestamp } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '@/firebase';
@@ -85,7 +85,7 @@ const AdminGallery = () => {
                 createdAt: Timestamp.now(),
                 updatedAt: Timestamp.now()
             });
-            setNewForm({ url: '', caption: '', order: images.length });
+            setNewForm({ url: '', caption: '', order: images.length, category: 'general' });
             setShowAddModal(false);
             fetchImages();
         } catch (error) {
