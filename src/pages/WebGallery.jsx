@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { collection, query, getDocs, onSnapshot, orderBy } from '../utils/FirestoreProxy';
+import { collection, query, onSnapshot, orderBy } from '../utils/FirestoreProxy';
 import { db } from '../firebase';
 import { X, ChevronLeft, ChevronRight, Maximize2, Share2 } from 'lucide-react';
 import { shareItem } from '../utils/shareUtils';
@@ -12,6 +12,7 @@ const WebGallery = () => {
     const [activeTab, setActiveTab] = useState('general');
     const [subTab, setSubTab] = useState('events');
     const [selectedIndex, setSelectedIndex] = useState(null);
+    const shareImageCacheRef = useRef(new Map());
 
     useEffect(() => {
         console.log("[WebGallery] Setting up gallery snapshot listener...");
@@ -45,6 +46,52 @@ const WebGallery = () => {
     const prevImage = (e) => {
         e.stopPropagation();
         setSelectedIndex((prev) => (prev - 1 + filteredImages.length) % filteredImages.length);
+    };
+
+    const cacheShareableImage = async (imageId, imageElement) => {
+        if (!imageId || !imageElement || shareImageCacheRef.current.has(imageId)) return;
+        if (!imageElement.complete || !imageElement.naturalWidth || !imageElement.naturalHeight) return;
+
+        try {
+            const canvas = document.createElement('canvas');
+            canvas.width = imageElement.naturalWidth;
+            canvas.height = imageElement.naturalHeight;
+
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+
+            ctx.drawImage(imageElement, 0, 0);
+
+            const blob = await new Promise((resolve) => {
+                canvas.toBlob(resolve, 'image/jpeg', 0.95);
+            });
+
+            if (!blob) return;
+
+            shareImageCacheRef.current.set(imageId, {
+                blob,
+                mimeType: blob.type || 'image/jpeg'
+            });
+        } catch (error) {
+            console.debug('[WebGallery] Share image cache skipped:', error);
+        }
+    };
+
+    const handleShareImage = async (img) => {
+        if (!img) return;
+
+        const cachedImage = shareImageCacheRef.current.get(img.id);
+
+        await shareItem({
+            title: 'Sri Bagavath Gallery',
+            text: img.caption || 'Check out this image from Sri Bagavath Gallery',
+            url: img.url,
+            imageUrl: img.url,
+            imageData: cachedImage?.blob,
+            mimeType: cachedImage?.mimeType,
+            fileNameBase: img.caption || 'gallery-image',
+            dialogTitle: 'Share Image'
+        });
     };
 
     if (loading) {
@@ -130,6 +177,14 @@ const WebGallery = () => {
                             transition={{ delay: index * 0.05 }}
                             onClick={() => openLightbox(index)}
                         >
+                            <img
+                                src={img.url}
+                                alt={img.caption || 'Sri Bagavath Gallery'}
+                                crossOrigin="anonymous"
+                                onLoad={(e) => {
+                                    cacheShareableImage(img.id, e.currentTarget);
+                                }}
+                            />
                             <div className="gallery-overlay">
                                 <Maximize2 size={24} />
                                 {img.caption && <p>{img.caption}</p>}
@@ -137,13 +192,7 @@ const WebGallery = () => {
                                     className="gallery-share-btn"
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        shareItem({
-                                            title: 'Sri Bagavath Gallery',
-                                            text: img.caption || 'Check out this image from Sri Bagavath Gallery',
-                                            url: window.location.href,
-                                            imageUrl: img.url,
-                                            dialogTitle: 'Share Image'
-                                        });
+                                        handleShareImage(img);
                                     }}
                                 >
                                     <Share2 size={20} />
@@ -180,7 +229,14 @@ const WebGallery = () => {
                             animate={{ scale: 1, opacity: 1 }}
                             onClick={(e) => e.stopPropagation()}
                         >
-                            <img src={filteredImages[selectedIndex].url} alt={filteredImages[selectedIndex].caption} />
+                            <img
+                                src={filteredImages[selectedIndex].url}
+                                alt={filteredImages[selectedIndex].caption}
+                                crossOrigin="anonymous"
+                                onLoad={(e) => {
+                                    cacheShareableImage(filteredImages[selectedIndex].id, e.currentTarget);
+                                }}
+                            />
                             {filteredImages[selectedIndex].caption && (
                                 <div className="lightbox-caption">{filteredImages[selectedIndex].caption}</div>
                             )}
@@ -196,13 +252,7 @@ const WebGallery = () => {
                                 className="lightbox-share"
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    shareItem({
-                                        title: 'Sri Bagavath Gallery',
-                                        text: filteredImages[selectedIndex].caption || 'Check out this image from Sri Bagavath Gallery',
-                                        url: window.location.href,
-                                        imageUrl: filteredImages[selectedIndex].url,
-                                        dialogTitle: 'Share Image'
-                                    });
+                                    handleShareImage(filteredImages[selectedIndex]);
                                 }}
                             >
                                 <Share2 size={24} /> Share

@@ -96,14 +96,24 @@ const dataUrlToBlob = async (dataUrl) => {
 };
 
 const fetchImageBlob = async (imageUrl) => {
-    const fetchUrl = `${imageUrl}${imageUrl.includes('?') ? '&' : '?'}t=${Date.now()}`;
-    const response = await fetch(fetchUrl, { credentials: 'omit' });
+    try {
+        const fetchUrl = `${imageUrl}${imageUrl.includes('?') ? '&' : '?'}t=${Date.now()}`;
+        // Use credentials: omit and mode: cors to deal with potential CORS issues
+        const response = await fetch(fetchUrl, { 
+            method: 'GET',
+            mode: 'cors',
+            credentials: 'omit' 
+        });
 
-    if (!response.ok) {
-        throw new Error(`Image fetch failed: HTTP ${response.status}`);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        return await response.blob();
+    } catch (err) {
+        console.error("PWA image fetch failed:", err);
+        throw err;
     }
-
-    return response.blob();
 };
 
 const createWebShareFile = async ({ imageUrl, imageData, fileNameBase, mimeType }) => {
@@ -271,16 +281,28 @@ export const shareTransactions = async (items, type, allPrograms = []) => {
 /**
  * Central sharing utility that handles both Native and Web/PWA platforms.
  */
-export const shareItem = async ({ title, text, url, imageUrl, dialogTitle = 'Share' }) => {
+export const shareItem = async ({
+    title,
+    text,
+    url,
+    imageUrl,
+    imageData,
+    fileNameBase,
+    mimeType,
+    dialogTitle = 'Share'
+}) => {
     const shareText = buildShareText(text, url);
 
     try {
-        if (imageUrl) {
+        if (imageUrl || imageData) {
             await shareImageFile({
                 title,
                 text,
                 url,
                 imageUrl,
+                imageData,
+                fileNameBase,
+                mimeType,
                 dialogTitle
             });
             return;
@@ -343,10 +365,13 @@ export const shareImageFile = async ({
                     mimeType
                 });
 
+                // Many browsers prefer sharing either a file OR a URL, but not both reliably.
+                // We will try sharing the file with text first.
                 if (navigator.canShare?.({ files: [file] })) {
+                    console.log("[Share] Attempting file share (PWA)...");
                     await navigator.share({
                         title,
-                        text: shareText || text || '',
+                        text: text || title || '',
                         files: [file]
                     });
                     return { sharedFile: true, platform: 'web' };
@@ -360,8 +385,12 @@ export const shareImageFile = async ({
                 text: shareText || text || '',
                 url
             });
-            await showToastMessage('This browser shared the link because image-file sharing is not supported here.');
-            return { sharedFile: false, platform: 'web', reason: 'file-share-unavailable' };
+            
+            // Show a helpful toast if we have an imageUrl but only shared text
+            if (imageUrl) {
+                await showToastMessage('This browser shared the link because the image could not be shared.');
+            }
+            return { sharedFile: false, platform: 'web', reason: 'shared-link-only' };
         }
 
         if (shareText) {
