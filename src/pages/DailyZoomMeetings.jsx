@@ -2,20 +2,18 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Video, Calendar, User, Youtube, Share2, ChevronRight, Loader2, Clock } from 'lucide-react';
-import { Share } from '@capacitor/share';
-import { Filesystem, Directory } from '@capacitor/filesystem';
 import html2canvas from 'html2canvas';
 import PageHeader from '@/components/PageHeader';
 import LazyImage from '@/components/LazyImage';
 import { db } from '@/firebase';
-import { collection, query, where, orderBy, getDocs, limit, startAfter, onSnapshot } from '@/utils/FirestoreProxy';
+import { collection, query, where, orderBy, onSnapshot } from '@/utils/FirestoreProxy';
 import { getLocalDateString } from '@/utils/dateUtils';
 import { needsServerSync, markSyncedLocally } from '@/utils/SyncManager';
 import { useAdminAuth } from '@/context/AdminAuthContext';
 import { useGlobalSettings } from '@/context/GlobalSettingsContext';
+import { shareCanvasImage } from '@/utils/shareUtils';
 
-const MeetingCard = ({ meeting, teacher, delay, isAdmin, onShare, isSharing }) => {
-    const navigate = useNavigate();
+const MeetingCard = ({ meeting, teacher, delay, onShare, isSharing }) => {
     const date = new Date(meeting.date);
 
     const displayName = teacher?.name || meeting.name || 'Unknown Speaker';
@@ -384,34 +382,6 @@ const DailyZoomMeetings = () => {
         }
     };
 
-    const saveImageForShare = async (imgData, fileName) => {
-        if (!imgData) return null;
-        try {
-            let base64;
-            if (imgData.startsWith('http')) {
-                const response = await fetch(imgData);
-                const blob = await response.blob();
-                base64 = await new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onloadend = () => resolve(reader.result.split(',')[1]);
-                    reader.readAsDataURL(blob);
-                });
-            } else {
-                base64 = imgData.includes(',') ? imgData.split(',')[1] : imgData;
-            }
-            const result = await Filesystem.writeFile({
-                path: fileName,
-                data: base64,
-                directory: Directory.Cache,
-                encoding: 'base64'
-            });
-            return result.uri;
-        } catch (err) {
-            console.error("Error saving image for share:", err);
-            return null;
-        }
-    };
-
     const shareRef = useRef(null);
     const [sharingData, setSharingData] = useState(null);
 
@@ -440,31 +410,20 @@ const DailyZoomMeetings = () => {
             });
 
             console.log("[Share] Canvas generated:", canvas.width, "x", canvas.height);
-            const finalData = canvas.toDataURL('image/jpeg', 0.95).split(',')[1];
-            const fileName = `share_${Date.now()}.jpg`;
-
-            const result = await Filesystem.writeFile({
-                path: fileName,
-                data: finalData,
-                directory: Directory.Cache
-            });
-
-            console.log("[Share] File written to:", result.uri);
-
             const shareTitle = currentData.type === 'single' ? currentData.displayName : currentData.title;
 
             console.log("[Share] Triggering Share.share with:", {
                 title: shareTitle,
-                text: 'Meeting Details attached',
-                files: [result.uri]
+                text: currentData.caption || 'Meeting Details attached'
             });
 
-            await Share.share({
+            await shareCanvasImage(canvas, {
                 title: shareTitle,
                 text: currentData.caption || 'Meeting Details attached',
-                files: [result.uri]
+                fileNameBase: shareTitle || 'daily-zoom-share',
+                mimeType: 'image/jpeg',
+                quality: 0.95
             });
-            console.log("[Share] Share complete");
             console.log("[Share] Share complete");
         } catch (error) {
             console.error("[Share] captureAndShare error:", error);
@@ -548,19 +507,6 @@ const DailyZoomMeetings = () => {
             // so it might reset isSharingMeetingId prematurely if captureAndShare takes longer.
             // The state reset is now handled within captureAndShare.
             // setIsSharingMeetingId(null);
-        }
-    };
-
-    const handleExperimentalTextShare = async () => {
-        try {
-            console.log("[DEBUG] Triggering handleExperimentalTextShare");
-            await Share.share({
-                title: 'Text Share Test',
-                text: 'This is a test message from Sri Bagavath App ' + new Date().toLocaleTimeString(),
-            });
-            console.log("[DEBUG] handleExperimentalTextShare success");
-        } catch (error) {
-            console.error("[DEBUG] handleExperimentalTextShare error:", error);
         }
     };
 
@@ -777,7 +723,6 @@ const DailyZoomMeetings = () => {
                                     meeting={m}
                                     teacher={teachers.find(t => t.id === m.teacherId)}
                                     delay={idx * 0.05}
-                                    isAdmin={isAdmin}
                                     onShare={handleShareMeeting}
                                     isSharing={isSharingMeetingId === m.id}
                                 />
@@ -873,7 +818,7 @@ const DailyZoomMeetings = () => {
                                 </div>
                             ) : (
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
-                                    {sharingData.meetings.map((m, idx) => {
+                                    {sharingData.meetings.map((m) => {
                                         return (
                                             <div key={m.id} style={{ display: 'flex', gap: '15px', padding: '15px', backgroundColor: '#fcfcfc', borderRadius: '15px', border: '1px solid #f3f4f6' }}>
                                                 {m._displayImageB64 !== "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=" && (

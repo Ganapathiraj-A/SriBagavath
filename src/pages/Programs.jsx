@@ -4,10 +4,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, MapPin, Share2 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { Share } from '@capacitor/share';
-import { Filesystem, Directory } from '@capacitor/filesystem';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
 import { ensureGoogleAuthInitialized } from '@/utils/GoogleAuthUtils';
+import { shareImageFile } from '@/utils/shareUtils';
 
 import { auth, db } from '@/firebase';
 import { GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
@@ -295,47 +295,14 @@ const Programs = ({ hideHeader = false }) => {
         try {
             const { Toast } = await import('@capacitor/toast');
             await Toast.show({ text: 'Preparing image...' });
-
-            const fileName = `banner_${Date.now()}.jpg`;
-            let fileUri = null;
-
-            if (bannerData.startsWith('http')) {
-                // Download directly to cache - Bypasses all CORS and Base64 issues
-                const downloadResult = await Filesystem.downloadFile({
-                    url: bannerData,
-                    path: fileName,
-                    directory: Directory.Cache
-                });
-                // Ensure it's a file:// URI for the Share plugin
-                fileUri = downloadResult.path.startsWith('file://') 
-                    ? downloadResult.path 
-                    : `file://${downloadResult.path}`;
-            } else {
-                // Handle Base64 (legacy or local)
-                const cleanBase64 = bannerData.split(',')[1] || bannerData;
-                const writeResult = await Filesystem.writeFile({
-                    path: fileName,
-                    data: cleanBase64,
-                    directory: Directory.Cache,
-                    encoding: 'base64'
-                });
-                fileUri = writeResult.uri;
-            }
-
-            if (!fileUri) {
-                throw new Error("Could not prepare file for sharing");
-            }
-
-            // Give filesystem a moment to sync
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
             await Toast.show({ text: 'Opening Share...' });
 
-            // Share the file URI
-            await Share.share({
+            await shareImageFile({
                 title: program.programName,
                 text: `Check out this program: ${program.programName}\n\nDownload Sri Bagavath App for more: https://play.google.com/store/apps/details?id=com.bhavathpathai.app`,
-                files: [fileUri]
+                imageUrl: bannerData.startsWith('http') ? bannerData : undefined,
+                imageData: bannerData.startsWith('http') ? undefined : bannerData,
+                fileNameBase: `${program.programName}-banner`
             });
 
             // Track Share
@@ -351,7 +318,7 @@ const Programs = ({ hideHeader = false }) => {
             try {
                 await navigator.clipboard.writeText(bannerData);
                 alert('Sharing failed: ' + (_err.message || _err) + '\n\nBanner URL copied to clipboard.');
-            } catch (clipErr) {
+            } catch {
                 alert('Sharing failed completely: ' + (_err.message || _err));
             }
         }

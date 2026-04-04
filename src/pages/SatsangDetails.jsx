@@ -1,18 +1,17 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Calendar, Clock, MapPin, Share2, ChevronLeft } from 'lucide-react';
 import { Share } from '@capacitor/share';
-import { Filesystem, Directory } from '@capacitor/filesystem';
 import PageHeader from '@/components/PageHeader';
 import { db } from '@/firebase';
 import { doc, getDocCacheFirst } from '@/utils/FirestoreProxy';
 import LazyImage from '@/components/LazyImage';
+import { shareImageFile } from '@/utils/shareUtils';
 
 const SatsangDetails = () => {
     const { id: rawId } = useParams();
     const navigate = useNavigate();
-    const location = useLocation();
     const [meeting, setMeeting] = useState(null);
     const [banner, setBanner] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -86,20 +85,11 @@ Download Sri Bagavath App for latest updates`.trim();
         }
 
         try {
-            const base64Data = banner;
-            const cleanBase64 = base64Data.split(',')[1] || base64Data;
-            const fileName = `banner_${Date.now()}.jpg`;
-
-            const result = await Filesystem.writeFile({
-                path: fileName,
-                data: cleanBase64,
-                directory: Directory.Cache,
-                encoding: 'base64'
-            });
-
-            await Share.share({
+            await shareImageFile({
                 title: meeting.conductedBy,
-                files: [result.uri]
+                text: `Satsang banner for ${meeting.conductedBy}`,
+                imageData: banner,
+                fileNameBase: `${meeting.conductedBy}-satsang-banner`
             });
         } catch (_err) {
             console.error('Error sharing banner:', _err);
