@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, MapPin, Share2 } from 'lucide-react';
+import { Calendar, MapPin, Share2, Loader2, Download } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { Share } from '@capacitor/share';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
@@ -202,23 +202,23 @@ const Programs = ({ hideHeader = false }) => {
         fetchSpecificProgram();
     }, [viewingProgramId, programs, specificProgram, authGlobalLoading]);
 
-    // Reset tab when viewing a new program
+    // Reset tab tracking when navigating to/from listing
     useEffect(() => {
-        if (viewingProgramId && viewingProgramId !== lastViewingId) {
+        if (!viewingProgramId) {
+            setLastViewingId(null);
+        } else if (viewingProgramId !== lastViewingId) {
             setLastViewingId(viewingProgramId);
-            // Default to 'banner' if it exists, else 'details'
-            // We'll let the banner/intro existence logic handle the default below
         }
     }, [viewingProgramId, lastViewingId]);
 
-    // Determine initial active tab based on availability
+    // Determine correct active tab on navigation
     useEffect(() => {
         if (viewingProgram && viewingProgram.id !== lastViewingId) {
             const tabParam = searchParams.get('tab');
             if (tabParam && ['banner', 'details', 'intro'].includes(tabParam)) {
                 setActiveTab(tabParam);
             } else if (viewingProgram.hasBanner || viewingProgram.programBanner) {
-                // Clicking "Details" from listing should land on Invitation (banner) if it exists
+                // If no tab explicit, default to Invitation (banner)
                 setActiveTab('banner');
             } else if (viewingProgram.introYoutubeUrl) {
                 setActiveTab('intro');
@@ -281,6 +281,41 @@ const Programs = ({ hideHeader = false }) => {
             } catch (fallbackErr) {
                 console.error('Fallback copy failed: ', fallbackErr);
             }
+        }
+    };
+
+    const handleDownloadBanner = async (program) => {
+        const bannerData = program?.programBanner || (program?.id === viewingProgram?.id ? viewingBanner : null);
+        if (!bannerData) return;
+
+        try {
+            if (bannerData.startsWith('data:')) {
+                const response = await fetch(bannerData);
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', `${program.programName}-invitation.jpg`);
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                window.URL.revokeObjectURL(url);
+            } else {
+                // If it's a direct URL
+                const response = await fetch(bannerData);
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', `${program.programName}-invitation.jpg`);
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                window.URL.revokeObjectURL(url);
+            }
+        } catch (error) {
+            console.error("Banner download failed:", error);
+            window.open(bannerData, '_blank');
         }
     };
 
@@ -400,9 +435,13 @@ Download Sri Bagavath App for latest updates`.trim();
                 alignItems: 'center',
                 justifyContent: 'center'
             }}>
-                <p style={{ fontSize: '1.125rem', color: '#6b7280' }}>
-                    {viewingProgramId ? 'Loading program details...' : 'Loading upcoming programs...'}
-                </p>
+                <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
+                    style={{ color: 'var(--color-primary)' }}
+                >
+                    <Loader2 size={40} />
+                </motion.div>
             </div>
         );
     }
@@ -530,30 +569,58 @@ Download Sri Bagavath App for latest updates`.trim();
                                         position: 'relative'
                                     }}
                                 >
-                                    {/* Top Right Share Icon */}
-                                    <button
-                                        onClick={() => {
-                                            if (activeTab === 'intro') handleShareIntro(viewingProgram);
-                                            else if (activeTab === 'banner') handleShareBanner(viewingProgram);
-                                            else handleShare(viewingProgram);
-                                        }}
-                                        style={{
-                                            position: 'absolute',
-                                            top: '1rem',
-                                            right: '1rem',
-                                            background: 'var(--color-card-transparent)',
-                                            backdropFilter: 'blur(4px)',
-                                            border: 'none',
-                                            color: 'var(--color-primary)',
-                                            cursor: 'pointer',
-                                            zIndex: 20,
-                                            padding: '0.5rem',
-                                            borderRadius: '50%'
-                                        }}
-                                        title="Share Details"
-                                    >
-                                        <Share2 size={20} />
-                                    </button>
+                                    {/* Top Right Actions */}
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: '1rem',
+                                        right: '1rem',
+                                        display: 'flex',
+                                        gap: '0.5rem',
+                                        zIndex: 20
+                                    }}>
+                                        {activeTab === 'banner' && viewingBanner && (
+                                            <button
+                                                onClick={() => handleDownloadBanner(viewingProgram)}
+                                                style={{
+                                                    background: 'var(--color-card-transparent)',
+                                                    backdropFilter: 'blur(4px)',
+                                                    border: 'none',
+                                                    color: 'var(--color-primary)',
+                                                    cursor: 'pointer',
+                                                    padding: '0.5rem',
+                                                    borderRadius: '50%',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center'
+                                                }}
+                                                title="Download Invitation"
+                                            >
+                                                <Download size={20} />
+                                            </button>
+                                        )}
+                                        <button
+                                            onClick={() => {
+                                                if (activeTab === 'intro') handleShareIntro(viewingProgram);
+                                                else if (activeTab === 'banner') handleShareBanner(viewingProgram);
+                                                else handleShare(viewingProgram);
+                                            }}
+                                            style={{
+                                                background: 'var(--color-card-transparent)',
+                                                backdropFilter: 'blur(4px)',
+                                                border: 'none',
+                                                color: 'var(--color-primary)',
+                                                cursor: 'pointer',
+                                                padding: '0.5rem',
+                                                borderRadius: '50%',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center'
+                                            }}
+                                            title="Share Details"
+                                        >
+                                            <Share2 size={20} />
+                                        </button>
+                                    </div>
                                 {/* Banner (Invitation) Section - Only if Banner tab active */}
                                 {activeTab === 'banner' && viewingBanner && (
                                     <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
@@ -902,7 +969,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                                             <button
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    setSearchParams({ id: program.id });
+                                                                    setSearchParams({ id: program.id, tab: 'details' });
                                                                 }}
                                                                 style={{
                                                                     padding: '0.4rem 0.875rem',

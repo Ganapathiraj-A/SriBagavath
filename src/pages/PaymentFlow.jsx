@@ -341,9 +341,9 @@ const PaymentFlow = () => {
             // Priority: Human readable description > message > generic fallback
             let displayMessage = error.description || error.message;
             
-            // If it's still JSON or missing, use a safe generic message
-            if (!displayMessage || displayMessage.includes('{')) {
-                displayMessage = "Payment could not be completed. Please check your network or try a different payment method.";
+            // If it's technical/empty, use a safe generic message
+            if (!displayMessage || displayMessage.includes('{') || displayMessage.toLowerCase() === 'internal') {
+                displayMessage = "Payment could not be verified. This can happen due to a weak internet connection or a temporary server delay. Please check your bank status before trying again.";
             }
 
             setPaymentErrorMessage(displayMessage);

@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { collection, query, onSnapshot, orderBy } from '../utils/FirestoreProxy';
+import { collection, query, getDocs, orderBy } from '../utils/FirestoreProxy';
 import { db } from '../firebase';
-import { X, ChevronLeft, ChevronRight, Maximize2, Share2, Folder, ArrowLeft } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Maximize2, Share2, Folder, ArrowLeft, Download, Loader2 } from 'lucide-react';
 import { shareItem } from '../utils/shareUtils';
 import './WebPages.css';
 
@@ -16,34 +16,35 @@ const WebGallery = () => {
     const shareImageCacheRef = useRef(new Map());
 
     useEffect(() => {
-        console.log("[WebGallery] Setting up gallery snapshot listener...");
-        const qImages = query(collection(db, 'gallery'));
-        const qEvents = query(collection(db, 'gallery_events'));
+        console.log("[WebGallery] Setting up gallery data fetch...");
         
-        const unsubImages = onSnapshot(qImages, (snapshot) => {
-            const loadedImages = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-            // Client-side sort to be resilient to missing 'order' fields
-            loadedImages.sort((a, b) => (a.order || 0) - (b.order || 0));
-            setImages(loadedImages);
-            setLoading(false);
-        }, (error) => {
-            console.error("[WebGallery] Error fetching gallery images:", error);
-            setLoading(false);
-        });
+        const fetchGallery = async () => {
+            setLoading(true);
+            
+            // Fetch Images
+            try {
+                const qImages = query(collection(db, 'gallery'), orderBy('order', 'asc'));
+                const imgSnap = await getDocs(qImages);
+                const loadedImages = imgSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                setImages(loadedImages);
+            } catch (error) {
+                console.error("[WebGallery] Error fetching gallery images:", error);
+            }
 
-        const unsubEvents = onSnapshot(qEvents, (snapshot) => {
-            const loadedEvents = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-            // Client-side sort to be resilient to missing 'order' fields
-            loadedEvents.sort((a, b) => (a.order || 0) - (b.order || 0));
-            setEvents(loadedEvents);
-        }, (error) => {
-            console.error("[WebGallery] Error fetching gallery events:", error);
-        });
-
-        return () => {
-            unsubImages();
-            unsubEvents();
+            // Fetch Events
+            try {
+                const qEvents = query(collection(db, 'gallery_events'), orderBy('order', 'asc'));
+                const eventSnap = await getDocs(qEvents);
+                const loadedEvents = eventSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                setEvents(loadedEvents);
+            } catch (error) {
+                console.error("[WebGallery] Error fetching gallery events:", error);
+            }
+            
+            setLoading(false);
         };
+
+        fetchGallery();
     }, []);
 
     const filteredImages = images.filter(img => {
@@ -114,15 +115,55 @@ const WebGallery = () => {
         });
     };
 
+    const handleDownload = async (img) => {
+        if (!img || !img.url) return;
+        try {
+            // Check if we have a cached blob from share preparation
+            const cached = shareImageCacheRef.current.get(img.id);
+            let blob;
+            
+            if (cached && cached.blob) {
+                blob = cached.blob;
+            } else {
+                const response = await fetch(img.url);
+                blob = await response.blob();
+            }
+
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', (img.caption || 'gallery-image').replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.jpg');
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error("[WebGallery] Download failed:", error);
+            // Fallback to opening in new window
+            window.open(img.url, '_blank');
+        }
+    };
+
     if (loading) {
         return (
             <div className="web-gallery-page">
-                <div className="web-container">
-                    <div className="emedia-header-spacer" />
-                    <div className="gallery-grid">
-                        {[...Array(8)].map((_, i) => (
-                            <div key={i} className="gallery-skeleton" />
-                        ))}
+                <div className="web-container" style={{ 
+                    minHeight: '80vh',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}>
+                    <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                        style={{ color: 'var(--web-nav-bg)', marginBottom: '1.5rem' }}
+                    >
+                        <Loader2 size={48} />
+                    </motion.div>
+                    <div style={{ textAlign: 'center' }}>
+                        <h2 style={{ color: 'var(--web-header-bg)', marginBottom: '0.5rem' }}>Loading Gallery</h2>
+                        <p style={{ color: '#64748b' }}>Preparing beautiful moments for you...</p>
                     </div>
                 </div>
             </div>
@@ -143,7 +184,7 @@ const WebGallery = () => {
                     <div className="emedia-tabs">
                         {[
                             { id: 'general', label: 'General' },
-                            { id: 'ayya', label: 'Ayya' },
+                            { id: 'ayya', label: "Ayyas Photos" },
                             { id: 'events', label: 'Recent Events' }
                         ].map(tab => (
                             <button
@@ -218,15 +259,28 @@ const WebGallery = () => {
                                     <div className="gallery-overlay">
                                         <Maximize2 size={24} />
                                         {img.caption && <p>{img.caption}</p>}
-                                        <button
-                                            className="gallery-share-btn"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleShareImage(img);
-                                            }}
-                                        >
-                                            <Share2 size={20} />
-                                        </button>
+                                        <div className="gallery-action-buttons">
+                                            <button
+                                                className="gallery-action-btn"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleDownload(img);
+                                                }}
+                                                title="Download Image"
+                                            >
+                                                <Download size={20} />
+                                            </button>
+                                            <button
+                                                className="gallery-action-btn"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleShareImage(img).catch(() => {});
+                                                }}
+                                                title="Share Image"
+                                            >
+                                                <Share2 size={20} />
+                                            </button>
+                                        </div>
                                     </div>
                                 </motion.div>
                             ))}
@@ -279,15 +333,26 @@ const WebGallery = () => {
                             <div className="lightbox-counter">
                                 {selectedIndex + 1} / {filteredImages.length}
                             </div>
-                            <button
-                                className="lightbox-share"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleShareImage(filteredImages[selectedIndex]);
-                                }}
-                            >
-                                <Share2 size={24} /> Share
-                            </button>
+                            <div className="lightbox-actions">
+                                <button
+                                    className="lightbox-action"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDownload(filteredImages[selectedIndex]);
+                                    }}
+                                >
+                                    <Download size={24} /> <span>Download</span>
+                                </button>
+                                <button
+                                    className="lightbox-action"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleShareImage(filteredImages[selectedIndex]).catch(() => {});
+                                    }}
+                                >
+                                    <Share2 size={24} /> <span>Share</span>
+                                </button>
+                            </div>
                         </div>
                     </motion.div>
                 )}

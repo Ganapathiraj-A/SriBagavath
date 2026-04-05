@@ -401,6 +401,17 @@ export const shareImageFile = async ({
 
         throw new Error('Image sharing is not supported on this platform');
     } catch (error) {
+        const errorMsg = String(error.message || error || '').toLowerCase();
+        const isCanceled = errorMsg.includes('canceled') || 
+                           errorMsg.includes('cancelled') || 
+                           errorMsg.includes('dismissed') ||
+                           errorMsg.includes('user closed');
+
+        if (isCanceled) {
+            console.log('[Share] Sharing was canceled by user');
+            return { shared: false, reason: 'canceled' };
+        }
+
         console.error('Image sharing failed', error);
         throw error;
     }

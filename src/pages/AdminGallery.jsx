@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Save, X, ChevronUp, ChevronDown, Share2, Folder, FolderPlus, ArrowLeft, Eye } from 'lucide-react';
+import { Plus, Trash2, Save, X, ChevronUp, ChevronDown, Share2, Folder, FolderPlus, ArrowLeft, Eye, Download, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { collection, query, getDocs, orderBy, addDoc, updateDoc, deleteDoc, doc, Timestamp, where } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
@@ -19,7 +19,6 @@ const AdminGallery = () => {
     const [editForm, setEditForm] = useState({ url: '', caption: '', order: 0, category: 'general' });
     const [showAddModal, setShowAddModal] = useState(false);
     const [activeTab, setActiveTab] = useState('general');
-    const [subTab, setSubTab] = useState('events');
     const [selectedEventId, setSelectedEventId] = useState(null);
     const [events, setEvents] = useState([]);
     const [showEventModal, setShowEventModal] = useState(false);
@@ -140,6 +139,25 @@ const AdminGallery = () => {
         }
     };
 
+    const handleDownload = async (img) => {
+        if (!img || !img.url) return;
+        try {
+            const response = await fetch(img.url);
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', (img.caption || 'sri-bagavath-admin-gallery').replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.jpg');
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error("Download failed:", error);
+            window.open(img.url, '_blank');
+        }
+    };
+
     const handleMove = async (img, direction) => {
         const currentIndex = images.findIndex(i => i.id === img.id);
         const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
@@ -173,12 +191,10 @@ const AdminGallery = () => {
     const filteredImages = images.filter(img => {
         const cat = img.category || 'general';
         if (activeTab === 'general') return cat === 'general';
-        if (activeTab === 'recent') {
-            if (cat !== subTab) return false;
-            if (subTab === 'events') {
-                return img.eventId === selectedEventId;
-            }
-            return true;
+        if (activeTab === 'ayya') return cat === 'ayya';
+        if (activeTab === 'events') {
+            if (cat !== 'events') return false;
+            return img.eventId === selectedEventId;
         }
         return false;
     });
@@ -237,13 +253,11 @@ const AdminGallery = () => {
                 }
             />
 
-            <div style={{
-                display: 'flex',
-                justifyContent: 'center',
-                gap: '2rem',
-                marginBottom: '1rem',
+            <div style={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                gap: '2rem', 
                 borderBottom: '1px solid var(--color-border)',
-                padding: '0 1rem',
                 backgroundColor: 'var(--color-surface)',
                 position: 'sticky',
                 top: '56px',
@@ -251,7 +265,8 @@ const AdminGallery = () => {
             }}>
                 {[
                     { id: 'general', label: 'General' },
-                    { id: 'recent', label: 'Recent' }
+                    { id: 'ayya', label: "Ayyas Photos" },
+                    { id: 'events', label: 'Recent Events' }
                 ].map(tab => {
                     const isActive = activeTab === tab.id;
                     return (
@@ -290,96 +305,35 @@ const AdminGallery = () => {
                 })}
             </div>
 
-            <AnimatePresence>
-                {activeTab === 'recent' && (
-                    <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        style={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            gap: '1.5rem',
-                            borderBottom: '1px solid var(--color-border)',
-                            backgroundColor: 'var(--color-surface)',
-                            position: 'sticky',
-                            top: '109px',
-                            zIndex: 9,
-                            overflow: 'hidden'
-                        }}
-                    >
-                        {[
-                            { id: 'events', label: 'Events' },
-                            { id: 'ayya', label: 'Ayya' }
-                        ].map(tab => {
-                            const isActive = subTab === tab.id;
-                            return (
-                                <button
-                                    key={tab.id}
-                                    onClick={() => setSubTab(tab.id)}
-                                    style={{
-                                        padding: '0.625rem 0.25rem',
-                                        border: 'none',
-                                        backgroundColor: 'transparent',
-                                        fontSize: '0.8125rem',
-                                        fontWeight: 600,
-                                        color: isActive ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                                        position: 'relative',
-                                        cursor: 'pointer',
-                                        transition: 'color 0.2s'
-                                    }}
-                                >
-                                    {tab.label}
-                                    {isActive && (
-                                        <motion.div
-                                            layoutId="adminGallerySubTabUnderline"
-                                            style={{
-                                                position: 'absolute',
-                                                bottom: 2,
-                                                left: 0,
-                                                right: 0,
-                                                height: '2px',
-                                                backgroundColor: 'var(--color-primary)',
-                                                borderRadius: '99px'
-                                            }}
-                                        />
-                                    )}
-                                </button>
-                            );
-                        })}
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            {/* Sub-tabs removed for consistency with public view */}
 
             <div style={{ maxWidth: '48rem', margin: '0 auto', padding: '1rem' }}>
                 <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
-                    {activeTab === 'recent' && subTab === 'events' && selectedEventId && (
+                    {activeTab === 'events' && selectedEventId && (
                         <button
                             onClick={() => setSelectedEventId(null)}
                             style={{
-                                padding: '0.8rem',
-                                backgroundColor: 'var(--color-surface)',
+                                border: 'none',
+                                background: 'none',
                                 color: 'var(--color-primary)',
-                                border: '1px solid var(--color-border)',
-                                borderRadius: '0.75rem',
-                                cursor: 'pointer',
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '0.5rem'
+                                gap: '0.25rem',
+                                cursor: 'pointer',
+                                padding: '0.25rem'
                             }}
                         >
-                            <ArrowLeft size={20} />
+                            <ArrowLeft size={16} /> Back to Events
                         </button>
                     )}
                     
                     <button
                         onClick={() => {
-                            const defaultCategory = activeTab === 'recent' ? subTab : 'general';
                             setNewForm(prev => ({ 
                                 ...prev, 
                                 order: images.length,
-                                category: defaultCategory,
-                                eventId: selectedEventId || ''
+                                category: activeTab,
+                                eventId: activeTab === 'events' ? (selectedEventId || '') : ''
                             }));
                             setShowAddModal(true);
                         }}
@@ -398,10 +352,10 @@ const AdminGallery = () => {
                             cursor: 'pointer'
                         }}
                     >
-                        <Plus size={20} /> Image to {activeTab === 'recent' ? (subTab === 'ayya' ? 'Ayya' : 'Current Event') : 'General'}
+                        <Plus size={20} /> Add Image
                     </button>
 
-                    {activeTab === 'recent' && subTab === 'events' && !selectedEventId && (
+                    {activeTab === 'events' && !selectedEventId && (
                         <button
                             onClick={() => setShowEventModal(true)}
                             style={{
@@ -423,7 +377,7 @@ const AdminGallery = () => {
                 </div>
 
                 {/* Event Folder List */}
-                {activeTab === 'recent' && subTab === 'events' && !selectedEventId && (
+                {activeTab === 'events' && !selectedEventId && (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
                         {events.map(event => (
                             <motion.div
@@ -457,8 +411,24 @@ const AdminGallery = () => {
                 )}
 
                 {loading ? (
-                    <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)' }}>Loading gallery...</div>
-                ) : activeTab === 'recent' && subTab === 'events' && !selectedEventId ? (
+                    <div style={{ 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        alignItems: 'center', 
+                        justifyContent: 'center', 
+                        padding: '4rem',
+                        gap: '1rem',
+                        color: 'var(--color-text-muted)'
+                    }}>
+                        <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                        >
+                            <Loader2 size={40} />
+                        </motion.div>
+                        <span>Loading gallery management...</span>
+                    </div>
+                ) : activeTab === 'events' && !selectedEventId ? (
                     <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)', backgroundColor: 'var(--color-surface)', borderRadius: '1rem', border: '1px dashed var(--color-border)' }}>
                         Select an event folder above to manage its photos.
                     </div>
@@ -549,10 +519,11 @@ const AdminGallery = () => {
                                                 style={{ width: '60px', padding: '0.5rem', borderRadius: '0.25rem', border: '1px solid var(--color-border)' }}
                                             />
                                             <div style={{ flex: 1 }} />
-                                            <button onClick={() => shareImage(img)} style={{ padding: '0.5rem', color: 'var(--color-primary)', background: 'none', border: 'none' }}><Share2 size={20} /></button>
-                                            <button onClick={() => handleDelete(img.id)} style={{ padding: '0.5rem', color: 'var(--color-error)', background: 'none', border: 'none' }}><Trash2 size={20} /></button>
-                                            <button onClick={() => handleUpdate(img.id)} style={{ padding: '0.5rem', color: 'var(--color-success)', background: 'none', border: 'none' }}><Save size={20} /></button>
-                                            <button onClick={(e) => { e.stopPropagation(); setEditingId(null); }} style={{ padding: '0.5rem', color: 'var(--color-text-muted)', background: 'none', border: 'none' }}><X size={20} /></button>
+                                            <button onClick={() => handleDownload(img)} style={{ padding: '0.5rem', color: 'var(--color-primary)', background: 'none', border: 'none', cursor: 'pointer' }}><Download size={20} /></button>
+                                            <button onClick={() => shareImage(img)} style={{ padding: '0.5rem', color: 'var(--color-primary)', background: 'none', border: 'none', cursor: 'pointer' }}><Share2 size={20} /></button>
+                                            <button onClick={() => handleDelete(img.id)} style={{ padding: '0.5rem', color: 'var(--color-error)', background: 'none', border: 'none', cursor: 'pointer' }}><Trash2 size={20} /></button>
+                                            <button onClick={() => handleUpdate(img.id)} style={{ padding: '0.5rem', color: 'var(--color-success)', background: 'none', border: 'none', cursor: 'pointer' }}><Save size={20} /></button>
+                                            <button onClick={(e) => { e.stopPropagation(); setEditingId(null); }} style={{ padding: '0.5rem', color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
                                         </div>
                                         {editForm.category === 'events' && (
                                             <select
@@ -571,11 +542,6 @@ const AdminGallery = () => {
                                         style={{ flex: 1, overflow: 'hidden', cursor: 'pointer' }}
                                     >
                                         <div style={{ fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{img.caption || 'No caption'}</div>
-                                        <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{img.url}</div>
-                                        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
-                                            <span style={{ fontSize: '0.75rem', color: 'var(--color-primary)' }}>Order: {img.order}</span>
-                                            <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', textTransform: 'capitalize' }}>• {img.category?.replace('_', ' ') || 'General'}</span>
-                                        </div>
                                     </div>
                                 )}
                                 
@@ -697,7 +663,7 @@ const AdminGallery = () => {
                                 <div>
                                     <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Category</label>
                                     <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '0.5rem' }}>
-                                        {['general', 'events', 'ayya'].map(cat => (
+                                        {['general', 'ayya', 'events'].map(cat => (
                                             <button
                                                 key={cat}
                                                 type="button"

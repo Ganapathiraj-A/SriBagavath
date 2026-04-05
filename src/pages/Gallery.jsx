@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { X, ChevronLeft, ChevronRight, Maximize2, Edit2, Share2, Folder, ArrowLeft } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Maximize2, Edit2, Share2, Folder, ArrowLeft, Download, Loader2 } from 'lucide-react';
 import { collection, query, getDocs, orderBy } from '@/utils/FirestoreProxy';
 import { db } from '@/firebase';
 import { useAdminAuth } from '@/context/AdminAuthContext';
@@ -22,22 +22,23 @@ const Gallery = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const qImages = query(collection(db, 'gallery'));
-                const qEvents = query(collection(db, 'gallery_events'));
-                
-                const [imgSnap, eventSnap] = await Promise.all([
-                    getDocs(qImages),
-                    getDocs(qEvents)
-                ]);
+                try {
+                    const qImages = query(collection(db, 'gallery'), orderBy('order', 'asc'));
+                    const imgSnap = await getDocs(qImages);
+                    const imgs = imgSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    setImages(imgs);
+                } catch (e) {
+                    console.error("Gallery images fetch failed:", e);
+                }
 
-                const loadedImages = imgSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-                loadedImages.sort((a, b) => (a.order || 0) - (b.order || 0));
-                
-                const loadedEvents = eventSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-                loadedEvents.sort((a, b) => (a.order || 0) - (b.order || 0));
-
-                setImages(loadedImages);
-                setEvents(loadedEvents);
+                try {
+                    const qEvents = query(collection(db, 'gallery_events'), orderBy('order', 'asc'));
+                    const eventSnap = await getDocs(qEvents);
+                    const evs = eventSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    setEvents(evs);
+                } catch (e) {
+                    console.error("Gallery events fetch failed:", e);
+                }
             } catch (error) {
                 console.error("Error fetching gallery data:", error);
             } finally {
@@ -47,14 +48,16 @@ const Gallery = () => {
         fetchData();
     }, []);
 
-    const filteredImages = images.filter(img => {
-        const cat = img.category || 'general';
-        if (cat !== activeTab) return false;
-        if (activeTab === 'events') {
-            return img.eventId === selectedEventId;
-        }
-        return true;
-    });
+    const filteredImages = useMemo(() => {
+        return images.filter(img => {
+            const cat = img.category || 'general';
+            if (cat !== activeTab) return false;
+            if (activeTab === 'events') {
+                return img.eventId === selectedEventId;
+            }
+            return true;
+        });
+    }, [images, activeTab, selectedEventId]);
 
     const selectedEvent = events.find(ev => ev.id === selectedEventId);
 
@@ -69,14 +72,66 @@ const Gallery = () => {
         setSelectedIndex((prev) => (prev - 1 + filteredImages.length) % filteredImages.length);
     };
 
+    const handleDownload = async (img) => {
+        if (!img || !img.url) return;
+        try {
+            const response = await fetch(img.url);
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', (img.caption || 'sri-bagavath-gallery').replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.jpg');
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error("Download failed:", error);
+            window.open(img.url, '_blank');
+        }
+    };
+
     if (loading) {
         return (
-            <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-surface)' }}>
+            <div style={{ 
+                minHeight: '100vh', 
+                backgroundColor: 'var(--color-surface)',
+                display: 'flex',
+                flexDirection: 'column'
+            }}>
                 <PageHeader title="Gallery" />
-                <div style={{ padding: '1.5rem', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
-                    {[...Array(6)].map((_, i) => (
-                        <div key={i} style={{ aspectRatio: '1', backgroundColor: 'var(--color-border)', borderRadius: '0.75rem', animation: 'pulse 2s infinite' }} />
-                    ))}
+                <div style={{ 
+                    flex: 1,
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    padding: '2rem',
+                    gap: '1.5rem'
+                }}>
+                    <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                        style={{ color: 'var(--color-primary)' }}
+                    >
+                        <Loader2 size={48} />
+                    </motion.div>
+                    <div style={{ textAlign: 'center' }}>
+                        <div style={{ 
+                            fontSize: '1.125rem', 
+                            fontWeight: 700, 
+                            color: 'var(--color-text)',
+                            marginBottom: '0.4rem'
+                        }}>
+                            Loading Gallery
+                        </div>
+                        <div style={{ 
+                            fontSize: '0.875rem', 
+                            color: 'var(--color-text-muted)'
+                        }}>
+                            Fetching beautiful moments...
+                        </div>
+                    </div>
                 </div>
             </div>
         );
@@ -124,7 +179,7 @@ const Gallery = () => {
             }}>
                 {[
                     { id: 'general', label: 'General' },
-                    { id: 'ayya', label: 'Ayya' },
+                    { id: 'ayya', label: "Ayyas Photos" },
                     { id: 'events', label: 'Recent Events' }
                 ].map(tab => {
                     const isActive = activeTab === tab.id;
@@ -266,7 +321,6 @@ const Gallery = () => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.05 }}
-                            whileHover={{ scale: 1.02 }}
                             onClick={() => openLightbox(index)}
                             style={{
                                 marginBottom: '1rem',
@@ -307,7 +361,8 @@ const Gallery = () => {
                                 gap: '0.5rem',
                                 zIndex: 20
                             }}>
-                                <div 
+                                <motion.div 
+                                    whileTap={{ scale: 0.85 }}
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         openLightbox(index);
@@ -326,12 +381,34 @@ const Gallery = () => {
                                     }}
                                 >
                                     <Maximize2 size={16} />
-                                </div>
+                                </motion.div>
                                 <motion.button 
                                     whileTap={{ scale: 0.85 }}
                                     onClick={(e) => { 
                                         e.stopPropagation(); 
-                                        shareImage(img); 
+                                        handleDownload(img); 
+                                    }}
+                                    style={{
+                                        padding: '0.5rem',
+                                        borderRadius: '50%',
+                                        backgroundColor: 'rgba(0,0,0,0.5)',
+                                        backdropFilter: 'blur(4px)',
+                                        color: 'white',
+                                        border: 'none',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        cursor: 'pointer',
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                    }}
+                                >
+                                    <Download size={16} />
+                                </motion.button>
+                                <motion.button 
+                                    whileTap={{ scale: 0.85 }}
+                                    onClick={(e) => { 
+                                        e.stopPropagation(); 
+                                        shareImage(img).catch(() => {});
                                     }}
                                     style={{
                                         padding: '0.5rem',
@@ -381,7 +458,13 @@ const Gallery = () => {
                     >
                         <div style={{ position: 'absolute', top: '2rem', right: '1.5rem', display: 'flex', gap: '1rem' }}>
                             <button 
-                                onClick={() => shareImage(filteredImages[selectedIndex])}
+                                onClick={() => handleDownload(filteredImages[selectedIndex])}
+                                style={{ color: 'white', background: 'none', border: 'none', cursor: 'pointer' }}
+                            >
+                                <Download size={28} />
+                            </button>
+                            <button 
+                                onClick={() => shareImage(filteredImages[selectedIndex]).catch(() => {})}
                                 style={{ color: 'white', background: 'none', border: 'none', cursor: 'pointer' }}
                             >
                                 <Share2 size={28} />

@@ -9,15 +9,7 @@ const WebEMedia = () => {
     const [activeTab, setActiveTab] = useState('pdf');
     const [activeLanguage, setActiveLanguage] = useState(emediaData.digitalBooks.languages[0]?.id || 'tamil');
     const [currentMagazineFolder, setCurrentMagazineFolder] = useState(null);
-    const [shouldRenderAll, setShouldRenderAll] = useState(false);
 
-    useEffect(() => {
-        // Stagger rendering of off-screen tabs to prioritize initial paint
-        const timer = setTimeout(() => {
-            setShouldRenderAll(true);
-        }, 800);
-        return () => clearTimeout(timer);
-    }, []);
 
     const tabs = [
         { id: 'pdf', name: 'Digital Books', icon: <Book size={20} /> },
@@ -327,22 +319,20 @@ const WebEMedia = () => {
                 </nav>
 
                 <main className="emedia-main">
-                    <div style={{ display: activeTab === 'pdf' ? 'block' : 'none' }}>
-                        {renderPDFSection()}
-                    </div>
-                    {shouldRenderAll && (
-                        <>
-                            <div style={{ display: activeTab === 'magazine' ? 'block' : 'none' }}>
-                                {renderMagazineSection()}
-                            </div>
-                            <div style={{ display: activeTab === 'audio' ? 'block' : 'none' }}>
-                                {renderAudioSection()}
-                            </div>
-                            <div style={{ display: activeTab === 'video' ? 'block' : 'none' }}>
-                                {renderVideoSection()}
-                            </div>
-                        </>
-                    )}
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={activeTab}
+                            initial={{ opacity: 0, scale: 0.98 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.98 }}
+                            transition={{ duration: 0.2 }}
+                        >
+                            {activeTab === 'pdf' && renderPDFSection()}
+                            {activeTab === 'magazine' && renderMagazineSection()}
+                            {activeTab === 'audio' && renderAudioSection()}
+                            {activeTab === 'video' && renderVideoSection()}
+                        </motion.div>
+                    </AnimatePresence>
                 </main>
             </div>
         </div>
