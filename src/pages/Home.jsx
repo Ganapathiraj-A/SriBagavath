@@ -517,7 +517,7 @@ const Home = () => {
                 }}>
                     {import.meta.env.MODE} | v{appVersion}
                 </div>
-                {logs.length > 0 && (
+                {logs.length > 0 && devMode && (
                     <div style={{
                         marginTop: '12px',
                         marginBottom: '40px', // Extra buffer from bottom
