@@ -18,17 +18,42 @@
 <body>
   <div id="root"></div>
   <!-- Error Trap for White Screen Debugging -->
-  <div id="error-trap" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:white; color:red; z-index:99999; padding:20px; overflow:auto; font-family:monospace; white-space:pre-wrap;"></div>
+  <div id="error-trap" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:white; color:red; z-index:99999; padding:20px; overflow:auto; font-family:sans-serif; line-height:1.6;">
+    <div style="max-width: 600px; margin: 0 auto; background: #fff5f5; border: 1px solid #ff0000; padding: 20px; border-radius: 8px;">
+      <h2 style="margin-top: 0;">Oops! App Load Failed</h2>
+      <p>Something went wrong while loading the app. This is usually caused by an old version being cached in your browser.</p>
+      <button onclick="clearAppCache()" style="background: #ff9800; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; margin-bottom: 20px; width: 100%;">
+        Fix App & Reload (Clears Cache)
+      </button>
+      <div id="error-details" style="font-family: monospace; white-space: pre-wrap; font-size: 12px; opacity: 0.8; height: 150px; overflow: auto; background: #000; color: #fff; padding: 10px; border-radius: 4px;"></div>
+    </div>
+  </div>
   <script>
+    function clearAppCache() {
+      if (window.navigator && window.navigator.serviceWorker) {
+        navigator.serviceWorker.getRegistrations().then(function (registrations) {
+          for (let registration of registrations) {
+            registration.unregister();
+          }
+          window.localStorage.clear();
+          window.sessionStorage.clear();
+          window.location.reload(true);
+        });
+      } else {
+        window.localStorage.clear();
+        window.sessionStorage.clear();
+        window.location.reload(true);
+      }
+    }
     window.onerror = function (msg, url, lineNo, columnNo, error) {
-      // Ignore benign cross-origin script errors (e.g., from Google Auth / AdBlockers)
       if (msg === 'Script error.' || !url || url.includes('apis.google.com')) {
         console.warn('Ignored cross-origin script error from:', url);
         return false;
       }
       var trap = document.getElementById('error-trap');
+      var details = document.getElementById('error-details');
       trap.style.display = 'block';
-      trap.innerText += "Error: " + msg + "\nURL: " + url + "\nLine: " + lineNo + "\nStack: " + (error ? error.stack : 'N/A') + "\n\n";
+      details.innerText += "Error: " + msg + "\nURL: " + url + "\nLine: " + lineNo + "\nColumn: " + columnNo + "\nStack: " + (error ? error.stack : 'N/A') + "\n\n";
       return false;
     };
     window.addEventListener('unhandledrejection', function (event) {

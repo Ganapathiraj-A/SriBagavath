@@ -12,11 +12,7 @@ const PWAUpdateNotification = () => {
     // intervalMS: how often the browser checks the server for a new Service Worker (1 hour)
     const intervalMS = 60 * 60 * 1000;
 
-    const {
-        offlineReady: [offlineReady, setOfflineReady],
-        needRefresh: [needRefresh, setNeedRefresh],
-        updateServiceWorker,
-    } = useRegisterSW({
+    const sw = useRegisterSW({
         onRegistered(r) {
             console.log('SW Registered');
             if (r) {
@@ -32,9 +28,15 @@ const PWAUpdateNotification = () => {
         },
     });
 
+    const needRefresh = sw?.needRefresh?.[0];
+    const setNeedRefresh = sw?.needRefresh?.[1];
+    const offlineReady = sw?.offlineReady?.[0];
+    const setOfflineReady = sw?.offlineReady?.[1];
+    const updateServiceWorker = sw?.updateServiceWorker;
+
     const close = () => {
-        setOfflineReady(false);
-        setNeedRefresh(false);
+        if (setOfflineReady) setOfflineReady(false);
+        if (setNeedRefresh) setNeedRefresh(false);
     };
 
     if (!offlineReady && !needRefresh) {
