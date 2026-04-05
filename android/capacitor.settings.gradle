@@ -23,8 +23,8 @@ project(':capacitor-share').projectDir = new File('../node_modules/@capacitor/sh
 include ':capacitor-toast'
 project(':capacitor-toast').projectDir = new File('../node_modules/@capacitor/toast/android')
 
-include ':capacitor-razorpay'
-project(':capacitor-razorpay').projectDir = new File('../node_modules/capacitor-razorpay/android')
-
 include ':codetrix-studio-capacitor-google-auth'
 project(':codetrix-studio-capacitor-google-auth').projectDir = new File('../node_modules/@codetrix-studio/capacitor-google-auth/android')
+
+include ':capacitor-razorpay'
+project(':capacitor-razorpay').projectDir = new File('../node_modules/capacitor-razorpay/android')

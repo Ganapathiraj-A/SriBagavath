@@ -16,8 +16,8 @@ dependencies {
     implementation project(':capacitor-filesystem')
     implementation project(':capacitor-share')
     implementation project(':capacitor-toast')
-    implementation project(':capacitor-razorpay')
     implementation project(':codetrix-studio-capacitor-google-auth')
+    implementation project(':capacitor-razorpay')
 
 }
 
