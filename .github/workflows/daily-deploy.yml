@@ -47,6 +47,8 @@ jobs:
 
       - name: Build & Deploy PWA
         if: steps.check_changes.outputs.changed == 'true'
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/service-account.json
         run: |
           npm run build -- --mode production
-          npx firebase-tools deploy --only hosting:web --token "${{ secrets.FIREBASE_TOKEN }}" --project antigravity-app-5c1ff
+          npx firebase-tools deploy --only hosting:web --project antigravity-app-5c1ff
