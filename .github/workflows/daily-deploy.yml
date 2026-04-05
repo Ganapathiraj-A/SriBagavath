@@ -1,6 +1,9 @@
 name: Daily PWA Build & Deploy
 
 on:
+  push:
+    branches:
+      - main
   schedule:
     - cron: '30 18 * * *'  # Runs every day at 18:30 UTC (00:00 IST)
   workflow_dispatch:      # Allows override manual triggering
@@ -46,7 +49,7 @@ jobs:
           fi
 
       - name: Build & Deploy PWA
-        if: steps.check_changes.outputs.changed == 'true'
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || steps.check_changes.outputs.changed == 'true'
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/service-account.json
         run: |
