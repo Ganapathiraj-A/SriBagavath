@@ -98,14 +98,20 @@ For local testing and debugging on a physical Android device:
   npx cap run android
   ```
 
-#### 3. Website Deployment
-The website is hosted on Firebase and includes both the main user application and the admin portal.
+#### 3. Website & PWA Deployment
+The website is hosted on Firebase and includes the main user application, the admin portal, and a Progressive Web App (PWA) with offline capabilities.
 - **Full Production Deploy**: Run the following to refresh E-Media data from the database and deploy all hosting targets:
   ```bash
   npm run deploy:prod
   ```
 - **Web App Only**: `npm run deploy:web`
 - **Admin Portal Only**: `npm run deploy:hosting:prod` (Skips the data-fetch step).
+
+#### 4. GitHub Actions Automation
+The project features a **Daily PWA Update** workflow powered by GitHub Actions.
+- **Auto-Sync**: Every day at midnight (UTC), the system automatically fetches the latest E-Media data (Books, Magazines, Audio) from Firestore and Google Drive.
+- **Smart Build**: To optimize resource usage, a new deployment is only triggered if the underlying data has actually changed.
+- **Manual Control**: The workflow can be manually triggered from the **Actions** tab in the GitHub repository.
 
 For detailed build system information, see [BUILD_SYSTEM.md](BUILD_SYSTEM.md).
 
