@@ -20,6 +20,9 @@ temp/
 *.mjs
 *.js
 !src/**/*.js
+!scripts/**/*.js
+!scripts/**/*.cjs
+!scripts/**/*.mjs
 !*.config.js
 !*.config.mjs
 !*.config.cjs
