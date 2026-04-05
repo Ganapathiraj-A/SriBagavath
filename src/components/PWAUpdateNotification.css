@@ -1,0 +1,127 @@
+.pwa-toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 10000;
+    pointer-events: none;
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+}
+
+.pwa-toast {
+    background: var(--color-surface, #ffffff);
+    border: 1px solid var(--color-border, #e0e0e0);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin: 16px;
+    min-width: 320px;
+    max-width: 400px;
+    pointer-events: auto;
+    animation: slideInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    backdrop-filter: blur(8px);
+}
+
+.pwa-toast-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.pwa-toast-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(255, 152, 0, 0.1);
+    color: #ff9800;
+}
+
+.animate-spin-slow {
+    animation: spin 3s linear infinite;
+}
+
+.pwa-toast-message {
+    flex: 1;
+}
+
+.pwa-toast-message strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text-primary, #333);
+    margin-bottom: 2px;
+}
+
+.pwa-toast-message p {
+    font-size: 13px;
+    color: var(--color-text-secondary, #666);
+    margin: 0;
+}
+
+.pwa-toast-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: transform 0.2s, background 0.2s;
+}
+
+.pwa-toast-btn.primary {
+    background: #ff9800;
+    color: white;
+}
+
+.pwa-toast-btn.primary:hover {
+    background: #f57c00;
+    transform: translateY(-1px);
+}
+
+.pwa-toast-close {
+    background: none;
+    border: none;
+    padding: 4px;
+    color: var(--color-text-tertiary, #999);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.pwa-toast-close:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+@keyframes slideInUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width: 600px) {
+    .pwa-toast-container {
+        bottom: 0;
+        right: 0;
+        left: 0;
+        justify-content: center;
+    }
+    .pwa-toast {
+        margin: 16px;
+        width: calc(100% - 32px);
+        min-width: auto;
+    }
+}

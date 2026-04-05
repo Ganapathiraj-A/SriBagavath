@@ -450,7 +450,7 @@ function AnimatedRoutes() {
   );
 }
 
-import UpdateIcon from './components/UpdateIcon';
+import PWAUpdateNotification from './components/PWAUpdateNotification';
 
 function AppContent() {
   const location = useLocation();
@@ -504,6 +504,7 @@ function AppContent() {
               <UpdateIcon />
             </div>
           )}
+          <PWAUpdateNotification />
         </>
       )}
 
