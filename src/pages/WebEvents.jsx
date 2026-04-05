@@ -262,33 +262,57 @@ const WebEvents = () => {
                                             transition={{ delay: idx * 0.05 }}
                                         >
                                             <div className="event-card-inner">
-                                                <div className="event-card-main">
-                                                    <div className="event-date-badge">
-                                                        <span className="event-day">{new Date(item.programDate || item.date).getDate()}</span>
-                                                        <span className="event-month">{new Date(item.programDate || item.date).toLocaleString('default', { month: 'short' })}</span>
-                                                    </div>
-                                                    <div className="event-card-body">
-                                                        <h3>{item.programName || item.conductedBy || item.name || item.title || 'Untitled Event'}</h3>
-                                                        <div className="event-meta">
-                                                            {(item.programVenue || item.city || item.location) && (
-                                                                <span><MapPin size={14} /> {item.programVenue || item.city || item.location}</span>
-                                                            )}
-                                                            {(item.startTime || item.time) && <span><Clock size={14} /> {item.startTime || item.time}</span>}
-                                                            {item.isRecurring && <span className="recurring-tag">{formatRecurrenceRule(item)}</span>}
+                                                <div className="event-card-top">
+                                                    <h3 className="event-title">{item.programName || item.conductedBy || item.name || item.title || 'Untitled Event'}</h3>
+                                                    
+                                                    <div className="event-details-rows">
+                                                        <div className="event-detail-row">
+                                                            <Calendar size={16} />
+                                                            <span>{new Date(item.programDate || item.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}</span>
                                                         </div>
-                                                        <p className="event-excerpt">
-                                                            {(item.programDescription || item.description || '')?.substring(0, 150) || 'No description available.'}
-                                                            {((item.programDescription || item.description || '')?.length > 150) && '...'}
-                                                        </p>
+                                                        {(item.programVenue || item.city || item.location) && (
+                                                            <div className="event-detail-row">
+                                                                <MapPin size={16} />
+                                                                <span>{item.programVenue || item.city || item.location}</span>
+                                                            </div>
+                                                        )}
+                                                        {item.isRecurring && (
+                                                            <div className="event-detail-row recurrence">
+                                                                <RefreshCw size={14} />
+                                                                <span>{formatRecurrenceRule(item)}</span>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
-                                                <div className="event-card-actions">
-                                                    {(item.joinLink || item.joinUrl) ? (
-                                                        <a href={item.joinLink || item.joinUrl} target="_blank" rel="noreferrer" className="web-btn-primary">Join Meeting</a>
-                                                    ) : (
-                                                        <button className="web-btn-primary" onClick={() => navigate(`/web/programs/${item.id}`)}>View Details</button>
+
+                                                <div className="event-card-footer-actions">
+                                                    {!item.joinLink && !item.joinUrl && (
+                                                        <button 
+                                                            className="web-btn-primary register" 
+                                                            onClick={() => navigate(`/web/programs/${item.id}`)}
+                                                        >
+                                                            Register Now
+                                                        </button>
                                                     )}
-                                                    <button className="web-btn-outline icon-only" onClick={() => handleShare(item)}><Share2 size={18} /></button>
+                                                    
+                                                    {item.introYoutubeUrl && (
+                                                        <button 
+                                                            className="web-btn-secondary" 
+                                                            onClick={() => navigate(`/web/programs/${item.id}?tab=intro`)}
+                                                        >
+                                                            Intro
+                                                        </button>
+                                                    )}
+
+                                                    <button 
+                                                        className={`web-btn-outline ${!(item.joinLink || item.joinUrl) ? 'small' : 'full'}`}
+                                                        onClick={() => {
+                                                            if (item.joinLink || item.joinUrl) window.open(item.joinLink || item.joinUrl, '_blank');
+                                                            else navigate(`/web/programs/${item.id}`);
+                                                        }}
+                                                    >
+                                                        {(item.joinLink || item.joinUrl) ? 'Join Meeting' : 'Details'}
+                                                    </button>
                                                 </div>
                                             </div>
                                         </motion.div>
