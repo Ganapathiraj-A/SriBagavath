@@ -1,0 +1,52 @@
+name: Daily PWA Build & Deploy
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Runs every day at midnight (UTC)
+  workflow_dispatch:      # Allows override manual triggering
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Setup Service Account & Env
+        run: |
+          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > service-account.json
+          echo "VITE_GOOGLE_DRIVE_API_KEY=${{ secrets.GOOGLE_DRIVE_API_KEY }}" > .env
+          echo "VITE_FIREBASE_API_KEY=${{ secrets.VITE_FIREBASE_API_KEY }}" >> .env
+          # Add any other required production variables here
+
+      - name: Fetch Latest E-Media Data
+        run: node scripts/fetch-emedia.js
+
+      - name: Check for Data Changes
+        id: check_changes
+        shell: bash
+        run: |
+          if git diff --quiet src/data/emedia.json; then
+            echo "No changes in E-Media data. Skipping build."
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "E-Media data changed. Proceeding with build."
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build & Deploy PWA
+        if: steps.check_changes.outputs.changed == 'true'
+        run: |
+          npm run build -- --mode production
+          npx firebase-tools deploy --only hosting:web --token "${{ secrets.FIREBASE_TOKEN }}" --project antigravity-app-5c1ff
