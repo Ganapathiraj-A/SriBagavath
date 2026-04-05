@@ -2,7 +2,7 @@ name: Daily PWA Build & Deploy
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # Runs every day at midnight (UTC)
+    - cron: '30 18 * * *'  # Runs every day at 18:30 UTC (00:00 IST)
   workflow_dispatch:      # Allows override manual triggering
 
 env:
