@@ -107,7 +107,7 @@ const ProgramCategories = () => {
 
             <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem', maxWidth: '28rem', margin: '0 auto' }}>
                 <p style={{ color: 'var(--color-text-muted)', textAlign: 'center', marginBottom: '0.5rem', fontSize: '0.95rem' }}>
-                    Select a category to view upcoming programs
+                    Select a category to view upcoming events
                 </p>
                 {!currentHiddenScreens.includes('/programs/retreat') && (
                     <CategoryButton
