@@ -14,7 +14,7 @@ const PWAUpdateNotification = () => {
 
     const {
         offlineReady: [offlineReady, setOfflineReady],
-        needUpdate: [needUpdate, setNeedUpdate],
+        needRefresh: [needRefresh, setNeedRefresh],
         updateServiceWorker,
     } = useRegisterSW({
         onRegistered(r) {
@@ -34,18 +34,18 @@ const PWAUpdateNotification = () => {
 
     const close = () => {
         setOfflineReady(false);
-        setNeedUpdate(false);
+        setNeedRefresh(false);
     };
 
-    if (!offlineReady && !needUpdate) {
+    if (!offlineReady && !needRefresh) {
         return null;
     }
 
     return (
         <div className="pwa-toast-container">
-            <div className={`pwa-toast ${needUpdate ? 'update' : 'offline'}`}>
+            <div className={`pwa-toast ${needRefresh ? 'update' : 'offline'}`}>
                 <div className="pwa-toast-content">
-                    {needUpdate ? (
+                    {needRefresh ? (
                         <>
                             <div className="pwa-toast-icon">
                                 <RefreshCw className="animate-spin-slow" size={20} />
