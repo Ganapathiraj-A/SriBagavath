@@ -50,12 +50,18 @@ const AyyasSchedule = () => {
         fetchSchedules();
     }, [authGlobalLoading]);
 
+    const formatDateRange = (d1, d2) => {
+        const options = { month: 'short', day: 'numeric' };
+        const from = new Date(d1).toLocaleDateString('en-US', options);
+        const to = new Date(d2).toLocaleDateString('en-US', options);
+        return `${from} - ${to}`;
+    };
+
     const formatScheduleText = (s) => {
-        const fromDate = new Date(s.fromDate).toLocaleDateString();
-        const toDate = new Date(s.toDate).toLocaleDateString();
+        const dateRange = formatDateRange(s.fromDate, s.toDate);
         const monthShort = new Date(s.fromDate).toLocaleDateString(undefined, { month: 'short' }).toUpperCase();
         const day = new Date(s.fromDate).getDate();
-        return `*${monthShort} ${day}: ${s.place}*\n(${fromDate} - ${toDate})`;
+        return `*${monthShort} ${day}: ${s.place}*\n(${dateRange})`;
     };
 
     const handleShareAll = async () => {
@@ -169,7 +175,7 @@ const AyyasSchedule = () => {
                             </div>
                             <div style={{ flex: 1 }}>
                                 <h2 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0 }}>{schedule.place}</h2>
-                                <div style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>{new Date(schedule.fromDate).toLocaleDateString()} - {new Date(schedule.toDate).toLocaleDateString()}</div>
+                                <div style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>{formatDateRange(schedule.fromDate, schedule.toDate)}</div>
                             </div>
                             <button onClick={() => handleShareSingle(schedule)} disabled={isSharingScheduleId === schedule.id} style={{ border: 'none', background: 'none', color: 'var(--color-primary)' }}>
                                 {isSharingScheduleId === schedule.id ? <Loader2 size={18} className="animate-spin" /> : <Share2 size={18} />}
