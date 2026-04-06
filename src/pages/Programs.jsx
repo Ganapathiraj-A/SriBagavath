@@ -954,15 +954,10 @@ Download Sri Bagavath App for latest updates`.trim();
                                                                         e.stopPropagation();
                                                                         setSearchParams({ id: program.id, tab: 'intro' });
                                                                     }}
+                                                                    className="btn-black"
                                                                     style={{
                                                                         padding: '0.4rem 0.875rem',
-                                                                        backgroundColor: '#000000',
-                                                                        color: '#ffffff',
-                                                                        border: 'none',
-                                                                        borderRadius: '0.5rem',
-                                                                        cursor: 'pointer',
-                                                                        fontSize: '0.8125rem',
-                                                                        fontWeight: 600
+                                                                        fontSize: '0.8125rem'
                                                                     }}
                                                                 >
                                                                     Intro
@@ -973,15 +968,10 @@ Download Sri Bagavath App for latest updates`.trim();
                                                                     e.stopPropagation();
                                                                     setSearchParams({ id: program.id, tab: 'details' });
                                                                 }}
+                                                                className="btn-black"
                                                                 style={{
                                                                     padding: '0.4rem 0.875rem',
-                                                                    backgroundColor: '#000000',
-                                                                    color: '#ffffff',
-                                                                    border: 'none',
-                                                                    borderRadius: '0.5rem',
-                                                                    cursor: 'pointer',
-                                                                    fontSize: '0.8125rem',
-                                                                    fontWeight: 600
+                                                                    fontSize: '0.8125rem'
                                                                 }}
                                                             >
                                                                 Details
