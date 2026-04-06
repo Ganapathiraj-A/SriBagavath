@@ -17,6 +17,7 @@ const EventRegistration = () => {
     const [program, setProgram] = useState(initialProgram);
     const { onlineTransactionsEnabled, offlineRegistrationContact } = useGlobalSettings();
     const { isAdmin } = useAdminAuth();
+    const isMobile = Capacitor.isNativePlatform() || window.matchMedia("(max-width: 768px)").matches || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
     // Fresh Load of Program Data to bypass stale cache
     useEffect(() => {
@@ -424,7 +425,7 @@ const EventRegistration = () => {
                 boxSizing: 'border-box'
             }}>
                 {/* Progress Bar - Only for Web Stepped Flow */}
-                {!(Capacitor.isNativePlatform() || window.innerWidth < 768) && (
+                {!isMobile && (
                     <div style={{ marginBottom: '1.5rem', marginTop: '1rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.875rem', fontWeight: 700, color: 'var(--color-primary)' }}>
                             <span>Step {currentStep + 1} of {totalSteps + 1}</span>
@@ -454,7 +455,7 @@ const EventRegistration = () => {
                 </div>
 
                 {/* STEP 0: BASIC INFO */}
-                {(Capacitor.isNativePlatform() || window.innerWidth < 768 || currentStep === 0) && (
+                {(isMobile || currentStep === 0) && (
                     <>
                         {hasPreviousInfo && (
                             <div style={{ marginBottom: '1.5rem' }}>
@@ -520,7 +521,7 @@ const EventRegistration = () => {
                 )}
 
                 {/* STEPS 1 to N: PARTICIPANT DETAILS */}
-                {(Capacitor.isNativePlatform() || window.innerWidth < 768) ? (
+                {isMobile ? (
                     participants.map((p, index) => (
                         <div key={index} className="card" style={{ padding: '1.5rem', borderRadius: '1rem', marginBottom: '1.5rem' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.75rem' }}>
@@ -701,7 +702,7 @@ const EventRegistration = () => {
                 )}
 
                 {/* STEP: ADDITIONAL OPTIONS */}
-                {(Capacitor.isNativePlatform() || window.innerWidth < 768 || currentStep === participants.length + 1) && program?.additionalOptions?.length > 0 && (
+                {(isMobile || currentStep === participants.length + 1) && program?.additionalOptions?.length > 0 && (
                     <div className="card" style={{ padding: '1.5rem', borderRadius: '1rem', marginBottom: '1.5rem' }}>
                         <h3 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '1.25rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.75rem' }}>Additional Options</h3>
                         <div style={{ display: 'grid', gap: '1rem' }}>
@@ -754,7 +755,7 @@ const EventRegistration = () => {
                 )}
 
                 {/* FINAL STEP: REVIEW & PAY */}
-                {(Capacitor.isNativePlatform() || window.innerWidth < 768 || currentStep === totalSteps) && (
+                {(isMobile || currentStep === totalSteps) && (
                     <div className="card" style={{ 
                         background: 'rgba(255, 255, 255, 0.95)', 
                         backdropFilter: 'blur(10px)',
@@ -834,7 +835,7 @@ const EventRegistration = () => {
                     gap: '1rem',
                     justifyContent: 'space-between'
                 }}>
-                    {!(Capacitor.isNativePlatform() || window.innerWidth < 768) && (
+                    {!isMobile && (
                         <button 
                             onClick={handlePrev}
                             className="btn-secondary"
@@ -854,7 +855,7 @@ const EventRegistration = () => {
                     )}
                     
                     <button 
-                        onClick={(Capacitor.isNativePlatform() || window.innerWidth < 768) ? handleProceed : handleNext}
+                        onClick={isMobile ? handleProceed : handleNext}
                         className="btn-primary"
                         style={{ 
                             flex: 2, 
@@ -865,7 +866,7 @@ const EventRegistration = () => {
                             boxShadow: '0 4px 12px var(--color-primary-transparent)'
                         }}
                     >
-                        {(Capacitor.isNativePlatform() || window.innerWidth < 768) 
+                        {isMobile 
                             ? (calculateTotal() > 0 ? 'Confirm & Proceed to Pay' : 'Finish Registration')
                             : (currentStep === totalSteps 
                                 ? (calculateTotal() > 0 ? 'Confirm & Proceed to Pay' : 'Finish Registration') 

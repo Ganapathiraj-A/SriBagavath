@@ -18,6 +18,7 @@ import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 import LazyImage from '@/components/LazyImage';
 
 const Programs = ({ hideHeader = false }) => {
+    const isMobile = Capacitor.isNativePlatform() || window.matchMedia("(max-width: 768px)").matches || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
     const location = useLocation();
@@ -954,7 +955,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                                                         e.stopPropagation();
                                                                         setSearchParams({ id: program.id, tab: 'intro' });
                                                                     }}
-                                                                    className="btn-black"
+                                                                    className={isMobile ? "btn-outline-black" : "btn-secondary"}
                                                                     style={{
                                                                         padding: '0.4rem 0.875rem',
                                                                         fontSize: '0.8125rem'
@@ -968,7 +969,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                                                     e.stopPropagation();
                                                                     setSearchParams({ id: program.id, tab: 'details' });
                                                                 }}
-                                                                className="btn-black"
+                                                                className={isMobile ? "btn-outline-black" : "btn-secondary"}
                                                                 style={{
                                                                     padding: '0.4rem 0.875rem',
                                                                     fontSize: '0.8125rem'

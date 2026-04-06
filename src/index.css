@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+Tamil:wght@400;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Tamil:wght@400;700;800&display=swap');
 
 :root {
   color-scheme: light dark;
@@ -111,7 +111,7 @@
 }
 
 html, body {
-  font-family: 'Outfit', 'Noto Sans Tamil', sans-serif;
+  font-family: 'Inter', 'Noto Sans Tamil', sans-serif;
   background-color: var(--color-background);
   color: var(--color-text);
   line-height: 1.5;
@@ -179,10 +179,10 @@ a:focus-visible {
   background-color: rgba(255, 153, 51, 0.2);
 }
 
-.btn-black {
-  background-color: #000000;
-  color: #ffffff;
-  border: none;
+.btn-outline-black {
+  background-color: transparent;
+  color: #000000;
+  border: 1.5px solid #000000;
   border-radius: 20px;
   padding: 10px 24px;
   font-weight: 700;
@@ -194,13 +194,24 @@ a:focus-visible {
   transition: all 0.2s ease;
 }
 
-.btn-black:hover {
-  background-color: #333333;
-  transform: translateY(-1px);
+.btn-outline-black:active {
+  transform: scale(0.98);
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
-.btn-black:active {
-  transform: scale(0.98);
+.btn-black {
+  background-color: #333333;
+  color: #ffffff;
+  border: none;
+  border-radius: 20px;
+  padding: 10px 24px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
 }
 
 a {

@@ -533,27 +533,28 @@
 }
 
 .web-btn-secondary {
-    background-color: #000000;
+    background-color: var(--color-primary);
     border: none;
-    color: #ffffff;
+    color: white;
     padding: 10px 20px;
     border-radius: 8px;
     font-weight: 700;
     font-size: 0.9rem;
     cursor: pointer;
     transition: all 0.2s;
+    opacity: 0.9;
 }
 
 .web-btn-secondary:hover {
-    background-color: #333333;
-    transform: translateY(-1px);
+    background-color: var(--color-primary-dark);
+    opacity: 1;
 }
 
 .web-btn-outline.small {
     min-width: 80px;
-    background-color: #000000;
+    background-color: var(--color-primary);
     border: none;
-    color: #ffffff;
+    color: white;
     padding: 10px 20px;
     border-radius: 8px;
     font-weight: 700;
@@ -563,8 +564,7 @@
 }
 
 .web-btn-outline.small:hover {
-    background-color: #333333;
-    transform: translateY(-1px);
+    background-color: var(--color-primary-dark);
 }
 
 .web-btn-outline.full {
