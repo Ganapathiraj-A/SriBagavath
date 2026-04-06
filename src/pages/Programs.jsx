@@ -773,34 +773,11 @@ Download Sri Bagavath App for latest updates`.trim();
                                 )}
 
                                 {/* Sticky-ish Register Now Button for all tabs when on detail view */}
-                                {viewingProgram.registrationStatus === 'Open' ? (
-                                    <div style={{ 
-                                        marginTop: '2.5rem', 
-                                        paddingTop: '1.5rem', 
-                                        borderTop: '1px solid var(--color-border)',
-                                        display: 'flex',
-                                        justifyContent: 'center'
-                                    }}>
-                                        <button
-                                            onClick={async () => {
-                                                if (await ensureAuth()) {
-                                                    navigate('/event-registration', { state: { program: viewingProgram } });
-                                                }
-                                            }}
-                                            className="btn-primary"
-                                            style={{
-                                                padding: '0.75rem 2.5rem',
-                                                fontSize: '1rem'
-                                            }}
-                                        >
-                                            Register for this Program
-                                        </button>
+                                <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '2rem' }}>
+                                    <div style={{ textAlign: 'center', color: 'var(--color-error)', fontWeight: 600 }}>
+                                        {viewingProgram.registrationStatus !== 'Open' && "Registration is closed for this program."}
                                     </div>
-                                ) : (
-                                    <div style={{ marginTop: '2rem', textAlign: 'center', color: 'var(--color-error)', fontWeight: 600 }}>
-                                        Registration is closed for this program.
-                                    </div>
-                                )}
+                                </div>
                                 </motion.div>
                             </>
                         ) : (
@@ -977,10 +954,15 @@ Download Sri Bagavath App for latest updates`.trim();
                                                                         e.stopPropagation();
                                                                         setSearchParams({ id: program.id, tab: 'intro' });
                                                                     }}
-                                                                    className="btn-secondary"
                                                                     style={{
                                                                         padding: '0.4rem 0.875rem',
-                                                                        fontSize: '0.8125rem'
+                                                                        backgroundColor: '#000000',
+                                                                        color: '#ffffff',
+                                                                        border: 'none',
+                                                                        borderRadius: '0.5rem',
+                                                                        cursor: 'pointer',
+                                                                        fontSize: '0.8125rem',
+                                                                        fontWeight: 600
                                                                     }}
                                                                 >
                                                                     Intro
@@ -991,10 +973,15 @@ Download Sri Bagavath App for latest updates`.trim();
                                                                     e.stopPropagation();
                                                                     setSearchParams({ id: program.id, tab: 'details' });
                                                                 }}
-                                                                className="btn-secondary"
                                                                 style={{
                                                                     padding: '0.4rem 0.875rem',
-                                                                    fontSize: '0.8125rem'
+                                                                    backgroundColor: '#000000',
+                                                                    color: '#ffffff',
+                                                                    border: 'none',
+                                                                    borderRadius: '0.5rem',
+                                                                    cursor: 'pointer',
+                                                                    fontSize: '0.8125rem',
+                                                                    fontWeight: 600
                                                                 }}
                                                             >
                                                                 Details
