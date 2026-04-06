@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ChevronLeft, RotateCcw } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
+import { Capacitor } from '@capacitor/core';
 import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 import '../components/RegistrationStyles.css';
 import { TransactionService } from '@/services/TransactionService';
@@ -422,16 +423,18 @@ const EventRegistration = () => {
                 width: '100%',
                 boxSizing: 'border-box'
             }}>
-                {/* Progress Bar */}
-                <div style={{ marginBottom: '1.5rem', marginTop: '1rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.875rem', fontWeight: 700, color: 'var(--color-primary)' }}>
-                        <span>Step {currentStep + 1} of {totalSteps + 1}</span>
-                        <span>{Math.round(((currentStep + 1) / (totalSteps + 1)) * 100)}%</span>
+                {/* Progress Bar - Only for Web Stepped Flow */}
+                {!Capacitor.isNativePlatform() && (
+                    <div style={{ marginBottom: '1.5rem', marginTop: '1rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.875rem', fontWeight: 700, color: 'var(--color-primary)' }}>
+                            <span>Step {currentStep + 1} of {totalSteps + 1}</span>
+                            <span>{Math.round(((currentStep + 1) / (totalSteps + 1)) * 100)}%</span>
+                        </div>
+                        <div style={{ width: '100%', height: '8px', backgroundColor: 'var(--color-border)', borderRadius: '4px', overflow: 'hidden' }}>
+                            <div style={{ width: `${((currentStep + 1) / (totalSteps + 1)) * 100}%`, height: '100%', backgroundColor: 'var(--color-primary)', transition: 'width 0.3s ease' }} />
+                        </div>
                     </div>
-                    <div style={{ width: '100%', height: '8px', backgroundColor: 'var(--color-border)', borderRadius: '4px', overflow: 'hidden' }}>
-                        <div style={{ width: `${((currentStep + 1) / (totalSteps + 1)) * 100}%`, height: '100%', backgroundColor: 'var(--color-primary)', transition: 'width 0.3s ease' }} />
-                    </div>
-                </div>
+                )}
 
                 <div style={{
                     textAlign: 'center',
@@ -451,7 +454,7 @@ const EventRegistration = () => {
                 </div>
 
                 {/* STEP 0: BASIC INFO */}
-                {currentStep === 0 && (
+                {(Capacitor.isNativePlatform() || currentStep === 0) && (
                     <>
                         {hasPreviousInfo && (
                             <div style={{ marginBottom: '1.5rem' }}>
@@ -517,100 +520,188 @@ const EventRegistration = () => {
                 )}
 
                 {/* STEPS 1 to N: PARTICIPANT DETAILS */}
-                {currentStep > 0 && currentStep <= participants.length && (
-                    (() => {
-                        const index = currentStep - 1;
-                        const p = participants[index];
-                        return (
-                            <div key={index} className="card" style={{ padding: '1.5rem', borderRadius: '1rem', marginBottom: '1.5rem' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.75rem' }}>
-                                    <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0 }}>Participant {index + 1} Details</h3>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: primaryIndex === index ? 'var(--color-primary-transparent)' : 'transparent', padding: '4px 12px', borderRadius: '20px', border: primaryIndex === index ? '1px solid var(--color-primary-light)' : '1px solid transparent' }}>
-                                        <input
-                                            type="radio"
-                                            name={`primary-${index}`}
-                                            checked={primaryIndex === index}
-                                            onChange={() => setPrimaryIndex(index)}
-                                            style={{ width: '1.125rem', height: '1.125rem', margin: 0, cursor: 'pointer' }}
-                                        />
-                                        <label style={{ fontSize: '0.875rem', fontWeight: 600, margin: 0, color: primaryIndex === index ? 'var(--color-primary)' : 'var(--color-text-muted)', cursor: 'pointer' }}>Primary Applicant</label>
-                                    </div>
-                                </div>
-
-                                <div style={{ 
-                                    display: 'grid', 
-                                    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
-                                    gap: '0 1.5rem' 
-                                }}>
-                                    <div className="form-group">
-                                        <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', display: 'block' }}>Name</label>
-                                        <input
-                                            type="text"
-                                            value={p.name}
-                                            onChange={(e) => handleParticipantChange(index, 'name', e.target.value)}
-                                            data-testid={`reg-name-${index}`}
-                                            placeholder="Enter full name"
-                                            style={{ padding: '12px', borderRadius: '0.5rem' }}
-                                        />
-                                    </div>
-
-                                    <div className="form-group">
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                            <label style={{ fontWeight: 600, fontSize: '0.9rem', margin: 0 }}>Mobile Number</label>
-                                            {index !== primaryIndex && (
-                                                <button
-                                                    onClick={() => copyPrimaryMobile(index)}
-                                                    className="btn-text"
-                                                    style={{ fontSize: '0.75rem', color: 'var(--color-primary)', fontWeight: 700, padding: 0 }}
-                                                >
-                                                    Use Primary Mobile
-                                                </button>
-                                            )}
-                                        </div>
-                                        <input
-                                            type="tel"
-                                            value={p.mobile}
-                                            onChange={(e) => handleParticipantChange(index, 'mobile', e.target.value)}
-                                            data-testid={`reg-mobile-${index}`}
-                                            placeholder="e.g. 9876543210"
-                                            style={{ padding: '12px', borderRadius: '0.5rem' }}
-                                        />
-                                    </div>
-
-                                    <div className="form-group">
-                                        <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', display: 'block' }}>Age</label>
-                                        <select
-                                            value={p.age}
-                                            onChange={(e) => handleParticipantChange(index, 'age', e.target.value)}
-                                            style={{ width: '100%', padding: '12px', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-card)', color: 'var(--color-text)', fontSize: '1rem' }}
-                                            data-testid={`reg-age-${index}`}
-                                        >
-                                            <option value="">Select Age</option>
-                                            {[...Array(100).keys()].map(age => (
-                                                <option key={age} value={age}>{age}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    <div className="form-group">
-                                        <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', display: 'block' }}>Gender</label>
-                                        <select 
-                                            value={p.gender} 
-                                            onChange={(e) => handleParticipantChange(index, 'gender', e.target.value)}
-                                            style={{ width: '100%', padding: '12px', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-card)', color: 'var(--color-text)', fontSize: '1rem' }}
-                                        >
-                                            <option value="Male">Male</option>
-                                            <option value="Female">Female</option>
-                                        </select>
-                                    </div>
+                {Capacitor.isNativePlatform() ? (
+                    participants.map((p, index) => (
+                        <div key={index} className="card" style={{ padding: '1.5rem', borderRadius: '1rem', marginBottom: '1.5rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.75rem' }}>
+                                <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0 }}>Participant {index + 1} Details</h3>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: primaryIndex === index ? 'var(--color-primary-transparent)' : 'transparent', padding: '4px 12px', borderRadius: '20px', border: primaryIndex === index ? '1px solid var(--color-primary-light)' : '1px solid transparent' }}>
+                                    <input
+                                        type="radio"
+                                        name={`primary-${index}`}
+                                        checked={primaryIndex === index}
+                                        onChange={() => setPrimaryIndex(index)}
+                                        style={{ width: '1.125rem', height: '1.125rem', margin: 0, cursor: 'pointer' }}
+                                    />
+                                    <label style={{ fontSize: '0.875rem', fontWeight: 600, margin: 0, color: primaryIndex === index ? 'var(--color-primary)' : 'var(--color-text-muted)', cursor: 'pointer' }}>Primary Applicant</label>
                                 </div>
                             </div>
-                        );
-                    })()
+
+                            <div style={{ 
+                                display: 'grid', 
+                                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
+                                gap: '0 1.5rem' 
+                            }}>
+                                <div className="form-group">
+                                    <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', display: 'block' }}>Name</label>
+                                    <input
+                                        type="text"
+                                        value={p.name}
+                                        onChange={(e) => handleParticipantChange(index, 'name', e.target.value)}
+                                        data-testid={`reg-name-${index}`}
+                                        placeholder="Enter full name"
+                                        style={{ padding: '12px', borderRadius: '0.5rem' }}
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                        <label style={{ fontWeight: 600, fontSize: '0.9rem', margin: 0 }}>Mobile Number</label>
+                                        {index !== primaryIndex && (
+                                            <button
+                                                onClick={() => copyPrimaryMobile(index)}
+                                                className="btn-text"
+                                                style={{ fontSize: '0.75rem', color: 'var(--color-primary)', fontWeight: 700, padding: 0 }}
+                                            >
+                                                Use Primary Mobile
+                                            </button>
+                                        )}
+                                    </div>
+                                    <input
+                                        type="tel"
+                                        value={p.mobile}
+                                        onChange={(e) => handleParticipantChange(index, 'mobile', e.target.value)}
+                                        data-testid={`reg-mobile-${index}`}
+                                        placeholder="e.g. 9876543210"
+                                        style={{ padding: '12px', borderRadius: '0.5rem' }}
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', display: 'block' }}>Age</label>
+                                    <select
+                                        value={p.age}
+                                        onChange={(e) => handleParticipantChange(index, 'age', e.target.value)}
+                                        style={{ width: '100%', padding: '12px', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-card)', color: 'var(--color-text)', fontSize: '1rem' }}
+                                        data-testid={`reg-age-${index}`}
+                                    >
+                                        <option value="">Select Age</option>
+                                        {[...Array(100).keys()].map(age => (
+                                            <option key={age} value={age}>{age}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="form-group">
+                                    <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', display: 'block' }}>Gender</label>
+                                    <select 
+                                        value={p.gender} 
+                                        onChange={(e) => handleParticipantChange(index, 'gender', e.target.value)}
+                                        style={{ width: '100%', padding: '12px', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-card)', color: 'var(--color-text)', fontSize: '1rem' }}
+                                    >
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    currentStep > 0 && currentStep <= participants.length && (
+                        (() => {
+                            const index = currentStep - 1;
+                            const p = participants[index];
+                            return (
+                                <div key={index} className="card" style={{ padding: '1.5rem', borderRadius: '1rem', marginBottom: '1.5rem' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.75rem' }}>
+                                        <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0 }}>Participant {index + 1} Details</h3>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: primaryIndex === index ? 'var(--color-primary-transparent)' : 'transparent', padding: '4px 12px', borderRadius: '20px', border: primaryIndex === index ? '1px solid var(--color-primary-light)' : '1px solid transparent' }}>
+                                            <input
+                                                type="radio"
+                                                name={`primary-${index}`}
+                                                checked={primaryIndex === index}
+                                                onChange={() => setPrimaryIndex(index)}
+                                                style={{ width: '1.125rem', height: '1.125rem', margin: 0, cursor: 'pointer' }}
+                                            />
+                                            <label style={{ fontSize: '0.875rem', fontWeight: 600, margin: 0, color: primaryIndex === index ? 'var(--color-primary)' : 'var(--color-text-muted)', cursor: 'pointer' }}>Primary Applicant</label>
+                                        </div>
+                                    </div>
+
+                                    <div style={{ 
+                                        display: 'grid', 
+                                        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
+                                        gap: '0 1.5rem' 
+                                    }}>
+                                        <div className="form-group">
+                                            <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', display: 'block' }}>Name</label>
+                                            <input
+                                                type="text"
+                                                value={p.name}
+                                                onChange={(e) => handleParticipantChange(index, 'name', e.target.value)}
+                                                data-testid={`reg-name-${index}`}
+                                                placeholder="Enter full name"
+                                                style={{ padding: '12px', borderRadius: '0.5rem' }}
+                                            />
+                                        </div>
+
+                                        <div className="form-group">
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                                <label style={{ fontWeight: 600, fontSize: '0.9rem', margin: 0 }}>Mobile Number</label>
+                                                {index !== primaryIndex && (
+                                                    <button
+                                                        onClick={() => copyPrimaryMobile(index)}
+                                                        className="btn-text"
+                                                        style={{ fontSize: '0.75rem', color: 'var(--color-primary)', fontWeight: 700, padding: 0 }}
+                                                    >
+                                                        Use Primary Mobile
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <input
+                                                type="tel"
+                                                value={p.mobile}
+                                                onChange={(e) => handleParticipantChange(index, 'mobile', e.target.value)}
+                                                data-testid={`reg-mobile-${index}`}
+                                                placeholder="e.g. 9876543210"
+                                                style={{ padding: '12px', borderRadius: '0.5rem' }}
+                                            />
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', display: 'block' }}>Age</label>
+                                            <select
+                                                value={p.age}
+                                                onChange={(e) => handleParticipantChange(index, 'age', e.target.value)}
+                                                style={{ width: '100%', padding: '12px', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-card)', color: 'var(--color-text)', fontSize: '1rem' }}
+                                                data-testid={`reg-age-${index}`}
+                                            >
+                                                <option value="">Select Age</option>
+                                                {[...Array(100).keys()].map(age => (
+                                                    <option key={age} value={age}>{age}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', display: 'block' }}>Gender</label>
+                                            <select 
+                                                value={p.gender} 
+                                                onChange={(e) => handleParticipantChange(index, 'gender', e.target.value)}
+                                                style={{ width: '100%', padding: '12px', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-card)', color: 'var(--color-text)', fontSize: '1rem' }}
+                                            >
+                                                <option value="Male">Male</option>
+                                                <option value="Female">Female</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })()
+                    )
                 )}
 
                 {/* STEP: ADDITIONAL OPTIONS */}
-                {currentStep === participants.length + 1 && program?.additionalOptions?.length > 0 && (
+                {(Capacitor.isNativePlatform() || currentStep === participants.length + 1) && program?.additionalOptions?.length > 0 && (
                     <div className="card" style={{ padding: '1.5rem', borderRadius: '1rem', marginBottom: '1.5rem' }}>
                         <h3 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '1.25rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.75rem' }}>Additional Options</h3>
                         <div style={{ display: 'grid', gap: '1rem' }}>
@@ -663,7 +754,7 @@ const EventRegistration = () => {
                 )}
 
                 {/* FINAL STEP: REVIEW & PAY */}
-                {currentStep === totalSteps && (
+                {(Capacitor.isNativePlatform() || currentStep === totalSteps) && (
                     <div className="card" style={{ 
                         background: 'rgba(255, 255, 255, 0.95)', 
                         backdropFilter: 'blur(10px)',
@@ -743,25 +834,27 @@ const EventRegistration = () => {
                     gap: '1rem',
                     justifyContent: 'space-between'
                 }}>
-                    <button 
-                        onClick={handlePrev}
-                        className="btn-secondary"
-                        disabled={currentStep === 0}
-                        style={{ 
-                            flex: 1, 
-                            height: '3.5rem', 
-                            fontSize: '1.125rem', 
-                            fontWeight: 700, 
-                            borderRadius: '1rem',
-                            opacity: currentStep === 0 ? 0.3 : 1,
-                            cursor: currentStep === 0 ? 'not-allowed' : 'pointer'
-                        }}
-                    >
-                        Previous
-                    </button>
+                    {!Capacitor.isNativePlatform() && (
+                        <button 
+                            onClick={handlePrev}
+                            className="btn-secondary"
+                            disabled={currentStep === 0}
+                            style={{ 
+                                flex: 1, 
+                                height: '3.5rem', 
+                                fontSize: '1.125rem', 
+                                fontWeight: 700, 
+                                borderRadius: '1rem',
+                                opacity: currentStep === 0 ? 0.3 : 1,
+                                cursor: currentStep === 0 ? 'not-allowed' : 'pointer'
+                            }}
+                        >
+                            Previous
+                        </button>
+                    )}
                     
                     <button 
-                        onClick={handleNext}
+                        onClick={Capacitor.isNativePlatform() ? handleProceed : handleNext}
                         className="btn-primary"
                         style={{ 
                             flex: 2, 
@@ -772,9 +865,12 @@ const EventRegistration = () => {
                             boxShadow: '0 4px 12px var(--color-primary-transparent)'
                         }}
                     >
-                        {currentStep === totalSteps 
-                            ? (calculateTotal() > 0 ? 'Confirm & Proceed to Pay' : 'Finish Registration') 
-                            : 'Next Step'}
+                        {Capacitor.isNativePlatform() 
+                            ? (calculateTotal() > 0 ? 'Confirm & Proceed to Pay' : 'Finish Registration')
+                            : (currentStep === totalSteps 
+                                ? (calculateTotal() > 0 ? 'Confirm & Proceed to Pay' : 'Finish Registration') 
+                                : 'Next Step')
+                        }
                     </button>
                 </div>
             </div>

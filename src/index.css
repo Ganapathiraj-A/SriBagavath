@@ -139,6 +139,46 @@ a:focus-visible {
   box-shadow: var(--focus-ring);
 }
 
+.btn-primary {
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+  border: none;
+  border-radius: 20px;
+  padding: 10px 24px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+  background-color: var(--color-primary-dark);
+}
+
+.btn-secondary {
+  background-color: var(--color-primary-transparent);
+  color: var(--color-primary);
+  border: 1.5px solid var(--color-primary);
+  border-radius: 20px;
+  padding: 10px 24px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:active {
+  transform: scale(0.98);
+  background-color: rgba(255, 153, 51, 0.2);
+}
+
 a {
   text-decoration: none;
   color: inherit;

@@ -787,24 +787,10 @@ Download Sri Bagavath App for latest updates`.trim();
                                                     navigate('/event-registration', { state: { program: viewingProgram } });
                                                 }
                                             }}
+                                            className="btn-primary"
                                             style={{
-                                                backgroundColor: 'transparent',
-                                                color: '#000000',
-                                                border: '2px solid #000000',
                                                 padding: '0.75rem 2.5rem',
-                                                borderRadius: '2rem',
-                                                fontSize: '1rem',
-                                                fontWeight: 700,
-                                                cursor: 'pointer',
-                                                transition: 'all 0.2s'
-                                            }}
-                                            onMouseOver={(e) => {
-                                                e.currentTarget.style.backgroundColor = '#000000';
-                                                e.currentTarget.style.color = '#ffffff';
-                                            }}
-                                            onMouseOut={(e) => {
-                                                e.currentTarget.style.backgroundColor = 'transparent';
-                                                e.currentTarget.style.color = '#000000';
+                                                fontSize: '1rem'
                                             }}
                                         >
                                             Register for this Program
@@ -826,24 +812,19 @@ Download Sri Bagavath App for latest updates`.trim();
                             >
 
                                 <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                                    <button
-                                        onClick={async () => {
-                                            if (await ensureAuth()) {
-                                                navigate('/my-registrations');
-                                            }
-                                        }}
-                                        className="btn-primary"
-                                        disabled={authLoading}
-                                        style={{
-                                            width: 'auto', // Override 100% width
-                                            padding: '10px 24px',
-                                            opacity: authLoading ? 0.7 : 1,
-                                            backgroundColor: '#000000',
-                                            color: '#ffffff',
-                                            borderRadius: '2rem',
-                                            fontWeight: 700
-                                        }}
-                                    >
+                                        <button
+                                            onClick={async () => {
+                                                if (await ensureAuth()) {
+                                                    navigate('/my-registrations');
+                                                }
+                                            }}
+                                            className="btn-primary"
+                                            disabled={authLoading}
+                                            style={{
+                                                width: 'auto',
+                                                opacity: authLoading ? 0.7 : 1
+                                            }}
+                                        >
                                         {authLoading ? 'Signing in...' : 'My Registrations'}
                                     </button>
                                 </div>
@@ -968,12 +949,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                                                 width: 'auto',
                                                                 padding: '0.45rem 1.25rem',
                                                                 fontSize: '0.85rem',
-                                                                borderRadius: '20px',
-                                                                opacity: authLoading ? 0.7 : 1,
-                                                                backgroundColor: 'transparent',
-                                                                color: '#000000',
-                                                                border: '1.5px solid #000000',
-                                                                fontWeight: 700
+                                                                opacity: authLoading ? 0.7 : 1
                                                             }}
                                                         >
                                                             {authLoading ? '...' : 'Register Now'}
@@ -1001,15 +977,10 @@ Download Sri Bagavath App for latest updates`.trim();
                                                                         e.stopPropagation();
                                                                         setSearchParams({ id: program.id, tab: 'intro' });
                                                                     }}
+                                                                    className="btn-secondary"
                                                                     style={{
                                                                         padding: '0.4rem 0.875rem',
-                                                                        backgroundColor: 'var(--color-card)',
-                                                                        color: 'var(--color-text)',
-                                                                        border: '1px solid var(--color-border)',
-                                                                        borderRadius: '0.5rem',
-                                                                        cursor: 'pointer',
-                                                                        fontSize: '0.8125rem',
-                                                                        fontWeight: 500
+                                                                        fontSize: '0.8125rem'
                                                                     }}
                                                                 >
                                                                     Intro
@@ -1020,15 +991,10 @@ Download Sri Bagavath App for latest updates`.trim();
                                                                     e.stopPropagation();
                                                                     setSearchParams({ id: program.id, tab: 'details' });
                                                                 }}
+                                                                className="btn-secondary"
                                                                 style={{
                                                                     padding: '0.4rem 0.875rem',
-                                                                    backgroundColor: 'var(--color-card)',
-                                                                    color: 'var(--color-text)',
-                                                                    border: '1px solid var(--color-border)',
-                                                                    borderRadius: '0.5rem',
-                                                                    cursor: 'pointer',
-                                                                    fontSize: '0.8125rem',
-                                                                    fontWeight: 500
+                                                                    fontSize: '0.8125rem'
                                                                 }}
                                                             >
                                                                 Details
