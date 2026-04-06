@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, MapPin, Share2, Video, Clock, RefreshCw, User, Youtube, ChevronRight, Phone, Copy } from 'lucide-react';
+import { Calendar, MapPin, Clock, RefreshCw, User, Youtube, ChevronRight, Copy } from 'lucide-react';
 import { db } from '../firebase';
-import { collection, query, where, orderBy, getDocs, getDocsCacheFirst, onSnapshot } from '../utils/FirestoreProxy';
+import { collection, query, where, orderBy, onSnapshot, limit } from '../utils/FirestoreProxy';
 import { getLocalDateString } from '../utils/dateUtils';
 import LazyImage from '../components/LazyImage';
-import { shareItem } from '../utils/shareUtils';
 import './WebPages.css';
 
 // --- Helpers for Recurring Events ---
@@ -23,7 +22,9 @@ const formatRecurrenceRule = (master) => {
 };
 
 const getNextOccurrence = (master, todayStr) => {
-    if (!master.isRecurring) return master;
+    if (!master.isRecurring) {
+        return master.date >= todayStr ? master : null;
+    }
 
     let currentDate = new Date(master.date);
     const today = new Date(todayStr);
@@ -67,14 +68,58 @@ const getNextOccurrence = (master, todayStr) => {
 const WebEvents = () => {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('retreats');
+    const [zoomSubTab, setZoomSubTab] = useState('upcoming');
     const [data, setData] = useState({
         retreats: [],
         dailyZoom: [],
+        dailyZoomPast: [],
         schedules: [],
         consultation: []
     });
     const [loading, setLoading] = useState(true);
     const [teachers, setTeachers] = useState([]);
+    const [copiedId, setCopiedId] = useState(null);
+    const [youtubeVideos, setYoutubeVideos] = useState([]);
+    const [nextPageToken, setNextPageToken] = useState(null);
+    const [isYoutubeLoading, setIsYoutubeLoading] = useState(false);
+
+    const fetchYouTubePlaylist = async (pageToken = null) => {
+        if (!pageToken) setIsYoutubeLoading(true);
+        
+        try {
+            const apiKey = import.meta.env.VITE_GOOGLE_DRIVE_API_KEY;
+            const playlistId = 'PLhfBLH1RxTuEKjzrKAznLcHZlQwUXJwWp';
+            let url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=12&playlistId=${playlistId}&key=${apiKey}`;
+            
+            if (pageToken) {
+                url += `&pageToken=${pageToken}`;
+            }
+
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (data.items) {
+                const formattedVideos = data.items.map(item => ({
+                    id: item.snippet.resourceId.videoId,
+                    title: item.snippet.title,
+                    date: item.snippet.publishedAt,
+                    thumbnail: item.snippet.thumbnails?.high?.url || item.snippet.thumbnails?.default?.url,
+                    youtubeUrl: `https://www.youtube.com/watch?v=${item.snippet.resourceId.videoId}`,
+                }));
+
+                if (pageToken) {
+                    setYoutubeVideos(prev => [...prev, ...formattedVideos]);
+                } else {
+                    setYoutubeVideos(formattedVideos);
+                }
+                setNextPageToken(data.nextPageToken || null);
+            }
+        } catch (error) {
+            console.error("Error fetching YouTube playlist:", error);
+        } finally {
+            setIsYoutubeLoading(false);
+        }
+    };
 
     const tabs = [
         { id: 'retreats', name: 'Programs', icon: <Calendar size={18} /> },
@@ -84,7 +129,7 @@ const WebEvents = () => {
     ];
 
     useEffect(() => {
-        let unsubPrograms;
+        let unsubPrograms, unsubSchedules, unsubMeetings, unsubLegacyZoom, unsubPastZoom, unsubTeachers;
         
         const fetchData = async () => {
             console.log("[WebEvents] FetchData Start");
@@ -96,58 +141,56 @@ const WebEvents = () => {
                 unsubPrograms = onSnapshot(
                     query(collection(db, 'programs'), where('programDate', '>=', today), orderBy('programDate', 'asc')),
                     (snap) => {
-                        console.log("[WebEvents] Programs Snap:", snap.size);
                         const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                         setData(prev => ({ ...prev, retreats: list }));
-                        // If current tab is retreats and we have data, we can stop global loading
-                        if (activeTab === 'retreats') setLoading(false);
+                        setLoading(false); 
                     },
-                    (err) => {
-                        console.error("[WebEvents] Programs listener failed:", err);
-                    }
+                    (err) => console.error("[WebEvents] Programs listener failed:", err)
                 );
 
-                // 2. Fetch Other Collections (Satsangs, Online Meetings, Teachers)
-                const fetchOthers = async () => {
-                    try {
-                        const [snapSatsang, snapZoom, snapLegacyZoom, snapTeachers] = await Promise.all([
-                            getDocsCacheFirst(collection(db, 'satsangs')),
-                            getDocsCacheFirst(collection(db, 'online_meetings')),
-                            getDocsCacheFirst(query(collection(db, 'daily_zoom_meetings'), where('date', '>=', today), orderBy('date', 'asc'))),
-                            getDocsCacheFirst(collection(db, 'teachers'))
-                        ]);
+                // 2. Schedules Listener (Ayya's Schedule)
+                unsubSchedules = onSnapshot(collection(db, 'schedules'), (snap) => {
+                    const raw = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    const filtered = raw.filter(s => {
+                        const dateVal = s.toDate || s.fromDate;
+                        if (!dateVal) return true;
+                        const dateStr = dateVal.toDate ? dateVal.toDate().toISOString().split('T')[0] : String(dateVal);
+                        return dateStr >= today || dateStr.includes(today.substring(0, 7));
+                    }).sort((a, b) => String(a.fromDate || "").localeCompare(String(b.fromDate || "")));
+                    setData(prev => ({ ...prev, schedules: filtered }));
+                });
 
-                        const newData = {};
+                // 3. Online Meetings (Recurring & Manual) 
+                let recursiveMeetings = [];
+                let manualMeetings = [];
 
-                        // Process Satsangs (Ayya's Schedule) with Recursion
-                        const rawSatsangs = snapSatsang.docs.map(d => ({ id: d.id, ...d.data() }));
-                        newData.schedules = rawSatsangs
-                            .map(m => getNextOccurrence(m, today))
-                            .filter(m => m !== null)
-                            .sort((a, b) => a.date.localeCompare(b.date));
-
-                        // Process Online Meetings with Recursion
-                        const rawZoom = snapZoom.docs.map(d => ({ id: d.id, ...d.data() }));
-                        const expandedZoom = rawZoom
-                            .map(m => getNextOccurrence(m, today))
-                            .filter(m => m !== null);
-
-                        const legacyZoom = snapLegacyZoom.docs.map(d => ({ id: d.id, ...d.data() }));
-                        newData.dailyZoom = [...expandedZoom, ...legacyZoom]
-                            .sort((a, b) => a.date.localeCompare(b.date));
-
-                        // Set Teachers
-                        setTeachers(snapTeachers.docs.map(d => ({ id: d.id, ...d.data() })));
-
-                        setData(prev => ({ ...prev, ...newData }));
-                    } catch (err) {
-                        console.error("[WebEvents] fetchOthers failed:", err);
-                    } finally {
-                        setLoading(false);
-                    }
+                const updateZoomData = () => {
+                    const all = [...recursiveMeetings, ...manualMeetings];
+                    const unique = Array.from(new Map(all.map(m => [m.id, m])).values());
+                    const sorted = unique.sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+                    setData(prev => ({ ...prev, dailyZoom: sorted }));
                 };
 
-                fetchOthers();
+                unsubMeetings = onSnapshot(collection(db, 'online_meetings'), (snap) => {
+                    const raw = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    recursiveMeetings = raw
+                        .map(m => getNextOccurrence(m, today))
+                        .filter(m => m !== null);
+                    updateZoomData();
+                });
+
+                unsubLegacyZoom = onSnapshot(query(collection(db, 'daily_zoom_meetings'), where('date', '>=', today), orderBy('date', 'asc')), (snap) => {
+                    manualMeetings = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    updateZoomData();
+                });
+
+                unsubPastZoom = onSnapshot(query(collection(db, 'daily_zoom_meetings'), where('date', '<', today), orderBy('date', 'desc'), limit(20)), (snap) => {
+                    setData(prev => ({ ...prev, dailyZoomPast: snap.docs.map(d => ({ id: d.id, ...d.data() })) }));
+                });
+
+                unsubTeachers = onSnapshot(collection(db, 'teachers'), (snap) => {
+                    setTeachers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+                });
 
             } catch (error) {
                 console.error("[WebEvents] Critical error in fetchData:", error);
@@ -156,21 +199,21 @@ const WebEvents = () => {
         };
 
         fetchData();
-        return () => { if (unsubPrograms) unsubPrograms(); };
+        return () => {
+            if (unsubPrograms) unsubPrograms();
+            if (unsubSchedules) unsubSchedules();
+            if (unsubMeetings) unsubMeetings();
+            if (unsubLegacyZoom) unsubLegacyZoom();
+            if (unsubPastZoom) unsubPastZoom();
+            if (unsubTeachers) unsubTeachers();
+        };
     }, []);
 
-    const handleShare = async (program) => {
-        const text = `Join us for ${program.programName || program.title} on ${program.programDate || program.date} at ${program.programVenue || program.location}.`;
-        const url = `https://sribagavath.org/web/programs/${program.id}`;
-        
-        await shareItem({
-            title: program.programName || program.title,
-            text: text,
-            url: url,
-            imageUrl: program.image || program.banner || program.programBanner,
-            dialogTitle: 'Share Program'
-        });
-    };
+    useEffect(() => {
+        if (activeTab === 'dailyZoom' && zoomSubTab === 'past' && youtubeVideos.length === 0) {
+            fetchYouTubePlaylist();
+        }
+    }, [activeTab, zoomSubTab]);
 
     if (loading) {
         return (
@@ -186,24 +229,57 @@ const WebEvents = () => {
         );
     }
 
-    const activeList = data[activeTab] || [];
+    const activeList = activeTab === 'dailyZoom' 
+        ? (zoomSubTab === 'upcoming' ? data.dailyZoom : data.dailyZoomPast)
+        : (data[activeTab] || []);
+
+    // Helper to safely get speaker info across different formats
+    const findSpeaker = (item) => {
+        if (!teachers.length) return null;
+        
+        // 1. Try ID match (handle strings & refs)
+        const targetId = item.teacherId?.id || (typeof item.teacherId === 'string' ? item.teacherId : null);
+        if (targetId) {
+            const found = teachers.find(t => t.id === targetId);
+            if (found) return found;
+        }
+        
+        // 2. Try Name match as fallback (with fuzzy and Tamil support)
+        let targetName = (item.name || item.teacherName || item.speaker || item.topic || "").toLowerCase().trim();
+        targetName = targetName.replace(/^daily zoom\s*-\s*/, '').replace(/^zoom\s*-\s*/, '');
+        
+        if (targetName && targetName !== "daily zoom" && targetName !== "zoom") {
+            const match = teachers.find(t => {
+                const tName = (t.name || "").toLowerCase().trim();
+                const tNameTa = (t.name_ta || "").toLowerCase().trim();
+                
+                // Compare: Exact, Fuzzy English, or Fuzzy Tamil
+                return tName === targetName || 
+                       tName.includes(targetName) || 
+                       targetName.includes(tName) ||
+                       (tNameTa && tNameTa.includes(targetName));
+            });
+            if (match) return match;
+        }
+        
+        return null;
+    };
 
     return (
         <div className="web-events-page">
             <div className="web-container">
                 <div className="emedia-header-spacer" />
                 
-                <header className="page-section-header">
-                    <h1 className="web-logo-text-large">Events & Programs</h1>
-                    <p>Participate in our upcoming retreats, satsangs, and meditation camps.</p>
-                </header>
 
                 <div className="events-tabs">
                     {tabs.map(tab => (
                         <button
                             key={tab.id}
                             className={`event-tab-btn ${activeTab === tab.id ? 'active' : ''}`}
-                            onClick={() => setActiveTab(tab.id)}
+                            onClick={() => {
+                                setActiveTab(tab.id);
+                                if (tab.id === 'dailyZoom') setZoomSubTab('upcoming');
+                            }}
                         >
                             {tab.icon}
                             <span>{tab.name}</span>
@@ -211,6 +287,23 @@ const WebEvents = () => {
                         </button>
                     ))}
                 </div>
+
+                {activeTab === 'dailyZoom' && (
+                    <div className="event-sub-tabs">
+                        <button 
+                            className={`sub-tab-btn ${zoomSubTab === 'upcoming' ? 'active' : ''}`}
+                            onClick={() => setZoomSubTab('upcoming')}
+                        >
+                            Upcoming
+                        </button>
+                        <button 
+                            className={`sub-tab-btn ${zoomSubTab === 'past' ? 'active' : ''}`}
+                            onClick={() => setZoomSubTab('past')}
+                        >
+                            Past
+                        </button>
+                    </div>
+                )}
 
                 <div className="events-content">
                     <AnimatePresence mode="wait">
@@ -223,100 +316,250 @@ const WebEvents = () => {
                         >
                             {activeTab === 'consultation' ? (
                                 <div className="consultation-grid">
-                                    {teachers.length > 0 ? teachers.map(teacher => (
-                                        <div key={teacher.id} className="consultation-card">
-                                            <div className="teacher-photo-container">
-                                                <LazyImage src={teacher.image} alt={teacher.name} className="teacher-photo" />
-                                            </div>
-                                            <div className="teacher-info">
-                                                <h3>{teacher.name}</h3>
-                                                <p className="teacher-location"><MapPin size={14} /> {teacher.location || 'Salem'}</p>
-                                                <div className="teacher-contact-actions">
-                                                    {teacher.phoneNumber && (
-                                                        <a href={`tel:${teacher.phoneNumber}`} className="teacher-action-btn">
-                                                            <Phone size={16} /> Call
-                                                        </a>
-                                                    )}
-                                                    {teacher.youtube && (
-                                                        <a href={teacher.youtube} target="_blank" rel="noreferrer" className="teacher-action-btn yt">
-                                                            <Youtube size={16} /> Channel
-                                                        </a>
-                                                    )}
+                                    {(() => {
+                                        const filtered = teachers
+                                            .filter(t => t.showInConsultation === true)
+                                            .sort((a, b) => {
+                                                const orderA = a.consultationOrder !== undefined ? a.consultationOrder : 999;
+                                                const orderB = b.consultationOrder !== undefined ? b.consultationOrder : 999;
+                                                if (orderA !== orderB) return orderA - orderB;
+                                                return (a.name || "").localeCompare(b.name || "");
+                                            });
+                                        
+                                        if (filtered.length === 0) {
+                                            return (
+                                                <div className="web-no-results" style={{ gridColumn: '1 / -1' }}>
+                                                    <p>No consultants available at the moment.</p>
                                                 </div>
+                                            );
+                                        }
+
+                                        return (
+                                            <>
+                                                {filtered.map(teacher => (
+                                                    <div key={teacher.id} className="consultation-card">
+                                                        <div className="teacher-photo-container">
+                                                            <LazyImage 
+                                                                src={[teacher.imageUrl, teacher.image, teacher.photo, teacher.photoURL, teacher.profilePic, teacher.profileImage, teacher.avatar, teacher.thumb].find(u => u && typeof u === 'string') || null} 
+                                                                alt={teacher.name} 
+                                                                className="teacher-photo" 
+                                                                placeholder={() => <User size={24} color="#CBD5E1" />}
+                                                                width="100%"
+                                                                height="100%"
+                                                            />
+                                                        </div>
+                                                        <div className="teacher-info">
+                                                            <h3>{teacher.name}</h3>
+                                                            <p className="teacher-phone-display">{teacher.phoneNumber || teacher.number || '---'}</p>
+                                                            <div className="teacher-contact-actions">
+                                                                <button 
+                                                                    className="teacher-action-btn copy"
+                                                                    onClick={() => {
+                                                                        const num = teacher.phoneNumber || teacher.number;
+                                                                        if (num) {
+                                                                            navigator.clipboard.writeText(num);
+                                                                            setCopiedId(teacher.id);
+                                                                            setTimeout(() => setCopiedId(null), 2000);
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    {copiedId === teacher.id ? <Check size={14} color="#10b981" /> : <Copy size={14} />}
+                                                                    {copiedId === teacher.id ? "Copied" : "Copy"}
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </>
+                                        );
+                                    })()}
+                                </div>
+                            ) : activeTab === 'dailyZoom' && zoomSubTab === 'past' ? (
+                                <div className="youtube-section-wrapper">
+                                    {youtubeVideos.length > 0 ? (
+                                        <>
+                                            <div className="youtube-playlist-grid">
+                                                {youtubeVideos.map((video, vIdx) => (
+                                                    <div 
+                                                        key={video.id} 
+                                                        className="youtube-video-card"
+                                                        onClick={() => window.open(video.youtubeUrl, '_blank')}
+                                                    >
+                                                        <div className="video-thumbnail-container">
+                                                            <img src={video.thumbnail} alt={video.title} />
+                                                            <div className="video-play-overlay">
+                                                                <div className="play-icon-circle">
+                                                                    <Youtube size={24} />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="video-info">
+                                                            <h4>{video.title}</h4>
+                                                            <div className="video-meta">
+                                                                <Clock size={14} />
+                                                                <span>{new Date(video.date).toLocaleDateString()}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
                                             </div>
+                                            {nextPageToken && (
+                                                <div className="load-more-container">
+                                                    <button 
+                                                        className="web-load-more-btn"
+                                                        onClick={() => fetchYouTubePlaylist(nextPageToken)}
+                                                        disabled={isYoutubeLoading}
+                                                    >
+                                                        {isYoutubeLoading ? <RefreshCw size={18} className="animate-spin" /> : <ChevronRight size={18} />}
+                                                        {isYoutubeLoading ? 'Loading...' : 'View Older Recordings'}
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </>
+                                    ) : isYoutubeLoading ? (
+                                        <div className="web-loading-placeholder" style={{ minHeight: '300px' }}>
+                                            <RefreshCw className="animate-spin" size={32} />
+                                            <p>Fetching recordings...</p>
                                         </div>
-                                    )) : (
+                                    ) : (
                                         <div className="web-no-results">
-                                            <p>No consultants available at the moment.</p>
+                                            <p>No past recordings found.</p>
                                         </div>
                                     )}
                                 </div>
                             ) : (
                                 <div className="events-list">
-                                    {activeList.length > 0 ? activeList.map((item, idx) => (
-                                        <motion.div 
-                                            key={item.id} 
-                                            className="web-event-card"
-                                            initial={{ opacity: 0, scale: 0.95 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            transition={{ delay: idx * 0.05 }}
-                                        >
-                                            <div className="event-card-inner">
-                                                <div className="event-card-top">
-                                                    <h3 className="event-title">{item.programName || item.conductedBy || item.name || item.title || 'Untitled Event'}</h3>
-                                                    
-                                                    <div className="event-details-rows">
-                                                        <div className="event-detail-row">
-                                                            <Calendar size={16} />
-                                                            <span>{new Date(item.programDate || item.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}</span>
+                                    {activeList.length > 0 ? activeList.map((item, idx) => {
+                                        const speaker = findSpeaker(item);
+                                        const displayName = speaker?.name || item.name || item.programName || item.place || item.title || 'Untitled Event';
+                                        
+                                        const displayImage = [
+                                            speaker?.imageUrl, speaker?.image, speaker?.photo, speaker?.photoURL, speaker?.profilePic, speaker?.profileImage, speaker?.avatar, speaker?.thumb,
+                                            item.imageUrl, item.image, item.photo, item.photoURL, item.profilePic, item.profileImage, item.avatar, item.thumb
+                                        ].find(u => u && typeof u === 'string' && u.length > 0) || null;
+                                        
+                                        const displayDescription = speaker?.name 
+                                            ? (item.description || item.programDescription || speaker.description) 
+                                            : (item.description || item.programDescription || item.programName || item.place);
+                                        
+                                        return (
+                                            <motion.div 
+                                                key={item.id} 
+                                                className="web-program-card"
+                                                initial={{ opacity: 0, scale: 0.95 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                transition={{ delay: idx * 0.05 }}
+                                                style={{ height: '100%' }}
+                                            >
+                                                <div className="program-card-inner">
+                                                    {/* Left Column: Photo (if zoom/teacher) & Date Badge */}
+                                                    <div className="program-card-left-col">
+                                                        {activeTab === 'dailyZoom' && (
+                                                            <div className="zoom-teacher-photo">
+                                                                <LazyImage 
+                                                                    src={displayImage} 
+                                                                    alt={displayName} 
+                                                                    placeholder={() => <User size={24} color="#CBD5E1" />}
+                                                                />
+                                                            </div>
+                                                        )}
+                                                        <div className="program-date-badge">
+                                                            <span className="month">{new Date(item.programDate || item.fromDate || item.date).toLocaleDateString(undefined, { month: 'short' }).toUpperCase()}</span>
+                                                            <span className="day">{new Date(item.programDate || item.fromDate || item.date).getDate()}</span>
                                                         </div>
-                                                        {(item.programVenue || item.city || item.location) && (
-                                                            <div className="event-detail-row">
-                                                                <MapPin size={16} />
-                                                                <span>{item.programVenue || item.city || item.location}</span>
-                                                            </div>
-                                                        )}
-                                                        {item.isRecurring && (
-                                                            <div className="event-detail-row recurrence">
-                                                                <RefreshCw size={14} />
-                                                                <span>{formatRecurrenceRule(item)}</span>
-                                                            </div>
-                                                        )}
+                                                    </div>
+
+                                                    {/* Info Content */}
+                                                    <div className="program-info">
+                                                        <h3 className="event-title">{displayName}</h3>
+                                                        
+                                                        <div className="event-details-rows">
+                                                            {activeTab === 'dailyZoom' ? (
+                                                                <p className="event-description-text">{displayDescription}</p>
+                                                            ) : (
+                                                                <div className="event-detail-row">
+                                                                    <Calendar size={14} />
+                                                                    <span>
+                                                                        {new Date(item.programDate || item.fromDate || item.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
+                                                                        {(item.programEndDate || item.toDate) && (
+                                                                            <> - {new Date(item.programEndDate || item.toDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}</>
+                                                                        )}
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                            {(item.programCity || item.place || item.location) && (item.programCity || item.place || item.location) !== displayName && (
+                                                                <div className="event-detail-row">
+                                                                    <MapPin size={14} />
+                                                                    <span>{item.programCity || item.place || item.location}</span>
+                                                                </div>
+                                                            )}
+                                                            {item.isRecurring && (
+                                                                <div className="event-detail-row recurrence">
+                                                                    <RefreshCw size={14} />
+                                                                    <span>{formatRecurrenceRule(item)}</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Actions Row (only for Programs/Zoom, fixed Share for Schedule) */}
+                                                        <div className="program-actions-row">
+                                                            {activeTab === 'schedules' ? (
+                                                                <button 
+                                                                    onClick={() => {
+                                                                        const text = `Ayya's Schedule: ${item.place}\n${new Date(item.fromDate).toLocaleDateString()} - ${new Date(item.toDate).toLocaleDateString()}`;
+                                                                        navigator.clipboard.writeText(text);
+                                                                        alert("Schedule copied to clipboard!");
+                                                                    }} 
+                                                                    className="web-btn-icon"
+                                                                    style={{ marginLeft: 'auto' }}
+                                                                    title="Copy Schedule"
+                                                                >
+                                                                    <Copy size={18} />
+                                                                </button>
+                                                            ) : (
+                                                                <div className="event-card-actions">
+                                                                    {(activeTab === 'retreats' && !item.joinLink && !item.joinUrl) && (
+                                                                        <button 
+                                                                            className="web-btn-primary register" 
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                navigate('/web/event-registration', { state: { program: item } });
+                                                                            }}
+                                                                        >
+                                                                            Register Now
+                                                                        </button>
+                                                                    )}
+                                                                    
+                                                                    {item.introYoutubeUrl && (
+                                                                        <button 
+                                                                            className="web-btn-secondary" 
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                navigate(`/web/programs/retreat?id=${item.id}&tab=intro`);
+                                                                            }}
+                                                                        >
+                                                                            Intro
+                                                                        </button>
+                                                                    )}
+
+                                                                    <button 
+                                                                        className={`web-btn-outline small ${!(item.joinLink || item.joinUrl) ? '' : 'full'}`}
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            if (item.joinLink || item.joinUrl) window.open(item.joinLink || item.joinUrl, '_blank');
+                                                                            else navigate(`/web/programs/retreat?id=${item.id}&tab=details`);
+                                                                        }}
+                                                                    >
+                                                                        {(item.joinLink || item.joinUrl) ? 'Join Meeting' : 'Details'}
+                                                                    </button>
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
-
-                                                <div className="event-card-footer-actions">
-                                                    {!item.joinLink && !item.joinUrl && (
-                                                        <button 
-                                                            className="web-btn-primary register" 
-                                                            onClick={() => navigate(`/web/programs/${item.id}`)}
-                                                        >
-                                                            Register Now
-                                                        </button>
-                                                    )}
-                                                    
-                                                    {item.introYoutubeUrl && (
-                                                        <button 
-                                                            className="web-btn-secondary" 
-                                                            onClick={() => navigate(`/web/programs/${item.id}?tab=intro`)}
-                                                        >
-                                                            Intro
-                                                        </button>
-                                                    )}
-
-                                                    <button 
-                                                        className={`web-btn-outline ${!(item.joinLink || item.joinUrl) ? 'small' : 'full'}`}
-                                                        onClick={() => {
-                                                            if (item.joinLink || item.joinUrl) window.open(item.joinLink || item.joinUrl, '_blank');
-                                                            else navigate(`/web/programs/${item.id}`);
-                                                        }}
-                                                    >
-                                                        {(item.joinLink || item.joinUrl) ? 'Join Meeting' : 'Details'}
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </motion.div>
-                                    )) : (
+                                            </motion.div>
+                                        );
+                                    }) : (
                                         <div className="web-no-results">
                                             <div className="no-events-icon"><Calendar size={48} /></div>
                                             <h3>No upcoming items</h3>

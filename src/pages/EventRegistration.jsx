@@ -67,6 +67,7 @@ const EventRegistration = () => {
 
     const [primaryIndex, setPrimaryIndex] = useState(savedState?.primaryIndex || 0);
     const [consentAccepted, setConsentAccepted] = useState(false);
+    const [currentStep, setCurrentStep] = useState(0);
 
     // Additional Options State
     const [selectedOptions, setSelectedOptions] = useState(savedState?.selectedOptions || []);
@@ -297,7 +298,35 @@ const EventRegistration = () => {
         });
     };
 
+    const totalSteps = 1 + participants.length + (program?.additionalOptions?.length > 0 ? 1 : 0);
+
+    const handleNext = () => {
+        if (currentStep === 0) {
+            if (!place.trim()) {
+                alert("Please enter the place where you are coming from.");
+                return;
+            }
+            setCurrentStep(1);
+        } else if (currentStep <= participants.length) {
+            const p = participants[currentStep - 1];
+            if (!p.name || !p.age || !p.mobile) {
+                alert(`Please fill all details for Participant ${currentStep}`);
+                return;
+            }
+            setCurrentStep(currentStep + 1);
+        } else if (currentStep < totalSteps) {
+            setCurrentStep(currentStep + 1);
+        } else {
+            handleProceed();
+        }
+    };
+
+    const handlePrev = () => {
+        if (currentStep > 0) setCurrentStep(currentStep - 1);
+    };
+
     if (program?.isConsentNeeded === 'Y' && !consentAccepted) {
+        // ... (Keep existing consent rendering)
         return (
             <div className="payment-container" style={{ paddingTop: 0, backgroundColor: 'var(--color-surface)', minHeight: '100vh' }}>
                 <PageHeader
@@ -331,8 +360,8 @@ const EventRegistration = () => {
                                 fontSize: '1.0625rem',
                                 lineHeight: '1.6',
                                 whiteSpace: 'pre-wrap',
-                                maxHeight: '45vh', // Slightly increased height
-                                overflowY: 'scroll', // Force scrollbar
+                                maxHeight: '45vh',
+                                overflowY: 'scroll',
                                 WebkitOverflowScrolling: 'touch'
                             }}
                         >
@@ -378,271 +407,376 @@ const EventRegistration = () => {
     return (
         <div className="payment-container" style={{ paddingTop: 0 }}>
             <PageHeader
-                title="Event Registration"
+                title={currentStep === totalSteps ? "Review Registration" : "Event Registration"}
                 leftAction={
-                    <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
+                    <button onClick={() => currentStep > 0 ? handlePrev() : navigate(-1)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
                         <ChevronLeft size={24} />
                     </button>
                 }
             />
 
             <div style={{
-                textAlign: 'center',
-                padding: '1rem',
-                backgroundColor: 'var(--color-surface)',
-                borderBottom: '1px solid var(--color-border)',
-                marginBottom: '1rem'
+                maxWidth: '48rem',
+                margin: '0 auto',
+                padding: '0 1rem 140px 1rem', // Adjusted for navigation footer
+                width: '100%',
+                boxSizing: 'border-box'
             }}>
-                <h2 style={{
-                    fontSize: '1.25rem',
-                    fontWeight: 700,
-                    color: 'var(--color-text)',
-                    margin: 0
+                {/* Progress Bar */}
+                <div style={{ marginBottom: '1.5rem', marginTop: '1rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.875rem', fontWeight: 700, color: 'var(--color-primary)' }}>
+                        <span>Step {currentStep + 1} of {totalSteps + 1}</span>
+                        <span>{Math.round(((currentStep + 1) / (totalSteps + 1)) * 100)}%</span>
+                    </div>
+                    <div style={{ width: '100%', height: '8px', backgroundColor: 'var(--color-border)', borderRadius: '4px', overflow: 'hidden' }}>
+                        <div style={{ width: `${((currentStep + 1) / (totalSteps + 1)) * 100}%`, height: '100%', backgroundColor: 'var(--color-primary)', transition: 'width 0.3s ease' }} />
+                    </div>
+                </div>
+
+                <div style={{
+                    textAlign: 'center',
+                    padding: '1.5rem',
+                    backgroundColor: 'var(--color-surface)',
+                    borderBottom: '1px solid var(--color-border)',
+                    borderRadius: '1rem',
+                    marginBottom: '1.5rem',
+                    boxShadow: 'var(--shadow-sm)'
                 }}>
-                    {program?.programName}
-                </h2>
-                <p style={{
-                    fontSize: '0.95rem',
-                    color: 'var(--color-text-muted)',
-                    margin: '0.25rem 0 0 0'
-                }}>
-                    {program?.programDate ? new Date(program.programDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : ''} - {program?.programCity}
-                </p>
-            </div>
-
-            {hasPreviousInfo && (
-                <div style={{ padding: '0 16px', marginBottom: '16px' }}>
-                    <button
-                        onClick={handleUsePrevious}
-                        className="btn-secondary"
-                        style={{
-                            width: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '8px',
-                            background: 'var(--color-primary-transparent)',
-                            color: 'var(--color-primary)',
-                            border: '1px solid var(--color-primary-light)'
-                        }}
-                    >
-                        <RotateCcw size={16} />
-                        Use Previous Info
-                    </button>
-                </div>
-            )}
-
-            <div className="card">
-                <div className="form-group">
-                    <label>Total Participants</label>
-                    <select
-                        value={participantCount}
-                        onChange={(e) => setParticipantCount(parseInt(e.target.value))}
-                        style={{
-                            width: '100%',
-                            padding: '10px',
-                            borderRadius: '8px',
-                            border: '1px solid var(--color-border)',
-                            fontSize: '16px',
-                            backgroundColor: 'var(--color-surface)',
-                            color: 'var(--color-text)'
-                        }}
-                    >
-                        {[...Array(15)].map((_, i) => (
-                            <option key={i + 1} value={i + 1}>{i + 1}</option>
-                        ))}
-                    </select>
+                    <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-text)', margin: 0 }}>
+                        {program?.programName}
+                    </h2>
+                    <p style={{ fontSize: '1rem', color: 'var(--color-text-muted)', margin: '0.5rem 0 0 0' }}>
+                        {program?.programDate ? new Date(program.programDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : ''} - {program?.programCity}
+                    </p>
                 </div>
 
-                <div className="form-group">
-                    <label>Place (Coming From)</label>
-                    <input
-                        type="text"
-                        value={place}
-                        onChange={(e) => setPlace(e.target.value)}
-                        data-testid="reg-place"
-                        placeholder="e.g. Chennai"
-                    />
-                </div>
-            </div>
-
-            {participants.map((p, index) => (
-                <div key={index} className="card">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                        <h3>Participant {index + 1}</h3>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <input
-                                type="radio"
-                                name="primary"
-                                checked={primaryIndex === index}
-                                onChange={() => setPrimaryIndex(index)}
-                            />
-                            <label style={{ fontSize: '12px', margin: 0 }}>Primary</label>
-                        </div>
-                    </div>
-
-                    <div className="form-group">
-                        <label>Name</label>
-                        <input
-                            type="text"
-                            value={p.name}
-                            onChange={(e) => handleParticipantChange(index, 'name', e.target.value)}
-                            data-testid={`reg-name-${index}`}
-                        />
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                        <div className="form-group" style={{ flex: 1 }}>
-                            <label>Age</label>
-                            <select
-                                value={p.age}
-                                onChange={(e) => handleParticipantChange(index, 'age', e.target.value)}
-                                style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-card)', color: 'var(--color-text)' }}
-                                data-testid={`reg-age-${index}`}
-                            >
-                                <option value="">Age</option>
-                                {[...Array(100).keys()].map(age => (
-                                    <option key={age} value={age}>{age}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div className="form-group" style={{ flex: 1 }}>
-                            <label>Gender</label>
-                            <select value={p.gender} onChange={(e) => handleParticipantChange(index, 'gender', e.target.value)}>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="form-group">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <label>Mobile</label>
-                            {index !== primaryIndex && (
+                {/* STEP 0: BASIC INFO */}
+                {currentStep === 0 && (
+                    <>
+                        {hasPreviousInfo && (
+                            <div style={{ marginBottom: '1.5rem' }}>
                                 <button
-                                    onClick={() => copyPrimaryMobile(index)}
-                                    className="btn-text"
-                                    style={{ fontSize: '12px', color: 'var(--color-primary)', fontWeight: 600, padding: 0 }}
-                                >
-                                    Use Primary Mobile
-                                </button>
-                            )}
-                        </div>
-                        <input
-                            type="tel"
-                            value={p.mobile}
-                            onChange={(e) => handleParticipantChange(index, 'mobile', e.target.value)}
-                            data-testid={`reg-mobile-${index}`}
-                        />
-                    </div>
-
-
-                </div>
-            ))}
-
-            {/* Additional Options Selection */}
-            {program?.additionalOptions?.length > 0 && (
-                <div className="card">
-                    <h3 style={{ marginBottom: '1rem' }}>Additional Options</h3>
-                    <div style={{ display: 'grid', gap: '0.75rem' }}>
-                        {program.additionalOptions.map((option, index) => {
-                            const usedCount = optionUsage[option.name] || 0;
-                            const maxCount = parseInt(option.maxCount) || Infinity;
-                            const isFull = usedCount >= maxCount;
-                            const isSelected = selectedOptions.some(o => o.name === option.name);
-
-                            return (
-                                <div
-                                    key={index}
-                                    className={`option-item ${isSelected ? 'selected' : ''} ${isFull && !isSelected ? 'disabled' : ''}`}
-                                    onClick={() => !isFull && toggleOption(option)}
+                                    onClick={handleUsePrevious}
+                                    className="btn-secondary"
                                     style={{
+                                        width: '100%',
                                         display: 'flex',
-                                        justifyContent: 'space-between',
                                         alignItems: 'center',
-                                        padding: '0.75rem',
-                                        border: isSelected ? '1px solid var(--color-primary)' : '1px solid var(--color-border)',
-                                        borderRadius: '0.5rem',
-                                        backgroundColor: isSelected ? 'var(--color-primary-transparent)' : (isFull ? 'var(--color-surface)' : 'var(--color-card)'),
-                                        cursor: isFull ? 'not-allowed' : 'pointer',
-                                        opacity: isFull ? 0.7 : 1
+                                        justifyContent: 'center',
+                                        gap: '8px',
+                                        background: 'var(--color-primary-transparent)',
+                                        color: 'var(--color-primary)',
+                                        border: '1px solid var(--color-primary-light)',
+                                        borderWidth: '2px', // Make it pop more
+                                        borderRadius: '0.75rem',
+                                        padding: '0.875rem',
+                                        fontWeight: 700
                                     }}
                                 >
-                                    <div>
-                                        <div style={{ fontWeight: 500, color: 'var(--color-text)' }}>{option.name}</div>
-                                        <div style={{ fontSize: '0.85rem', color: isFull ? 'var(--color-error)' : (usedCount > 0 ? 'var(--color-warning)' : 'var(--color-text-muted)') }}>
-                                            {isFull ? 'Sold Out' : (option.maxCount ? `${usedCount}/${option.maxCount} filled` : 'Available')}
-                                        </div>
-                                    </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                        <div style={{ fontWeight: 600 }}>₹{option.fee}</div>
-                                        <div style={{
-                                            width: '1.25rem',
-                                            height: '1.25rem',
-                                            borderRadius: '50%',
-                                            border: isSelected ? '5px solid var(--color-primary)' : '2px solid var(--color-border)',
-                                            backgroundColor: isSelected ? 'var(--color-card)' : 'transparent'
-                                        }} />
+                                    <RotateCcw size={18} />
+                                    Autofill Last Session's Details
+                                </button>
+                            </div>
+                        )}
+
+                        <div className="card" style={{ padding: '1.5rem', borderRadius: '1rem' }}>
+                            <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                                <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', display: 'block' }}>Total Participants</label>
+                                <select
+                                    value={participantCount}
+                                    onChange={(e) => setParticipantCount(parseInt(e.target.value))}
+                                    style={{
+                                        width: '100%',
+                                        padding: '12px',
+                                        borderRadius: '0.5rem',
+                                        border: '1px solid var(--color-border)',
+                                        fontSize: '1rem',
+                                        backgroundColor: 'var(--color-surface)',
+                                        color: 'var(--color-text)'
+                                    }}
+                                >
+                                    {[...Array(15)].map((_, i) => (
+                                        <option key={i + 1} value={i + 1}>{i + 1}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="form-group" style={{ marginBottom: 0 }}>
+                                <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', display: 'block' }}>Place (Coming From)</label>
+                                <input
+                                    type="text"
+                                    value={place}
+                                    onChange={(e) => setPlace(e.target.value)}
+                                    data-testid="reg-place"
+                                    placeholder="e.g. Chennai"
+                                    style={{ padding: '12px', borderRadius: '0.5rem' }}
+                                />
+                            </div>
+                        </div>
+                    </>
+                )}
+
+                {/* STEPS 1 to N: PARTICIPANT DETAILS */}
+                {currentStep > 0 && currentStep <= participants.length && (
+                    (() => {
+                        const index = currentStep - 1;
+                        const p = participants[index];
+                        return (
+                            <div key={index} className="card" style={{ padding: '1.5rem', borderRadius: '1rem', marginBottom: '1.5rem' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.75rem' }}>
+                                    <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0 }}>Participant {index + 1} Details</h3>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: primaryIndex === index ? 'var(--color-primary-transparent)' : 'transparent', padding: '4px 12px', borderRadius: '20px', border: primaryIndex === index ? '1px solid var(--color-primary-light)' : '1px solid transparent' }}>
+                                        <input
+                                            type="radio"
+                                            name={`primary-${index}`}
+                                            checked={primaryIndex === index}
+                                            onChange={() => setPrimaryIndex(index)}
+                                            style={{ width: '1.125rem', height: '1.125rem', margin: 0, cursor: 'pointer' }}
+                                        />
+                                        <label style={{ fontSize: '0.875rem', fontWeight: 600, margin: 0, color: primaryIndex === index ? 'var(--color-primary)' : 'var(--color-text-muted)', cursor: 'pointer' }}>Primary Applicant</label>
                                     </div>
                                 </div>
-                            );
-                        })}
-                    </div>
-                </div>
-            )}
 
-            <div className="card" style={{ position: 'sticky', bottom: '10px', background: 'var(--color-primary-transparent)', border: '1px solid var(--color-primary-light)', zIndex: 10 }}>
-                {/* Cost Breakdown */}
-                <div style={{ marginBottom: '10px', borderBottom: '1px solid var(--color-primary-light)', paddingBottom: '8px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                        <h4 style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-primary)', margin: 0 }}>Fee Breakdown</h4>
-                        {isAdmin && program?.ageRules?.length > 0 && (
-                            <span style={{ fontSize: '0.65rem', backgroundColor: 'var(--color-primary)', color: 'white', padding: '1px 5px', borderRadius: '4px' }}>
-                                Age Rules: {program.ageRules.length}
-                            </span>
-                        )}
-                    </div>
-                    <div style={{ display: 'grid', gap: '4px' }}>
-                        {getBreakdown().map((item, idx) => (
-                            <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--color-text)' }}>
-                                <span>{item.count} x {item.label}</span>
-                                <span>₹{item.fee * item.count} ({item.count} @ ₹{item.fee})</span>
+                                <div style={{ 
+                                    display: 'grid', 
+                                    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
+                                    gap: '0 1.5rem' 
+                                }}>
+                                    <div className="form-group">
+                                        <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', display: 'block' }}>Name</label>
+                                        <input
+                                            type="text"
+                                            value={p.name}
+                                            onChange={(e) => handleParticipantChange(index, 'name', e.target.value)}
+                                            data-testid={`reg-name-${index}`}
+                                            placeholder="Enter full name"
+                                            style={{ padding: '12px', borderRadius: '0.5rem' }}
+                                        />
+                                    </div>
+
+                                    <div className="form-group">
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                            <label style={{ fontWeight: 600, fontSize: '0.9rem', margin: 0 }}>Mobile Number</label>
+                                            {index !== primaryIndex && (
+                                                <button
+                                                    onClick={() => copyPrimaryMobile(index)}
+                                                    className="btn-text"
+                                                    style={{ fontSize: '0.75rem', color: 'var(--color-primary)', fontWeight: 700, padding: 0 }}
+                                                >
+                                                    Use Primary Mobile
+                                                </button>
+                                            )}
+                                        </div>
+                                        <input
+                                            type="tel"
+                                            value={p.mobile}
+                                            onChange={(e) => handleParticipantChange(index, 'mobile', e.target.value)}
+                                            data-testid={`reg-mobile-${index}`}
+                                            placeholder="e.g. 9876543210"
+                                            style={{ padding: '12px', borderRadius: '0.5rem' }}
+                                        />
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', display: 'block' }}>Age</label>
+                                        <select
+                                            value={p.age}
+                                            onChange={(e) => handleParticipantChange(index, 'age', e.target.value)}
+                                            style={{ width: '100%', padding: '12px', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-card)', color: 'var(--color-text)', fontSize: '1rem' }}
+                                            data-testid={`reg-age-${index}`}
+                                        >
+                                            <option value="">Select Age</option>
+                                            {[...Array(100).keys()].map(age => (
+                                                <option key={age} value={age}>{age}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', display: 'block' }}>Gender</label>
+                                        <select 
+                                            value={p.gender} 
+                                            onChange={(e) => handleParticipantChange(index, 'gender', e.target.value)}
+                                            style={{ width: '100%', padding: '12px', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-card)', color: 'var(--color-text)', fontSize: '1rem' }}
+                                        >
+                                            <option value="Male">Male</option>
+                                            <option value="Female">Female</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
-                        ))}
-                        {selectedOptions.length > 0 && (
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--color-text)', fontWeight: 600, marginTop: '4px', borderTop: '1px dashed var(--color-primary-light)', paddingTop: '4px' }}>
-                                <span>Additional Options ({selectedOptions.length})</span>
-                                <span>₹{selectedOptions.reduce((acc, opt) => acc + (Number(opt.fee) || 0), 0)}</span>
-                            </div>
-                        )}
+                        );
+                    })()
+                )}
+
+                {/* STEP: ADDITIONAL OPTIONS */}
+                {currentStep === participants.length + 1 && program?.additionalOptions?.length > 0 && (
+                    <div className="card" style={{ padding: '1.5rem', borderRadius: '1rem', marginBottom: '1.5rem' }}>
+                        <h3 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '1.25rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.75rem' }}>Additional Options</h3>
+                        <div style={{ display: 'grid', gap: '1rem' }}>
+                            {program.additionalOptions.map((option, index) => {
+                                const usedCount = optionUsage[option.name] || 0;
+                                const maxCount = parseInt(option.maxCount) || Infinity;
+                                const isFull = usedCount >= maxCount;
+                                const isSelected = selectedOptions.some(o => o.name === option.name);
+
+                                return (
+                                    <div
+                                        key={index}
+                                        className={`option-item ${isSelected ? 'selected' : ''} ${isFull && !isSelected ? 'disabled' : ''}`}
+                                        onClick={() => !isFull && toggleOption(option)}
+                                        style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            padding: '1rem',
+                                            border: isSelected ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
+                                            borderRadius: '0.75rem',
+                                            backgroundColor: isSelected ? 'var(--color-primary-transparent)' : (isFull ? 'var(--color-surface)' : 'var(--color-card)'),
+                                            cursor: isFull ? 'not-allowed' : 'pointer',
+                                            opacity: isFull ? 0.7 : 1,
+                                            transition: 'all 0.2s'
+                                        }}
+                                    >
+                                        <div>
+                                            <div style={{ fontWeight: 700, color: 'var(--color-text)', fontSize: '1rem' }}>{option.name}</div>
+                                            <div style={{ fontSize: '0.875rem', marginTop: '2px', color: isFull ? 'var(--color-error)' : (usedCount > 0 ? 'var(--color-warning)' : 'var(--color-text-muted)') }}>
+                                                {isFull ? '🚫 Sold Out' : (option.maxCount ? `👥 ${usedCount}/${option.maxCount} filled` : '✅ Available')}
+                                            </div>
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                            <div style={{ fontWeight: 800, fontSize: '1.125rem', color: isSelected ? 'var(--color-primary)' : 'var(--color-text)' }}>₹{option.fee}</div>
+                                            <div style={{
+                                                width: '1.5rem',
+                                                height: '1.5rem',
+                                                borderRadius: '50%',
+                                                border: isSelected ? '6px solid var(--color-primary)' : '2px solid var(--color-border)',
+                                                backgroundColor: isSelected ? 'white' : 'transparent',
+                                                transition: 'all 0.2s'
+                                            }} />
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
-                </div>
+                )}
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontWeight: 600 }}>Total Estimated Amount:</span>
-                    <span style={{ fontSize: '18px', fontWeight: 'bold' }}>{calculateTotal() > 0 ? `₹${calculateTotal()}` : 'FREE'}</span>
-                </div>
-
-                {!onlineTransactionsEnabled && (
-                    <div style={{
-                        marginTop: '10px',
-                        padding: '10px',
-                        backgroundColor: 'var(--color-error-transparent)',
-                        border: '1px solid var(--color-error-light)',
-                        borderRadius: '8px',
-                        textAlign: 'center'
+                {/* FINAL STEP: REVIEW & PAY */}
+                {currentStep === totalSteps && (
+                    <div className="card" style={{ 
+                        background: 'rgba(255, 255, 255, 0.95)', 
+                        backdropFilter: 'blur(10px)',
+                        border: '2px solid var(--color-primary-light)', 
+                        zIndex: 10,
+                        borderRadius: '1.25rem',
+                        padding: '1.5rem',
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+                        marginTop: '1rem'
                     }}>
-                        <p style={{ margin: 0, color: 'var(--color-error)', fontWeight: 600, fontSize: '0.9rem' }}>
-                            To register please contact {offlineRegistrationContact}
-                        </p>
+                        <div style={{ marginBottom: '1.25rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '1rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                                <h4 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--color-primary)', margin: 0 }}>Review Fee Breakdown</h4>
+                                {isAdmin && (
+                                    <span style={{ fontSize: '0.7rem', backgroundColor: 'var(--color-primary)', color: 'white', padding: '2px 8px', borderRadius: '4px', fontWeight: 600 }}>
+                                        ADMIN VIEW
+                                    </span>
+                                )}
+                            </div>
+                            <div style={{ display: 'grid', gap: '0.5rem' }}>
+                                {getBreakdown().map((item, idx) => (
+                                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem', color: 'var(--color-text)' }}>
+                                        <span style={{ fontWeight: 500 }}>{item.count} x {item.label}</span>
+                                        <span style={{ fontWeight: 700 }}>₹{item.fee * item.count}</span>
+                                    </div>
+                                ))}
+                                {selectedOptions.length > 0 && (
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem', color: 'var(--color-text)', fontWeight: 700, marginTop: '0.5rem', borderTop: '1px dashed var(--color-border)', paddingTop: '0.5rem' }}>
+                                        <span>Extra Options ({selectedOptions.length})</span>
+                                        <span>₹{selectedOptions.reduce((acc, opt) => acc + (Number(opt.fee) || 0), 0)}</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+                            <span style={{ fontWeight: 700, fontSize: '1.25rem' }}>Final Amount Payable:</span>
+                            <span style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--color-primary)' }}>{calculateTotal() > 0 ? `₹${calculateTotal()}` : 'FREE'}</span>
+                        </div>
+
+                        {!onlineTransactionsEnabled && (
+                            <div style={{
+                                marginBottom: '1rem',
+                                padding: '1rem',
+                                backgroundColor: 'var(--color-error-transparent)',
+                                border: '1px solid var(--color-error-light)',
+                                borderRadius: '0.75rem',
+                                textAlign: 'center'
+                            }}>
+                                <p style={{ margin: 0, color: 'var(--color-error)', fontWeight: 700, fontSize: '0.95rem' }}>
+                                    📱 Registration via Support: {offlineRegistrationContact}
+                                </p>
+                            </div>
+                        )}
                     </div>
                 )}
+            </div>
 
-                {onlineTransactionsEnabled && (
-                    <button className="btn-primary" style={{ marginTop: '10px' }} onClick={handleProceed} data-testid="reg-proceed">
-                        {calculateTotal() > 0 ? 'Proceed to Payment' : 'Register Now (Free)'}
+            {/* PERSISTENT NAVIGATION FOOTER */}
+            <div style={{
+                position: 'fixed',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                backdropFilter: 'blur(10px)',
+                borderTop: '1px solid var(--color-border)',
+                padding: '1rem',
+                zIndex: 100,
+                display: 'flex',
+                justifyContent: 'center'
+            }}>
+                <div style={{ 
+                    maxWidth: '48rem', 
+                    width: '100%', 
+                    display: 'flex', 
+                    gap: '1rem',
+                    justifyContent: 'space-between'
+                }}>
+                    <button 
+                        onClick={handlePrev}
+                        className="btn-secondary"
+                        disabled={currentStep === 0}
+                        style={{ 
+                            flex: 1, 
+                            height: '3.5rem', 
+                            fontSize: '1.125rem', 
+                            fontWeight: 700, 
+                            borderRadius: '1rem',
+                            opacity: currentStep === 0 ? 0.3 : 1,
+                            cursor: currentStep === 0 ? 'not-allowed' : 'pointer'
+                        }}
+                    >
+                        Previous
                     </button>
-                )}
+                    
+                    <button 
+                        onClick={handleNext}
+                        className="btn-primary"
+                        style={{ 
+                            flex: 2, 
+                            height: '3.5rem', 
+                            fontSize: '1.125rem', 
+                            fontWeight: 800, 
+                            borderRadius: '1rem',
+                            boxShadow: '0 4px 12px var(--color-primary-transparent)'
+                        }}
+                    >
+                        {currentStep === totalSteps 
+                            ? (calculateTotal() > 0 ? 'Confirm & Proceed to Pay' : 'Finish Registration') 
+                            : 'Next Step'}
+                    </button>
+                </div>
             </div>
         </div>
     );

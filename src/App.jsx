@@ -123,6 +123,11 @@ import WebAccount from './pages/WebAccount';
 const WebBookDetails = lazyWithRetry(() => import('./pages/WebBookDetails'));
 const WebCheckout = lazyWithRetry(() => import('./pages/WebCheckout'));
 const WebGallery = lazyWithRetry(() => import('./pages/WebGallery'));
+const WebPrograms = React.lazy(() => import('./pages/WebPrograms'));
+const WebEventRegistration = React.lazy(() => import('./pages/WebEventRegistration'));
+const WebPaymentFlow = React.lazy(() => import('./pages/WebPaymentFlow'));
+const WebAyyaSchedule = React.lazy(() => import('./pages/WebAyyaSchedule'));
+const WebMyRegistrations = lazyWithRetry(() => import('./pages/WebMyRegistrations'));
 
 import ProtectedRoute from './components/ProtectedRoute';
 import { AdminAuthProvider } from './context/AdminAuthContext';
@@ -439,7 +444,11 @@ function AnimatedRoutes() {
             <Route path="checkout" element={<WebCheckout />} />
             <Route path="contact" element={<WebContact />} />
             <Route path="account" element={<WebAccount />} />
-            <Route path="programs/retreat" element={<Programs hideHeader={true} />} />
+            <Route path="programs/retreat" element={<WebPrograms />} />
+            <Route path="event-registration" element={<WebEventRegistration />} />
+            <Route path="payment-flow" element={<WebPaymentFlow />} />
+            <Route path="schedule" element={<WebAyyaSchedule />} />
+            <Route path="contact" element={<WebContact />} />
           </Route>
 
           {/* Public view but management is admin */}

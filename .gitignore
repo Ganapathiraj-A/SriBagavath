@@ -41,3 +41,5 @@ secrets/
 # Temporary downloads and local binaries
 downloads/
 .local/
+tmp_video_work/
+venv_video/

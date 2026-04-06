@@ -36,6 +36,18 @@
 - [x] Automate APK Installation
     - [x] Update `build.sh` with ADB install logic
     - [x] Verify installation on connected device
+    - [x] Update WebEvents.jsx with the "Date Badge" layout for Programs
+- [x] Update WebPages.css with shared and specific styles
+- [x] Update WebEvents.jsx with the "Speaker Photos" for Zoom
+- [x] Fix Action Button alignment to bottom (GRID Stretch)
+- [x] Sync WebDonations options/titles with mobile app
+- [x] Update WebDonations layout to vertical cards
+- [x] Add "My Donations" button to WebDonations
+- [x] Fix Ayya's Schedule filtering (handle Timestamps)
+- [x] Add "Upcoming" and "Past" sub-tabs to Daily Zoom tab
+- [x] Implement past meetings fetching (date < today)
+- [x] Verify cross-tab consistency
+- [x] Final visual check
 - [x] Version & Deployment
     - [x] Increment version to 3.1.28
     - [x] Build and deploy to phone
@@ -43,7 +55,7 @@
     - [x] Verify Storage handling in TransactionService
     - [x] Increment version to 3.1.29
     - [x] Deploy v3.1.29 to phone (IP 192.168.1.12)
-- [/] ADB Auto-Discovery
+- [x] ADB Auto-Discovery
     - [x] Verify nmap availability
     - [ ] Update `build.sh` with nmap fallback logic
     - [ ] Verify discovery on local network

@@ -4,6 +4,7 @@ import { collection, query, getDocs, orderBy } from '../utils/FirestoreProxy';
 import { db } from '../firebase';
 import { X, ChevronLeft, ChevronRight, Maximize2, Share2, Folder, ArrowLeft, Download, Loader2 } from 'lucide-react';
 import { shareItem } from '../utils/shareUtils';
+import LazyImage from '../components/LazyImage';
 import './WebPages.css';
 
 const WebGallery = () => {
@@ -14,6 +15,13 @@ const WebGallery = () => {
     const [selectedEventId, setSelectedEventId] = useState(null);
     const [selectedIndex, setSelectedIndex] = useState(null);
     const shareImageCacheRef = useRef(new Map());
+
+    // Helper to pick the correct image URL from multiple possible field names
+    const getImageUrl = (img) => {
+        if (!img) return null;
+        return [img.url, img.imageUrl, img.image, img.photo, img.photoURL, img.cover, img.thumb, img.thumbnail]
+            .find(u => u && typeof u === 'string' && u.length > 0) || null;
+    };
 
     useEffect(() => {
         console.log("[WebGallery] Setting up gallery data fetch...");
@@ -116,7 +124,8 @@ const WebGallery = () => {
     };
 
     const handleDownload = async (img) => {
-        if (!img || !img.url) return;
+        const url = getImageUrl(img);
+        if (!url) return;
         try {
             // Check if we have a cached blob from share preparation
             const cached = shareImageCacheRef.current.get(img.id);
@@ -125,22 +134,22 @@ const WebGallery = () => {
             if (cached && cached.blob) {
                 blob = cached.blob;
             } else {
-                const response = await fetch(img.url);
+                const response = await fetch(url);
                 blob = await response.blob();
             }
 
-            const url = window.URL.createObjectURL(blob);
+            const blobUrl = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.href = url;
+            link.href = blobUrl;
             link.setAttribute('download', (img.caption || 'gallery-image').replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.jpg');
             document.body.appendChild(link);
             link.click();
             link.remove();
-            window.URL.revokeObjectURL(url);
+            window.URL.revokeObjectURL(blobUrl);
         } catch (error) {
             console.error("[WebGallery] Download failed:", error);
             // Fallback to opening in new window
-            window.open(img.url, '_blank');
+            window.open(url, '_blank');
         }
     };
 
@@ -248,13 +257,11 @@ const WebGallery = () => {
                                     transition={{ delay: index * 0.05 }}
                                     onClick={() => openLightbox(index)}
                                 >
-                                    <img
-                                        src={img.url}
+                                    <LazyImage
+                                        src={getImageUrl(img)}
                                         alt={img.caption || 'Sri Bagavath Gallery'}
-                                        crossOrigin="anonymous"
-                                        onLoad={(e) => {
-                                            cacheShareableImage(img.id, e.currentTarget);
-                                        }}
+                                        borderRadius="20px"
+                                        placeholder={() => <div style={{ backgroundColor: '#f3f4f6', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Loader2 className="animate-spin" /></div>}
                                     />
                                     <div className="gallery-overlay">
                                         <Maximize2 size={24} />
@@ -314,12 +321,15 @@ const WebGallery = () => {
                             animate={{ scale: 1, opacity: 1 }}
                             onClick={(e) => e.stopPropagation()}
                         >
-                            <img
-                                src={filteredImages[selectedIndex].url}
+                            <LazyImage
+                                src={getImageUrl(filteredImages[selectedIndex])}
                                 alt={filteredImages[selectedIndex].caption}
-                                crossOrigin="anonymous"
-                                onLoad={(e) => {
-                                    cacheShareableImage(filteredImages[selectedIndex].id, e.currentTarget);
+                                borderRadius="8px"
+                                objectFit="contain"
+                                style={{
+                                    maxWidth: '90vw',
+                                    maxHeight: '70vh',
+                                    backgroundColor: 'transparent'
                                 }}
                             />
                             {filteredImages[selectedIndex].caption && (

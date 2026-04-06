@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAdminAuth } from '../context/AdminAuthContext';
-import MyRegistrations from './MyRegistrations';
+import WebMyRegistrations from './WebMyRegistrations';
 import MyOrders from './MyOrders';
 import MyDonations from './MyDonations';
 import { ShoppingBag, BookOpen, Heart, User, LogIn } from 'lucide-react';
@@ -15,7 +15,7 @@ const WebAccount = () => {
     const [isSigningIn, setIsSigningIn] = useState(false);
 
     const tabs = [
-        { id: 'registrations', name: 'My Registrations', icon: <BookOpen size={20} />, component: MyRegistrations },
+        { id: 'registrations', name: 'My Registrations', icon: <BookOpen size={20} />, component: WebMyRegistrations },
         { id: 'orders', name: 'My Orders', icon: <ShoppingBag size={20} />, component: MyOrders },
         { id: 'donations', name: 'My Donations', icon: <Heart size={20} />, component: MyDonations }
     ];

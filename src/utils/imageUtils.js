@@ -162,11 +162,15 @@ export const trackImageSource = (src) => {
 };
 
 export const normalizeImageSrc = (src) => {
-  if (!src) return '';
-  let finalSrc = src;
-  if (!src.startsWith('http') && !src.startsWith('data:')) {
-    finalSrc = `data:image/jpeg;base64,${src}`;
+  if (!src || typeof src !== 'string') return '';
+  
+  // If it's already a full URL, a data URL, or a relative path, leave it alone
+  if (src.startsWith('http') || src.startsWith('data:') || src.startsWith('/') || src.startsWith('./')) {
+    return src;
   }
+  
+  // Only prepend if it looks like a raw base64 string
+  let finalSrc = `data:image/jpeg;base64,${src}`;
 
   // Track the source
   trackImageSource(finalSrc);

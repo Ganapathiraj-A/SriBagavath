@@ -482,6 +482,7 @@ Download Sri Bagavath App for latest updates`.trim();
             <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ maxWidth: '42rem', margin: '0 auto', width: '100%' }}>
 
+
                     {/* Tab Switcher - Outside the card, right under header */}
                     {viewingProgram && (viewingBanner || viewingProgram.introYoutubeUrl) && (
                         <div style={{
@@ -770,6 +771,50 @@ Download Sri Bagavath App for latest updates`.trim();
                                         </div>
                                     </div>
                                 )}
+
+                                {/* Sticky-ish Register Now Button for all tabs when on detail view */}
+                                {viewingProgram.registrationStatus === 'Open' ? (
+                                    <div style={{ 
+                                        marginTop: '2.5rem', 
+                                        paddingTop: '1.5rem', 
+                                        borderTop: '1px solid var(--color-border)',
+                                        display: 'flex',
+                                        justifyContent: 'center'
+                                    }}>
+                                        <button
+                                            onClick={async () => {
+                                                if (await ensureAuth()) {
+                                                    navigate('/event-registration', { state: { program: viewingProgram } });
+                                                }
+                                            }}
+                                            style={{
+                                                backgroundColor: 'transparent',
+                                                color: '#000000',
+                                                border: '2px solid #000000',
+                                                padding: '0.75rem 2.5rem',
+                                                borderRadius: '2rem',
+                                                fontSize: '1rem',
+                                                fontWeight: 700,
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s'
+                                            }}
+                                            onMouseOver={(e) => {
+                                                e.currentTarget.style.backgroundColor = '#000000';
+                                                e.currentTarget.style.color = '#ffffff';
+                                            }}
+                                            onMouseOut={(e) => {
+                                                e.currentTarget.style.backgroundColor = 'transparent';
+                                                e.currentTarget.style.color = '#000000';
+                                            }}
+                                        >
+                                            Register for this Program
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div style={{ marginTop: '2rem', textAlign: 'center', color: 'var(--color-error)', fontWeight: 600 }}>
+                                        Registration is closed for this program.
+                                    </div>
+                                )}
                                 </motion.div>
                             </>
                         ) : (
@@ -793,8 +838,10 @@ Download Sri Bagavath App for latest updates`.trim();
                                             width: 'auto', // Override 100% width
                                             padding: '10px 24px',
                                             opacity: authLoading ? 0.7 : 1,
-                                            backgroundColor: '#ea580c',
-                                            color: 'white'
+                                            backgroundColor: '#000000',
+                                            color: '#ffffff',
+                                            borderRadius: '2rem',
+                                            fontWeight: 700
                                         }}
                                     >
                                         {authLoading ? 'Signing in...' : 'My Registrations'}
@@ -919,12 +966,14 @@ Download Sri Bagavath App for latest updates`.trim();
                                                             disabled={authLoading}
                                                             style={{
                                                                 width: 'auto',
-                                                                padding: '0.45rem 1rem',
-                                                                fontSize: '0.8125rem',
+                                                                padding: '0.45rem 1.25rem',
+                                                                fontSize: '0.85rem',
                                                                 borderRadius: '20px',
                                                                 opacity: authLoading ? 0.7 : 1,
-                                                                backgroundColor: '#ea580c',
-                                                                color: 'white'
+                                                                backgroundColor: 'transparent',
+                                                                color: '#000000',
+                                                                border: '1.5px solid #000000',
+                                                                fontWeight: 700
                                                             }}
                                                         >
                                                             {authLoading ? '...' : 'Register Now'}

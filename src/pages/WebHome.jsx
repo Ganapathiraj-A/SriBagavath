@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { FaBook, FaHandsHelping, FaVideo, FaInfoCircle } from 'react-icons/fa';
 import './WebHome.css';
@@ -45,7 +44,7 @@ const WebHome = () => {
                 <FaVideo className="card-icon" />
                 <h3>Events & Camps</h3>
                 <p>Join our regular satsangs and meditation camps held across various locations.</p>
-                <Link to="/web/events" className="web-btn-text">View Schedule →</Link>
+                <Link to="/web/schedule" className="web-btn-text">View Schedule →</Link>
               </div>
               <div className="web-mission-card">
                 <FaBook className="card-icon" />
@@ -71,7 +70,7 @@ const WebHome = () => {
             <h2>Experience the Wisdom</h2>
             <p>Download our official app for daily updates, zoom meetings, and exclusive content.</p>
             <div className="web-cta-btns">
-              <a href="#" className="web-btn primary">Download App</a>
+              <a href="https://play.google.com/store/apps/details?id=com.bhavathpathai.app" target="_blank" rel="noopener noreferrer" className="web-btn primary">Download App</a>
               <Link to="/web/store" className="web-btn secondary">Order Books</Link>
             </div>
           </div>

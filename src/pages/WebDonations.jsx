@@ -1,23 +1,23 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { FaHeart, FaHandsHelping, FaUsers, FaArrowRight } from 'react-icons/fa';
+import { FaHeart } from 'react-icons/fa';
 import './WebPages.css';
 
 const donationOptions = [
-  { id: 'don_1', title: 'Single Donation', price: 1000, category: 'General', icon: <FaHeart />, description: 'One-time contribution to support our mission.' },
-  { id: 'don_2', title: 'Sustaining Support', price: 2000, category: 'General', icon: <FaHandsHelping />, description: 'Help us maintain our spiritual centers.' },
-  { id: 'don_3', title: 'Generous Support', price: 5000, category: 'General', icon: <FaHandsHelping />, description: 'Significant contribution to our initiatives.' },
-  { id: 'don_custom', title: 'Custom Amount', price: 0, category: 'General', isCustom: true, icon: <FaHeart />, description: 'Contribute any amount of your choice.' },
+  { id: 'don_1', title: 'Donation - ₹1,000', price: 1000, category: 'General' },
+  { id: 'don_2', title: 'Donation - ₹2,000', price: 2000, category: 'General' },
+  { id: 'don_3', title: 'Donation - ₹5,000', price: 5000, category: 'General' },
+  { id: 'don_custom', title: 'Custom Donation', price: 0, category: 'General', isCustom: true },
   
-  { id: 'ann_1', title: 'Annadhanam Support', price: 1000, category: 'Annadhanam', icon: <FaHandsHelping />, description: 'Support the daily food distribution service.' },
-  { id: 'ann_2', title: 'Annadhanam Mid', price: 2000, category: 'Annadhanam', icon: <FaHandsHelping />, description: 'Increased support for food distribution.' },
-  { id: 'ann_3', title: 'Annadhanam Large', price: 5000, category: 'Annadhanam', icon: <FaHandsHelping />, description: 'Major support for our feeding programs.' },
-  { id: 'ann_custom', title: 'Custom Annadhanam', price: 0, category: 'Annadhanam', isCustom: true, icon: <FaHandsHelping />, description: 'Contribute any amount for food service.' },
+  { id: 'ann_1', title: 'Annadhanam - ₹1,000', price: 1000, category: 'Annadhanam' },
+  { id: 'ann_2', title: 'Annadhanam - ₹2,000', price: 2000, category: 'Annadhanam' },
+  { id: 'ann_3', title: 'Annadhanam - ₹5,000', price: 5000, category: 'Annadhanam' },
+  { id: 'ann_custom', title: 'Custom Annadhanam', price: 0, category: 'Annadhanam', isCustom: true },
   
-  { id: 'mem_monthly', title: 'Monthly Donation', price: 0, category: 'Membership', isMonthly: true, icon: <FaUsers />, description: 'Regular monthly support for our mission.' },
-  { id: 'mem_annual', title: 'Annual Member', price: 10000, category: 'Membership', icon: <FaUsers />, description: 'Join us as an active annual member.' },
-  { id: 'mem_founder', title: 'Founder Member', price: 25000, category: 'Membership', icon: <FaUsers />, description: 'Become a permanent founder member.' }
+  { id: 'mem_monthly', title: 'Monthly Donation', price: 0, category: 'Membership', isMonthly: true },
+  { id: 'mem_annual', title: 'Annual Member', price: 10000, category: 'Membership' },
+  { id: 'mem_founder', title: 'Founder Member', price: 25000, category: 'Membership' }
 ];
 
 const WebDonations = () => {
@@ -46,96 +46,113 @@ const WebDonations = () => {
   };
 
   return (
-    <div className="web-donations">
-
-
-      <section className="web-content-section">
-        <div className="web-container">
-          {/* Tabs */}
-          <div className="web-tabs-container center">
-            {tabs.map(tab => (
-              <button
-                key={tab}
-                className={`web-tab ${activeTab === tab ? 'active' : ''}`}
-                onClick={() => {
-                   setActiveTab(tab);
-                   setSelectedId(null);
-                   setCustomAmount('');
-                }}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-
-          <div className="web-donation-grid">
-            {donationOptions.filter(o => o.category === activeTab).map(option => (
-              <motion.div
-                key={option.id}
-                className={`web-donation-card ${selectedId === option.id ? 'active' : ''}`}
-                onClick={() => setSelectedId(option.id)}
-                layout
-              >
-                <div className="card-header">
-                   <div className="card-icon">{option.icon}</div>
-                   <h3>{option.title}</h3>
-                </div>
-                <p className="card-description">{option.description}</p>
-                {option.isMonthly ? (
-                  <p className="card-amount">₹{parseInt(monthlyAmount).toLocaleString()}+</p>
-                ) : (
-                  !option.isCustom && <p className="card-amount">₹{option.price.toLocaleString()}</p>
-                )}
-                
-                <AnimatePresence>
-                  {selectedId === option.id && (
-                    <motion.div 
-                      className="card-expanded"
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                    >
-                      {option.isCustom && (
-                        <div className="custom-amount-input">
-                           <span>₹</span>
-                           <input 
-                             type="number" 
-                             placeholder="Enter Amount" 
-                             value={customAmount}
-                             onChange={(e) => setCustomAmount(e.target.value)}
-                             autoFocus
-                           />
-                        </div>
-                      )}
-                      {option.isMonthly && (
-                        <div className="custom-amount-input">
-                          <span>₹</span>
-                          <select 
-                            value={monthlyAmount}
-                            onChange={(e) => setMonthlyAmount(e.target.value)}
-                            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', background: 'white' }}
-                          >
-                            {[1000, 1500, 2000, 2500, 3000, 3500, 4000, 5000, 6000, 7000, 8000, 9000, 10000].map(amt => (
-                              <option key={amt} value={amt}>{amt.toLocaleString()}</option>
-                            ))}
-                          </select>
-                        </div>
-                      )}
-                      <button className="web-btn-primary full" onClick={() => handleProceed(option)}>
-                        Proceed to Payment <FaArrowRight />
-                      </button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            ))}
-          </div>
-
-          <div className="web-donation-footer">
-            <p>Transactions are secure and handled via UPI/Netbanking. You will receive a receipt upon successful completion.</p>
-          </div>
+    <div className="web-donations-container">
+      <div className="web-container">
+        
+        <div className="web-donation-header">
+           <div className="header-left">
+              <div className="donation-heart-icon"><FaHeart /></div>
+              <div>
+                <h2>Support Our Mission</h2>
+                <p>Your contributions help us reach more people and spread spiritual awareness.</p>
+              </div>
+           </div>
+           <button className="my-donations-btn" onClick={() => navigate('/web/account/donations')}>
+              <FaHeart /> My Donations
+           </button>
         </div>
-      </section>
+
+        {/* Tabs */}
+        <div className="web-tabs-container center">
+          {tabs.map(tab => (
+            <button
+              key={tab}
+              className={`web-tab ${activeTab === tab ? 'active' : ''}`}
+              onClick={() => {
+                 setActiveTab(tab);
+                 setSelectedId(null);
+                 setCustomAmount('');
+              }}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        <div className="web-donation-list">
+          {donationOptions.filter(o => o.category === activeTab).map(option => (
+            <motion.div
+              key={option.id}
+              className={`web-donation-item-card ${selectedId === option.id ? 'active' : ''}`}
+              onClick={() => setSelectedId(option.id)}
+              layout
+            >
+              <div className="donation-item-main">
+                <div className="donation-item-info">
+                  <h3>{option.title}</h3>
+                  
+                  <AnimatePresence>
+                    {selectedId === option.id && (
+                      <motion.div 
+                        className="donation-item-expanded"
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                      >
+                        {option.isCustom && (
+                          <div className="donation-input-wrapper">
+                             <input 
+                               type="number" 
+                               placeholder="Enter amount" 
+                               value={customAmount}
+                               onChange={(e) => setCustomAmount(e.target.value)}
+                               onClick={(e) => e.stopPropagation()}
+                               autoFocus
+                             />
+                          </div>
+                        )}
+                        {option.isMonthly && (
+                          <div className="donation-input-wrapper">
+                            <select 
+                              value={monthlyAmount}
+                              onChange={(e) => setMonthlyAmount(e.target.value)}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {[1000, 1500, 2000, 2500, 3000, 3500, 4000, 5000, 6000, 7000, 8000, 9000, 10000].map(amt => (
+                                <option key={amt} value={amt}>₹{amt.toLocaleString()}</option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+                
+                <div className="donation-item-price">
+                  {option.isMonthly ? (
+                    <span>₹{parseInt(monthlyAmount).toLocaleString()}+</span>
+                  ) : (
+                    !option.isCustom && <span>₹{option.price.toLocaleString()}</span>
+                  )}
+                </div>
+              </div>
+              
+              {selectedId === option.id && (
+                <div className="donation-item-actions">
+                  <button className="web-btn-primary" onClick={(e) => { e.stopPropagation(); handleProceed(option); }}>
+                    Proceed to Donate
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          ))}
+        </div>
+
+        <div className="web-donation-footer">
+          <p>Transactions are secure and handled via UPI. You will receive a receipt upon successful completion.</p>
+        </div>
+      </div>
     </div>
   );
 };

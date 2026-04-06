@@ -60,12 +60,12 @@ const MeetingCard = ({ meeting, teacher, delay, onShare, isSharing }) => {
                     padding: '0.5rem',
                     borderRadius: '0.75rem',
                     width: '100%',
-                    border: '1px solid var(--color-primary)'
+                    border: 'none'
                 }}>
-                    <span style={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    <span style={{ fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                         {date instanceof Date && !isNaN(date) ? date.toLocaleDateString('en-US', { month: 'short' }) : '---'}
                     </span>
-                    <span style={{ fontSize: '1.25rem', fontWeight: 800, lineHeight: 1, marginTop: '1px' }}>
+                    <span style={{ fontSize: '1.25rem', fontWeight: 900, lineHeight: 1, marginTop: '1px' }}>
                         {date instanceof Date && !isNaN(date) ? date.getDate() : '??'}
                     </span>
                 </div>
@@ -123,15 +123,18 @@ const MeetingCard = ({ meeting, teacher, delay, onShare, isSharing }) => {
                             justifyContent: 'center',
                             gap: '0.4rem',
                             padding: '0.6rem 0.75rem',
-                            backgroundColor: '#f97316',
-                            color: 'white',
-                            border: 'none',
+                            backgroundColor: 'white',
+                            color: 'var(--color-primary)',
+                            border: '1.5px solid var(--color-primary)',
                             borderRadius: '0.75rem',
                             fontSize: '0.85rem',
                             fontWeight: 700,
                             cursor: 'pointer',
-                            whiteSpace: 'nowrap'
+                            whiteSpace: 'nowrap',
+                            transition: 'all 0.2s'
                         }}
+                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--color-primary-transparent)'}
+                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'white'}
                     >
                         <Video size={16} /> Zoom
                     </button>

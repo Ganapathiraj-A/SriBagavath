@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Book, Music, Video, ExternalLink, ChevronRight, Download, Folder, FileText } from 'lucide-react';
+import { Book, Music, Video, ExternalLink, ChevronRight, Folder } from 'lucide-react';
 import emediaData from '../data/emedia.json';
 import LazyImage from '../components/LazyImage';
 import './WebPages.css';
@@ -61,7 +61,6 @@ const WebEMedia = () => {
                             </div>
                             <div className="emedia-card-info">
                                 <h3 className="emedia-month-display">{book.name}</h3>
-                                <p>Digital Edition</p>
                             </div>
                             <ExternalLink size={18} className="emedia-external-icon" />
                         </a>
@@ -208,7 +207,6 @@ const WebEMedia = () => {
                         </div>
                         <div className="emedia-card-info">
                             <h3 className="emedia-month-display">{book.title}</h3>
-                            <p>Audio Satsangs & Lectures</p>
                         </div>
                         <ChevronRight size={20} className="emedia-chevron" />
                     </a>

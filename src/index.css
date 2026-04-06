@@ -111,7 +111,7 @@
 }
 
 html, body {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Outfit', 'Noto Sans Tamil', sans-serif;
   background-color: var(--color-background);
   color: var(--color-text);
   line-height: 1.5;
