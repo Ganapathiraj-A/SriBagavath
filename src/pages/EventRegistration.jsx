@@ -113,7 +113,7 @@ const EventRegistration = () => {
             const saved = localStorage.getItem('last_registration_details');
             if (saved) {
                 const data = JSON.parse(saved);
-                if (confirm("Autofill details from your last session?")) {
+                if (window.confirm("Autofill details from your last session?")) {
                     setParticipantCount(data.participantCount || 1);
                     setParticipants(data.participants || []);
                     setPlace(data.place || '');

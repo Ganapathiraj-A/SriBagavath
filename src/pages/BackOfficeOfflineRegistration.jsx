@@ -63,7 +63,7 @@ const BackOfficeOfflineRegistration = () => {
             const saved = localStorage.getItem('last_offline_transaction_details');
             if (saved) {
                 const data = JSON.parse(saved);
-                if (confirm("Autofill details from last offline entry?")) {
+                if (window.confirm("Autofill details from last offline entry?")) {
                     if (data.name) setPrimaryName(data.name);
                     if (data.mobile) setMobile(data.mobile);
                     if (data.city) setCity(data.city);
@@ -125,7 +125,7 @@ const BackOfficeOfflineRegistration = () => {
         }
 
         if (amount <= 0) {
-            if (!confirm("Warning: Total Amount is 0. Do you want to proceed?")) {
+            if (!window.confirm("Warning: Total Amount is 0. Do you want to proceed?")) {
                 return;
             }
         }

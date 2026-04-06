@@ -33,7 +33,7 @@ const ProgramManagement = () => {
     const navigate = useNavigate();
 
     const handleLogout = async () => {
-        if (confirm("Logout?")) {
+        if (window.confirm("Logout?")) {
             if (Capacitor.isNativePlatform()) {
                 try {
                     await GoogleAuth.signOut();
@@ -419,7 +419,7 @@ const ProgramManagement = () => {
                 return;
             }
 
-            if (confirm("Delete this program?")) {
+            if (window.confirm("Delete this program?")) {
                 await deleteDoc(doc(db, 'programs', programId));
 
                 // Delete banner from storage
@@ -1521,7 +1521,7 @@ const ProgramManagement = () => {
                                                 <button
                                                     type="button"
                                                     onClick={async () => {
-                                                        if (confirm("Move this program to Storage?")) {
+                                                        if (window.confirm("Move this program to Storage?")) {
                                                             setLoading(true);
                                                             try {
                                                                 await TransactionService.archiveProgram(editingProgram.id);

@@ -24,7 +24,7 @@ const BookStoreCheckout = () => {
             const saved = localStorage.getItem('last_book_shipping_details');
             if (saved) {
                 const data = JSON.parse(saved);
-                if (confirm("Autofill shipping details from your last order?")) {
+                if (window.confirm("Autofill shipping details from your last order?")) {
                     setDetails(data);
                 }
             }

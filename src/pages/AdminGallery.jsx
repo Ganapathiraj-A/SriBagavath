@@ -130,7 +130,7 @@ const AdminGallery = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm("Are you sure you want to delete this image?")) return;
+        if (!window.confirm("Are you sure you want to delete this image?")) return;
         try {
             await deleteDoc(doc(db, 'gallery', id));
             fetchImages();
@@ -217,7 +217,7 @@ const AdminGallery = () => {
 
     const handleDeleteEvent = async (id, e) => {
         e?.stopPropagation();
-        if (!confirm("Are you sure? This will NOT delete images, but they will be unlinked from this event.")) return;
+        if (!window.confirm("Are you sure? This will NOT delete images, but they will be unlinked from this event.")) return;
         try {
             await deleteDoc(doc(db, 'gallery_events', id));
             fetchEvents();

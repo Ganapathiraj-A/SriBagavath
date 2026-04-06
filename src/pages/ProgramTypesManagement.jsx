@@ -14,7 +14,7 @@ const ProgramTypesManagement = () => {
     const navigate = useNavigate();
 
     const handleLogout = async () => {
-        if (confirm("Logout?")) {
+        if (window.confirm("Logout?")) {
             if (Capacitor.isNativePlatform()) {
                 try {
                     await GoogleAuth.signOut();

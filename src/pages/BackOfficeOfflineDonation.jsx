@@ -29,7 +29,7 @@ const BackOfficeOfflineDonation = () => {
             const saved = localStorage.getItem('last_offline_transaction_details');
             if (saved) {
                 const data = JSON.parse(saved);
-                if (confirm("Autofill details from last offline entry?")) {
+                if (window.confirm("Autofill details from last offline entry?")) {
                     if (data.name) setDonorName(data.name);
                     if (data.mobile) setMobile(data.mobile);
                     if (data.pan) setPan(data.pan);

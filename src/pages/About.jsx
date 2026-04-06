@@ -45,6 +45,19 @@ const About = () => {
                         <div style={{ height: '4px', width: '5rem', backgroundColor: 'var(--color-primary)', margin: '0 auto', borderRadius: '9999px' }}></div>
                     </div>
 
+                    <div style={{ margin: '1rem 0 2rem 0', borderRadius: '16px', overflow: 'hidden', boxShadow: 'var(--shadow-md)', backgroundColor: '#000', aspectRatio: '16/9' }}>
+                        <iframe
+                            width="100%"
+                            height="100%"
+                            src="https://www.youtube.com/embed/0m2EStUNTqc"
+                            title="Ayya Intro"
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                            style={{ border: 'none' }}
+                        ></iframe>
+                    </div>
+
                     <div style={{ textAlign: 'center', color: 'var(--color-text-muted)', lineHeight: '1.75' }}>
                         <p style={{ marginBottom: '1.5rem', fontSize: '1.125rem' }}>
                             The newly evolved, profound revelations of understanding by Shri Bagavath are for the 'Seekers of Truth'.

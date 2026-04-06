@@ -56,7 +56,7 @@ const ProtectedRoute = ({ children, requiredPermission, requiredRole, requiredAd
         console.warn(`Access Denied to ${location.pathname}. Role: ${role}, Required: ${requiredRole || requiredPermission || allowedPermissions?.join(',')}`);
 
         const handleLogout = async () => {
-            if (confirm("Logout?")) {
+            if (window.confirm("Logout?")) {
                 if (Capacitor.isNativePlatform()) {
                     try {
                         await GoogleAuth.signOut();

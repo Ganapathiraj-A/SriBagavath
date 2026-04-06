@@ -248,25 +248,31 @@ const Home = () => {
     };
 
     const handleLogout = async () => {
-        if (confirm("Are you sure you want to logout?")) {
+        console.log("[Home] Logout initiate (isWeb: true)");
+        if (window.confirm("Are you sure you want to logout?")) {
+            console.log("[Home] Logout confirmed. Starting Firebase signOut...");
             setAuthLoading(true);
             try {
                 if (Capacitor.isNativePlatform()) {
+                    console.log("[Home] Native signout...");
                     await GoogleAuth.signOut();
                     try {
                         await GoogleAuth.disconnect();
                     } catch (dErr) {
-                        console.warn("Google disconnect failed:", dErr);
+                        console.warn("[Home] Google disconnect failed:", dErr);
                     }
                 }
                 await signOut(auth);
+                console.log("[Home] Firebase signOut SUCCESS");
                 sessionStorage.removeItem('admin_initial_redirect');
             } catch (err) {
-                console.error("Home Logout error:", err);
+                console.error("[Home] Logout error:", err);
                 alert("Logout Error: " + err.message);
             } finally {
                 setAuthLoading(false);
             }
+        } else {
+            console.log("[Home] Logout cancelled by user.");
         }
     };
 

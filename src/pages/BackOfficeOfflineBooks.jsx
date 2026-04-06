@@ -88,7 +88,7 @@ const BackOfficeOfflineBooks = () => {
             const saved = localStorage.getItem('last_offline_transaction_details');
             if (saved) {
                 const data = JSON.parse(saved);
-                if (confirm("Autofill details from last offline entry?")) {
+                if (window.confirm("Autofill details from last offline entry?")) {
                     if (data.name) setCustomerName(data.name);
                     if (data.mobile) setMobile(data.mobile);
                     if (data.address) setAddress(data.address);
@@ -158,7 +158,7 @@ const BackOfficeOfflineBooks = () => {
 
         const finalAmount = parseFloat(amount);
         if (isNaN(finalAmount) || finalAmount < 0) { // Allow 0 if they really want to define it as free? usually > 0. Let's say warn on 0
-            if (!confirm("Total amount is 0. Are you sure?")) return;
+            if (!window.confirm("Total amount is 0. Are you sure?")) return;
         }
 
         setLoading(true);

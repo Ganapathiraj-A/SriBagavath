@@ -126,7 +126,7 @@ const ManageUsers = () => {
     };
 
     const handleRevoke = async (adminId, email) => {
-        if (confirm(`Revoke admin access for ${email}?`)) {
+        if (window.confirm(`Revoke admin access for ${email}?`)) {
             await deleteDoc(doc(db, 'admins', adminId));
         }
     };
@@ -277,7 +277,7 @@ const ManageUsers = () => {
                                     <div style={{ marginTop: '20px', borderTop: '1px solid var(--color-border)', paddingTop: '15px', textAlign: 'center' }}>
                                         <button
                                             onClick={() => {
-                                                if (confirm(`Revoke access for ${selectedUser.email}?`)) {
+                                                if (window.confirm(`Revoke access for ${selectedUser.email}?`)) {
                                                     handleRevoke(selectedUser.id, selectedUser.email);
                                                     setSelectedUser(null);
                                                 }

@@ -93,7 +93,7 @@ const Configuration = () => {
     const currentHiddenScreens = hiddenScreens?.[effectiveRole] || [];
 
     const handleLogout = async () => {
-        if (confirm("Are you sure you want to logout?")) {
+        if (window.confirm("Are you sure you want to logout?")) {
             if (Capacitor.isNativePlatform()) {
                 try {
                     await GoogleAuth.signOut();

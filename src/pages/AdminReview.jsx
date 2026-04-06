@@ -40,7 +40,7 @@ const AdminReview = () => {
     const [selectedIds, setSelectedIds] = useState([]);
 
     const handleLogout = async () => {
-        if (confirm("Logout?")) {
+        if (window.confirm("Logout?")) {
             if (Capacitor.isNativePlatform()) {
                 try {
                     await GoogleAuth.signOut();
@@ -182,7 +182,7 @@ const AdminReview = () => {
     };
 
     const handleDelete = async (id) => {
-        if (confirm("Delete this transaction?")) {
+        if (window.confirm("Delete this transaction?")) {
             await TransactionService.deleteTransaction(id);
         }
     };
@@ -199,7 +199,7 @@ const AdminReview = () => {
         const toArchive = filteredByProduct.filter(r => r.status === 'COMPLETED');
         if (toArchive.length === 0) return;
 
-        if (confirm(`Move ALL ${toArchive.length} Completed transactions to Storage?`)) {
+        if (window.confirm(`Move ALL ${toArchive.length} Completed transactions to Storage?`)) {
             setLoading(true);
             try {
                 for (const tx of toArchive) {

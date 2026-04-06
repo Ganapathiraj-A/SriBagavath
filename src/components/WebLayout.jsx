@@ -15,8 +15,18 @@ const WebLayout = ({ children }) => {
   const { installApp } = usePWA();
 
   const handleLogout = async () => {
+    console.log("[WebLayout] Logout initiate");
     if (window.confirm("Are you sure you want to sign out?")) {
-      await signOut(auth);
+      console.log("[WebLayout] Logout confirmed. Starting Firebase signOut...");
+      try {
+        await signOut(auth);
+        console.log("[WebLayout] Firebase signOut SUCCESS");
+      } catch (err) {
+        console.error("[WebLayout] Logout error:", err);
+        alert("Logout Error: " + err.message);
+      }
+    } else {
+      console.log("[WebLayout] Logout cancelled.");
     }
   };
 

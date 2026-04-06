@@ -98,7 +98,7 @@ const RelatedVideosManagement = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm("Are you sure you want to delete this video entry?")) return;
+        if (!window.confirm("Are you sure you want to delete this video entry?")) return;
         try {
             await deleteDoc(doc(db, 'relatedVideos', id));
             

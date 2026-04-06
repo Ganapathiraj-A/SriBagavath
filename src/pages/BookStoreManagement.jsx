@@ -92,7 +92,7 @@ const BookStoreManagement = () => {
     };
 
     const handleDelete = async (id) => {
-        if (confirm("Delete this order?")) {
+        if (window.confirm("Delete this order?")) {
             await TransactionService.deleteTransaction(id);
         }
     };
@@ -470,7 +470,7 @@ const BookStoreManagement = () => {
                     <button
                         onClick={async () => {
                             const toArchive = allOrders.filter(o => o.status === 'COMPLETED');
-                            if (confirm(`Move ALL ${toArchive.length} Completed orders to Storage?`)) {
+                            if (window.confirm(`Move ALL ${toArchive.length} Completed orders to Storage?`)) {
                                 setLoading(true);
                                 try {
                                     for (const o of toArchive) {

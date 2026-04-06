@@ -513,7 +513,7 @@ const BackOfficeImportExport = () => {
         if (selectedIndices.size === 0) return alert("No rows selected");
 
         const selectedRows = Array.from(selectedIndices).map(i => parsedData[i]);
-        if (!confirm(`Merge ${selectedRows.length} participants into ONE registration?`)) return;
+        if (!window.confirm(`Merge ${selectedRows.length} participants into ONE registration?`)) return;
 
         setLoading(true);
         try {
@@ -581,7 +581,7 @@ const BackOfficeImportExport = () => {
         if (selectedIndices.size === 0) return alert("No rows selected");
 
         const selectedRows = Array.from(selectedIndices).map(i => parsedData[i]);
-        if (!confirm(`Import ${selectedRows.length} ${activeTab.toLowerCase()} records?`)) return;
+        if (!window.confirm(`Import ${selectedRows.length} ${activeTab.toLowerCase()} records?`)) return;
 
         setLoading(true);
         try {
@@ -705,7 +705,7 @@ const BackOfficeImportExport = () => {
                 return;
             }
 
-            if (!confirm(`Found ${snap.docs.length} records. Push them to the Sheet?`)) {
+            if (!window.confirm(`Found ${snap.docs.length} records. Push them to the Sheet?`)) {
                 setLoading(false);
                 return;
             }

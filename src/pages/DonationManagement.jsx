@@ -132,7 +132,7 @@ const DonationManagement = () => {
     };
 
     const handleDelete = async (id) => {
-        if (confirm("Delete this donation record?")) {
+        if (window.confirm("Delete this donation record?")) {
             await TransactionService.deleteTransaction(id);
         }
     };
@@ -484,7 +484,7 @@ const DonationManagement = () => {
                     <button
                         onClick={async () => {
                             const toArchive = allDonations.filter(o => o.status === 'COMPLETED' || o.status === 'REGISTERED');
-                            if (confirm(`Move ALL ${toArchive.length} Accepted donations to Storage?`)) {
+                            if (window.confirm(`Move ALL ${toArchive.length} Accepted donations to Storage?`)) {
                                 setLoading(true);
                                 try {
                                     for (const o of toArchive) {

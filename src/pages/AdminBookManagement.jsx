@@ -301,7 +301,7 @@ const AdminBookManagement = () => {
     /*
     /*
     const handleLogout = async () => {
-        if (confirm("Logout?")) {
+        if (window.confirm("Logout?")) {
             if (Capacitor.isNativePlatform()) {
                 try {
                     await GoogleAuth.signOut();
