@@ -82,6 +82,34 @@ async function uploadToPlayStore() {
         }
 
         // 4. Assign to track
+        console.log(`Fetching current releases for track: ${trackName}...`);
+        let finalReleaseNotes = releaseNotes;
+
+        try {
+            const currentTrack = await publisher.edits.tracks.get({
+                editId,
+                packageName,
+                track: trackName
+            });
+
+            if (currentTrack.data.releases && currentTrack.data.releases.length > 0) {
+                // Find the latest release that has release notes
+                const lastReleaseWithNotes = [...currentTrack.data.releases]
+                    .find(r => r.releaseNotes && r.releaseNotes.length > 0);
+
+                if (lastReleaseWithNotes) {
+                    console.log(`✅ Found existing release notes for version ${lastReleaseWithNotes.versionCodes[0]}.`);
+                    // Use them if our local releaseNotes is empty (keeping traditional "keep existing" logic)
+                    if (finalReleaseNotes.length === 0) {
+                        finalReleaseNotes = lastReleaseWithNotes.releaseNotes;
+                        console.log(`- Reusing existing notes from version ${lastReleaseWithNotes.versionCodes[0]}`);
+                    }
+                }
+            }
+        } catch (fetchErr) {
+            console.warn(`⚠️ Could not fetch existing track data (First release for this track?): ${fetchErr.message}`);
+        }
+
         console.log(`Assigning version ${versionCode} to track: ${trackName}...`);
         
         await publisher.edits.tracks.update({
@@ -93,7 +121,7 @@ async function uploadToPlayStore() {
                     {
                         versionCodes: [versionCode.toString()],
                         status: 'completed',
-                        releaseNotes: releaseNotes.length > 0 ? releaseNotes : undefined
+                        releaseNotes: finalReleaseNotes.length > 0 ? finalReleaseNotes : undefined
                     }
                 ]
             }
