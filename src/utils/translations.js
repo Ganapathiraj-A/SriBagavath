@@ -24,7 +24,7 @@ export const translations = {
         SIGN_IN: "Sign in for full access",
         SIGN_IN_WEB: "Sign In",
         SIGNING_IN: "Signing in...",
-        RETREAT_PROGRAMS: "Retreat Programs",
+        RETREAT_PROGRAMS: "Programs",
         ONLINE_PROGRAMS: "Online Programs",
         SATSANGS: "Satsangs",
         CONSULTATION: "Consultation",
