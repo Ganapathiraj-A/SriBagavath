@@ -44,7 +44,7 @@ const CategoryButton = ({ title, icon: Icon, path, delay, hasNew }) => {
             }}>
                 <Icon size={24} />
             </div>
-            <span style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--color-text)' }}>{title}</span>
+            <span style={{ fontSize: '1.125rem', fontWeight: 500, color: 'var(--color-text)' }}>{title}</span>
             {hasNew && (
                 <div style={{
                     position: 'absolute',
