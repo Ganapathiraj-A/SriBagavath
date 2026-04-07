@@ -235,36 +235,36 @@ const ScheduleManagement = () => {
                                     {schedule.place}
                                 </h3>
                             </div>
-                            <div style={{ display: 'flex', gap: '0.75rem' }}>
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
                                 <div style={{ 
-                                    flex: 1,
-                                    backgroundColor: 'var(--color-primary-transparent)', 
-                                    padding: '0.75rem', 
-                                    borderRadius: '12px',
-                                    border: '1px solid var(--color-primary)',
+                                    padding: '0.4rem 0.8rem', 
+                                    borderRadius: '0.5rem',
+                                    border: '1px solid var(--color-border)',
+                                    backgroundColor: 'var(--color-background)',
                                     textAlign: 'center',
                                     display: 'flex',
                                     alignItems: 'center',
-                                    justifyContent: 'center'
+                                    justifyContent: 'center',
+                                    fontSize: '0.8rem',
+                                    fontWeight: 600,
+                                    color: 'var(--color-text)'
                                 }}>
-                                    <span style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--color-primary)' }}>
-                                        {new Date(schedule.fromDate).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
-                                    </span>
+                                    {new Date(schedule.fromDate).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
                                 </div>
                                 <div style={{ 
-                                    flex: 1,
-                                    backgroundColor: 'var(--color-primary-transparent)', 
-                                    padding: '0.75rem', 
-                                    borderRadius: '12px',
-                                    border: '1px solid var(--color-primary)',
+                                    padding: '0.4rem 0.8rem', 
+                                    borderRadius: '0.5rem',
+                                    border: '1px solid var(--color-border)',
+                                    backgroundColor: 'var(--color-background)',
                                     textAlign: 'center',
                                     display: 'flex',
                                     alignItems: 'center',
-                                    justifyContent: 'center'
+                                    justifyContent: 'center',
+                                    fontSize: '0.8rem',
+                                    fontWeight: 600,
+                                    color: 'var(--color-text)'
                                 }}>
-                                    <span style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--color-primary)' }}>
-                                        {new Date(schedule.toDate).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
-                                    </span>
+                                    {new Date(schedule.toDate).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
                                 </div>
                             </div>
                         </div>
