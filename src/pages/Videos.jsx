@@ -6,11 +6,13 @@ import PageHeader from '@/components/PageHeader';
 import { collection, query, onSnapshot } from '@/utils/FirestoreProxy';
 import { db } from '@/firebase';
 import { useAdminAuth } from '@/context/AdminAuthContext';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 import { Edit2 } from 'lucide-react';
 
 const Videos = () => {
     const navigate = useNavigate();
     const { hasAccess } = useAdminAuth();
+    const { t } = useGlobalSettings();
     const isAdmin = hasAccess('RELATED_VIDEO_MANAGEMENT');
     const [videos, setVideos] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -47,7 +49,7 @@ const Videos = () => {
     return (
         <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-surface)', padding: '1.5rem' }}>
             <PageHeader
-                title="Related Videos"
+                title={t('RELATED_VIDEOS')}
                 rightAction={isAdmin && (
                     <button
                         onClick={() => navigate('/admin/related-videos', { state: { returnPath: '/videos' } })}

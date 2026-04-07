@@ -19,7 +19,7 @@ const AyyasSchedule = () => {
     const [isSharingAll, setIsSharingAll] = useState(false);
     const [isSharingScheduleId, setIsSharingScheduleId] = useState(null);
     const { isAdmin, hasAccess, loading: authGlobalLoading } = useAdminAuth();
-    const { hiddenScreens, devMode } = useGlobalSettings();
+    const { hiddenScreens, devMode, t } = useGlobalSettings();
 
     const effectiveRole = isAdmin ? (devMode ? 'dev' : 'admin') : 'public';
     const currentHiddenScreens = hiddenScreens?.[effectiveRole] || [];
@@ -104,7 +104,7 @@ const AyyasSchedule = () => {
     return (
         <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)', paddingBottom: '2rem' }}>
             <PageHeader
-                title="Ayya's Schedule"
+                title={t('AYYAS_SCHEDULE')}
                 leftAction={<button onClick={() => navigate('/programs')} style={{ background: 'none', border: 'none', padding: '8px' }}><ChevronLeft size={24} /></button>}
                 rightAction={
                     <div style={{ 

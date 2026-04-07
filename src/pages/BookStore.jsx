@@ -23,7 +23,7 @@ const BookStore = () => {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('Tamil Books');
     const [authLoading, setAuthLoading] = useState(false);
-    const { onlineTransactionsEnabled, offlineRegistrationContact } = useGlobalSettings();
+    const { onlineTransactionsEnabled, offlineRegistrationContact, t } = useGlobalSettings();
 
     const ensureAuth = async () => {
         if (auth.currentUser && !auth.currentUser.isAnonymous) {
@@ -181,7 +181,7 @@ const BookStore = () => {
     return (
         <div style={{ backgroundColor: 'var(--color-background)', minHeight: '100vh', paddingBottom: '100px' }}>
             <PageHeader
-                title="Print Books"
+                title={t('PRINT_BOOKS')}
                 rightAction={canEdit && (
                     <button
                         onClick={() => navigate('/admin/books', { state: { returnPath: '/bookstore' } })}

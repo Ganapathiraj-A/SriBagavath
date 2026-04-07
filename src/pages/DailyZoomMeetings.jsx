@@ -210,7 +210,7 @@ const DailyZoomMeetings = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { isAdmin, hasAccess, loading: authLoading } = useAdminAuth();
-    const { hiddenScreens, devMode } = useGlobalSettings();
+    const { hiddenScreens, devMode, t } = useGlobalSettings();
 
     const effectiveRole = isAdmin ? (devMode ? 'dev' : 'admin') : 'public';
     const currentHiddenScreens = hiddenScreens?.[effectiveRole] || [];
@@ -553,7 +553,7 @@ const DailyZoomMeetings = () => {
     return (
         <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>
             <PageHeader
-                title="Daily Zoom Meeting"
+                title={t('DAILY_ZOOM_MEETING')}
                 rightAction={
                     (isAdmin || hasAccess('DAILY_ZOOM_MANAGEMENT')) && !currentHiddenScreens.includes('/admin/daily-zoom') && (
                         <button
