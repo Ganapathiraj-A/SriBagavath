@@ -80,7 +80,7 @@ export const translations = {
         RECORDED_PROGRAMS: "பதிவுசெய்யப்பட்ட நிகழ்ச்சிகள்",
         DIGITAL_BOOKS: "டிஜிட்டல் புத்தகங்கள்",
         SRI_BAGAVATH_MISSION: "ஸ்ரீ பகவத் மிஷன்",
-        WELCOME_APP: "அதிகாரப்பூர்வ செயலியை வரவேற்கிறோம்",
+        WELCOME_APP: "அதிகாரப்பூர்வ செயலிக்கு வரவேற்கிறோம்",
         ABOUT_SRI_BAGAVATH: "ஸ்ரீ பகவத் பற்றி",
         QUICK_LINKS: "விரைவு இணைப்புகள்",
         ABOUT_AYYA: "அய்யா பற்றி",
