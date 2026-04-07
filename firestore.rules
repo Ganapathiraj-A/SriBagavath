@@ -49,8 +49,12 @@ service cloud.firestore {
       allow create: if request.auth != null && 
         request.resource.data.userId == request.auth.uid &&
         request.resource.data.amount is number &&
-        (request.resource.data.status == 'PENDING' || (request.resource.data.status == 'REGISTERED' && request.resource.data.razorpayPaymentId != null)); 
-      allow update, delete: if isAdmin();
+        (request.resource.data.status == 'PENDING' || (request.resource.data.status == 'REGISTERED' && (request.resource.data.amount == 0 || request.resource.data.razorpayPaymentId != null))); 
+      allow update: if request.auth != null && (
+        isAdmin() || 
+        (resource.data.userId == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['imageUrl', 'hasImage', 'updatedAt']))
+      );
+      allow delete: if isAdmin();
     }
     
     // Transaction Images: Restricted to Admin or Owner
@@ -220,6 +224,17 @@ service cloud.firestore {
     }
     match /agent_monitor/{document=**} {
       allow read, write: if true;
+    }
+
+    // Statistics: Allow authenticated users to increment totals
+    match /system_stats/{id} {
+      allow read: if true;
+      allow update, create: if request.auth != null;
+    }
+
+    match /geo_stats/{id} {
+      allow read: if true;
+      allow update, create: if request.auth != null;
     }
 
     // Global fallback: Deny everything else

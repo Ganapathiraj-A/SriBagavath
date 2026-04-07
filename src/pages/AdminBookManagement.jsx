@@ -58,7 +58,8 @@ const AdminBookManagement = () => {
         price: '',
         weight: '',
         hasCover: false,
-        coverUrl: ''
+        coverUrl: '',
+        isActive: true
     });
 
     const resetForm = useCallback(() => {
@@ -69,7 +70,8 @@ const AdminBookManagement = () => {
             price: '',
             weight: '',
             hasCover: false,
-            coverUrl: ''
+            coverUrl: '',
+            isActive: true
         });
         setCoverImage(null);
     }, [activeTab]);
@@ -113,7 +115,8 @@ const AdminBookManagement = () => {
                 price: editingBook.price || '',
                 weight: editingBook.weight || '',
                 hasCover: editingBook.hasCover || false,
-                coverUrl: ''
+                coverUrl: '',
+                isActive: editingBook.isActive !== false
             });
 
             if (editingBook.hasCover) {
@@ -172,6 +175,7 @@ const AdminBookManagement = () => {
                 price: Number(formData.price),
                 weight: Number(formData.weight),
                 hasCover: !!finalCoverUrl,
+                isActive: formData.isActive !== false,
                 updatedAt: serverTimestamp()
             };
 
@@ -255,6 +259,20 @@ const AdminBookManagement = () => {
             alert('Error saving book: ' + _err.message);
         } finally {
             setUploading(false);
+        }
+    };
+
+    const handleToggleStatus = async (bookId, currentStatus) => {
+        const newStatus = currentStatus === false; // If currently hidden (false), make it active (true/not false)
+        try {
+            await updateDoc(doc(db, 'books', bookId), {
+                isActive: newStatus,
+                updatedAt: serverTimestamp()
+            });
+            await bumpServerVersion('books');
+            loadBooks();
+        } catch (_err) {
+            alert('Status update failed: ' + _err.message);
         }
     };
 
@@ -533,7 +551,17 @@ const AdminBookManagement = () => {
 
                                         <div style={{ flex: 1, minWidth: 0 }}>
                                             <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--color-text)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{book.title}</h3>
-                                            <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', margin: '2px 0 0 0' }}>₹{book.price} • {book.weight}g</p>
+                                            <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', margin: '2px 0 0 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                ₹{book.price} • {book.weight}g
+                                                <span style={{ 
+                                                    color: book.isActive !== false ? '#10b981' : 'var(--color-error)',
+                                                    fontWeight: 700,
+                                                    fontSize: '0.75rem',
+                                                    textTransform: 'uppercase'
+                                                }}>
+                                                    {book.isActive !== false ? 'Active' : 'Hidden'}
+                                                </span>
+                                            </p>
                                         </div>
 
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
@@ -569,14 +597,38 @@ const AdminBookManagement = () => {
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ backgroundColor: 'var(--color-surface)', padding: '1.5rem', borderRadius: '1.5rem', boxShadow: 'var(--shadow-lg)', margin: '0 16px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                             <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-text)', margin: 0 }}>{editingBook ? 'Edit Book' : 'Add New Book'}</h2>
-                            {editingBook && (
-                                <button
-                                    onClick={() => handleDelete(editingBook.id)}
-                                    style={{ padding: '0.5rem', backgroundColor: 'var(--color-error-transparent)', color: 'var(--color-error)', border: '1px solid var(--color-error-light)', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', fontWeight: 600 }}
-                                >
-                                    <Trash2 size={16} /> Delete
-                                </button>
-                            )}
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                {editingBook && (
+                                    <>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleToggleStatus(editingBook.id, editingBook.isActive)}
+                                            style={{ 
+                                                padding: '0.5rem', 
+                                                backgroundColor: editingBook.isActive !== false ? 'var(--color-warning-transparent)' : 'var(--color-success-transparent)', 
+                                                color: editingBook.isActive !== false ? 'var(--color-warning)' : '#10b981', 
+                                                border: `1px solid ${editingBook.isActive !== false ? 'var(--color-warning-light)' : '#10b981'}`, 
+                                                borderRadius: '0.5rem', 
+                                                cursor: 'pointer', 
+                                                display: 'flex', 
+                                                alignItems: 'center', 
+                                                gap: '0.25rem', 
+                                                fontSize: '0.85rem', 
+                                                fontWeight: 600 
+                                            }}
+                                        >
+                                            <Eye size={16} /> {editingBook.isActive !== false ? 'Hide' : 'Show'}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleDelete(editingBook.id)}
+                                            style={{ padding: '0.5rem', backgroundColor: 'var(--color-error-transparent)', color: 'var(--color-error)', border: '1px solid var(--color-error-light)', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', fontWeight: 600 }}
+                                        >
+                                            <Trash2 size={16} /> Delete
+                                        </button>
+                                    </>
+                                )}
+                            </div>
                         </div>
                         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                             <div style={{ display: 'grid', gap: '0.5rem' }}>

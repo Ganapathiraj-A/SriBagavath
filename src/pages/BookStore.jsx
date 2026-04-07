@@ -168,7 +168,7 @@ const BookStore = () => {
         'Italian Books': 'Italian'
     };
 
-    const filteredProducts = products.filter(p => p.category === activeTab);
+    const filteredProducts = products.filter(p => p.category === activeTab && p.isActive !== false);
 
     if (loading) {
         return (

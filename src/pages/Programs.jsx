@@ -799,8 +799,10 @@ Download Sri Bagavath App for latest updates`.trim();
                                             className="btn-primary"
                                             disabled={authLoading}
                                             style={{
-                                                width: 'auto',
-                                                opacity: authLoading ? 0.7 : 1
+                                                width: '100%',
+                                                maxWidth: '400px',
+                                                opacity: authLoading ? 0.7 : 1,
+                                                marginBottom: '0.5rem'
                                             }}
                                         >
                                         {authLoading ? 'Signing in...' : 'My Registrations'}
@@ -955,10 +957,15 @@ Download Sri Bagavath App for latest updates`.trim();
                                                                         e.stopPropagation();
                                                                         setSearchParams({ id: program.id, tab: 'intro' });
                                                                     }}
-                                                                    className={isMobile ? "btn-outline-black" : "btn-secondary"}
                                                                     style={{
-                                                                        padding: '0.4rem 0.875rem',
-                                                                        fontSize: '0.8125rem'
+                                                                        padding: '0.4rem 0.8rem',
+                                                                        fontSize: '0.75rem',
+                                                                        backgroundColor: 'var(--color-card)',
+                                                                        color: 'var(--color-text)',
+                                                                        border: '1px solid var(--color-border)',
+                                                                        borderRadius: '0.5rem',
+                                                                        fontWeight: 500,
+                                                                        cursor: 'pointer'
                                                                     }}
                                                                 >
                                                                     Intro
@@ -969,10 +976,15 @@ Download Sri Bagavath App for latest updates`.trim();
                                                                     e.stopPropagation();
                                                                     setSearchParams({ id: program.id, tab: 'details' });
                                                                 }}
-                                                                className={isMobile ? "btn-outline-black" : "btn-secondary"}
                                                                 style={{
-                                                                    padding: '0.4rem 0.875rem',
-                                                                    fontSize: '0.8125rem'
+                                                                    padding: '0.4rem 0.8rem',
+                                                                    fontSize: '0.75rem',
+                                                                    backgroundColor: 'var(--color-card)',
+                                                                    color: 'var(--color-text)',
+                                                                    border: '1px solid var(--color-border)',
+                                                                    borderRadius: '0.5rem',
+                                                                    fontWeight: 500,
+                                                                    cursor: 'pointer'
                                                                 }}
                                                             >
                                                                 Details

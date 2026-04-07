@@ -10,12 +10,14 @@ import { doc, getDocCacheFirst } from '@/utils/FirestoreProxy';
 import { GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
 import PageHeader from '@/components/PageHeader';
 import { useCart } from '@/context/CartContext';
+import { useAdminAuth } from '@/context/AdminAuthContext';
 import LazyImage from '@/components/LazyImage';
 
 const BookDetails = () => {
     const { bookId } = useParams();
     const navigate = useNavigate();
     const { cart, addToCart, removeFromCart } = useCart();
+    const { isAdmin } = useAdminAuth();
     const [book, setBook] = useState(null);
     const [cover, setCover] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -90,12 +92,19 @@ const BookDetails = () => {
                 setLoading(true);
                 const bookDoc = await getDocCacheFirst(doc(db, 'books', bookId));
                 if (bookDoc.exists()) {
-                    setBook({ id: bookDoc.id, ...bookDoc.data() });
+                    const data = { id: bookDoc.id, ...bookDoc.data() };
+                    
+                    // If book is hidden and user is not admin, treat as not found
+                    if (data.isActive === false && !isAdmin) {
+                        setBook(null);
+                    } else {
+                        setBook(data);
 
-                    if (bookDoc.data().hasCover) {
-                        const coverDoc = await getDocCacheFirst(doc(db, 'book_covers', bookId));
-                        if (coverDoc.exists()) {
-                            setCover(coverDoc.data().cover);
+                        if (data.hasCover) {
+                            const coverDoc = await getDocCacheFirst(doc(db, 'book_covers', bookId));
+                            if (coverDoc.exists()) {
+                                setCover(coverDoc.data().cover);
+                            }
                         }
                     }
                 }

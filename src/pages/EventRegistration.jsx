@@ -704,7 +704,7 @@ const EventRegistration = () => {
                 {/* STEP: ADDITIONAL OPTIONS */}
                 {(isMobile || currentStep === participants.length + 1) && program?.additionalOptions?.length > 0 && (
                     <div className="card" style={{ padding: '1.5rem', borderRadius: '1rem', marginBottom: '1.5rem' }}>
-                        <h3 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '1.25rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.75rem' }}>Additional Options</h3>
+                        <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1.25rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.75rem' }}>Additional Options</h3>
                         <div style={{ display: 'grid', gap: '1rem' }}>
                             {program.additionalOptions.map((option, index) => {
                                 const usedCount = optionUsage[option.name] || 0;
@@ -757,18 +757,16 @@ const EventRegistration = () => {
                 {/* FINAL STEP: REVIEW & PAY */}
                 {(isMobile || currentStep === totalSteps) && (
                     <div className="card" style={{ 
-                        background: 'rgba(255, 255, 255, 0.95)', 
-                        backdropFilter: 'blur(10px)',
-                        border: '2px solid var(--color-primary-light)', 
-                        zIndex: 10,
-                        borderRadius: '1.25rem',
-                        padding: '1.5rem',
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-                        marginTop: '1rem'
+                        padding: '1.25rem',
+                        marginTop: '1rem',
+                        borderRadius: '0.75rem',
+                        backgroundColor: 'var(--color-primary-transparent)',
+                        border: '1px solid var(--color-primary-light)',
+                        boxShadow: 'none'
                     }}>
-                        <div style={{ marginBottom: '1.25rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '1rem' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                                <h4 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--color-primary)', margin: 0 }}>Review Fee Breakdown</h4>
+                        <div style={{ marginBottom: '0.75rem', borderBottom: '1px solid var(--color-primary-light)', paddingBottom: '0.75rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                                <h4 style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-primary)', margin: 0 }}>Fee Breakdown</h4>
                                 {isAdmin && (
                                     <span style={{ fontSize: '0.7rem', backgroundColor: 'var(--color-primary)', color: 'white', padding: '2px 8px', borderRadius: '4px', fontWeight: 600 }}>
                                         ADMIN VIEW
@@ -777,13 +775,13 @@ const EventRegistration = () => {
                             </div>
                             <div style={{ display: 'grid', gap: '0.5rem' }}>
                                 {getBreakdown().map((item, idx) => (
-                                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem', color: 'var(--color-text)' }}>
-                                        <span style={{ fontWeight: 500 }}>{item.count} x {item.label}</span>
-                                        <span style={{ fontWeight: 700 }}>₹{item.fee * item.count}</span>
+                                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--color-text)' }}>
+                                        <span style={{ fontWeight: 400 }}>{item.count} x {item.label}</span>
+                                        <span style={{ fontWeight: 600 }}>₹{item.fee * item.count}</span>
                                     </div>
                                 ))}
                                 {selectedOptions.length > 0 && (
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem', color: 'var(--color-text)', fontWeight: 700, marginTop: '0.5rem', borderTop: '1px dashed var(--color-border)', paddingTop: '0.5rem' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--color-text)', fontWeight: 600, marginTop: '0.4rem', borderTop: '1px dashed var(--color-primary-light)', paddingTop: '0.4rem' }}>
                                         <span>Extra Options ({selectedOptions.length})</span>
                                         <span>₹{selectedOptions.reduce((acc, opt) => acc + (Number(opt.fee) || 0), 0)}</span>
                                     </div>
@@ -791,51 +789,52 @@ const EventRegistration = () => {
                             </div>
                         </div>
 
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-                            <span style={{ fontWeight: 700, fontSize: '1.25rem' }}>Final Amount Payable:</span>
-                            <span style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--color-primary)' }}>{calculateTotal() > 0 ? `₹${calculateTotal()}` : 'FREE'}</span>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                            <span style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--color-text)' }}>Total Estimated Amount:</span>
+                            <span style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--color-primary)' }}>{calculateTotal() > 0 ? `₹${calculateTotal()}` : 'FREE'}</span>
                         </div>
 
-                        {!onlineTransactionsEnabled && (
-                            <div style={{
-                                marginBottom: '1rem',
-                                padding: '1rem',
-                                backgroundColor: 'var(--color-error-transparent)',
-                                border: '1px solid var(--color-error-light)',
-                                borderRadius: '0.75rem',
-                                textAlign: 'center'
-                            }}>
-                                <p style={{ margin: 0, color: 'var(--color-error)', fontWeight: 700, fontSize: '0.95rem' }}>
-                                    📱 Registration via Support: {offlineRegistrationContact}
-                                </p>
-                            </div>
-                        )}
+
+                        <button 
+                            onClick={handleProceed}
+                            className="btn-primary"
+                            style={{ 
+                                width: '100%',
+                                height: '3.5rem', 
+                                fontSize: '1.125rem', 
+                                fontWeight: 800, 
+                                borderRadius: '1rem',
+                                marginTop: '0.5rem',
+                                boxShadow: '0 4px 12px var(--color-primary-transparent)'
+                            }}
+                        >
+                            {calculateTotal() > 0 ? 'Confirm & Proceed to Pay' : 'Finish Registration'}
+                        </button>
                     </div>
                 )}
             </div>
 
-            {/* PERSISTENT NAVIGATION FOOTER */}
-            <div style={{
-                position: 'fixed',
-                bottom: 0,
-                left: 0,
-                right: 0,
-                backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                backdropFilter: 'blur(10px)',
-                borderTop: '1px solid var(--color-border)',
-                padding: '1rem',
-                zIndex: 100,
-                display: 'flex',
-                justifyContent: 'center'
-            }}>
-                <div style={{ 
-                    maxWidth: '48rem', 
-                    width: '100%', 
-                    display: 'flex', 
-                    gap: '1rem',
-                    justifyContent: 'space-between'
+            {!isMobile && (
+                <div style={{
+                    position: 'fixed',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                    backdropFilter: 'blur(10px)',
+                    borderTop: '1px solid var(--color-border)',
+                    padding: '1rem',
+                    zIndex: 100,
+                    display: 'flex',
+                    justifyContent: 'center'
                 }}>
-                    {!isMobile && (
+                    <div style={{ 
+                        maxWidth: '48rem', 
+                        width: '100%', 
+                        display: 'flex', 
+                        gap: '1rem',
+                        justifyContent: 'space-between'
+                    }}>
                         <button 
                             onClick={handlePrev}
                             className="btn-secondary"
@@ -852,29 +851,27 @@ const EventRegistration = () => {
                         >
                             Previous
                         </button>
-                    )}
-                    
-                    <button 
-                        onClick={isMobile ? handleProceed : handleNext}
-                        className="btn-primary"
-                        style={{ 
-                            flex: 2, 
-                            height: '3.5rem', 
-                            fontSize: '1.125rem', 
-                            fontWeight: 800, 
-                            borderRadius: '1rem',
-                            boxShadow: '0 4px 12px var(--color-primary-transparent)'
-                        }}
-                    >
-                        {isMobile 
-                            ? (calculateTotal() > 0 ? 'Confirm & Proceed to Pay' : 'Finish Registration')
-                            : (currentStep === totalSteps 
+                        
+                        <button 
+                            onClick={handleNext}
+                            className="btn-primary"
+                            style={{ 
+                                flex: 2, 
+                                height: '3.5rem', 
+                                fontSize: '1.125rem', 
+                                fontWeight: 800, 
+                                borderRadius: '1rem',
+                                boxShadow: '0 4px 12px var(--color-primary-transparent)'
+                            }}
+                        >
+                            {currentStep === totalSteps 
                                 ? (calculateTotal() > 0 ? 'Confirm & Proceed to Pay' : 'Finish Registration') 
-                                : 'Next Step')
-                        }
-                    </button>
+                                : 'Next Step'
+                            }
+                        </button>
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 };
