@@ -82,7 +82,7 @@ const MenuButton = ({ title, icon: Icon, path, delay, badgeCount, skipAnimation 
                     borderRadius: '20px',
                     boxShadow: '0 2px 4px var(--color-error-transparent)'
                 }}>
-                    NEW
+                    {t('NEW_BADGE')}
                 </div>
             )}
         </motion.button>
@@ -93,7 +93,7 @@ import { useUnseenCounts } from '@/hooks/useUnseenCounts';
 
 const Home = () => {
     const { user, isAdmin, isInitialized } = useAdminAuth();
-    const { serverUrl, appVersion, landingPage, hiddenScreens, devMode } = useGlobalSettings();
+    const { serverUrl, appVersion, landingPage, hiddenScreens, devMode, language, setLanguage, t } = useGlobalSettings();
     const [authLoading, setAuthLoading] = React.useState(false);
     const navigate = useNavigate();
     const counts = useUnseenCounts();
@@ -280,17 +280,17 @@ const Home = () => {
 
     // Menu Definitions
     const baseMenu = [
-        { title: "About Bagavath Ayya", icon: User, path: "/about", delay: 0.1 },
-        { title: "Programs", icon: Calendar, path: "/programs", delay: 0.2 },
-        { title: "Books & Media", icon: BookOpen, path: "/books", delay: 0.3 },
-        { title: "Donations", icon: Heart, path: "/donations", delay: 0.4 },
-        { title: "Contact", icon: Mail, path: "/contact", delay: 0.5 }
+        { title: t('ABOUT'), icon: User, path: "/about", delay: 0.1 },
+        { title: t('PROGRAMS'), icon: Calendar, path: "/programs", delay: 0.2 },
+        { title: t('BOOKS_MEDIA'), icon: BookOpen, path: "/books", delay: 0.3 },
+        { title: t('DONATIONS'), icon: Heart, path: "/donations", delay: 0.4 },
+        { title: t('CONTACT'), icon: Mail, path: "/contact", delay: 0.5 }
     ].filter(item => !currentHiddenScreens.includes(item.path));
 
 
     let menuItems = isAdmin
         ? [
-            { title: "Admin", icon: LayoutDashboard, path: "/configuration", delay: 0.1, isAdmin: true },
+            { title: t('ADMIN'), icon: LayoutDashboard, path: "/configuration", delay: 0.1, isAdmin: true },
             ...baseMenu.filter(item => item.path !== '/about')
         ]
         : [...baseMenu];
@@ -438,8 +438,8 @@ const Home = () => {
                             }}
                         />
                     </div>
-                    <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-text)', marginBottom: '0.5rem' }}>Sri Bagavath Mission</h1>
-                    <p style={{ color: 'var(--color-text-muted)' }}>Welcome to the official app</p>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-text)', marginBottom: '0.5rem' }}>{t('SRI_BAGAVATH_MISSION')}</h1>
+                    <p style={{ color: 'var(--color-text-muted)' }}>{t('WELCOME_APP')}</p>
 
                     <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px' }}>
@@ -461,7 +461,7 @@ const Home = () => {
                                     }}
                                 >
                                     <LogOut size={14} />
-                                    Logout
+                                    {t('LOGOUT')}
                                 </button>
                             ) : (
                                 <button
@@ -481,7 +481,7 @@ const Home = () => {
                                     }}
                                 >
                                     <LogIn size={14} />
-                                    {authLoading ? 'Signing in...' : 'Sign in for full access'}
+                                    {authLoading ? t('SIGNING_IN') : t('SIGN_IN')}
                                 </button>
                             )}
                         </div>
@@ -511,9 +511,33 @@ const Home = () => {
                     ))}
                 </div>
 
-                {/* App Version Footer */}
                 <div style={{
                     marginTop: '2rem',
+                    textAlign: 'center',
+                    paddingBottom: '0.5rem',
+                    opacity: 0.8,
+                    fontSize: '0.875rem',
+                    color: 'var(--color-primary)',
+                    fontWeight: '600'
+                }}>
+                    <button 
+                        onClick={() => setLanguage('en')}
+                        style={{ border: 'none', background: 'none', color: language === 'en' ? 'var(--color-primary)' : 'var(--color-text-muted)', cursor: 'pointer', fontWeight: language === 'en' ? 'bold' : 'normal' }}
+                    >
+                        English
+                    </button>
+                    <span style={{ margin: '0 8px', color: 'var(--color-text-muted)' }}>|</span>
+                    <button 
+                        onClick={() => setLanguage('ta')}
+                        style={{ border: 'none', background: 'none', color: language === 'ta' ? 'var(--color-primary)' : 'var(--color-text-muted)', cursor: 'pointer', fontWeight: language === 'ta' ? 'bold' : 'normal' }}
+                    >
+                        தமிழ்
+                    </button>
+                </div>
+
+                {/* App Version Footer */}
+                <div style={{
+                    marginTop: '0.5rem',
                     textAlign: 'center',
                     paddingBottom: '2.5rem', // Increased to move higher
                     opacity: 0.7,

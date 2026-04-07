@@ -1,6 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import { useAdminAuth } from '@/context/AdminAuthContext';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 
 const PageHeader = ({
     title,
@@ -14,6 +15,7 @@ const PageHeader = ({
     const navigate = useNavigate();
     const location = useLocation();
     const { role } = useAdminAuth();
+    const { t } = useGlobalSettings();
 
     // Hierarchical navigate back
     const handleBack = () => {
@@ -208,7 +210,41 @@ const PageHeader = ({
                 maxWidth: '75%', // Increased to prevent wrap/clipping
                 lineHeight: 1.2
             }}>
-                {title}
+                {(() => {
+                    const isAdminPage = location.pathname.startsWith('/admin') || 
+                                       location.pathname.startsWith('/configuration') ||
+                                       location.pathname === '/manage-users' ||
+                                       location.pathname === '/program';
+                    
+                    if (isAdminPage) return title;
+
+                    // Mapping for common titles to translation keys
+                    const titleKeyMap = {
+                        'Donations': 'DONATIONS',
+                        'Programs': 'PROGRAMS',
+                        'Books': 'BOOKS_MEDIA',
+                        'Contact': 'CONTACT',
+                        'About Ayya': 'ABOUT',
+                        'Retreat Programs': 'RETREAT_PROGRAMS',
+                        'Online Programs': 'ONLINE_PROGRAMS',
+                        'Satsangs': 'SATSANGS',
+                        'Consultation': 'CONSULTATION',
+                        'Daily Zoom': 'DAILY_ZOOM',
+                        'Monthly Magazine': 'MAGAZINE',
+                        'Gallery': 'GALLERY',
+                        'Audio Books': 'AUDIO_BOOKS',
+                        'Videos': 'VIDEOS',
+                        'PDF Books': 'PDF_BOOKS',
+                        'Digital Books': 'DIGITAL_BOOKS',
+                        'My Registrations': 'MY_REGISTRATIONS',
+                        'My Orders': 'MY_ORDERS',
+                        'My Donations': 'MY_DONATIONS',
+                        'Sri Bagavath Mission': 'SRI_BAGAVATH_MISSION'
+                    };
+
+                    const key = titleKeyMap[title] || title;
+                    return t(key);
+                })()}
                 {subtitle && (
                     <div style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--color-text-muted)', marginTop: '2px' }}>
                         {subtitle}

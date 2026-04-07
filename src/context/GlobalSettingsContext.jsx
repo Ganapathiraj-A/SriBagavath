@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import { db, auth } from '@/firebase';
 import { doc, onSnapshot, setDoc, getDocCacheFirst } from '@/utils/FirestoreProxy';
 import { TransactionService } from '@/services/TransactionService';
+import { translations } from '@/utils/translations';
 import { onAuthStateChanged } from 'firebase/auth';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
@@ -69,6 +70,19 @@ export const GlobalSettingsProvider = ({ children }) => {
     // Firestore Per-User Settings (Developer Options)
     const [userSettings, setUserSettings] = useState(DEFAULT_USER_SETTINGS);
     const [globalServerUrl, setGlobalServerUrl] = useState('');
+
+    // --- Localization ---
+    const [language, setLanguage] = useState(localStorage.getItem('app_language') || 'en');
+
+    const t = (key) => {
+        if (!translations[language]) return key;
+        return translations[language][key] || key;
+    };
+
+    const handleSetLanguage = (lang) => {
+        setLanguage(lang);
+        localStorage.setItem('app_language', lang);
+    };
 
     // Injected by Vite via package.json
     const APP_VERSION_TAG = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '3.0.0';
@@ -363,6 +377,11 @@ export const GlobalSettingsProvider = ({ children }) => {
             setShowRightPanel: (val) => updateUser({ showRightPanel: val }),
             toggleDeviceAuthorization,
             setPublicSettings,
+
+            // Localization
+            language,
+            setLanguage: handleSetLanguage,
+            t,
 
             appVersion
         }}>

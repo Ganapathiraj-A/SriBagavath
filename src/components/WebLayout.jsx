@@ -8,11 +8,13 @@ import { signOut } from 'firebase/auth';
 import './WebLayout.css';
 import WebImagePrefetcher from './WebImagePrefetcher';
 import { usePWA } from '../context/PWAContext';
+import { useGlobalSettings } from '../context/GlobalSettingsContext';
 
 const WebLayout = ({ children }) => {
   const location = useLocation();
   const { user } = useAdminAuth();
   const { installApp } = usePWA();
+  const { t } = useGlobalSettings();
 
   const handleLogout = async () => {
     console.log("[WebLayout] Logout initiate");
@@ -58,15 +60,15 @@ const WebLayout = ({ children }) => {
   };
 
   const navLinks = [
-    { name: 'Home', path: '/web' },
-    { name: 'Events', path: '/web/events' },
-    { name: 'E Media', path: '/web/emedia' },
-    { name: 'Store', path: '/web/store' },
-    { name: 'Donate', path: '/web/donate' },
-    { name: 'Gallery', path: '/web/gallery' },
-    { name: 'About', path: '/web/about' },
-    { name: 'Contact', path: '/web/contact' },
-    { name: 'My Account', path: '/web/account' }
+    { name: t('HOME'), path: '/web' },
+    { name: t('EVENTS'), path: '/web/events' },
+    { name: t('E_MEDIA'), path: '/web/emedia' },
+    { name: t('STORE'), path: '/web/store' },
+    { name: t('DONATIONS'), path: '/web/donate' },
+    { name: t('GALLERY'), path: '/web/gallery' },
+    { name: t('ABOUT'), path: '/web/about' },
+    { name: t('CONTACT'), path: '/web/contact' },
+    { name: t('ACCOUNT'), path: '/web/account' }
   ];
 
   return (
@@ -106,7 +108,7 @@ const WebLayout = ({ children }) => {
                 <div className="web-login-container">
                   <Link to="/web/account" className="web-login-link">
                     <LogIn size={16} />
-                    <span>Sign In</span>
+                    <span>{t('SIGN_IN_WEB')}</span>
                   </Link>
                 </div>
             )}
@@ -167,22 +169,22 @@ const WebLayout = ({ children }) => {
         <div className="web-container">
           <div className="web-footer-grid">
             <div className="web-footer-section">
-              <h3>About Sri Bagavath</h3>
+              <h3>{t('ABOUT_SRI_BAGAVATH')}</h3>
               <p>
                 Sri Bagavath Mission is dedicated to sharing the wisdom and teachings of Sri Bagavath Ayya for spiritual liberation and mental wellness.
               </p>
             </div>
             <div className="web-footer-section">
-              <h3>Quick Links</h3>
+              <h3>{t('QUICK_LINKS')}</h3>
               <ul>
-                <li><Link to="/web/about">About Ayya</Link></li>
-                <li><Link to="/web/events">Events & Camps</Link></li>
-                <li><Link to="/web/store">Book Store</Link></li>
-                <li><Link to="/web/emedia">E Media</Link></li>
+                <li><Link to="/web/about">{t('ABOUT_AYYA')}</Link></li>
+                <li><Link to="/web/events">{t('EVENTS_CAMPS')}</Link></li>
+                <li><Link to="/web/store">{t('BOOK_STORE_FOOTER')}</Link></li>
+                <li><Link to="/web/emedia">{t('E_MEDIA')}</Link></li>
               </ul>
             </div>
             <div className="web-footer-section">
-              <h3>Contact Us</h3>
+              <h3>{t('CONTACT_US')}</h3>
               <p><FaEnvelope /> info@sribagavath.org</p>
               <p><FaPhone /> +91 97891 65555</p>
             </div>
