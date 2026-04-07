@@ -11,7 +11,7 @@ const About = () => {
                     className="bg-card rounded-2xl p-8 shadow-sm"
                     style={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)' }}
                 >
-                    <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
+                    <div style={{ marginTop: '2rem', marginBottom: '2rem', textAlign: 'center' }}>
                         <div style={{
                             width: '10rem',
                             height: '10rem',
@@ -58,17 +58,6 @@ const About = () => {
                         ></iframe>
                     </div>
 
-                    <div style={{ textAlign: 'center', color: 'var(--color-text-muted)', lineHeight: '1.75' }}>
-                        <p style={{ marginBottom: '1.5rem', fontSize: '1.125rem' }}>
-                            The newly evolved, profound revelations of understanding by Shri Bagavath are for the 'Seekers of Truth'.
-                        </p>
-                        <p style={{ marginBottom: '1.5rem', fontSize: '1.125rem' }}>
-                            Sri Bagavath, our Satguru, defined enlightenment in the simplest way. He showed the right path to enlightenment and assured that anyone with the ability to understand can attain it.
-                        </p>
-                        <p style={{ fontSize: '1.125rem' }}>
-                            Enlightenment is the only way to be liberated from our grief and sorrows. When the mind is liberated from sorrows, our energy is no longer wasted on inner turmoil. By conserving our energy, we can work more effectively in the outside world—where solutions to our real problems can be found.
-                        </p>
-                    </div>
                 </motion.div>
             </div>
         </div>
