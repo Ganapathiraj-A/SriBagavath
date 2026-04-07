@@ -678,7 +678,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                             {viewingProgram.programName}
                                         </h1>
                                         <div>
-                                            <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 800, color: 'var(--color-text)', marginBottom: '0.25rem' }}>
+                                            <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 800, color: 'var(--color-text)', marginBottom: '0.75rem' }}>
                                                 Date & Time
                                             </span>
                                             <div style={{ fontSize: '1.125rem' }}>
@@ -701,7 +701,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                         </div>
 
                                         <div>
-                                            <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 800, color: 'var(--color-text)', marginBottom: '0.25rem' }}>
+                                            <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 800, color: 'var(--color-text)', marginBottom: '0.75rem' }}>
                                                 Location
                                             </span>
                                             <div style={{ fontSize: '1.125rem' }}>
@@ -748,7 +748,7 @@ Download Sri Bagavath App for latest updates`.trim();
 
                                         {viewingProgram.programDescription && (
                                             <div>
-                                                <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 800, color: 'var(--color-text)', marginBottom: '0.25rem' }}>
+                                                <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 800, color: 'var(--color-text)', marginBottom: '0.75rem' }}>
                                                     Description
                                                 </span>
                                                 <div style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
@@ -758,7 +758,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                         )}
 
                                         <div>
-                                            <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 800, color: 'var(--color-text)', marginBottom: '0.25rem' }}>
+                                            <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 800, color: 'var(--color-text)', marginBottom: '0.75rem' }}>
                                                 Registration Details
                                             </span>
                                             <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
