@@ -540,30 +540,32 @@ const ProgramManagement = () => {
             <div style={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '0.5rem',
+                gap: '0.4rem',
                 flex: 1,
                 minWidth: 0
             }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>
-                        {program.programName}
-                    </h3>
-                    <span style={{ 
-                        color: program.isActive !== false ? '#10b981' : 'var(--color-error)',
-                        fontWeight: 700,
-                        fontSize: '0.75rem',
-                        textTransform: 'uppercase',
-                        backgroundColor: program.isActive !== false ? 'var(--color-success-transparent)' : 'var(--color-error-transparent)',
-                        padding: '2px 8px',
-                        borderRadius: '9999px'
-                    }}>
-                        {program.isActive !== false ? 'Shown' : 'Hidden'}
-                    </span>
-                </div>
+                <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>
+                    {program.programName}
+                </h3>
 
                 <div style={{ display: 'flex', alignItems: 'center', color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
                     <MapPin size={14} style={{ marginRight: '0.375rem' }} />
                     <span style={{ fontWeight: 500 }}>{program.programCity}</span>
+                </div>
+
+                <div style={{ marginTop: '0.1rem' }}>
+                    <span style={{ 
+                        color: program.isActive !== false ? '#10b981' : 'var(--color-error)',
+                        fontWeight: 700,
+                        fontSize: '0.7rem',
+                        textTransform: 'uppercase',
+                        backgroundColor: program.isActive !== false ? 'var(--color-success-transparent)' : 'var(--color-error-transparent)',
+                        padding: '2px 8px',
+                        borderRadius: '9999px',
+                        display: 'inline-block'
+                    }}>
+                        {program.isActive !== false ? 'Shown' : 'Hidden'}
+                    </span>
                 </div>
             </div>
         </div>
