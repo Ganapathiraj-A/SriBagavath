@@ -86,7 +86,7 @@ const Books = () => {
             backgroundColor: 'var(--color-surface)',
             padding: '1.5rem'
         }}>
-            <PageHeader title="Books & Media" />
+            <PageHeader title={t('BOOKS_MEDIA')} />
 
             <div style={{ maxWidth: '28rem', margin: '0 auto' }}>
 
