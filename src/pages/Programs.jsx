@@ -704,11 +704,9 @@ Download Sri Bagavath App for latest updates`.trim();
                                             <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 800, color: 'var(--color-text)', marginBottom: '0.75rem' }}>
                                                 Location
                                             </span>
-                                            <div style={{ fontSize: '1.125rem' }}>
-                                                {viewingProgram.programCity}
-                                            </div>
-                                            <div style={{ marginTop: '0.25rem', color: 'var(--color-text-muted)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                                <div>{viewingProgram.programVenue}</div>
+                                            <div style={{ fontSize: '1.125rem', color: 'var(--color-text)', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                                <div>{viewingProgram.programCity}</div>
+                                                <div style={{ color: 'var(--color-text-muted)', fontSize: '1rem' }}>{viewingProgram.programVenue}</div>
                                                 {viewingProgram.googleMapsUrl && (
                                                     <a
                                                         href={viewingProgram.googleMapsUrl}
@@ -722,7 +720,8 @@ Download Sri Bagavath App for latest updates`.trim();
                                                             textDecoration: 'none',
                                                             fontSize: '0.9rem',
                                                             fontWeight: 600,
-                                                            width: 'fit-content'
+                                                            width: 'fit-content',
+                                                            marginTop: '0.5rem'
                                                         }}
                                                     >
                                                         <MapPin size={16} />
