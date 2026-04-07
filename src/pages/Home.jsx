@@ -28,7 +28,7 @@ import { usePWA } from '@/context/PWAContext';
 let isStartupLoad = true;
 
 
-const MenuButton = ({ title, icon: Icon, path, delay, badgeCount, skipAnimation }) => {
+const MenuButton = ({ title, icon: Icon, path, delay, badgeCount, skipAnimation, t }) => {
     const navigate = useNavigate();
 
     return (
@@ -498,6 +498,7 @@ const Home = () => {
                             path={item.path}
                             delay={item.delay}
                             skipAnimation={isFirstRender}
+                            t={t}
                             badgeCount={
                                 item.isAdmin
                                     ? totalPending
