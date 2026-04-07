@@ -169,25 +169,9 @@ const AyyasSchedule = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     {schedules.map((schedule, index) => (
                         <motion.div key={schedule.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 }} style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '1.5rem', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                            <div style={{ 
-                                backgroundColor: 'var(--color-card)', 
-                                color: 'var(--color-text)', 
-                                padding: '0.5rem 0.8rem', 
-                                borderRadius: '0.5rem', 
-                                border: '1px solid var(--color-border)',
-                                minWidth: '4.5rem', 
-                                textAlign: 'center',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                            }}>
-                                <div style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>
-                                    {new Date(schedule.fromDate).toLocaleDateString(undefined, { month: 'short' })}
-                                </div>
-                                <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>
-                                    {new Date(schedule.fromDate).getDate()}
-                                </div>
+                            <div style={{ backgroundColor: 'var(--color-primary-transparent)', color: 'var(--color-primary)', padding: '1rem', borderRadius: '0.75rem', minWidth: '5rem', textAlign: 'center' }}>
+                                <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>{new Date(schedule.fromDate).toLocaleDateString(undefined, { month: 'short' }).toUpperCase()}</div>
+                                <div style={{ fontSize: '1.75rem', fontWeight: 'bold' }}>{new Date(schedule.fromDate).getDate()}</div>
                             </div>
                             <div style={{ flex: 1 }}>
                                 <h2 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0 }}>{schedule.place}</h2>
