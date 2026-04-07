@@ -705,8 +705,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                                 Location
                                             </span>
                                             <div style={{ fontSize: '1.125rem', color: 'var(--color-text)', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                                                <div>{viewingProgram.programCity}</div>
-                                                <div style={{ color: 'var(--color-text-muted)', fontSize: '1rem' }}>{viewingProgram.programVenue}</div>
+                                                <div>{viewingProgram.programVenue}</div>
                                                 {viewingProgram.googleMapsUrl && (
                                                     <a
                                                         href={viewingProgram.googleMapsUrl}
