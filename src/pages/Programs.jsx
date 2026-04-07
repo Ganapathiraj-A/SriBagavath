@@ -124,9 +124,9 @@ const Programs = ({ hideHeader = false }) => {
                     cacheSnap = await getDocsFromCache(q);
                     if (!cacheSnap.empty) {
                         const list = cacheSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-                        setPrograms(list);
+                        setPrograms(list.filter(p => p.isActive !== false));
                         setLoading(false);
-                        console.log(`[Programs] Cache SUCCESS: Found ${list.length} programs`);
+                        console.log(`[Programs] Cache SUCCESS: Found ${list.length} programs (filtered)`);
                     } else {
                         console.log("[Programs] Cache EMPTY (or query returned nothing from cache)");
                     }
@@ -140,7 +140,7 @@ const Programs = ({ hideHeader = false }) => {
                     const serverTask = getDocsFromServer(q).then(serverSnap => {
                         const list = serverSnap.docs.map(d => ({ id: d.id, ...d.data() }));
                         console.log(`[Programs] Server SUCCESS: Returned ${list.length} programs`);
-                        setPrograms(list);
+                        setPrograms(list.filter(p => p.isActive !== false));
                         markSyncedLocally('programs');
                     }).catch(err => {
                         console.error("[Programs] Server refresh FAILED", err);
@@ -192,7 +192,13 @@ const Programs = ({ hideHeader = false }) => {
                 const programRef = doc(db, 'programs', viewingProgramId);
                 const snap = await getDocCacheFirst(programRef);
                 if (snap.exists()) {
-                    setSpecificProgram({ id: snap.id, ...snap.data() });
+                    const data = { id: snap.id, ...snap.data() };
+                    // If hidden and not admin, block viewing
+                    if (data.isActive === false && !isAdmin) {
+                        setSpecificProgram(null);
+                    } else {
+                        setSpecificProgram(data);
+                    }
                 }
             } catch (_err) {
                 console.error("Failed to fetch specific program", _err);

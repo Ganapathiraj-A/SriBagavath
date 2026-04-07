@@ -89,7 +89,8 @@ const ProgramManagement = () => {
         additionalOptions: [],
         ageRules: [],
         googleMapsUrl: '',
-        introYoutubeUrl: ''
+        introYoutubeUrl: '',
+        isActive: true
     });
 
     // Load programs from Firebase when tab changes
@@ -126,7 +127,8 @@ const ProgramManagement = () => {
                 additionalOptions: editingProgram.additionalOptions || [],
                 ageRules: editingProgram.ageRules || [],
                 googleMapsUrl: editingProgram.googleMapsUrl || '',
-                introYoutubeUrl: editingProgram.introYoutubeUrl || ''
+                introYoutubeUrl: editingProgram.introYoutubeUrl || '',
+                isActive: editingProgram.isActive !== false
             });
 
             if (isOtherCity) {
@@ -444,6 +446,20 @@ const ProgramManagement = () => {
         }
     };
 
+    const handleToggleStatus = async (programId, currentStatus) => {
+        const newStatus = currentStatus === false;
+        try {
+            await updateDoc(doc(db, 'programs', programId), {
+                isActive: newStatus,
+                updatedAt: serverTimestamp()
+            });
+            await bumpServerVersion('programs');
+            loadPrograms();
+        } catch (_err) {
+            alert('Status update failed: ' + _err.message);
+        }
+    };
+
     const resetForm = () => {
         setFormData({
             programName: '',
@@ -467,7 +483,8 @@ const ProgramManagement = () => {
             additionalOptions: [],
             ageRules: [],
             googleMapsUrl: '',
-            introYoutubeUrl: ''
+            introYoutubeUrl: '',
+            isActive: true
         });
 
         setBannerImage(null);
@@ -527,9 +544,22 @@ const ProgramManagement = () => {
                 flex: 1,
                 minWidth: 0
             }}>
-                <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>
-                    {program.programName}
-                </h3>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>
+                        {program.programName}
+                    </h3>
+                    <span style={{ 
+                        color: program.isActive !== false ? '#10b981' : 'var(--color-error)',
+                        fontWeight: 700,
+                        fontSize: '0.75rem',
+                        textTransform: 'uppercase',
+                        backgroundColor: program.isActive !== false ? 'var(--color-success-transparent)' : 'var(--color-error-transparent)',
+                        padding: '2px 8px',
+                        borderRadius: '9999px'
+                    }}>
+                        {program.isActive !== false ? 'Shown' : 'Hidden'}
+                    </span>
+                </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
                     <MapPin size={14} style={{ marginRight: '0.375rem' }} />
@@ -1495,6 +1525,27 @@ const ProgramManagement = () => {
                                 {editingProgram && (
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #f3f4f6' }}>
                                         <div style={{ display: 'flex', gap: '1rem' }}>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleToggleStatus(editingProgram.id, editingProgram.isActive)}
+                                                style={{ 
+                                                    flex: 1, 
+                                                    padding: '0.75rem', 
+                                                    backgroundColor: editingProgram.isActive !== false ? 'var(--color-warning-transparent)' : 'var(--color-success-transparent)', 
+                                                    color: editingProgram.isActive !== false ? 'var(--color-warning)' : '#10b981', 
+                                                    border: `1px solid ${editingProgram.isActive !== false ? 'var(--color-warning-light)' : '#10b981'}`, 
+                                                    borderRadius: '0.5rem', 
+                                                    cursor: 'pointer', 
+                                                    display: 'flex', 
+                                                    alignItems: 'center', 
+                                                    justifyContent: 'center', 
+                                                    gap: '0.5rem', 
+                                                    fontSize: '0.875rem', 
+                                                    fontWeight: 600 
+                                                }}
+                                            >
+                                                {editingProgram.isActive !== false ? 'Hide Program' : 'Show Program'}
+                                            </button>
                                             <button
                                                 type="button"
                                                 onClick={() => handleDelete(editingProgram.id)}
