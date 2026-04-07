@@ -39,7 +39,13 @@ export const translations = {
         EVENTS_CAMPS: "Events & Camps",
         BOOK_STORE_FOOTER: "Book Store",
         CONTACT_US: "Contact Us",
-        NEW_BADGE: "NEW"
+        NEW_BADGE: "NEW",
+        DAILY_ZOOM_MEETING: "Daily Zoom Meeting",
+        OTHER_ONLINE_MEETINGS: "Other Online Meetings",
+        PRINT_BOOKS: "Print Books",
+        RELATED_VIDEOS: "Related Videos",
+        HOW_TO_CHOOSE_BOOKS: "How to choose Books ?",
+        SELECT_CATEGORY_PROMPT: "Select a category to view upcoming events"
     },
     ta: {
         ABOUT: "பகவத் அய்யா பற்றி",
@@ -81,6 +87,12 @@ export const translations = {
         EVENTS_CAMPS: "நிகழ்ச்சிகள் & முகாம்கள்",
         BOOK_STORE_FOOTER: "புத்தகக் கடை",
         CONTACT_US: "தொடர்பு கொள்ள",
-        NEW_BADGE: "புதியது"
+        NEW_BADGE: "புதியது",
+        DAILY_ZOOM_MEETING: "தினசரி ஜூம் சந்திப்பு",
+        OTHER_ONLINE_MEETINGS: "பிற ஆன்லைன் சந்திப்புகள்",
+        PRINT_BOOKS: "அச்சு புத்தகங்கள்",
+        RELATED_VIDEOS: "தொடர்புடைய வீடியோக்கள்",
+        HOW_TO_CHOOSE_BOOKS: "புத்தகங்களை தேர்ந்தெடுப்பது எப்படி?",
+        SELECT_CATEGORY_PROMPT: "வரவிருக்கும் நிகழ்வுகளைக் காண ஒரு வகையைத் தேர்ந்தெடுக்கவும்"
     }
 };

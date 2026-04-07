@@ -69,7 +69,7 @@ const ProgramCategories = () => {
     const [loading, setLoading] = useState(true);
     const [searchParams] = useSearchParams();
     const counts = useUnseenCounts();
-    const { hiddenScreens, devMode } = useGlobalSettings();
+    const { hiddenScreens, devMode, t } = useGlobalSettings();
     const { isAdmin } = useAdminAuth();
 
     const effectiveRole = isAdmin ? (devMode ? 'dev' : 'admin') : 'public';
@@ -107,11 +107,11 @@ const ProgramCategories = () => {
 
             <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem', maxWidth: '28rem', margin: '0 auto' }}>
                 <p style={{ color: 'var(--color-text-muted)', textAlign: 'center', marginBottom: '0.5rem', fontSize: '0.95rem' }}>
-                    Select a category to view upcoming events
+                    {t('SELECT_CATEGORY_PROMPT')}
                 </p>
                 {!currentHiddenScreens.includes('/programs/retreat') && (
                     <CategoryButton
-                        title="Programs"
+                        title={t('RETREAT_PROGRAMS')}
                         icon={Calendar}
                         path="/programs/retreat"
                         delay={0.1}
@@ -120,7 +120,7 @@ const ProgramCategories = () => {
                 )}
                 {!currentHiddenScreens.includes('/schedule') && (
                     <CategoryButton
-                        title="Ayya's Schedule"
+                        title={t('AYYAS_SCHEDULE')}
                         icon={Calendar}
                         path="/schedule"
                         delay={0.2}
@@ -129,7 +129,7 @@ const ProgramCategories = () => {
                 )}
                 {!currentHiddenScreens.includes('/programs/online/daily') && (
                     <CategoryButton
-                        title="Daily Zoom Meeting"
+                        title={t('DAILY_ZOOM_MEETING')}
                         icon={Video}
                         path="/programs/online/daily"
                         delay={0.25}
@@ -137,7 +137,7 @@ const ProgramCategories = () => {
                 )}
                 {!currentHiddenScreens.includes('/programs/online') && (
                     <CategoryButton
-                        title="Other Online Meetings"
+                        title={t('OTHER_ONLINE_MEETINGS')}
                         icon={Video}
                         path="/programs/online"
                         delay={0.3}
@@ -146,7 +146,7 @@ const ProgramCategories = () => {
                 )}
                 {!currentHiddenScreens.includes('/programs/satsang') && (
                     <CategoryButton
-                        title="Satsang"
+                        title={t('SATSANGS')}
                         subtitle="City-wide spiritual gatherings"
                         icon={Users}
                         path="/programs/satsang"
@@ -156,7 +156,7 @@ const ProgramCategories = () => {
                 )}
                 {!currentHiddenScreens.includes('/programs/consultation') && (
                     <CategoryButton
-                        title="Consultation"
+                        title={t('CONSULTATION')}
                         icon={MessageCircle}
                         path="/programs/consultation"
                         delay={0.5}

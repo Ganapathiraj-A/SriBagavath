@@ -55,7 +55,7 @@ const BookTypeButton = ({ title, icon: Icon, path, delay }) => {
 const Books = () => {
     const [relatedVideos, setRelatedVideos] = useState([]);
     const [loadingVideos, setLoadingVideos] = useState(true);
-    const { hiddenScreens, devMode } = useGlobalSettings();
+    const { hiddenScreens, devMode, t } = useGlobalSettings();
     const { isAdmin } = useAdminAuth();
 
     const effectiveRole = isAdmin ? (devMode ? 'dev' : 'admin') : 'public';
@@ -120,17 +120,17 @@ const Books = () => {
                         whileHover={{ scale: 1.02 }}
                     >
                         <Youtube size={18} />
-                        How to choose Books ?
+                        {t('HOW_TO_CHOOSE_BOOKS')}
                     </motion.a>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        {!currentHiddenScreens.includes('/bookstore') && <BookTypeButton title="Print Books" icon={BookOpen} path="/bookstore" delay={0.1} />}
-                        {!currentHiddenScreens.includes('/digital-books') && <BookTypeButton title="Digital Books" icon={BookOpen} path="/pdf-books" delay={0.2} />}
-                        {!currentHiddenScreens.includes('/audio-books') && <BookTypeButton title="Audio Books" icon={Headphones} path="/audio-books" delay={0.3} />}
-                        {!currentHiddenScreens.includes('/conversations/recorded-programs') && <BookTypeButton title="Recorded Programs" icon={Video} path="/conversations/recorded-programs" delay={0.4} />}
-                        {!currentHiddenScreens.includes('/monthly-magazine') && <BookTypeButton title="Monthly Magazine" icon={FileText} path="/monthly-magazine" delay={0.5} />}
-                        {!currentHiddenScreens.includes('/videos') && <BookTypeButton title="Related Videos" icon={Youtube} path="/videos" delay={0.6} />}
-                        {!currentHiddenScreens.includes('/gallery') && <BookTypeButton title="Gallery" icon={ImageIcon} path="/gallery" delay={0.7} />}
+                        {!currentHiddenScreens.includes('/bookstore') && <BookTypeButton title={t('PRINT_BOOKS')} icon={BookOpen} path="/bookstore" delay={0.1} />}
+                        {!currentHiddenScreens.includes('/digital-books') && <BookTypeButton title={t('DIGITAL_BOOKS')} icon={BookOpen} path="/pdf-books" delay={0.2} />}
+                        {!currentHiddenScreens.includes('/audio-books') && <BookTypeButton title={t('AUDIO_BOOKS')} icon={Headphones} path="/audio-books" delay={0.3} />}
+                        {!currentHiddenScreens.includes('/conversations/recorded-programs') && <BookTypeButton title={t('RECORDED_PROGRAMS')} icon={Video} path="/conversations/recorded-programs" delay={0.4} />}
+                        {!currentHiddenScreens.includes('/monthly-magazine') && <BookTypeButton title={t('MAGAZINE')} icon={FileText} path="/monthly-magazine" delay={0.5} />}
+                        {!currentHiddenScreens.includes('/videos') && <BookTypeButton title={t('RELATED_VIDEOS')} icon={Youtube} path="/videos" delay={0.6} />}
+                        {!currentHiddenScreens.includes('/gallery') && <BookTypeButton title={t('GALLERY')} icon={ImageIcon} path="/gallery" delay={0.7} />}
                     </div>
                 </motion.div>
             </div>
