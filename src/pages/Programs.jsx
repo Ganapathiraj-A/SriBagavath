@@ -88,7 +88,7 @@ const Programs = ({ hideHeader = false }) => {
     };
 
     const { loading: authGlobalLoading, isAdmin, hasAccess } = useAdminAuth();
-    const { onlineRegistrationContact } = useGlobalSettings();
+    const { onlineRegistrationContact, t } = useGlobalSettings();
 
     useEffect(() => {
         const fetchPrograms = async () => {
