@@ -8,6 +8,7 @@ import { useAdminAuth } from '@/context/AdminAuthContext';
 import { shareImage } from '@/utils/shareUtils';
 import PageHeader from '@/components/PageHeader';
 import LazyImage from '@/components/LazyImage';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 
 const Gallery = () => {
     const navigate = useNavigate();
