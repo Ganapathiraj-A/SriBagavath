@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-07T15:03:51.818Z",
+  "generatedAt": "2026-04-08T04:32:12.569Z",
   "audioBooks": [
     {
       "id": "1",
@@ -1225,13 +1225,13 @@
     "magazineData": {
       "root": [
         {
-          "id": "1QffHBfhGmToZ85o3APE_Zd1ZjOoWLnI3",
-          "name": "பகவத் பாதை மார்ச் 2026.pdf",
+          "id": "13_Q84V6FYO95hkOp0ND-YN0CD9HkY_fX",
+          "name": "பகவத் பாதை ஏப்ரல் 2026.pdf",
           "mimeType": "application/pdf",
-          "webViewLink": "https://drive.google.com/file/d/1QffHBfhGmToZ85o3APE_Zd1ZjOoWLnI3/view?usp=drivesdk",
+          "webViewLink": "https://drive.google.com/file/d/13_Q84V6FYO95hkOp0ND-YN0CD9HkY_fX/view?usp=drivesdk",
           "iconLink": "https://drive-thirdparty.googleusercontent.com/16/type/application/pdf",
-          "modifiedTime": "2026-03-15T09:14:17.299Z",
-          "size": "5142039"
+          "modifiedTime": "2026-04-08T03:53:50.000Z",
+          "size": "5327291"
         },
         {
           "id": "1mS_di6GvKXhmtAeU2JYDS_admIFIKCUS",
@@ -1381,6 +1381,15 @@
             "iconLink": "https://drive-thirdparty.googleusercontent.com/16/type/application/pdf",
             "modifiedTime": "2026-02-24T06:04:38.860Z",
             "size": "5306931"
+          },
+          {
+            "id": "1qNxpfzND3BjSPOxJJZwuyCuOL30A0I34",
+            "name": "பகவத் பாதை ஏப்ரல் 2026.pdf",
+            "mimeType": "application/pdf",
+            "webViewLink": "https://drive.google.com/file/d/1qNxpfzND3BjSPOxJJZwuyCuOL30A0I34/view?usp=drivesdk",
+            "iconLink": "https://drive-thirdparty.googleusercontent.com/16/type/application/pdf",
+            "modifiedTime": "2026-04-08T03:53:50.000Z",
+            "size": "5327291"
           },
           {
             "id": "1vliksJZlhh1JCEvsfvhekoZhH3hb5RYI",

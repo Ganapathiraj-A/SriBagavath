@@ -82,7 +82,7 @@ export const GlobalSettingsProvider = ({ children }) => {
                             path.startsWith('/admin') || 
                             path.startsWith('/configuration') ||
                             path.startsWith('/manage-users') ||
-                            path.startsWith('/program'); // Special case for legacy top-level admin paths
+                            (path === '/program' || path.startsWith('/program/')); // Fix: avoid matching '/programs'
 
         const lookupLanguage = isWebSection ? 'en' : language;
 
