@@ -14,7 +14,7 @@ import LazyImage from '@/components/LazyImage';
 
 const PdfBooks = () => {
   const navigate = useNavigate();
-  const { digitalBookLanguages } = useGlobalSettings();
+  const { digitalBookLanguages, t } = useGlobalSettings();
   const { hasAccess, isInitialized } = useAdminAuth();
 
   // Wait for auth initialization before permitting edit mode
@@ -152,7 +152,7 @@ const PdfBooks = () => {
     if (loading) {
       return (
         <div style={{ padding: '40px', textAlign: 'center', color: 'var(--color-text-muted)' }}>
-          <p>Loading books...</p>
+          <p>{t('LOADING_BOOKS')}</p>
         </div>
       );
     }
@@ -168,7 +168,7 @@ const PdfBooks = () => {
     if (files.length === 0) {
       return (
         <div style={{ padding: '60px 20px', textAlign: 'center', color: 'var(--color-text-muted)' }}>
-          <p>No books available in this category.</p>
+          <p>{t('NO_BOOKS_AVAIL')}</p>
         </div>
       );
     }
@@ -284,7 +284,7 @@ const PdfBooks = () => {
   return (
     <div style={{ backgroundColor: 'var(--color-background)', minHeight: '100vh', paddingBottom: '30px' }}>
       <PageHeader
-        title="Digital Books"
+        title={t('DIGITAL_BOOKS')}
         rightAction={canEdit && (
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             {editMode && (
@@ -377,7 +377,7 @@ const PdfBooks = () => {
                 whiteSpace: 'nowrap'
               }}
             >
-              {tab.name}
+              {tab.name === 'Tamil' ? t('TAMIL') : (tab.name === 'English' ? t('ENGLISH') : tab.name)}
             </button>
           ))}
 
@@ -401,7 +401,7 @@ const PdfBooks = () => {
                   whiteSpace: 'nowrap'
                 }}
               >
-                {otherLanguages.some(l => l.id === activeTabId) ? otherLanguages.find(l => l.id === activeTabId)?.name : 'Other Languages'}
+                {otherLanguages.some(l => l.id === activeTabId) ? (otherLanguages.find(l => l.id === activeTabId)?.name) : t('OTHER_LANGUAGES')}
                 <ChevronDown size={14} style={{ transform: isLangDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
               </button>
 

@@ -155,8 +155,8 @@ const BookStore = () => {
     const mainTabs = ['Tamil Books', 'English Books'];
 
     const NATIVE_LABELS = {
-        'Tamil Books': 'Tamil',
-        'English Books': 'English',
+        'Tamil Books': t('TAMIL'),
+        'English Books': t('ENGLISH'),
         'Hindi Books': 'Hindi',
         'Telugu Books': 'Telugu',
         'Malayalam Books': 'Malayalam',
@@ -173,7 +173,7 @@ const BookStore = () => {
     if (loading) {
         return (
             <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--color-background)' }}>
-                <p style={{ color: 'var(--color-text-muted)' }}>Loading Bookstore...</p>
+                <p style={{ color: 'var(--color-text-muted)' }}>{t('LOADING_BOOKSTORE')}</p>
             </div>
         );
     }
@@ -242,7 +242,7 @@ const BookStore = () => {
                 <button
                     onClick={handleViewOrders}
                     disabled={authLoading}
-                    aria-label="View My Orders"
+                    aria-label={t('MY_ORDER')}
                     style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -257,7 +257,7 @@ const BookStore = () => {
                         cursor: 'pointer'
                     }}
                 >
-                    <IndianRupee size={18} /> My Orders
+                    <IndianRupee size={18} /> {t('MY_ORDER')}
                 </button>
             </div>
 
@@ -287,7 +287,7 @@ const BookStore = () => {
                             <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{product.title}</h3>
                             <p style={{ margin: '4px 0 0 0', color: 'var(--color-primary)', fontWeight: 700, fontSize: '0.95rem' }}>₹{product.price}</p>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px', color: 'var(--color-text-light)', fontSize: '0.75rem' }}>
-                                <Info size={12} /> Click for details
+                                <Info size={12} /> {t('CLICK_FOR_DETAILS') || 'Click for details'}
                             </div>
                         </div>
                         <div
@@ -328,7 +328,7 @@ const BookStore = () => {
 
             {filteredProducts.length === 0 && !loading && (
                 <div style={{ padding: '60px 20px', textAlign: 'center', color: 'var(--color-text-muted)' }}>
-                    <p>No books available in this category.</p>
+                    <p>{t('NO_BOOKS_AVAILABLE')}</p>
                 </div>
             )}
 
@@ -353,7 +353,7 @@ const BookStore = () => {
                     }}
                 >
                     <div>
-                        <div style={{ fontSize: '14px', opacity: 0.9 }}>{totalCount} Items</div>
+                        <div style={{ fontSize: '14px', opacity: 0.9 }}>{totalCount} {t('ITEMS_COUNT')}</div>
                         <div style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>₹{totalPrice}</div>
                     </div>
                     <button
@@ -376,7 +376,7 @@ const BookStore = () => {
                             boxShadow: 'var(--shadow-md)'
                         }}
                     >
-                        Checkout
+                        {t('CHECKOUT')}
                     </button>
                 </motion.div>
             )}
@@ -396,7 +396,7 @@ const BookStore = () => {
                     zIndex: 100
                 }}>
                     <p style={{ margin: 0, fontWeight: 700, fontSize: '1rem' }}>
-                        To order books please contact {offlineRegistrationContact}
+                        {t('TO_ORDER_CONTACT')} {offlineRegistrationContact}
                     </p>
                 </div>
             )}

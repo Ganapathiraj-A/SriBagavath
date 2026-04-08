@@ -12,6 +12,7 @@ import LazyImage from '@/components/LazyImage';
 const Gallery = () => {
     const navigate = useNavigate();
     const { isAdmin, hasAccess, loading: authLoading } = useAdminAuth();
+    const { t } = useGlobalSettings();
     const [images, setImages] = useState([]);
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -99,7 +100,7 @@ const Gallery = () => {
                 display: 'flex',
                 flexDirection: 'column'
             }}>
-                <PageHeader title="Gallery" />
+                <PageHeader title={t('GALLERY')} />
                 <div style={{ 
                     flex: 1,
                     display: 'flex', 
@@ -123,13 +124,13 @@ const Gallery = () => {
                             color: 'var(--color-text)',
                             marginBottom: '0.4rem'
                         }}>
-                            Loading Gallery
+                            {t('LOADING_GALLERY')}
                         </div>
                         <div style={{ 
                             fontSize: '0.875rem', 
                             color: 'var(--color-text-muted)'
                         }}>
-                            Fetching beautiful moments...
+                            {t('FETCHING_MOMENTS')}
                         </div>
                     </div>
                 </div>
@@ -140,7 +141,7 @@ const Gallery = () => {
     return (
         <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-surface)', paddingBottom: '2rem' }}>
             <PageHeader 
-                title="Gallery" 
+                title={t('GALLERY')} 
                 rightAction={(isAdmin || hasAccess('GALLERY_MANAGEMENT')) ? (
                     <button 
                         onClick={() => navigate('/admin/gallery')}
@@ -159,7 +160,7 @@ const Gallery = () => {
                         }}
                     >
                         <Edit2 size={16} />
-                        Edit
+                        {t('EDIT') || 'Edit'}
                     </button>
                 ) : null}
             />
@@ -178,9 +179,9 @@ const Gallery = () => {
                 zIndex: 10
             }}>
                 {[
-                    { id: 'general', label: 'General' },
-                    { id: 'ayya', label: "Ayyas Photos" },
-                    { id: 'events', label: 'Recent Events' }
+                    { id: 'general', label: t('GENERAL_TAB') },
+                    { id: 'ayya', label: t('AYYAS_PHOTOS') },
+                    { id: 'events', label: t('RECENT_EVENTS') }
                 ].map(tab => {
                     const isActive = activeTab === tab.id;
                     return (
@@ -249,7 +250,7 @@ const Gallery = () => {
                         }}
                     >
                         <ArrowLeft size={16} />
-                        Back
+                        {t('BACK') || 'Back'}
                     </button>
                     <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>
                         / {selectedEvent?.name}
@@ -297,13 +298,13 @@ const Gallery = () => {
                             </div>
                             <div style={{ textAlign: 'center' }}>
                                 <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--color-text)', marginBottom: '0.2rem' }}>{event.name}</div>
-                                <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>{images.filter(img => img.eventId === event.id).length} photos</div>
+                                <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>{images.filter(img => img.eventId === event.id).length} {t('PHOTOS_COUNT')}</div>
                             </div>
                         </motion.div>
                     ))}
                     {events.length === 0 && (
                         <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)' }}>
-                            No events found.
+                            {t('NO_EVENTS_FOUND')}
                         </div>
                     )}
                 </div>
@@ -431,7 +432,7 @@ const Gallery = () => {
                     ))}
                     {filteredImages.length === 0 && (
                         <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)' }}>
-                            No images found in this section.
+                            {t('NO_IMAGES_FOUND')}
                         </div>
                     )}
                 </div>

@@ -35,9 +35,14 @@ const Donations = () => {
     const [monthlyAmount, setMonthlyAmount] = useState('1000');
     const [authLoading, setAuthLoading] = useState(false);
     const [activeTab, setActiveTab] = useState('General');
-    const { onlineTransactionsEnabled, offlineRegistrationContact } = useGlobalSettings();
+    const { onlineTransactionsEnabled, offlineRegistrationContact, t } = useGlobalSettings();
 
     const tabs = ['General', 'Annadhanam', 'Membership'];
+    const tabLabels = {
+        'General': t('GENERAL_TAB'),
+        'Annadhanam': t('ANNADHANAM_TAB'),
+        'Membership': t('MEMBERSHIP_TAB')
+    };
 
     const ensureAuth = async () => {
         if (auth.currentUser && !auth.currentUser.isAnonymous) {
@@ -74,7 +79,7 @@ const Donations = () => {
     const handleProceed = async (option) => {
         const amount = option.isCustom ? parseInt(customAmount) : (option.isMonthly ? parseInt(monthlyAmount) : option.price);
         if (!amount || amount <= 0) {
-            alert("Please enter a valid donation amount.");
+            alert(t('ENTER_VALID_AMOUNT'));
             return;
         }
 
@@ -92,9 +97,24 @@ const Donations = () => {
 
     const filteredOptions = donationOptions.filter(o => o.category === activeTab);
 
+    const getTranslatedTitle = (option) => {
+        if (option.id.startsWith('don_')) {
+            if (option.isCustom) return t('CUSTOM_DONATION');
+            return `${t('DONATION')} - ₹${option.price.toLocaleString()}`;
+        }
+        if (option.id.startsWith('ann_')) {
+            if (option.isCustom) return t('CUSTOM_ANNADHANAM');
+            return `${t('ANNADHANAM')} - ₹${option.price.toLocaleString()}`;
+        }
+        if (option.id === 'mem_monthly') return t('MONTHLY_DONATION');
+        if (option.id === 'mem_annual') return t('ANNUAL_MEMBER');
+        if (option.id === 'mem_founder') return t('FOUNDER_MEMBER');
+        return option.title;
+    };
+
     return (
         <div style={{ backgroundColor: 'var(--color-background)', minHeight: '100vh', paddingBottom: '40px' }}>
-            <PageHeader title="Donations" />
+            <PageHeader title={t('DONATIONS')} />
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '16px 16px 0', gap: '8px' }}>
                 <button
@@ -114,7 +134,7 @@ const Donations = () => {
                     }}
                 >
                     <Heart size={18} />
-                    My Donations
+                    {t('MY_DONATIONS_BTN')}
                 </button>
             </div>
 
@@ -133,9 +153,9 @@ const Donations = () => {
                     }}>
                         <Heart size={28} />
                     </div>
-                    <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-text)', margin: 0 }}>Support Our Mission</h2>
+                    <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-text)', margin: 0 }}>{t('SUPPORT_OUR_MISSION')}</h2>
                     <p style={{ color: 'var(--color-text-muted)', marginTop: '6px', fontSize: '0.9rem', lineHeight: 1.4 }}>
-                        Your contributions help us reach more people and spread spiritual awareness.
+                        {t('SUPPORT_MISSION_DESC')}
                     </p>
                 </div>
 
@@ -170,7 +190,7 @@ const Donations = () => {
                                     transition: 'color 0.2s'
                                 }}
                             >
-                                {tab}
+                                {tabLabels[tab]}
                                 {isActive && (
                                     <motion.div
                                         layoutId="activeTabUnderline"
@@ -216,7 +236,9 @@ const Donations = () => {
                             }}
                         >
                             <div style={{ flex: 1 }}>
-                                <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: 'var(--color-text)' }}>{option.title}</h3>
+                                <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: 'var(--color-text)' }}>
+                                    {getTranslatedTitle(option)}
+                                </h3>
                                 {option.isCustom && selectedAmount === option.id && (
                                     <input
                                         type="number"
@@ -287,7 +309,7 @@ const Donations = () => {
                         textAlign: 'center'
                     }}>
                         <p style={{ margin: 0, color: 'var(--color-error)', fontWeight: 600, fontSize: '0.95rem' }}>
-                            To make donations please contact {offlineRegistrationContact}
+                            {t('CONTACT_FOR_OFFLINE')} {offlineRegistrationContact}
                         </p>
                     </div>
                 )}
@@ -297,7 +319,7 @@ const Donations = () => {
                         onClick={() => {
                             const option = donationOptions.find(o => o.id === selectedAmount);
                             if (option) handleProceed(option);
-                            else alert("Please select a donation amount.");
+                            else alert(t('SELECT_AMOUNT_PROMPT'));
                         }}
                         disabled={authLoading}
                         style={{
@@ -316,12 +338,12 @@ const Donations = () => {
                         }}
                         data-testid="donate-proceed"
                     >
-                        {authLoading ? 'Signing in...' : 'Proceed to Donate'}
+                        {authLoading ? t('SIGNING_IN') : t('PROCEED_TO_DONATE')}
                     </button>
                 )}
 
                 <p style={{ textAlign: 'center', marginTop: '20px', color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>
-                    Transactions are secure and handled via UPI.
+                    {t('TRANSACTION_SECURE_NOTE')}
                 </p>
             </div>
         </div>

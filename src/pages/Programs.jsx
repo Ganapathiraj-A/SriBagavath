@@ -461,7 +461,7 @@ Download Sri Bagavath App for latest updates`.trim();
         }}>
             {!hideHeader && (
                 <PageHeader
-                    title={viewingProgram ? viewingProgram.programName : "Programs"}
+                    title={viewingProgram ? viewingProgram.programName : t('PROGRAMS')}
                     rightAction={
                         (isAdmin || hasAccess('PROGRAM_MANAGEMENT')) && (
                             <button
@@ -480,7 +480,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                     cursor: 'pointer'
                                 }}
                             >
-                                Edit
+                                {t('EDIT') || 'Edit'}
                             </button>
                         )
                     }
@@ -518,7 +518,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                         whiteSpace: 'nowrap'
                                     }}
                                 >
-                                    Intro
+                                    {t('INTRO')}
                                 </button>
                             )}
                             {viewingBanner && (
@@ -537,7 +537,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                         whiteSpace: 'nowrap'
                                     }}
                                 >
-                                    Invitation
+                                    {t('INVITATION')}
                                 </button>
                             )}
                             <button
@@ -555,7 +555,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                     whiteSpace: 'nowrap'
                                 }}
                             >
-                                Details
+                                {t('DETAILS')}
                             </button>
                         </div>
                     )}
@@ -679,7 +679,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                         </h1>
                                         <div>
                                             <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 800, color: 'var(--color-text)', marginBottom: '0.75rem' }}>
-                                                Date & Time
+                                                {t('DATE_TIME')}
                                             </span>
                                             <div style={{ fontSize: '1.125rem' }}>
                                                 {(() => {
@@ -702,7 +702,7 @@ Download Sri Bagavath App for latest updates`.trim();
 
                                         <div>
                                             <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 800, color: 'var(--color-text)', marginBottom: '0.75rem' }}>
-                                                Location
+                                                {t('LOCATION')}
                                             </span>
                                             <div style={{ fontSize: '1.125rem', color: 'var(--color-text)', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                                                 <div>{viewingProgram.programVenue}</div>
@@ -724,7 +724,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                                         }}
                                                     >
                                                         <MapPin size={16} />
-                                                        View on Google Maps
+                                                        {t('VIEW_GOOGLE_MAPS')}
                                                     </a>
                                                 )}
                                             </div>
@@ -740,14 +740,14 @@ Download Sri Bagavath App for latest updates`.trim();
                                                 textAlign: 'center',
                                                 border: '1px solid var(--color-success-light)'
                                             }}>
-                                                FREE PROGRAM
+                                                {t('FREE_PROGRAM_BADGE')}
                                             </div>
                                         )}
 
                                         {viewingProgram.programDescription && (
                                             <div>
                                                 <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 800, color: 'var(--color-text)', marginBottom: '0.75rem' }}>
-                                                    Description
+                                                    {t('DESCRIPTION')}
                                                 </span>
                                                 <div style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
                                                     {viewingProgram.programDescription}
@@ -757,11 +757,11 @@ Download Sri Bagavath App for latest updates`.trim();
 
                                         <div>
                                             <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 800, color: 'var(--color-text)', marginBottom: '0.75rem' }}>
-                                                Registration Details
+                                                {t('REGISTRATION_DETAILS')}
                                             </span>
                                             <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
                                                 <div>
-                                                    Status:{' '}
+                                                    {t('STATUS')}:{' '}
                                                     <span style={{
                                                         color: viewingProgram.registrationStatus === 'Open' ? '#10b981' : 'var(--color-error)',
                                                         fontWeight: 500
@@ -770,7 +770,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                                     </span>
                                                 </div>
                                                 <div>
-                                                    Last Date: {new Date(viewingProgram.lastDateToRegister).toLocaleDateString()}
+                                                    {t('LAST_DATE')}: {new Date(viewingProgram.lastDateToRegister).toLocaleDateString()}
                                                 </div>
                                             </div>
                                         </div>
@@ -780,7 +780,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                 {/* Sticky-ish Register Now Button for all tabs when on detail view */}
                                 <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '2rem' }}>
                                     <div style={{ textAlign: 'center', color: 'var(--color-error)', fontWeight: 600 }}>
-                                        {viewingProgram.registrationStatus !== 'Open' && "Registration is closed for this program."}
+                                        {viewingProgram.registrationStatus !== 'Open' && t('REG_CLOSED_NOTE')}
                                     </div>
                                 </div>
                                 </motion.div>
@@ -809,7 +809,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                                 marginBottom: '0.5rem'
                                             }}
                                         >
-                                        {authLoading ? 'Signing in...' : 'My Registrations'}
+                                        {authLoading ? t('SIGNING_IN') : t('MY_REGISTRATIONS')}
                                     </button>
                                 </div>
 
@@ -819,7 +819,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                     color: 'var(--color-text-muted)',
                                     fontSize: '0.95rem'
                                 }}>
-                                    For registration queries please contact{' '}
+                                    {t('REG_QUERIES_CONTACT')}{' '}
                                     <button
                                         onClick={() => handleCopy(onlineRegistrationContact)}
                                         style={{
@@ -847,7 +847,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                         border: '1px solid var(--color-border)'
                                     }}>
                                         <p style={{ fontSize: '1.125rem', color: 'var(--color-text-muted)' }}>
-                                            No upcoming programs scheduled at the moment.
+                                            {t('NO_PROGRAMS_FOUND')}
                                         </p>
                                     </div>
                                 ) : (
@@ -889,7 +889,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                                             textTransform: 'uppercase',
                                                             letterSpacing: '0.5px'
                                                         }}>
-                                                            Free
+                                                            {t('FREE')}
                                                         </span>
                                                     )}
                                                 </h2>
@@ -936,7 +936,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                                                 opacity: authLoading ? 0.7 : 1
                                                             }}
                                                         >
-                                                            {authLoading ? '...' : 'Register Now'}
+                                                            {authLoading ? '...' : t('REGISTER_NOW')}
                                                         </button>
                                                     ) : (
                                                         <span style={{
@@ -949,7 +949,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                                             color: 'var(--color-error)',
                                                             border: '1px solid var(--color-error)'
                                                         }}>
-                                                            Registration Closed
+                                                            {t('REGISTRATION_CLOSED')}
                                                         </span>
                                                     )}
 
@@ -972,7 +972,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                                                         cursor: 'pointer'
                                                                     }}
                                                                 >
-                                                                    Intro
+                                                                    {t('INTRO')}
                                                                 </button>
                                                             )}
                                                             <button
@@ -991,7 +991,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                                                     cursor: 'pointer'
                                                                 }}
                                                             >
-                                                                Details
+                                                                {t('DETAILS')}
                                                             </button>
                                                         </div>
                                                     )}

@@ -132,6 +132,7 @@ const MonthlyMagazine = () => {
     const [subscriptions, setSubscriptions] = useState([]);
     const [subsLoading, setSubsLoading] = useState(false);
     const [authLoading, setAuthLoading] = useState(false);
+    const { driveMagazineId, t } = useGlobalSettings();
 
     useEffect(() => {
         localStorage.setItem('lastVisited_magazines', Date.now().toString());
@@ -175,7 +176,6 @@ const MonthlyMagazine = () => {
     };
 
     // Get folderId from URL or fallback to default
-    const { driveMagazineId } = useGlobalSettings();
     const folderIdParam = searchParams.get('folderId');
     const currentFolderId = folderIdParam || driveMagazineId;
 
@@ -279,7 +279,7 @@ const MonthlyMagazine = () => {
             backgroundColor: 'var(--color-surface)',
             padding: showSubscriptionOptions ? '0' : '1.5rem'
         }}>
-            {!showSubscriptionOptions && <PageHeader title="Monthly Magazine" />}
+            {!showSubscriptionOptions && <PageHeader title={t('MAGAZINE')} />}
 
             {showSubscriptionOptions ? (
                 <motion.div
@@ -292,7 +292,7 @@ const MonthlyMagazine = () => {
                         flexDirection: 'column'
                     }}
                 >
-                    <PageHeader title="Select Subscription" />
+                    <PageHeader title={t('SELECT_SUBSCRIPTION')} />
                     <div style={{ padding: '2rem 1.5rem', maxWidth: '32rem', margin: '0 auto', width: '100%', flex: 1 }}>
                         <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
                             <div style={{
@@ -308,9 +308,9 @@ const MonthlyMagazine = () => {
                             }}>
                                 <Bookmark size={32} />
                             </div>
-                            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-text)', margin: 0 }}>Print Magazine</h2>
+                            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-text)', margin: 0 }}>{t('PRINT_MAGAZINE')}</h2>
                             <p style={{ color: 'var(--color-text-muted)', marginTop: '0.75rem', fontSize: '1rem', lineHeight: 1.5 }}>
-                                Subscribe to receive our high-quality print magazine delivered to your doorstep.
+                                {t('MAGAZINE_DESC')}
                             </p>
                         </div>
 
@@ -333,8 +333,8 @@ const MonthlyMagazine = () => {
                                 }}
                             >
                                 <div>
-                                    <div style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--color-text)' }}>5 Year Subscription</div>
-                                    <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginTop: '4px' }}>60 Issues included</div>
+                                    <div style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--color-text)' }}>{t('FIVE_YEAR_SUB')}</div>
+                                    <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginTop: '4px' }}>{t('SIXTY_ISSUES')}</div>
                                 </div>
                                 <span style={{ fontWeight: 800, fontSize: '1.25rem', color: 'var(--color-primary)' }}>₹500</span>
                             </motion.button>
@@ -357,8 +357,8 @@ const MonthlyMagazine = () => {
                                 }}
                             >
                                 <div>
-                                    <div style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--color-text)' }}>Lifetime Subscription</div>
-                                    <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginTop: '4px' }}>Unlimited Issues</div>
+                                    <div style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--color-text)' }}>{t('LIFETIME_SUB')}</div>
+                                    <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginTop: '4px' }}>{t('UNLIMITED_ISSUES')}</div>
                                 </div>
                                 <span style={{ fontWeight: 800, fontSize: '1.25rem', color: 'var(--color-primary)' }}>₹1000</span>
                             </motion.button>
@@ -378,7 +378,7 @@ const MonthlyMagazine = () => {
                                 cursor: 'pointer'
                             }}
                         >
-                            Cancel and Go Back
+                            {t('CANCEL_GO_BACK')}
                         </button>
                     </div>
                 </motion.div>
@@ -409,7 +409,7 @@ const MonthlyMagazine = () => {
                                 cursor: authLoading ? 'wait' : 'pointer'
                             }}
                         >
-                            {authLoading ? 'Signing in...' : 'Subscribe Print Magazine'}
+                            {authLoading ? t('SIGNING_IN') : t('SUBSCRIBE_MAGAZINE')}
                         </motion.button>
                     </div>
 
@@ -451,7 +451,7 @@ const MonthlyMagazine = () => {
                                         textTransform: 'capitalize'
                                     }}
                                 >
-                                    {tab === 'browse' ? 'Browse' : 'My Subscriptions'}
+                                    {tab === 'browse' ? t('BROWSE') : t('MY_SUBSCRIPTIONS')}
                                     {isActive && (
                                         <motion.div
                                             layoutId="activeTabUnderline"
@@ -485,7 +485,7 @@ const MonthlyMagazine = () => {
                                 }}
                             >
                                 {loading ? (
-                                    <div style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: '2rem' }}>Loading...</div>
+                                    <div style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: '2rem' }}>{t('LOADING')}</div>
                                 ) : error ? (
                                     <div style={{
                                         padding: '0.75rem', backgroundColor: 'rgba(239, 68, 68, 0.1)',
@@ -523,7 +523,7 @@ const MonthlyMagazine = () => {
 
                                         {files.length === 0 && folders.length === 0 && (
                                             <div style={{ textAlign: 'center', color: 'var(--color-text-light)', fontStyle: 'italic' }}>
-                                                No files or folders found.
+                                                {t('NO_FILES_FOLDERS_FOUND') || 'No files or folders found.'}
                                             </div>
                                         )}
                                     </div>
@@ -552,9 +552,9 @@ const MonthlyMagazine = () => {
                                     }}>
                                         <LogIn size={32} color="var(--color-primary)" />
                                     </div>
-                                    <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>Sign In Required</h3>
+                                    <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>{t('SIGN_IN_REQUIRED')}</h3>
                                     <p style={{ color: 'var(--color-text-muted)', margin: '0.5rem 0 1.5rem', fontSize: '0.875rem' }}>
-                                        Sign in to view your magazine subscriptions and tracking status.
+                                        {t('SIGN_IN_SUB_DESC')}
                                     </p>
                                     <button
                                         onClick={ensureAuth}
@@ -569,11 +569,11 @@ const MonthlyMagazine = () => {
                                             cursor: 'pointer'
                                         }}
                                     >
-                                        Sign In with Google
+                                        {t('SIGN_IN_GOOGLE')}
                                     </button>
                                 </div>
                             ) : subsLoading ? (
-                                <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)' }}>Loading subscriptions...</div>
+                                <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)' }}>{t('LOADING_SUBS')}</div>
                             ) : subscriptions.length === 0 ? (
                                 <div style={{
                                     textAlign: 'center',
@@ -584,7 +584,7 @@ const MonthlyMagazine = () => {
                                     border: '1px solid var(--color-border)'
                                 }}>
                                     <Bookmark size={40} style={{ opacity: 0.3, marginBottom: '1rem' }} />
-                                    <p>No active subscriptions found.</p>
+                                    <p>{t('NO_ACTIVE_SUBS')}</p>
                                     <button
                                         onClick={() => setActiveTab('browse')}
                                         style={{
@@ -596,7 +596,7 @@ const MonthlyMagazine = () => {
                                             cursor: 'pointer'
                                         }}
                                     >
-                                        Browse Magazine Instead
+                                        {t('BROWSE_MAG_INSTEAD')}
                                     </button>
                                 </div>
                             ) : (
@@ -624,7 +624,7 @@ const MonthlyMagazine = () => {
                                             </span>
                                         </div>
                                         <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
-                                            Registered on: {new Date(sub.timestamp?.seconds * 1000).toLocaleDateString()}
+                                            {t('REGISTERED_ON')} {new Date(sub.timestamp?.seconds * 1000).toLocaleDateString()}
                                         </div>
                                         {sub.shippingAddress && (
                                             <div style={{
@@ -634,7 +634,7 @@ const MonthlyMagazine = () => {
                                                 borderRadius: '0.5rem',
                                                 fontSize: '0.8125rem'
                                             }}>
-                                                <strong>Shipping to:</strong><br />
+                                                <strong>{t('SHIPPING_TO')}</strong><br />
                                                 {sub.shippingAddress.name}<br />
                                                 {sub.shippingAddress.address}, {sub.shippingAddress.city} - {sub.shippingAddress.pincode}
                                             </div>

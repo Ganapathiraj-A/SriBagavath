@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Phone, MapPin, Globe, Home, ChevronLeft } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 
 const ContactItem = ({ icon: Icon, content, href }) => (
     <div style={{
@@ -48,11 +49,12 @@ const ContactItem = ({ icon: Icon, content, href }) => (
 
 const Contact = () => {
     const navigate = useNavigate();
+    const { t } = useGlobalSettings();
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-surface)', paddingBottom: '2rem' }}>
             <PageHeader
-                title="Contact Us"
+                title={t('CONTACT_US')}
                 leftAction={
                     <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
                         <ChevronLeft size={24} />
@@ -95,19 +97,19 @@ const Contact = () => {
 
                             <ContactItem
                                 icon={MapPin}
-                                content="View on Google Maps"
+                                content={t('VIEW_ON_MAPS')}
                                 href="https://maps.app.goo.gl/RxVQ3nqtvuk84UWs8"
                             />
 
                             <ContactItem
                                 icon={Home}
-                                content="Sri Bagavath Bhavan, Kodambakkadu, Periyakoundapuram, Karippatti, Salem, Tamil Nadu 636106"
+                                content={t('BHAVAN_ADDRESS')}
                                 href="https://maps.app.goo.gl/RxVQ3nqtvuk84UWs8"
                             />
 
                             <ContactItem
                                 icon={Home}
-                                content="Registered Office, 31, Ramalingasamy Street, Ammapet, Salem - 636 003."
+                                content={`${t('REGISTERED_OFFICE')}: ${t('OFFICE_ADDRESS')}`}
                             />
                         </div>
                     </motion.div>
