@@ -101,6 +101,7 @@ const Videos = () => {
                             }}>
                                 {['general', 'teachers'].map(tab => {
                                     const isActive = activeTab === tab;
+                                    const label = tab === 'general' ? t('GENERAL') : t('TEACHERS');
                                     return (
                                         <button
                                             key={tab}
@@ -117,7 +118,7 @@ const Videos = () => {
                                                 transition: 'color 0.2s'
                                             }}
                                         >
-                                            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                                            {label}
                                             {isActive && (
                                                 <motion.div
                                                     layoutId="activeTabUnderline_vids"
