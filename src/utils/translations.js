@@ -242,7 +242,7 @@ export const translations = {
         REGISTERED_ON: "பதிவு செய்யப்பட்ட தேதி:",
         LOADING_SUBS: "சந்தாக்கள் ஏற்றப்படுகின்றன...",
         GENERAL: "பொது",
-        TEACHERS: "ஞான ஆசிரியர்கள் (teachers)",
+        TEACHERS: "ஞான ஆசிரியர்கள்",
         AYYAS_PHOTOS: "அய்யாவின் ஒளிப்படங்கள்",
         RECENT_EVENTS: "சமீபத்திய நிகழ்வுகள்",
         MY_REGISTRATION: "எனது முன் பதிவு",
