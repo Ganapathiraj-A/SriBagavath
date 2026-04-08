@@ -1,27 +1,13 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Phone, MapPin, Globe, Home, ChevronLeft, Copy } from 'lucide-react';
+import { Phone, MapPin, Globe, Home, ChevronLeft } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { useGlobalSettings } from '@/context/GlobalSettingsContext';
-import { Clipboard } from '@capacitor/clipboard';
-import { Toast } from '@capacitor/toast';
 
 const ContactItem = ({ icon: Icon, content, href }) => {
     const { t } = useGlobalSettings();
 
-    const handleCopy = async (e) => {
-        e.stopPropagation();
-        try {
-            await Clipboard.write({ string: content });
-            await Toast.show({
-                text: `${t('COPY_BTN')} ${t('PAST') ? 'done' : 'successful'}`, // Simplified feedback
-                duration: 'short',
-                position: 'center'
-            });
-        } catch (err) {
-            console.error('Copy failed:', err);
-        }
-    };
+
 
     return (
         <div style={{
@@ -54,39 +40,17 @@ const ContactItem = ({ icon: Icon, content, href }) => {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.25rem', flex: 1 }}>
                 {href ? (
-                    <a href={href} style={{ color: 'var(--color-text)', transition: 'color 0.2s', fontSize: '1.1rem', fontWeight: 500, paddingRight: '2rem' }}
+                    <a href={href} style={{ color: 'var(--color-text)', transition: 'color 0.2s', fontSize: '1.1rem', fontWeight: 500 }}
                         onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'}
                         onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text)'}
                     >
                         {content}
                     </a>
                 ) : (
-                    <p style={{ color: 'var(--color-text)', margin: 0, fontSize: '1.1rem', fontWeight: 500, paddingRight: '2rem' }}>{content}</p>
+                    <p style={{ color: 'var(--color-text)', margin: 0, fontSize: '1.1rem', fontWeight: 500 }}>{content}</p>
                 )}
             </div>
-            <button
-                onClick={handleCopy}
-                style={{
-                    position: 'absolute',
-                    right: '1rem',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    color: 'var(--color-text-muted)',
-                    padding: '0.5rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transition: 'color 0.2s'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'}
-                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-muted)'}
-                title="Copy"
-            >
-                <Copy size={18} />
-            </button>
+
         </div>
     );
 };
