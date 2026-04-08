@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { FileText, Folder } from 'lucide-react';
+import { FileText, Folder, Share2 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { useDriveFiles } from '@/hooks/useDriveFiles';
 import { useGlobalSettings } from '@/context/GlobalSettingsContext';
@@ -12,6 +12,7 @@ import { auth } from '@/firebase';
 import { GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
 import { TransactionService } from '@/services/TransactionService';
 import { LogIn, Bookmark } from 'lucide-react';
+import { shareItem } from '@/utils/shareUtils';
 
 const FolderButton = ({ title, onClick, delay }) => {
     return (
@@ -57,30 +58,69 @@ const FolderButton = ({ title, onClick, delay }) => {
 const FileLink = ({ file }) => {
     const viewUrl = file.webViewLink || `https://drive.google.com/file/d/${file.id}/view`;
 
+    const handleShare = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        shareItem({
+            title: file.name,
+            text: `Check out the Monthly Magazine: ${file.name}`,
+            url: viewUrl
+        });
+    };
+
     return (
-        <a
-            href={viewUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-                padding: '0.75rem 1rem',
-                backgroundColor: 'var(--color-surface)',
-                border: '1px solid var(--color-border)',
-                borderRadius: '0.5rem',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                color: 'var(--color-text)',
-                textDecoration: 'none',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem'
-            }}
-        >
-            <FileText size={18} color="var(--color-text-light)" />
-            <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {file.name}
-            </span>
-        </a>
+        <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            width: '100%'
+        }}>
+            <a
+                href={viewUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                    flex: 1,
+                    padding: '0.75rem 1rem',
+                    backgroundColor: 'var(--color-surface)',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: '0.5rem',
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                    color: 'var(--color-text)',
+                    textDecoration: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    minWidth: 0
+                }}
+            >
+                <FileText size={18} color="var(--color-text-light)" />
+                <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {file.name}
+                </span>
+            </a>
+            <button
+                onClick={handleShare}
+                aria-label={`Share ${file.name}`}
+                style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '40px',
+                    height: '40px',
+                    backgroundColor: 'var(--color-primary-transparent)',
+                    color: 'var(--color-primary)',
+                    border: '1px solid var(--color-primary)',
+                    borderRadius: '0.5rem',
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                    transition: 'all 0.2s'
+                }}
+            >
+                <Share2 size={18} />
+            </button>
+        </div>
     );
 };
 
