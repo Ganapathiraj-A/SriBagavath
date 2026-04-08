@@ -40,11 +40,21 @@ const CategoryButton = ({ title, icon: Icon, path, delay, hasNew }) => {
                 color: 'var(--color-primary)',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                flexShrink: 0
             }}>
                 <Icon size={24} />
             </div>
-            <span style={{ fontSize: '1.125rem', fontWeight: 500, color: 'var(--color-text)' }}>{title}</span>
+            <span style={{ 
+                fontSize: '1.125rem', 
+                fontWeight: 500, 
+                color: 'var(--color-text)',
+                flex: 1,
+                textAlign: 'center'
+            }}>
+                {title}
+            </span>
+            <div style={{ width: '48px', flexShrink: 0 }} /> {/* Spacer to balance the icon width for perfect centering */}
             {hasNew && (
                 <div style={{
                     position: 'absolute',

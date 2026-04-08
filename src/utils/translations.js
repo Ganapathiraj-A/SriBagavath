@@ -274,7 +274,7 @@ export const translations = {
         DETAILS: "விவரங்கள்",
         FREE_PROGRAM_BADGE: "இலவச நிகழ்ச்சி",
         VIEW_GOOGLE_MAPS: "கூகுள் வரைபடத்தில் பார்க்க",
-        REGISTER_NOW: "இப்போதே பதிவு செய்யுங்கள்",
+        REGISTER_NOW: "பதிவு செய்ய",
         REGISTRATION_CLOSED: "பதிவு முடிந்தது",
         REG_QUERIES_CONTACT: "பதிவு தொடர்பான கேள்விகளுக்கு தயவுசெய்து தொடர்பு கொள்ளவும்",
         FREE: "இலவசம்"
