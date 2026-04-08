@@ -75,8 +75,19 @@ export const GlobalSettingsProvider = ({ children }) => {
     const [language, setLanguage] = useState(localStorage.getItem('app_language') || 'en');
 
     const t = (key) => {
-        if (!translations[language]) return key;
-        return translations[language][key] || key;
+        // Tamil translations apply only to the "Mobile" section.
+        // The "Web" section (Website Replica and Admin/Backoffice) stays in English.
+        const path = window.location.pathname;
+        const isWebSection = path.startsWith('/web') || 
+                            path.startsWith('/admin') || 
+                            path.startsWith('/configuration') ||
+                            path.startsWith('/manage-users') ||
+                            path.startsWith('/program'); // Special case for legacy top-level admin paths
+
+        const lookupLanguage = isWebSection ? 'en' : language;
+
+        if (!translations[lookupLanguage]) return key;
+        return translations[lookupLanguage][key] || key;
     };
 
     const handleSetLanguage = (lang) => {
