@@ -115,6 +115,11 @@ The project features a **Daily PWA Update** workflow powered by GitHub Actions.
 
 For detailed build system information, see [BUILD_SYSTEM.md](BUILD_SYSTEM.md).
 
+## 🛡 Disaster Recovery
+
+- **Point-in-Time Recovery (PITR)**: ✅ Enabled (7-day sliding window for granular recovery).
+- **Manual Archiving**: ✅ Completed (Encrypted backup available on GitHub and in the Google Cloud bucket `gs://antigravity-backups-us`).
+
 ---
 
 ## 📝 License
