@@ -64,7 +64,11 @@ class ApiMonitor {
 
     saveAndNotify() {
         if (typeof localStorage !== 'undefined') {
-            localStorage.setItem('debug_api_stats', JSON.stringify(this.stats));
+            try {
+                localStorage.setItem('debug_api_stats', JSON.stringify(this.stats));
+            } catch (e) {
+                console.warn("ApiMonitor: Failed to save stats", e);
+            }
         }
         this.notify();
     }

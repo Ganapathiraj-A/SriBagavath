@@ -216,7 +216,13 @@ const ProgramManagement = () => {
             if (_err.message?.includes('index')) {
                 console.warn('CRITICAL: Firestore Index Missing or Building. Check Firebase Console.');
             }
-            alert("Error loading programs. Please try refreshing or check network connection.");
+            // Only alert if we have NO programs to show (to avoid intrusive alerts if cache worked)
+            setPrograms(prev => {
+                if (prev.length === 0) {
+                    alert("Error loading programs. Please try refreshing or check network connection.");
+                }
+                return prev;
+            });
         } finally {
             setLoading(false);
         }
