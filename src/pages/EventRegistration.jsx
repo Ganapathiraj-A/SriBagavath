@@ -15,7 +15,7 @@ const EventRegistration = () => {
     const navigate = useNavigate();
     const { program: initialProgram, savedState } = location.state || {};
     const [program, setProgram] = useState(initialProgram);
-    const { onlineTransactionsEnabled, offlineRegistrationContact } = useGlobalSettings();
+    const { onlineTransactionsEnabled, offlineRegistrationContact, language, t } = useGlobalSettings();
     const { isAdmin } = useAdminAuth();
     const isMobile = Capacitor.isNativePlatform() || window.matchMedia("(max-width: 768px)").matches || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
@@ -157,7 +157,7 @@ const EventRegistration = () => {
     const copyPrimaryMobile = (index) => {
         const primaryMobile = participants[primaryIndex]?.mobile || "";
         if (!primaryMobile) {
-            alert("Primary mobile is empty");
+            alert(language === 'ta' ? "முதன்மை மொபைல் எண் காலியாக உள்ளது" : "Primary mobile is empty");
             return;
         }
         handleParticipantChange(index, 'mobile', primaryMobile);
@@ -228,21 +228,21 @@ const EventRegistration = () => {
     const handleProceed = () => {
         // Validation
         if (!place.trim()) {
-            alert("Please enter the place where you are coming from.");
+            alert(language === 'ta' ? "நீங்கள் எங்கிருந்து வருகிறீர்கள் என்பதை உள்ளிடவும்." : "Please enter the place where you are coming from.");
             return;
         }
 
         for (let i = 0; i < participants.length; i++) {
             const p = participants[i];
             if (!p.name || !p.age || !p.mobile) {
-                alert(`Please fill all details for Participant ${i + 1}`);
+                alert(language === 'ta' ? `பங்கேற்பாளர் ${i + 1} இன் விவரங்களை நிரப்பவும்` : `Please fill all details for Participant ${i + 1}`);
                 return;
             }
         }
 
         const primary = participants[primaryIndex] || participants[0];
         if (!primary?.mobile) {
-            alert("Primary applicant must have a mobile number.");
+            alert(language === 'ta' ? "முதன்மை விண்ணப்பதாரர் மொபைல் எண் வைத்திருக்க வேண்டும்." : "Primary applicant must have a mobile number.");
             return;
         }
 
@@ -305,14 +305,14 @@ const EventRegistration = () => {
     const handleNext = () => {
         if (currentStep === 0) {
             if (!place.trim()) {
-                alert("Please enter the place where you are coming from.");
+                alert(language === 'ta' ? "நீங்கள் எங்கிருந்து வருகிறீர்கள் என்பதை உள்ளிடவும்." : "Please enter the place where you are coming from.");
                 return;
             }
             setCurrentStep(1);
         } else if (currentStep <= participants.length) {
             const p = participants[currentStep - 1];
             if (!p.name || !p.age || !p.mobile) {
-                alert(`Please fill all details for Participant ${currentStep}`);
+                alert(language === 'ta' ? `பங்கேற்பாளர் ${currentStep} இன் விவரங்களை நிரப்பவும்` : `Please fill all details for Participant ${currentStep}`);
                 return;
             }
             setCurrentStep(currentStep + 1);
@@ -344,10 +344,13 @@ const EventRegistration = () => {
                     <div className="card" style={{ padding: '2rem', display: 'grid', gap: '1.5rem' }}>
                         <div style={{ textAlign: 'center' }}>
                             <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-text)', marginBottom: '0.5rem' }}>
-                                Registration Consent
+                                {t('REGISTRATION_CONSENT')}
                             </h2>
                             <p style={{ color: 'var(--color-text-muted)', fontSize: '1rem' }}>
-                                Please review and accept the following terms to proceed with your registration for <strong>{program.programName}</strong>.
+                                {language === 'ta' 
+                                    ? <span><strong>{program.programNameTamil || program.programName}</strong> க்கான உங்கள் பதிவைத் தொடர பின்வரும் விதிமுறைகளை மதிப்பாய்வு செய்து ஏற்கவும்.</span>
+                                    : <span>Please review and accept the following terms to proceed with your registration for <strong>{program.programName}</strong>.</span>
+                                }
                             </p>
                         </div>
 
@@ -409,7 +412,7 @@ const EventRegistration = () => {
     return (
         <div className="payment-container" style={{ paddingTop: 0 }}>
             <PageHeader
-                title={currentStep === totalSteps ? "Review Registration" : "Event Registration"}
+                title={currentStep === totalSteps ? t('ORDER_SUMMARY') : t('REGISTER_FOR_EVENT')}
                 leftAction={
                     <button onClick={() => currentStep > 0 ? handlePrev() : navigate(-1)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
                         <ChevronLeft size={24} />
@@ -447,10 +450,10 @@ const EventRegistration = () => {
                     boxShadow: 'var(--shadow-sm)'
                 }}>
                     <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-text)', margin: 0 }}>
-                        {program?.programName}
+                        {program ? (program.programNameTamil || program.programName) : ''}
                     </h2>
                     <p style={{ fontSize: '1rem', color: 'var(--color-text-muted)', margin: '0.5rem 0 0 0' }}>
-                        {program?.programDate ? new Date(program.programDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : ''} - {program?.programCity}
+                        {program?.programDate ? new Date(program.programDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : ''} - {program ? (program.programCityTamil || program.programCity) : ''}
                     </p>
                 </div>
 
@@ -485,7 +488,7 @@ const EventRegistration = () => {
 
                         <div className="card" style={{ padding: '1.5rem', borderRadius: '1rem' }}>
                             <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                                <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', display: 'block' }}>Total Participants</label>
+                                <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', display: 'block' }}>{t('TOTAL_PARTICIPANTS')}</label>
                                 <select
                                     value={participantCount}
                                     onChange={(e) => setParticipantCount(parseInt(e.target.value))}
@@ -506,13 +509,13 @@ const EventRegistration = () => {
                             </div>
 
                             <div className="form-group" style={{ marginBottom: 0 }}>
-                                <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', display: 'block' }}>Place (Coming From)</label>
+                                <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', display: 'block' }}>{t('CITY')}</label>
                                 <input
                                     type="text"
                                     value={place}
                                     onChange={(e) => setPlace(e.target.value)}
                                     data-testid="reg-place"
-                                    placeholder="e.g. Chennai"
+                                    placeholder={language === 'ta' ? "எ.கா. சென்னை" : "e.g. Chennai"}
                                     style={{ padding: '12px', borderRadius: '0.5rem' }}
                                 />
                             </div>
@@ -544,27 +547,27 @@ const EventRegistration = () => {
                                 gap: '0 1.5rem' 
                             }}>
                                 <div className="form-group">
-                                    <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', display: 'block' }}>Name</label>
+                                    <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', display: 'block' }}>{t('NAME')}</label>
                                     <input
                                         type="text"
                                         value={p.name}
                                         onChange={(e) => handleParticipantChange(index, 'name', e.target.value)}
                                         data-testid={`reg-name-${index}`}
-                                        placeholder="Enter full name"
+                                        placeholder={t('NAME')}
                                         style={{ padding: '12px', borderRadius: '0.5rem' }}
                                     />
                                 </div>
 
                                 <div className="form-group">
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                        <label style={{ fontWeight: 600, fontSize: '0.9rem', margin: 0 }}>Mobile Number</label>
+                                        <label style={{ fontWeight: 600, fontSize: '0.9rem', margin: 0 }}>{t('PHONE_NUMBER')}</label>
                                         {index !== primaryIndex && (
                                             <button
                                                 onClick={() => copyPrimaryMobile(index)}
                                                 className="btn-text"
                                                 style={{ fontSize: '0.75rem', color: 'var(--color-primary)', fontWeight: 700, padding: 0 }}
                                             >
-                                                Use Primary Mobile
+                                                {language === 'ta' ? "முதன்மை மொபைலைப் பயன்படுத்தவும்" : "Use Primary Mobile"}
                                             </button>
                                         )}
                                     </div>
@@ -579,14 +582,14 @@ const EventRegistration = () => {
                                 </div>
 
                                 <div className="form-group">
-                                    <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', display: 'block' }}>Age</label>
+                                    <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', display: 'block' }}>{t('AGE')}</label>
                                     <select
                                         value={p.age}
                                         onChange={(e) => handleParticipantChange(index, 'age', e.target.value)}
                                         style={{ width: '100%', padding: '12px', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-card)', color: 'var(--color-text)', fontSize: '1rem' }}
                                         data-testid={`reg-age-${index}`}
                                     >
-                                        <option value="">Select Age</option>
+                                        <option value="">{language === 'ta' ? "வயதைத் தேர்ந்தெடுக்கவும்" : "Select Age"}</option>
                                         {[...Array(100).keys()].map(age => (
                                             <option key={age} value={age}>{age}</option>
                                         ))}
@@ -594,14 +597,14 @@ const EventRegistration = () => {
                                 </div>
 
                                 <div className="form-group">
-                                    <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', display: 'block' }}>Gender</label>
+                                    <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', display: 'block' }}>{t('GENDER')}</label>
                                     <select 
                                         value={p.gender} 
                                         onChange={(e) => handleParticipantChange(index, 'gender', e.target.value)}
                                         style={{ width: '100%', padding: '12px', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-card)', color: 'var(--color-text)', fontSize: '1rem' }}
                                     >
-                                        <option value="Male">Male</option>
-                                        <option value="Female">Female</option>
+                                        <option value="Male">{t('MALE')}</option>
+                                        <option value="Female">{t('FEMALE')}</option>
                                     </select>
                                 </div>
                             </div>
@@ -704,7 +707,7 @@ const EventRegistration = () => {
                 {/* STEP: ADDITIONAL OPTIONS */}
                 {(isMobile || currentStep === participants.length + 1) && program?.additionalOptions?.length > 0 && (
                     <div className="card" style={{ padding: '1.5rem', borderRadius: '1rem', marginBottom: '1.5rem' }}>
-                        <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1.25rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.75rem' }}>Additional Options</h3>
+                        <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1.25rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.75rem' }}>{t('ADDITIONAL_OPTIONS')}</h3>
                         <div style={{ display: 'grid', gap: '1rem' }}>
                             {program.additionalOptions.map((option, index) => {
                                 const usedCount = optionUsage[option.name] || 0;
@@ -766,7 +769,7 @@ const EventRegistration = () => {
                     }}>
                         <div style={{ marginBottom: '0.75rem', borderBottom: '1px solid var(--color-primary-light)', paddingBottom: '0.75rem' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-                                <h4 style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-primary)', margin: 0 }}>Fee Breakdown</h4>
+                                <h4 style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-primary)', margin: 0 }}>{t('FEE_BREAKDOWN')}</h4>
                                 {isAdmin && (
                                     <span style={{ fontSize: '0.7rem', backgroundColor: 'var(--color-primary)', color: 'white', padding: '2px 8px', borderRadius: '4px', fontWeight: 600 }}>
                                         ADMIN VIEW
@@ -790,8 +793,8 @@ const EventRegistration = () => {
                         </div>
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                            <span style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--color-text)' }}>Total Estimated Amount:</span>
-                            <span style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--color-primary)' }}>{calculateTotal() > 0 ? `₹${calculateTotal()}` : 'FREE'}</span>
+                            <span style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--color-text)' }}>{t('TOTAL')}:</span>
+                            <span style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--color-primary)' }}>{calculateTotal() > 0 ? `₹${calculateTotal()}` : (language === 'ta' ? 'இலவசம்' : 'FREE')}</span>
                         </div>
 
 
@@ -808,8 +811,11 @@ const EventRegistration = () => {
                                 boxShadow: '0 4px 12px var(--color-primary-transparent)'
                             }}
                         >
-                            {calculateTotal() > 0 ? 'Confirm & Proceed to Pay' : 'Finish Registration'}
-                        </button>
+                                {calculateTotal() > 0 
+                                    ? (language === 'ta' ? 'உறுதிசெய்து பணம் செலுத்த தொடரவும்' : 'Confirm & Proceed to Pay') 
+                                    : (language === 'ta' ? 'பதிவு முடிக்க' : 'Finish Registration')
+                                }
+                            </button>
                     </div>
                 )}
             </div>
@@ -849,7 +855,7 @@ const EventRegistration = () => {
                                 cursor: currentStep === 0 ? 'not-allowed' : 'pointer'
                             }}
                         >
-                            Previous
+                            {language === 'ta' ? 'பின்பு' : 'Previous'}
                         </button>
                         
                         <button 
@@ -865,8 +871,10 @@ const EventRegistration = () => {
                             }}
                         >
                             {currentStep === totalSteps 
-                                ? (calculateTotal() > 0 ? 'Confirm & Proceed to Pay' : 'Finish Registration') 
-                                : 'Next Step'
+                                ? (calculateTotal() > 0 
+                                    ? (language === 'ta' ? 'உறுதிசெய்து பணம் செலுத்த தொடரவும்' : 'Confirm & Proceed to Pay') 
+                                    : (language === 'ta' ? 'பதிவு முடிக்க' : 'Finish Registration'))
+                                : (language === 'ta' ? 'அடுத்த படி' : 'Next Step')
                             }
                         </button>
                     </div>

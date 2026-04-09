@@ -27,6 +27,7 @@ const DailyZoomTeacherManagement = () => {
 
     const [formData, setFormData] = useState({
         name: '',
+        nameTamil: '',
         image: '',
         googleId: '',
         phoneNumber: '',
@@ -89,6 +90,7 @@ const DailyZoomTeacherManagement = () => {
                 // Backward compatibility: sync to legacy collection
                 await updateDoc(doc(db, 'daily_zoom_teachers', editingId), {
                     name: dataToSave.name,
+                    nameTamil: dataToSave.nameTamil || '',
                     image: dataToSave.image,
                     googleId: dataToSave.googleId,
                     phoneNumber: dataToSave.phoneNumber
@@ -103,6 +105,7 @@ const DailyZoomTeacherManagement = () => {
                 // Backward compatibility: sync to legacy collection using same ID
                 await updateDoc(doc(db, 'daily_zoom_teachers', teacherId), {
                     name: dataToSave.name,
+                    nameTamil: dataToSave.nameTamil || '',
                     image: dataToSave.image,
                     googleId: dataToSave.googleId,
                     phoneNumber: dataToSave.phoneNumber,
@@ -112,6 +115,7 @@ const DailyZoomTeacherManagement = () => {
                     const { setDoc } = await import('@/utils/FirestoreProxy');
                     await setDoc(doc(db, 'daily_zoom_teachers', teacherId), {
                         name: dataToSave.name,
+                        nameTamil: dataToSave.nameTamil || '',
                         image: dataToSave.image,
                         googleId: dataToSave.googleId,
                         phoneNumber: dataToSave.phoneNumber,
@@ -152,6 +156,7 @@ const DailyZoomTeacherManagement = () => {
     const handleEdit = (teacher) => {
         setFormData({
             name: teacher.name || '',
+            nameTamil: teacher.nameTamil || '',
             image: teacher.image || '',
             googleId: teacher.googleId || '',
             phoneNumber: teacher.phoneNumber || '',
@@ -189,6 +194,7 @@ const DailyZoomTeacherManagement = () => {
     const resetForm = () => {
         setFormData({ 
             name: '', 
+            nameTamil: '',
             image: '', 
             googleId: '', 
             phoneNumber: '',
@@ -214,17 +220,30 @@ const DailyZoomTeacherManagement = () => {
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
                     <div style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '1.5rem', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)', marginBottom: '2rem' }}>
                         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                            <div style={{ display: 'grid', gap: '0.4rem' }}>
-                                <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Name</label>
-                                <input
-                                    type="text"
-                                    name="name"
-                                    value={formData.name}
-                                    onChange={handleInputChange}
-                                    required
-                                    placeholder="Full Name"
-                                    style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
-                                />
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div style={{ display: 'grid', gap: '0.4rem' }}>
+                                    <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Name (English)</label>
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        value={formData.name}
+                                        onChange={handleInputChange}
+                                        required
+                                        placeholder="Full Name"
+                                        style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
+                                    />
+                                </div>
+                                <div style={{ display: 'grid', gap: '0.4rem' }}>
+                                    <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Name (Tamil)</label>
+                                    <input
+                                        type="text"
+                                        name="nameTamil"
+                                        value={formData.nameTamil}
+                                        onChange={handleInputChange}
+                                        placeholder="பெயர்"
+                                        style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
+                                    />
+                                </div>
                             </div>
 
                             <div style={{ display: 'grid', gap: '0.4rem' }}>
@@ -357,7 +376,7 @@ const DailyZoomTeacherManagement = () => {
                                     </div>
                                     <div style={{ flex: 1 }}>
                                         <div style={{ fontWeight: 600, color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            {t.name}
+                                            {t === undefined ? t : (t.nameTamil && t.nameTamil !== t.name) ? `${t.nameTamil} (${t.name})` : t.name}
                                             {t.showInConsultation && <span style={{ fontSize: '0.65rem', backgroundColor: 'var(--color-primary-transparent)', color: 'var(--color-primary)', padding: '2px 6px', borderRadius: '99px' }}>Consultant</span>}
                                         </div>
                                         <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>

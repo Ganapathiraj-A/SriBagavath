@@ -38,6 +38,7 @@ const ProgramTypesManagement = () => {
 
     const [formData, setFormData] = useState({
         name: '',
+        nameTamil: '',
         maxParticipants: '',
         programFee: '',
         isConsentNeeded: 'N',
@@ -79,6 +80,7 @@ const ProgramTypesManagement = () => {
     const resetForm = () => {
         setFormData({
             name: '',
+            nameTamil: '',
             maxParticipants: '',
             programFee: '',
             isConsentNeeded: 'N',
@@ -118,6 +120,7 @@ const ProgramTypesManagement = () => {
     const handleEdit = (type) => {
         setFormData({
             name: type.name || '',
+            nameTamil: type.nameTamil || '',
             maxParticipants: type.maxParticipants || '',
             programFee: type.programFee || '',
             isConsentNeeded: type.isConsentNeeded || 'N',
@@ -197,16 +200,29 @@ const ProgramTypesManagement = () => {
                         {/* Title handled by PageHeader */}
 
                         <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1rem', marginBottom: '2rem', padding: '1.5rem', backgroundColor: 'var(--color-surface)', borderRadius: '0.75rem', border: '1px solid var(--color-border)' }}>
-                            <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                <label style={{ fontWeight: 500, color: 'var(--color-text)' }}>Program Type Name *</label>
-                                <input
-                                    type="text"
-                                    name="name"
-                                    value={formData.name}
-                                    onChange={handleInputChange}
-                                    required
-                                    style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', width: '100%', backgroundColor: 'var(--color-card)', color: 'var(--color-text)' }}
-                                />
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div style={{ display: 'grid', gap: '0.5rem' }}>
+                                    <label style={{ fontWeight: 500, color: 'var(--color-text)' }}>Name (English) *</label>
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        value={formData.name}
+                                        onChange={handleInputChange}
+                                        required
+                                        style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', width: '100%', backgroundColor: 'var(--color-card)', color: 'var(--color-text)' }}
+                                    />
+                                </div>
+                                <div style={{ display: 'grid', gap: '0.5rem' }}>
+                                    <label style={{ fontWeight: 500, color: 'var(--color-text)' }}>Name (Tamil)</label>
+                                    <input
+                                        type="text"
+                                        name="nameTamil"
+                                        value={formData.nameTamil}
+                                        onChange={handleInputChange}
+                                        required
+                                        style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', width: '100%', backgroundColor: 'var(--color-card)', color: 'var(--color-text)' }}
+                                    />
+                                </div>
                             </div>
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
@@ -456,7 +472,9 @@ const ProgramTypesManagement = () => {
                                     </div>
 
                                     <div style={{ flex: 1, display: 'grid', gap: '0.25rem' }}>
-                                        <div style={{ fontWeight: 600, fontSize: '1.125rem' }}>{type.name}</div>
+                                        <div style={{ fontWeight: 600, fontSize: '1.125rem' }}>
+                                            {type.nameTamil ? `${type.nameTamil} (${type.name})` : type.name}
+                                        </div>
                                         <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                                             <span>Max Participants: {type.maxParticipants || '-'}</span>
                                             <span>Fee: ₹{type.programFee || '0'}</span>

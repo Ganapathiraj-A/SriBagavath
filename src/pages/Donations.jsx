@@ -242,7 +242,7 @@ const Donations = () => {
                                 {option.isCustom && selectedAmount === option.id && (
                                     <input
                                         type="number"
-                                        placeholder="Enter amount"
+                                        placeholder={t('ENTER_AMOUNT')}
                                         value={customAmount}
                                         onChange={(e) => setCustomAmount(e.target.value)}
                                         onClick={(e) => e.stopPropagation()}

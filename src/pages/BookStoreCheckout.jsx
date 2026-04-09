@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { RotateCcw } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 import '../components/RegistrationStyles.css';
 
 const BookStoreCheckout = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { items, totalPrice, isDonation, isMagazineSubscription } = location.state || { items: [], totalPrice: 0, isDonation: false, isMagazineSubscription: false };
+    const { language, t } = useGlobalSettings();
 
     const [details, setDetails] = useState({
         name: '',
@@ -40,7 +42,10 @@ const BookStoreCheckout = () => {
     const handleProceed = () => {
         const requiresAddress = !isDonation; // Both Books and Magazine Subscriptions require address
         if (!details.name || !details.mobile || (requiresAddress && (!details.address || !details.city || !details.pincode))) {
-            alert(requiresAddress ? "Please fill all shipping details." : "Please fill your name and mobile.");
+            const msg = requiresAddress 
+                ? (language === 'ta' ? "ஷிப்பிங் விவரங்கள் அனைத்தையும் நிரப்பவும்." : "Please fill all shipping details.")
+                : (language === 'ta' ? "உங்கள் பெயர் மற்றும் மொபைல் எண்ணை உள்ளிடவும்." : "Please fill your name and mobile.");
+            alert(msg);
             return;
         }
 
@@ -79,17 +84,22 @@ const BookStoreCheckout = () => {
     };
 
     if (items.length === 0) {
-        return <div style={{ padding: '20px', textAlign: 'center' }}>No items found. <button onClick={() => navigate(isDonation ? '/donations' : '/bookstore')}>Go Back</button></div>;
+        return <div style={{ padding: '20px', textAlign: 'center' }}>
+            {language === 'ta' ? 'பொருட்கள் எதுவும் கிடைக்கவில்லை.' : 'No items found.'}
+            <button onClick={() => navigate(isDonation ? '/donations' : '/bookstore')}>
+                {language === 'ta' ? 'மீண்டும் செல்லுங்கள்' : 'Go Back'}
+            </button>
+        </div>;
     }
 
     return (
         <div style={{ backgroundColor: '#f9fafb', minHeight: '100vh', paddingBottom: '20px' }}>
-            <PageHeader title={isDonation ? "Donation Details" : (isMagazineSubscription ? "Subscription Details" : "Shipping Details")} />
+            <PageHeader title={isDonation ? t('DONATION_DETAILS') : (isMagazineSubscription ? t('SHIPPING_ADDRESS') : t('SHIPPING_ADDRESS'))} />
 
             <div style={{ padding: '16px' }}>
                 <div className="card">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                        <h3 style={{ margin: 0 }}>Order Summary</h3>
+                        <h3 style={{ margin: 0 }}>{t('ORDER_SUMMARY')}</h3>
                         {hasPreviousInfo && (
                             <button
                                 onClick={handleUsePrevious}
@@ -107,7 +117,7 @@ const BookStoreCheckout = () => {
                                 }}
                             >
                                 <RotateCcw size={14} />
-                                Use Previous Info
+                                {language === 'ta' ? 'கடந்த அமர்வின் விவரங்களை நிரப்பவும்' : 'Use Previous Info'}
                             </button>
                         )}
                     </div>
@@ -119,34 +129,34 @@ const BookStoreCheckout = () => {
                     ))}
                     <hr style={{ border: 'none', borderTop: '1px solid #eee', margin: '12px 0' }} />
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', fontSize: '1.125rem' }}>
-                        <span>Total Amount</span>
+                        <span>{t('TOTAL')}</span>
                         <span>₹{totalPrice}</span>
                     </div>
                 </div>
 
                 <div className="card" style={{ marginTop: '16px' }}>
-                    <h3>{isDonation ? 'Donor Details' : (isMagazineSubscription ? 'Subscription Details & Address' : 'Delivery Address')}</h3>
+                    <h3>{isDonation ? t('DONATION_DETAILS') : (isMagazineSubscription ? t('SHIPPING_ADDRESS') : t('SHIPPING_ADDRESS'))}</h3>
                     <div className="form-group">
-                        <label>Full Name</label>
-                        <input name="name" type="text" value={details.name} onChange={handleInput} placeholder={isDonation ? "Enter your name" : "Enter recipient name"} data-testid="checkout-name" />
+                        <label>{t('NAME')}</label>
+                        <input name="name" type="text" value={details.name} onChange={handleInput} placeholder={isDonation ? (language === 'ta' ? "உங்கள் பெயரை உள்ளிடவும்" : "Enter your name") : (language === 'ta' ? "பெறுநரின் பெயரை உள்ளிடவும்" : "Enter recipient name")} data-testid="checkout-name" />
                     </div>
                     <div className="form-group">
-                        <label>Mobile Number</label>
-                        <input name="mobile" type="tel" value={details.mobile} onChange={handleInput} placeholder="Enter mobile for contact" data-testid="checkout-mobile" />
+                        <label>{t('PHONE_NUMBER')}</label>
+                        <input name="mobile" type="tel" value={details.mobile} onChange={handleInput} placeholder={language === 'ta' ? "தொடர்பு கொள்ள மொபைல் எண்ணை உள்ளிடவும்" : "Enter mobile for contact"} data-testid="checkout-mobile" />
                     </div>
                     {!isDonation && (
                         <>
                             <div className="form-group">
-                                <label>Full Address</label>
-                                <textarea name="address" value={details.address} onChange={handleInput} placeholder="House No, Street, Landmark" style={{ width: '100%', minHeight: '80px', padding: '8px', border: '1px solid #ddd', borderRadius: '8px' }} data-testid="checkout-address" />
+                                <label>{language === 'ta' ? 'முழு முகவரி' : 'Full Address'}</label>
+                                <textarea name="address" value={details.address} onChange={handleInput} placeholder={language === 'ta' ? "வீட்டு எண், தெரு, அடையாளச் சின்னம்" : "House No, Street, Landmark"} style={{ width: '100%', minHeight: '80px', padding: '8px', border: '1px solid #ddd', borderRadius: '8px' }} data-testid="checkout-address" />
                             </div>
                             <div style={{ display: 'flex', gap: '8px' }}>
                                 <div className="form-group" style={{ flex: 1 }}>
-                                    <label>City</label>
+                                    <label>{t('CITY')}</label>
                                     <input name="city" type="text" value={details.city} onChange={handleInput} data-testid="checkout-city" />
                                 </div>
                                 <div className="form-group" style={{ flex: 1 }}>
-                                    <label>Pincode</label>
+                                    <label>{language === 'ta' ? 'பின்கோடு' : 'Pincode'}</label>
                                     <input name="pincode" type="number" value={details.pincode} onChange={handleInput} data-testid="checkout-pincode" />
                                 </div>
                             </div>
@@ -160,7 +170,7 @@ const BookStoreCheckout = () => {
                     onClick={handleProceed}
                     data-testid="checkout-proceed"
                 >
-                    Proceed to Payment
+                    {language === 'ta' ? 'பணம் செலுத்த தொடரவும்' : 'Proceed to Payment'}
                 </button>
             </div>
         </div>

@@ -14,10 +14,12 @@ import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 import { shareCanvasImage, shareItem } from '@/utils/shareUtils';
 import { Capacitor } from '@capacitor/core';
 
-const MeetingCard = ({ meeting, teacher, delay, onShare, isSharing }) => {
+const MeetingCard = ({ meeting, teacher, delay, onShare, isSharing, language }) => {
     const date = new Date(meeting.date);
 
-    const displayName = teacher?.name || meeting.name || 'Unknown Speaker';
+    const displayName = language === 'ta' 
+        ? (teacher?.nameTamil || teacher?.name || meeting.nameTamil || meeting.name || 'அறியப்படாத பேச்சாளர்')
+        : (teacher?.name || meeting.name || 'Unknown Speaker');
     const displayImage = teacher?.imageUrl || teacher?.image || meeting.imageUrl || meeting.image;
 
     return (
@@ -109,7 +111,7 @@ const MeetingCard = ({ meeting, teacher, delay, onShare, isSharing }) => {
 
                 {meeting.description && (
                     <p style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)', margin: '0 0 1rem 0', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                        {meeting.description}
+                        {language === 'ta' ? (meeting.descriptionTamil || meeting.description) : meeting.description}
                     </p>
                 )}
 
@@ -210,7 +212,7 @@ const DailyZoomMeetings = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { isAdmin, hasAccess, loading: authLoading } = useAdminAuth();
-    const { hiddenScreens, devMode, t } = useGlobalSettings();
+    const { hiddenScreens, devMode, t, language } = useGlobalSettings();
 
     const effectiveRole = isAdmin ? (devMode ? 'dev' : 'admin') : 'public';
     const currentHiddenScreens = hiddenScreens?.[effectiveRole] || [];
@@ -572,7 +574,7 @@ const DailyZoomMeetings = () => {
                                 cursor: 'pointer'
                             }}
                         >
-                            Edit
+                            {language === 'ta' ? 'திருத்து' : 'Edit'}
                         </button>
                     )
                 }
@@ -583,7 +585,9 @@ const DailyZoomMeetings = () => {
                 <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.75rem' }}>
                     {teachers.length > 0 && (
                         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#4b5563', paddingLeft: '0.2rem' }}>Filter by Speaker</label>
+                            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#4b5563', paddingLeft: '0.2rem' }}>
+                                {language === 'ta' ? 'பேச்சாளர் மூலம் வடிகட்டவும்' : 'Filter by Speaker'}
+                            </label>
                             <select
                                 value={selectedTeacherId}
                                 onChange={(e) => setSelectedTeacherId(e.target.value)}
@@ -606,9 +610,11 @@ const DailyZoomMeetings = () => {
                                     backgroundSize: '1.25rem'
                                 }}
                             >
-                                <option value="all">All Speakers</option>
+                                <option value="all">{language === 'ta' ? 'அனைத்து பேச்சாளர்கள்' : 'All Speakers'}</option>
                                 {teachers.map(t => (
-                                    <option key={t.id} value={t.id}>{t.name}</option>
+                                    <option key={t.id} value={t.id}>
+                                        {language === 'ta' ? (t.nameTamil || t.name) : t.name}
+                                    </option>
                                 ))}
                             </select>
                         </div>
@@ -662,7 +668,7 @@ const DailyZoomMeetings = () => {
                             transition: 'all 0.2s'
                         }}
                     >
-                        <Calendar size={18} /> Upcoming
+                        <Calendar size={18} /> {language === 'ta' ? 'வரவிருப்பவை' : 'Upcoming'}
                     </button>
                     <button
                         onClick={() => setActiveTab('past')}
@@ -681,7 +687,7 @@ const DailyZoomMeetings = () => {
                             transition: 'all 0.2s'
                         }}
                     >
-                        <Clock size={18} /> Past
+                        <Clock size={18} /> {language === 'ta' ? 'கடந்த கால' : 'Past'}
                     </button>
                 </div>
 
@@ -689,7 +695,7 @@ const DailyZoomMeetings = () => {
                     <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
                         <h2 style={{ fontSize: '1rem', fontWeight: 750, color: 'var(--color-text)', margin: '0.5rem 0 0.2rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             {activeTab === 'upcoming' ? <Calendar size={18} color={ORANGE} /> : <Youtube size={18} color="#ef4444" />}
-                            {activeTab === 'upcoming' ? 'Upcoming Meetings' : 'Past Recordings (YouTube)'}
+                            {activeTab === 'upcoming' ? (language === 'ta' ? 'வரவிருக்கும் கூட்டங்கள்' : 'Upcoming Meetings') : (language === 'ta' ? 'கடந்த கால பதிவுகள் (YouTube)' : 'Past Recordings (YouTube)')}
                         </h2>
                         {displayedMeetings.length > 0 && (
                             <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>
@@ -702,12 +708,17 @@ const DailyZoomMeetings = () => {
                 {(loading || isYoutubeLoading) ? (
                     <div style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: '3rem' }}>
                         <Loader2 className="animate-spin" size={32} style={{ margin: '0 auto 1rem auto' }} />
-                        <p>Loading meetings...</p>
+                        <p>{language === 'ta' ? 'கூட்டங்கள் ஏற்றப்படுகின்றன...' : 'Loading meetings...'}</p>
                     </div>
                 ) : displayedMeetings.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '3rem', backgroundColor: 'var(--color-card)', borderRadius: '1rem', border: '1px solid var(--color-border)' }}>
                         <Video size={48} color="var(--color-text-light)" style={{ marginBottom: '1rem' }} />
-                        <p style={{ color: 'var(--color-text-muted)' }}>No {activeTab} meetings found for the selected criteria.</p>
+                        <p style={{ color: 'var(--color-text-muted)' }}>
+                            {language === 'ta' 
+                                ? 'தேர்வு செய்தCriteria-க்கு கூட்டங்கள் எதுவும் கிடைக்கவில்லை.' 
+                                : `No ${activeTab} meetings found for the selected criteria.`
+                            }
+                        </p>
                     </div>
                 ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -729,6 +740,7 @@ const DailyZoomMeetings = () => {
                                     delay={idx * 0.05}
                                     onShare={handleShareMeeting}
                                     isSharing={isSharingMeetingId === m.id}
+                                    language={language}
                                 />
                             );
                         })}
@@ -756,11 +768,11 @@ const DailyZoomMeetings = () => {
                             >
                                 {loadingMore ? (
                                     <>
-                                        <Loader2 className="spin" size={18} /> Loading...
+                                        <Loader2 className="spin" size={18} /> {language === 'ta' ? 'ஏற்றப்படுகிறது...' : 'Loading...'}
                                     </>
                                 ) : (
                                     <>
-                                        Load More <ChevronRight size={18} />
+                                        {language === 'ta' ? 'மேலும் ஏற்றவும்' : 'Load More'} <ChevronRight size={18} />
                                     </>
                                 )}
                             </button>

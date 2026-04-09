@@ -18,7 +18,7 @@ const About = () => {
                             margin: '0 auto 1.5rem auto',
                             borderRadius: '9999px',
                             overflow: 'hidden',
-                            border: '4px solid var(--color-primary)',
+                            border: '4px solid white',
                             boxShadow: 'var(--shadow-md)',
                             backgroundColor: 'var(--color-surface)',
                             display: 'flex',

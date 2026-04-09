@@ -11,7 +11,7 @@ import { ensureGoogleAuthInitialized } from '@/utils/GoogleAuthUtils';
 import { auth } from '@/firebase';
 import { GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
 import { TransactionService } from '@/services/TransactionService';
-import { LogIn, Bookmark } from 'lucide-react';
+import { LogIn, Bookmark, ExternalLink } from 'lucide-react';
 import { shareItem } from '@/utils/shareUtils';
 
 const FolderButton = ({ title, onClick, delay }) => {
@@ -111,7 +111,7 @@ const FileLink = ({ file }) => {
                     height: '40px',
                     backgroundColor: 'var(--color-primary-transparent)',
                     color: 'var(--color-primary)',
-                    border: '1px solid var(--color-primary)',
+                    border: '1px solid var(--color-border)',
                     borderRadius: '0.5rem',
                     cursor: 'pointer',
                     flexShrink: 0,
@@ -279,7 +279,34 @@ const MonthlyMagazine = () => {
             backgroundColor: 'var(--color-surface)',
             padding: showSubscriptionOptions ? '0' : '1.5rem'
         }}>
-            {!showSubscriptionOptions && <PageHeader title={t('MAGAZINE')} />}
+            {!showSubscriptionOptions && (
+                <PageHeader 
+                    title={t('MAGAZINE')} 
+                    rightAction={
+                        <a
+                            href={`https://drive.google.com/drive/folders/${currentFolderId}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                padding: '0.5rem 0.75rem',
+                                backgroundColor: 'var(--color-surface)',
+                                color: 'var(--color-primary)',
+                                border: '1px solid var(--color-border)',
+                                borderRadius: '0.75rem',
+                                fontSize: '0.8125rem',
+                                fontWeight: 600,
+                                textDecoration: 'none'
+                            }}
+                        >
+                            <ExternalLink size={16} />
+                            Drive
+                        </a>
+                    }
+                />
+            )}
 
             {showSubscriptionOptions ? (
                 <motion.div

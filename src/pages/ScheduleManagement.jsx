@@ -9,6 +9,7 @@ import PageHeader from '@/components/PageHeader';
 import '../components/RegistrationStyles.css';
 import { getLocalDateString } from '@/utils/dateUtils';
 import { bumpServerVersion } from '@/utils/SyncManager';
+import { TranslationUtils } from '@/utils/TranslationUtils';
 
 const ScheduleManagement = () => {
     const navigate = useNavigate();
@@ -21,7 +22,8 @@ const ScheduleManagement = () => {
     const [formData, setFormData] = useState({
         fromDate: '',
         toDate: '',
-        place: ''
+        place: '',
+        placeTamil: ''
     });
 
     useEffect(() => {
@@ -56,6 +58,22 @@ const ScheduleManagement = () => {
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+        
+        if (name === 'place' && value) {
+            // Attempt auto-fill
+            TranslationUtils.getLearnedCity(value).then(tamil => {
+                if (tamil) setFormData(prev => ({ ...prev, placeTamil: tamil }));
+            });
+        }
+    };
+
+    const handlePlaceBlur = async () => {
+        if (formData.place && !formData.placeTamil) {
+            const tamil = await TranslationUtils.getLearnedCity(formData.place);
+            if (tamil) {
+                setFormData(prev => ({ ...prev, placeTamil: tamil }));
+            }
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -70,8 +88,14 @@ const ScheduleManagement = () => {
                 fromDate: formData.fromDate,
                 toDate: formData.toDate,
                 place: formData.place,
+                placeTamil: formData.placeTamil || '',
                 updatedAt: serverTimestamp()
             };
+
+            // Save learned city
+            if (formData.place && formData.placeTamil) {
+                await TranslationUtils.saveLearnedCity(formData.place, formData.placeTamil);
+            }
 
             if (editingSchedule) {
                 await updateDoc(doc(db, 'schedules', editingSchedule.id), scheduleData);
@@ -101,7 +125,8 @@ const ScheduleManagement = () => {
         setFormData({
             fromDate: schedule.fromDate,
             toDate: schedule.toDate,
-            place: schedule.place
+            place: schedule.place,
+            placeTamil: schedule.placeTamil || ''
         });
         setShowForm(true);
     };
@@ -120,7 +145,7 @@ const ScheduleManagement = () => {
     };
 
     const resetForm = () => {
-        setFormData({ fromDate: '', toDate: '', place: '' });
+        setFormData({ fromDate: '', toDate: '', place: '', placeTamil: '' });
         setEditingSchedule(null);
         setShowForm(false);
     };
@@ -306,17 +331,32 @@ const ScheduleManagement = () => {
                             </div>
 
                             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: '0.4rem' }}>Place/City</label>
-                                    <input
-                                        type="text"
-                                        name="place"
-                                        required
-                                        value={formData.place}
-                                        onChange={handleInputChange}
-                                        placeholder="Enter place..."
-                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '12px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)', outline: 'none' }}
-                                    />
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: '0.4rem' }}>Place/City (English)</label>
+                                        <input
+                                            type="text"
+                                            name="place"
+                                            required
+                                            value={formData.place}
+                                            onChange={handleInputChange}
+                                            onBlur={handlePlaceBlur}
+                                            placeholder="Enter place..."
+                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '12px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)', outline: 'none' }}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: '0.4rem' }}>Place/City (Tamil)</label>
+                                        <input
+                                            type="text"
+                                            name="placeTamil"
+                                            required
+                                            value={formData.placeTamil}
+                                            onChange={handleInputChange}
+                                            placeholder="திருப்பூர்"
+                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '12px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)', outline: 'none' }}
+                                        />
+                                    </div>
                                 </div>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                     <div>

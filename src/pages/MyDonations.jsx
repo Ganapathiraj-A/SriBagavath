@@ -9,6 +9,7 @@ import { Capacitor } from '@capacitor/core';
 import { ensureGoogleAuthInitialized } from '@/utils/GoogleAuthUtils';
 import { auth } from '@/firebase';
 import { GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 
 const MyDonations = ({ hideHeader = false }) => {
     const [donations, setDonations] = useState([]);
@@ -16,6 +17,7 @@ const MyDonations = ({ hideHeader = false }) => {
     const [authLoading, setAuthLoading] = useState(false);
     const [currentUser, setCurrentUser] = useState(auth.currentUser);
     const [viewingImage, setViewingImage] = useState(null);
+    const { t } = useGlobalSettings();
 
     useEffect(() => {
         const unsubAuth = auth.onAuthStateChanged(user => {
@@ -62,11 +64,11 @@ const MyDonations = ({ hideHeader = false }) => {
             if (base64) {
                 setViewingImage({ base64, utr: donation.utr });
             } else {
-                alert("No receipt image found for this donation.");
+                alert(t('NO_RECEIPT_FOUND'));
             }
         } catch (_err) {
             console.error("Error fetching receipt:", _err);
-            alert("Error loading receipt.");
+            alert(t('ERROR_LOADING_RECEIPT'));
         }
     };
 
@@ -78,6 +80,16 @@ const MyDonations = ({ hideHeader = false }) => {
         });
         return () => unsubscribe();
     }, []);
+
+    const getStatusText = (status) => {
+        switch (status) {
+            case 'COMPLETED': return t('STATUS_COMPLETED');
+            case 'PROCESSING': return t('STATUS_PROCESSING');
+            case 'PENDING': return t('STATUS_PENDING');
+            case 'REJECTED': return t('STATUS_REJECTED');
+            default: return status;
+        }
+    };
 
     const getStatusColor = (status) => {
         switch (status) {
@@ -101,7 +113,7 @@ const MyDonations = ({ hideHeader = false }) => {
 
     return (
         <div style={{ backgroundColor: 'var(--color-background)', minHeight: hideHeader ? 'auto' : '100vh', paddingBottom: '20px' }}>
-            {!hideHeader && <PageHeader title="My Donations" />}
+            {!hideHeader && <PageHeader title={t('MY_DONATIONS_BTN')} />}
 
             <div style={{ padding: '16px', maxWidth: '32rem', margin: '0 auto' }}>
                 {!currentUser || currentUser.isAnonymous ? (
@@ -128,9 +140,9 @@ const MyDonations = ({ hideHeader = false }) => {
                         }}>
                             <LogIn size={32} color="#10b981" />
                         </div>
-                        <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--color-text)', marginBottom: '8px' }}>Sign in Required</h2>
+                        <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--color-text)', marginBottom: '8px' }}>{t('SIGN_IN_REQUIRED')}</h2>
                         <p style={{ color: 'var(--color-text-muted)', marginBottom: '24px', fontSize: '15px' }}>
-                            Please sign in with your Google account to view your past donations.
+                            {t('SIGN_IN_DONATIONS_DESC')}
                         </p>
                         <button
                             onClick={ensureAuth}
@@ -151,14 +163,14 @@ const MyDonations = ({ hideHeader = false }) => {
                                 gap: '8px'
                             }}
                         >
-                            {authLoading ? 'Signing in...' : 'Sign in with Google'}
+                            {authLoading ? t('SIGNING_IN') : t('SIGN_IN_GOOGLE')}
                         </button>
                     </div>
                 ) : (
                     <>
                         {loading && (
                             <div style={{ textAlign: 'center', marginTop: '40px', color: 'var(--color-text-muted)' }}>
-                                Loading Donations...
+                                {t('LOADING_PROGRAMS')}
                             </div>
                         )}
 
@@ -171,7 +183,7 @@ const MyDonations = ({ hideHeader = false }) => {
                                 borderRadius: '16px',
                                 border: '2px dashed var(--color-border)'
                             }}>
-                                <p style={{ color: 'var(--color-text-muted)', margin: 0 }}>You haven&apos;t made any donations yet.</p>
+                                <p style={{ color: 'var(--color-text-muted)', margin: 0 }}>{t('NO_DONATIONS_YET')}</p>
                             </div>
                         )}
 
@@ -191,8 +203,8 @@ const MyDonations = ({ hideHeader = false }) => {
                                 }}>
                                     <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                                         <div>
-                                            <h2 style={{ margin: 0, fontSize: '18px', color: 'var(--color-text)' }}>Donation Receipt</h2>
-                                            {viewingImage.utr && <div style={{ fontSize: '12px', color: 'var(--color-primary)', fontWeight: 600 }}>UTR: {viewingImage.utr}</div>}
+                                            <h2 style={{ margin: 0, fontSize: '18px', color: 'var(--color-text)' }}>{t('DONATION_RECEIPT')}</h2>
+                                            {viewingImage.utr && <div style={{ fontSize: '12px', color: 'var(--color-primary)', fontWeight: 600 }}>{t('UTR')}: {viewingImage.utr}</div>}
                                         </div>
                                         <button onClick={() => setViewingImage(null)} style={{ border: 'none', background: 'none', padding: '5px', cursor: 'pointer' }}>
                                             <X size={24} color="var(--color-text-muted)" />
@@ -208,7 +220,7 @@ const MyDonations = ({ hideHeader = false }) => {
                                         onClick={() => setViewingImage(null)}
                                         style={{ width: '100%', background: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: '8px', height: '48px', fontWeight: 600, cursor: 'pointer' }}
                                     >
-                                        Close
+                                        {t('CLOSE')}
                                     </button>
                                 </div>
                             </div>
@@ -242,13 +254,13 @@ const MyDonations = ({ hideHeader = false }) => {
                                         borderRadius: '20px',
                                         boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
                                     }}>
-                                        {donation.status === 'COMPLETED' ? 'COMPLETED' : donation.status}
+                                        {getStatusText(donation.status)}
                                     </span>
                                 </div>
 
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--color-border)' }}>
                                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                        <span style={{ color: 'var(--color-text-muted)', fontSize: '14px' }}>Amount Paid</span>
+                                        <span style={{ color: 'var(--color-text-muted)', fontSize: '14px' }}>{t('AMOUNT_PAID')}</span>
                                         <span style={{ fontSize: '20px', fontWeight: '800', color: '#10b981' }}>₹{donation.amount}</span>
                                     </div>
                                     {donation.hasImage && (
@@ -256,7 +268,7 @@ const MyDonations = ({ hideHeader = false }) => {
                                             onClick={() => handleViewReceipt(donation)}
                                             style={{ fontSize: '12px', color: 'var(--color-primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: '8px', borderRadius: '8px', backgroundColor: 'var(--color-primary-transparent)' }}
                                         >
-                                            <Receipt size={16} /> View Receipt
+                                            <Receipt size={16} /> {t('VIEW_RECEIPT')}
                                         </div>
                                     )}
                                 </div>

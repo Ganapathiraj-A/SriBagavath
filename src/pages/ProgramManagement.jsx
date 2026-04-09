@@ -4,28 +4,17 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Capacitor } from '@capacitor/core';
 import LazyImage from '@/components/LazyImage';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
-import { Plus, Trash2, Package, ChevronLeft, MapPin, Copy } from 'lucide-react';
+import { MapPin, Phone, Mail, ChevronRight, Edit2, Plus, Trash2, Search, X, Copy, Calendar, Users, Home, Globe, MessageSquare, Package, ChevronLeft } from 'lucide-react';
+import { TranslationUtils } from '@/utils/TranslationUtils';
 import PageHeader from '@/components/PageHeader';
 import { db, auth, storage } from '@/firebase';
 import '../components/RegistrationStyles.css';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, setDoc, query, where, orderBy, limit, serverTimestamp } from '@/utils/FirestoreProxy';
-import { ref, getDownloadURL, deleteObject } from 'firebase/storage';
 import { signOut } from 'firebase/auth';
+import { ref, getDownloadURL, deleteObject } from 'firebase/storage';
 import { bumpServerVersion } from '@/utils/SyncManager';
-// Removed storage imports as we are using Base64 in Firestore
-// Removed storage imports as we are using Base664 in Firestore
 import { tamilnaduCities } from '@/data/tamilnaduCities';
 import { TransactionService } from '@/services/TransactionService';
-import { StatsService } from '@/services/StatsService';
-import { getLocalDateString } from '@/utils/dateUtils';
-
-// Helper to compress image to Base64
-// Helper to compress image to Base64
-import { compressImage } from '@/utils/imageUtils';
-
-// Removed hardcoded PROGRAM_TYPES
-
-const CITIES = ['Salem', 'Chennai', 'Others'];
 
 const SALEM_VENUE = "Sri Bagavath Bhavan, Kodambakkadu, Periyakoundapuram, Karippatti, Salem, Tamil Nadu 636106";
 
@@ -69,11 +58,13 @@ const ProgramManagement = () => {
 
     const [formData, setFormData] = useState({
         programName: '',
+        programNameTamil: '',
         customProgramName: '',
         programDate: '',
         programEndDate: '',
         programDescription: '',
         programCity: '',
+        programCityTamil: '',
         customCity: '',
         programVenue: '',
         registrationStatus: 'Open',
@@ -107,11 +98,13 @@ const ProgramManagement = () => {
 
             setFormData({
                 programName: isKnownType ? editingProgram.programName : 'Others',
+                programNameTamil: editingProgram.programNameTamil || '',
                 customProgramName: !isKnownType ? editingProgram.programName : '',
                 programDate: editingProgram.programDate,
                 programEndDate: editingProgram.programEndDate || '',
                 programDescription: editingProgram.programDescription || '',
                 programCity: isOtherCity ? 'Others' : editingProgram.programCity,
+                programCityTamil: editingProgram.programCityTamil || '',
                 customCity: isOtherCity ? editingProgram.programCity : '',
                 programVenue: editingProgram.programVenue,
                 registrationStatus: editingProgram.registrationStatus,
@@ -250,14 +243,13 @@ const ProgramManagement = () => {
             if (name === 'programName') {
                 if (value !== 'Others') {
                     updates.customProgramName = '';
-                    // Auto-fill defaults from selected program type
                     const selectedType = programTypes.find(t => t.name === value);
                     if (selectedType) {
+                        updates.programNameTamil = selectedType.nameTamil || '';
                         updates.maxParticipants = selectedType.maxParticipants || '';
                         updates.programFee = selectedType.programFee || '';
                         updates.isConsentNeeded = selectedType.isConsentNeeded || 'N';
                         updates.consentText = selectedType.consentText || '';
-
                         updates.consentQuestion = selectedType.consentQuestion || '';
                         updates.isFree = selectedType.isFree || false,
                         updates.additionalOptions = selectedType.additionalOptions || [];
@@ -271,14 +263,32 @@ const ProgramManagement = () => {
             if (name === 'programCity') {
                 if (value === 'Salem') {
                     updates.programVenue = SALEM_VENUE;
+                    updates.programCityTamil = 'சேலம்';
                 } else if (value !== 'Others') {
                     updates.programVenue = '';
+                    TranslationUtils.getLearnedCity(value).then(tamil => {
+                        if (tamil) setFormData(prev => ({ ...prev, programCityTamil: tamil }));
+                    });
                 }
                 if (value !== 'Others') {
                     updates.customCity = '';
                     setCitySearch('');
                 }
             }
+
+            return { ...prev, ...updates };
+        });
+    };
+
+    const handleCityBlur = async () => {
+        const city = formData.programCity === 'Others' ? citySearch : formData.programCity;
+        if (city && !formData.programCityTamil) {
+            const tamil = await TranslationUtils.getLearnedCity(city);
+            if (tamil) {
+                setFormData(prev => ({ ...prev, programCityTamil: tamil }));
+            }
+        }
+    };
 
     const copyToClipboard = async (text, label) => {
         if (!text) return;
@@ -288,10 +298,6 @@ const ProgramManagement = () => {
         } catch (err) {
             console.error('Failed to copy:', err);
         }
-    };
-
-    return { ...prev, ...updates };
-        });
     };
 
     const handleCitySearch = (value) => {
@@ -343,10 +349,12 @@ const ProgramManagement = () => {
 
             const programData = {
                 programName: formData.programName === 'Others' ? formData.customProgramName : formData.programName,
+                programNameTamil: formData.programNameTamil || '',
                 programDate: formData.programDate,
                 programEndDate: formData.programEndDate,
                 programDescription: formData.programDescription,
                 programCity: formData.programCity === 'Others' ? formData.customCity : formData.programCity,
+                programCityTamil: formData.programCityTamil || '',
                 programVenue: formData.programVenue,
                 registrationStatus: formData.registrationStatus,
                 lastDateToRegister: formData.lastDateToRegister,
@@ -370,6 +378,12 @@ const ProgramManagement = () => {
                 introYoutubeUrl: formData.introYoutubeUrl,
                 createdAt: new Date().toISOString()
             };
+
+            // Save learned city translation
+            const cityKey = (formData.programCity === 'Others' ? formData.customCity : formData.programCity).toLowerCase();
+            if (cityKey && formData.programCityTamil) {
+                await TranslationUtils.saveLearnedCity(cityKey, formData.programCityTamil);
+            }
 
             let programId;
             if (editingProgram) {
@@ -733,43 +747,75 @@ const ProgramManagement = () => {
                                 </h2>
 
                                 {/* Program Name */}
-                                <div>
-                                    <label
-                                        style={{
-                                            display: 'block',
-                                            marginBottom: '0.5rem',
-                                            fontWeight: 500,
-                                            color: 'var(--color-text-muted)'
-                                        }}
-                                    >
-                                        Program Name *
-                                    </label>
-                                    <select
-                                        name="programName"
-                                        value={formData.programName}
-                                        onChange={handleInputChange}
-                                        onFocus={() => setShowCitySuggestions(false)}
-                                        required
-                                        style={{
-                                            width: '100%',
-                                            padding: '0.75rem',
-                                            borderRadius: '0.5rem',
-                                            border: '1px solid var(--color-border)',
-                                            backgroundColor: 'var(--color-surface)',
-                                            color: 'var(--color-text)',
-                                            fontSize: '1rem',
-                                            position: 'relative',
-                                            zIndex: 1
-                                        }}
-                                    >
-                                        <option value="">Select Program Type</option>
-                                        {programTypes.map(type => (
-                                            <option key={type.id} value={type.name}>
-                                                {type.name}
-                                            </option>
-                                        ))}
-                                        <option value="Others">Others</option>
-                                    </select>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                    <div>
+                                        <label
+                                            style={{
+                                                display: 'block',
+                                                marginBottom: '0.5rem',
+                                                fontWeight: 500,
+                                                color: 'var(--color-text-muted)'
+                                            }}
+                                        >
+                                            Program Name (English) *
+                                        </label>
+                                        <select
+                                            name="programName"
+                                            value={formData.programName}
+                                            onChange={handleInputChange}
+                                            onFocus={() => setShowCitySuggestions(false)}
+                                            required
+                                            style={{
+                                                width: '100%',
+                                                padding: '0.75rem',
+                                                borderRadius: '0.5rem',
+                                                border: '1px solid var(--color-border)',
+                                                backgroundColor: 'var(--color-surface)',
+                                                color: 'var(--color-text)',
+                                                fontSize: '1rem',
+                                                position: 'relative',
+                                                zIndex: 1
+                                            }}
+                                        >
+                                            <option value="">Select Program Type</option>
+                                            {programTypes.map(type => (
+                                                <option key={type.id} value={type.name}>
+                                                    {type.name}
+                                                </option>
+                                            ))}
+                                            <option value="Others">Others</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label
+                                            style={{
+                                                display: 'block',
+                                                marginBottom: '0.5rem',
+                                                fontWeight: 500,
+                                                color: 'var(--color-text-muted)'
+                                            }}
+                                        >
+                                            Program Name (Tamil) *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="programNameTamil"
+                                            value={formData.programNameTamil}
+                                            onChange={handleInputChange}
+                                            required
+                                            style={{
+                                                width: '100%',
+                                                padding: '0.75rem',
+                                                borderRadius: '0.5rem',
+                                                border: '1px solid var(--color-border)',
+                                                backgroundColor: 'var(--color-surface)',
+                                                color: 'var(--color-text)',
+                                                fontSize: '1rem',
+                                                position: 'relative',
+                                                zIndex: 1
+                                            }}
+                                        />
+                                    </div>
                                 </div>
 
                                 {/* Custom Program Name (if Others) */}
@@ -867,42 +913,35 @@ const ProgramManagement = () => {
 
 
                                 {/* Program City */}
-                                <div>
-                                    <label
-                                        style={{
-                                            display: 'block',
-                                            marginBottom: '0.5rem',
-                                            fontWeight: 500,
-                                            color: '#374151'
-                                        }}
-                                    >
-                                        Program City *
-                                    </label>
-                                    <select
-                                        name="programCity"
-                                        value={formData.programCity}
-                                        onChange={handleInputChange}
-                                        onFocus={() => setShowCitySuggestions(false)}
-                                        required
-                                        style={{
-                                            width: '100%',
-                                            padding: '0.75rem',
-                                            borderRadius: '0.5rem',
-                                            border: '1px solid var(--color-border)',
-                                            backgroundColor: 'var(--color-surface)',
-                                            color: 'var(--color-text)',
-                                            fontSize: '1rem',
-                                            position: 'relative',
-                                            zIndex: 1
-                                        }}
-                                    >
-                                        <option value="">Select City</option>
-                                        {CITIES.map(city => (
-                                            <option key={city} value={city}>
-                                                {city}
-                                            </option>
-                                        ))}
-                                    </select>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                    <div>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>Program City (English) *</label>
+                                        <select
+                                            name="programCity"
+                                            value={formData.programCity}
+                                            onChange={handleInputChange}
+                                            onBlur={handleCityBlur}
+                                            onFocus={() => setShowCitySuggestions(false)}
+                                            required
+                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', fontSize: '1rem', position: 'relative', zIndex: 1 }}
+                                        >
+                                            <option value="">Select City</option>
+                                            {CITIES.map(city => (
+                                                <option key={city} value={city}>{city}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>Program City (Tamil) *</label>
+                                        <input
+                                            type="text"
+                                            name="programCityTamil"
+                                            value={formData.programCityTamil}
+                                            onChange={handleInputChange}
+                                            required
+                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', fontSize: '1rem', position: 'relative', zIndex: 1 }}
+                                        />
+                                    </div>
                                 </div>
 
                                 {/* Custom City (if Others) */}

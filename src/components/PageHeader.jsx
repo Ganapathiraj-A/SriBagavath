@@ -156,28 +156,25 @@ const PageHeader = ({
 
     return (
         <div style={{
-            position: 'relative', // Not sticky anymore
+            position: 'relative',
             zIndex: 50,
-            backgroundColor: 'transparent', // Transparent to blend with page
+            backgroundColor: 'transparent',
             color: textColor,
-            // Header spacing similar to Books screen padding
             paddingTop: '40px',
             paddingBottom: '24px',
             paddingLeft: '16px',
             paddingRight: '16px',
-            display: 'flex',
+            display: 'grid',
+            gridTemplateColumns: 'minmax(44px, auto) 1fr minmax(44px, auto)',
             alignItems: 'center',
-            justifyContent: 'center',
+            gap: '8px',
             marginBottom: '0.5rem'
         }}>
-            {/* Left Action: Custom or Default Hierarchical Back */}
+            {/* Left Action Container */}
             <div style={{
-                position: 'absolute',
-                left: '8px',
-                top: '50%',
-                transform: 'translateY(-50%)',
                 display: 'flex',
-                alignItems: 'center'
+                alignItems: 'center',
+                justifyContent: 'flex-start'
             }}>
                 {leftAction ? leftAction : (
                     canGoBack && (
@@ -202,13 +199,17 @@ const PageHeader = ({
 
             {/* Center: Title */}
             <h1 style={{
-                fontSize: '1.4rem', // Slightly smaller for better fit
+                fontSize: '1.4rem',
                 fontWeight: 500,
                 margin: 0,
                 textAlign: 'center',
                 color: 'var(--color-text)',
-                maxWidth: '75%', // Increased to prevent wrap/clipping
-                lineHeight: 1.2
+                lineHeight: 1.2,
+                wordBreak: 'break-word',
+                overflow: 'hidden',
+                display: '-webkit-box',
+                webkitLineClamp: 2,
+                webkitBoxOrient: 'vertical'
             }}>
                 {(() => {
                     const isAdminPage = location.pathname.startsWith('/admin') || 
@@ -252,17 +253,12 @@ const PageHeader = ({
                 )}
             </h1>
 
-            {/* Right: Action */}
+            {/* Right: Action Container */}
             <div style={{
-                position: 'absolute',
-                right: '16px',
-                top: '50%',
-                transform: 'translateY(-50%)',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px'
+                justifyContent: 'flex-end'
             }}>
-                {/* UpdateIcon removed (moved to App.jsx global) */}
                 {rightAction}
             </div>
         </div>
