@@ -103,8 +103,7 @@ const Programs = ({ hideHeader = false }) => {
                 const programsRef = collection(db, 'programs');
                 const q = query(
                     programsRef,
-                    where('programDate', '>=', today),
-                    orderBy('programDate', 'asc')
+                    where('programDate', '>=', today)
                 );
 
                 console.log(`[Programs] Local Date: ${today}`);

@@ -190,8 +190,7 @@ const ProgramManagement = () => {
             if (activeTab === 'upcoming') {
                 q = query(
                     programsRef,
-                    where('programDate', '>=', today),
-                    orderBy('programDate', 'asc')
+                    where('programDate', '>=', today)
                 );
             } else {
                 q = query(
@@ -219,7 +218,7 @@ const ProgramManagement = () => {
             // Only alert if we have NO programs to show (to avoid intrusive alerts if cache worked)
             setPrograms(prev => {
                 if (prev.length === 0) {
-                    alert("Error loading programs. Please try refreshing or check network connection.");
+                    alert("Error loading programs: " + (_err.message || "Unknown error") + "\n\nPlease try refreshing or check connection.");
                 }
                 return prev;
             });
