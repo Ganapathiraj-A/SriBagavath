@@ -1,3 +1,5 @@
+- Localized Teacher Names in Tamil.
+- Smart city auto-fill for Schedule & Program management.
 - Share gallery images to WhatsApp.
 - Improved Events & Programs layout.
 - Google Maps venue integration.
