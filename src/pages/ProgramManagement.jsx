@@ -212,9 +212,11 @@ const ProgramManagement = () => {
             setPrograms(loadedPrograms);
         } catch (_err) {
             console.error('Error loading programs:', _err);
-            // It's possible an index is missing for compound queries. 
-            // If so, Firebase console will provide a link to create it.
-            // For now, assume it works or we'll catch it in testing.
+            // Help diagnose missing indexes (common for compound queries)
+            if (_err.message?.includes('index')) {
+                console.warn('CRITICAL: Firestore Index Missing or Building. Check Firebase Console.');
+            }
+            alert("Error loading programs. Please try refreshing or check network connection.");
         } finally {
             setLoading(false);
         }
