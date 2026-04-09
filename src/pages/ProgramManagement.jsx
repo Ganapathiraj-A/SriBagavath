@@ -15,6 +15,7 @@ import { ref, getDownloadURL, deleteObject } from 'firebase/storage';
 import { bumpServerVersion } from '@/utils/SyncManager';
 import { tamilnaduCities } from '@/data/tamilnaduCities';
 import { TransactionService } from '@/services/TransactionService';
+import { getLocalDateString } from '@/utils/dateUtils';
 
 const SALEM_VENUE = "Sri Bagavath Bhavan, Kodambakkadu, Periyakoundapuram, Karippatti, Salem, Tamil Nadu 636106";
 
