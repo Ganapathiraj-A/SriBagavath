@@ -28,6 +28,7 @@ const TeacherManagementPanel = () => {
 
     const [formData, setFormData] = useState({
         name: '',
+        nameTamil: '',
         image: '',
         googleId: '',
         phoneNumber: '',
@@ -90,6 +91,7 @@ const TeacherManagementPanel = () => {
                 // Backward compatibility: sync to legacy collection
                 await updateDoc(doc(db, 'daily_zoom_teachers', editingId), {
                     name: dataToSave.name,
+                    nameTamil: dataToSave.nameTamil || '',
                     image: dataToSave.image,
                     googleId: dataToSave.googleId,
                     phoneNumber: dataToSave.phoneNumber
@@ -104,6 +106,7 @@ const TeacherManagementPanel = () => {
                 // Backward compatibility: sync to legacy collection using same ID
                 await updateDoc(doc(db, 'daily_zoom_teachers', teacherId), {
                     name: dataToSave.name,
+                    nameTamil: dataToSave.nameTamil || '',
                     image: dataToSave.image,
                     googleId: dataToSave.googleId,
                     phoneNumber: dataToSave.phoneNumber,
@@ -112,6 +115,7 @@ const TeacherManagementPanel = () => {
                     const { setDoc } = await import('@/utils/FirestoreProxy');
                     await setDoc(doc(db, 'daily_zoom_teachers', teacherId), {
                         name: dataToSave.name,
+                        nameTamil: dataToSave.nameTamil || '',
                         image: dataToSave.image,
                         googleId: dataToSave.googleId,
                         phoneNumber: dataToSave.phoneNumber,
@@ -147,6 +151,7 @@ const TeacherManagementPanel = () => {
     const handleEdit = (teacher) => {
         setFormData({
             name: teacher.name || '',
+            nameTamil: teacher.nameTamil || '',
             image: teacher.image || '',
             googleId: teacher.googleId || '',
             phoneNumber: teacher.phoneNumber || '',
@@ -180,6 +185,7 @@ const TeacherManagementPanel = () => {
     const resetForm = () => {
         setFormData({ 
             name: '', 
+            nameTamil: '',
             image: '', 
             googleId: '', 
             phoneNumber: '',
@@ -195,17 +201,30 @@ const TeacherManagementPanel = () => {
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
                 <div style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '1.25rem', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)', marginBottom: '2rem' }}>
                     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                        <div style={{ display: 'grid', gap: '0.4rem' }}>
-                            <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Name</label>
-                            <input
-                                type="text"
-                                name="name"
-                                value={formData.name}
-                                onChange={handleInputChange}
-                                required
-                                placeholder="Full Name"
-                                style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
-                            />
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div style={{ display: 'grid', gap: '0.4rem' }}>
+                                <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Name (English)</label>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleInputChange}
+                                    required
+                                    placeholder="Full Name"
+                                    style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
+                                />
+                            </div>
+                            <div style={{ display: 'grid', gap: '0.4rem' }}>
+                                <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Name (Tamil)</label>
+                                <input
+                                    type="text"
+                                    name="nameTamil"
+                                    value={formData.nameTamil}
+                                    onChange={handleInputChange}
+                                    placeholder="பெயர்"
+                                    style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
+                                />
+                            </div>
                         </div>
 
                         <div style={{ display: 'grid', gap: '0.4rem' }}>
@@ -290,7 +309,9 @@ const TeacherManagementPanel = () => {
                                 {t.image ? <LazyImage src={t.image} alt={t.name} width="100%" height="100%" objectFit="cover" borderRadius="50%" /> : <div style={{ width: '100%', height: '100%', backgroundColor: 'var(--color-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><User size={16} color="var(--color-text-muted)" /></div>}
                             </div>
                             <div style={{ flex: 1 }}>
-                                <div style={{ fontWeight: 600, color: 'var(--color-text)', fontSize: '0.95rem' }}>{t.name}</div>
+                                <div style={{ fontWeight: 600, color: 'var(--color-text)', fontSize: '0.95rem' }}>
+                                    {t.nameTamil && t.nameTamil !== t.name ? `${t.nameTamil} (${t.name})` : t.name}
+                                </div>
                                 {t.showInConsultation && <span style={{ fontSize: '0.6rem', backgroundColor: 'var(--color-primary-transparent)', color: 'var(--color-primary)', padding: '1px 5px', borderRadius: '99px' }}>Consultant</span>}
                             </div>
                             <div style={{ display: 'flex', gap: '0.4rem' }}>

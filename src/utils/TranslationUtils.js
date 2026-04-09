@@ -16,7 +16,7 @@ export const TranslationUtils = {
             const snap = await getDoc(docRef);
             if (snap.exists()) {
                 const data = snap.data();
-                return data[englishCity.toLowerCase()] || '';
+                return data[englishCity.trim().toLowerCase()] || '';
             }
         } catch (err) {
             console.warn('Error fetching learned city:', err);
@@ -30,9 +30,8 @@ export const TranslationUtils = {
     async saveLearnedCity(englishCity, tamilCity) {
         if (!englishCity || !tamilCity) return;
         try {
-            const docRef = doc(db, 'learned_translations', 'cities');
-            await setDoc(docRef, {
-                [englishCity.toLowerCase()]: tamilCity
+            await setDoc(doc(db, 'learned_translations', 'cities'), {
+                [englishCity.trim().toLowerCase()]: tamilCity.trim()
             }, { merge: true });
         } catch (err) {
             console.warn('Error saving learned city:', err);

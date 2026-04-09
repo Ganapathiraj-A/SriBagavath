@@ -962,6 +962,7 @@ const ProgramManagement = () => {
                                             name="customCity"
                                             value={citySearch}
                                             onChange={(e) => handleCitySearch(e.target.value)}
+                                            onBlur={handleCityBlur}
                                             onFocus={() => setShowCitySuggestions(true)}
                                             data-city-input
                                             required

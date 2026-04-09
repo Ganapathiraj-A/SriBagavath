@@ -382,28 +382,34 @@ const Programs = ({ hideHeader = false }) => {
     const handleShare = async (program) => {
         if (!program) return;
 
-        const text = `
-*${program.programName}*
+        const isTa = t().language === 'ta';
+        const pName = isTa && program.programNameTamil ? program.programNameTamil : program.programName;
+        const pCity = isTa && program.programCityTamil ? program.programCityTamil : program.programCity;
+        const pDesc = isTa && program.programDescriptionTamil ? program.programDescriptionTamil : program.programDescription;
 
-📅 *Date:* ${(() => {
+        const text = `
+*${pName}*
+
+📅 *${t('DATE')}:* ${(() => {
     const startDate = new Date(program.programDate);
     const startDay = startDate.getDate();
-    const startMonth = startDate.toLocaleDateString(undefined, { month: 'short' });
-    const startWeekday = startDate.toLocaleDateString(undefined, { weekday: 'short' });
+    const startMonth = startDate.toLocaleDateString(isTa ? 'ta-IN' : 'en-US', { month: 'short' });
+    const startWeekday = startDate.toLocaleDateString(isTa ? 'ta-IN' : 'en-US', { weekday: 'short' });
 
     if (program.programEndDate) {
         const endDate = new Date(program.programEndDate);
         const endDay = endDate.getDate();
-        const endMonth = endDate.toLocaleDateString(undefined, { month: 'short' });
-        const endWeekday = endDate.toLocaleDateString(undefined, { weekday: 'short' });
-        return `${startDay} ${startMonth} to ${endDay} ${endMonth} (${startWeekday} - ${endWeekday})`;
+        const endMonth = endDate.toLocaleDateString(isTa ? 'ta-IN' : 'en-US', { month: 'short' });
+        const endWeekday = endDate.toLocaleDateString(isTa ? 'ta-IN' : 'en-US', { weekday: 'short' });
+        return `${startDay} ${startMonth} ${t('TO')} ${endDay} ${endMonth} (${startWeekday} - ${endWeekday})`;
     }
     return `${startDay} ${startMonth} (${startWeekday})`;
 })()}
 
-🏢 *Venue:* ${program.programVenue}
-${program.googleMapsUrl ? `📍 *Location:* ${program.googleMapsUrl}\n` : ''}
-${program.programDescription ? `📝 *Description:*\n${program.programDescription}\n\n` : ''}${program.registrationStatus === 'Open' ? `✅ Registration Open until ${new Date(program.lastDateToRegister).toLocaleDateString()}` : '🚫 Registration Closed'}
+🏢 *${t('VENUE')}:* ${program.programVenue}
+${pCity ? `📍 *${t('CITY')}:* ${pCity}\n` : ''}
+${program.googleMapsUrl ? `📍 *${t('LOCATION')}:* ${program.googleMapsUrl}\n` : ''}
+${pDesc ? `📝 *${t('DESCRIPTION')}:*\n${pDesc}\n\n` : ''}${program.registrationStatus === 'Open' ? `✅ ${t('REG_OPEN_UNTIL')} ${new Date(program.lastDateToRegister).toLocaleDateString()}` : `🚫 ${t('REG_CLOSED')}`}
 ━━━━━━━━━━━━━━━━━━━━
 Download Sri Bagavath App for latest updates`.trim();
 
@@ -461,7 +467,7 @@ Download Sri Bagavath App for latest updates`.trim();
         }}>
             {!hideHeader && (
                 <PageHeader
-                    title={viewingProgram ? viewingProgram.programName : t('PROGRAMS')}
+                    title={t().language === 'ta' && viewingProgram.programNameTamil ? viewingProgram.programNameTamil : viewingProgram.programName}
                     rightAction={
                         (isAdmin || hasAccess('PROGRAM_MANAGEMENT')) && (
                             <button
@@ -675,7 +681,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                         }}
                                     >
                                         <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: 'var(--color-text)', margin: 0 }}>
-                                            {viewingProgram.programName}
+                                            {t().language === 'ta' && viewingProgram.programNameTamil ? viewingProgram.programNameTamil : viewingProgram.programName}
                                         </h1>
                                         <div>
                                             <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 800, color: 'var(--color-text)', marginBottom: '0.75rem' }}>

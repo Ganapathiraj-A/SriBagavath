@@ -174,7 +174,9 @@ const AyyasSchedule = () => {
                                 <div style={{ fontSize: '1.75rem', fontWeight: 'bold' }}>{new Date(schedule.fromDate).getDate()}</div>
                             </div>
                             <div style={{ flex: 1 }}>
-                                <h2 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0 }}>{schedule.place}</h2>
+                                <h2 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0 }}>
+                                    {t().language === 'ta' && schedule.placeTamil ? schedule.placeTamil : schedule.place}
+                                </h2>
                                 <div style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>{formatDateRange(schedule.fromDate, schedule.toDate)}</div>
                             </div>
                             <button onClick={() => handleShareSingle(schedule)} disabled={isSharingScheduleId === schedule.id} style={{ border: 'none', background: 'none', color: 'var(--color-primary)' }}>

@@ -200,7 +200,7 @@ const EventRegistration = () => {
         participants.forEach(p => {
             const ageInput = Number(p.age);
             let fee = baseFee;
-            let label = "Default Fee";
+            let label = t('DEFAULT_FEE');
 
             if (!isNaN(ageInput) && ageInput >= 0) {
                 const rule = ageRules.find(r => {
@@ -332,7 +332,7 @@ const EventRegistration = () => {
         return (
             <div className="payment-container" style={{ paddingTop: 0, backgroundColor: 'var(--color-surface)', minHeight: '100vh' }}>
                 <PageHeader
-                    title="Terms & Conditions"
+                    title={t('TERMS_CONDITIONS')}
                     leftAction={
                         <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
                             <ChevronLeft size={24} />
@@ -393,14 +393,14 @@ const EventRegistration = () => {
                                 className="btn-primary"
                                 style={{ width: '100%', padding: '1rem', fontSize: '1.125rem' }}
                             >
-                                I Agree & Proceed
+                                {t('AGREE_PROCEED')}
                             </button>
                             <button
                                 onClick={() => navigate(-1)}
                                 className="btn-secondary"
                                 style={{ width: '100%', padding: '1rem', fontSize: '1.125rem', backgroundColor: 'transparent' }}
                             >
-                                Decline
+                                {t('DECLINE')}
                             </button>
                         </div>
                     </div>
@@ -431,7 +431,7 @@ const EventRegistration = () => {
                 {!isMobile && (
                     <div style={{ marginBottom: '1.5rem', marginTop: '1rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.875rem', fontWeight: 700, color: 'var(--color-primary)' }}>
-                            <span>Step {currentStep + 1} of {totalSteps + 1}</span>
+                            <span>{t('STEP')} {currentStep + 1} {t('OF')} {totalSteps + 1}</span>
                             <span>{Math.round(((currentStep + 1) / (totalSteps + 1)) * 100)}%</span>
                         </div>
                         <div style={{ width: '100%', height: '8px', backgroundColor: 'var(--color-border)', borderRadius: '4px', overflow: 'hidden' }}>
@@ -481,7 +481,7 @@ const EventRegistration = () => {
                                     }}
                                 >
                                     <RotateCcw size={18} />
-                                    Autofill Last Session's Details
+                                    {t('AUTOFILL_DETAILS')}
                                 </button>
                             </div>
                         )}
@@ -528,7 +528,7 @@ const EventRegistration = () => {
                     participants.map((p, index) => (
                         <div key={index} className="card" style={{ padding: '1.5rem', borderRadius: '1rem', marginBottom: '1.5rem' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.75rem' }}>
-                                <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0 }}>Participant {index + 1} Details</h3>
+                                <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0 }}>{t('PARTICIPANT_X_DETAILS').replace('{count}', index + 1)}</h3>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: primaryIndex === index ? 'var(--color-primary-transparent)' : 'transparent', padding: '4px 12px', borderRadius: '20px', border: primaryIndex === index ? '1px solid var(--color-primary-light)' : '1px solid transparent' }}>
                                     <input
                                         type="radio"
@@ -537,7 +537,7 @@ const EventRegistration = () => {
                                         onChange={() => setPrimaryIndex(index)}
                                         style={{ width: '1.125rem', height: '1.125rem', margin: 0, cursor: 'pointer' }}
                                     />
-                                    <label style={{ fontSize: '0.875rem', fontWeight: 600, margin: 0, color: primaryIndex === index ? 'var(--color-primary)' : 'var(--color-text-muted)', cursor: 'pointer' }}>Primary Applicant</label>
+                                    <label style={{ fontSize: '0.875rem', fontWeight: 600, margin: 0, color: primaryIndex === index ? 'var(--color-primary)' : 'var(--color-text-muted)', cursor: 'pointer' }}>{t('PRIMARY_APPLICANT')}</label>
                                 </div>
                             </div>
 
@@ -567,7 +567,7 @@ const EventRegistration = () => {
                                                 className="btn-text"
                                                 style={{ fontSize: '0.75rem', color: 'var(--color-primary)', fontWeight: 700, padding: 0 }}
                                             >
-                                                {language === 'ta' ? "முதன்மை மொபைலைப் பயன்படுத்தவும்" : "Use Primary Mobile"}
+                                                {t('USE_PRIMARY_MOBILE')}
                                             </button>
                                         )}
                                     </div>
@@ -576,7 +576,7 @@ const EventRegistration = () => {
                                         value={p.mobile}
                                         onChange={(e) => handleParticipantChange(index, 'mobile', e.target.value)}
                                         data-testid={`reg-mobile-${index}`}
-                                        placeholder="e.g. 9876543210"
+                                        placeholder="9876543210"
                                         style={{ padding: '12px', borderRadius: '0.5rem' }}
                                     />
                                 </div>
@@ -589,7 +589,7 @@ const EventRegistration = () => {
                                         style={{ width: '100%', padding: '12px', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-card)', color: 'var(--color-text)', fontSize: '1rem' }}
                                         data-testid={`reg-age-${index}`}
                                     >
-                                        <option value="">{language === 'ta' ? "வயதைத் தேர்ந்தெடுக்கவும்" : "Select Age"}</option>
+                                        <option value="">{t('SELECT_AGE')}</option>
                                         {[...Array(100).keys()].map(age => (
                                             <option key={age} value={age}>{age}</option>
                                         ))}
@@ -605,6 +605,7 @@ const EventRegistration = () => {
                                     >
                                         <option value="Male">{t('MALE')}</option>
                                         <option value="Female">{t('FEMALE')}</option>
+                                        <option value="Other">{t('OTHER')}</option>
                                     </select>
                                 </div>
                             </div>
@@ -618,7 +619,7 @@ const EventRegistration = () => {
                             return (
                                 <div key={index} className="card" style={{ padding: '1.5rem', borderRadius: '1rem', marginBottom: '1.5rem' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.75rem' }}>
-                                        <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0 }}>Participant {index + 1} Details</h3>
+                                        <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0 }}>{t('PARTICIPANT_X_DETAILS').replace('{count}', index + 1)}</h3>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: primaryIndex === index ? 'var(--color-primary-transparent)' : 'transparent', padding: '4px 12px', borderRadius: '20px', border: primaryIndex === index ? '1px solid var(--color-primary-light)' : '1px solid transparent' }}>
                                             <input
                                                 type="radio"
@@ -627,7 +628,7 @@ const EventRegistration = () => {
                                                 onChange={() => setPrimaryIndex(index)}
                                                 style={{ width: '1.125rem', height: '1.125rem', margin: 0, cursor: 'pointer' }}
                                             />
-                                            <label style={{ fontSize: '0.875rem', fontWeight: 600, margin: 0, color: primaryIndex === index ? 'var(--color-primary)' : 'var(--color-text-muted)', cursor: 'pointer' }}>Primary Applicant</label>
+                                            <label style={{ fontSize: '0.875rem', fontWeight: 600, margin: 0, color: primaryIndex === index ? 'var(--color-primary)' : 'var(--color-text-muted)', cursor: 'pointer' }}>{t('PRIMARY_APPLICANT')}</label>
                                         </div>
                                     </div>
 
@@ -637,27 +638,27 @@ const EventRegistration = () => {
                                         gap: '0 1.5rem' 
                                     }}>
                                         <div className="form-group">
-                                            <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', display: 'block' }}>Name</label>
+                                            <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', display: 'block' }}>{t('NAME')}</label>
                                             <input
                                                 type="text"
                                                 value={p.name}
                                                 onChange={(e) => handleParticipantChange(index, 'name', e.target.value)}
                                                 data-testid={`reg-name-${index}`}
-                                                placeholder="Enter full name"
+                                                placeholder={t('ENTER_FULL_NAME')}
                                                 style={{ padding: '12px', borderRadius: '0.5rem' }}
                                             />
                                         </div>
 
                                         <div className="form-group">
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                                <label style={{ fontWeight: 600, fontSize: '0.9rem', margin: 0 }}>Mobile Number</label>
+                                                <label style={{ fontWeight: 600, fontSize: '0.9rem', margin: 0 }}>{t('PHONE_NUMBER')}</label>
                                                 {index !== primaryIndex && (
                                                     <button
                                                         onClick={() => copyPrimaryMobile(index)}
                                                         className="btn-text"
                                                         style={{ fontSize: '0.75rem', color: 'var(--color-primary)', fontWeight: 700, padding: 0 }}
                                                     >
-                                                        Use Primary Mobile
+                                                        {t('USE_PRIMARY_MOBILE')}
                                                     </button>
                                                 )}
                                             </div>
@@ -666,20 +667,20 @@ const EventRegistration = () => {
                                                 value={p.mobile}
                                                 onChange={(e) => handleParticipantChange(index, 'mobile', e.target.value)}
                                                 data-testid={`reg-mobile-${index}`}
-                                                placeholder="e.g. 9876543210"
+                                                placeholder="9876543210"
                                                 style={{ padding: '12px', borderRadius: '0.5rem' }}
                                             />
                                         </div>
 
                                         <div className="form-group">
-                                            <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', display: 'block' }}>Age</label>
+                                            <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', display: 'block' }}>{t('AGE')}</label>
                                             <select
                                                 value={p.age}
                                                 onChange={(e) => handleParticipantChange(index, 'age', e.target.value)}
                                                 style={{ width: '100%', padding: '12px', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-card)', color: 'var(--color-text)', fontSize: '1rem' }}
                                                 data-testid={`reg-age-${index}`}
                                             >
-                                                <option value="">Select Age</option>
+                                                <option value="">{t('SELECT_AGE')}</option>
                                                 {[...Array(100).keys()].map(age => (
                                                     <option key={age} value={age}>{age}</option>
                                                 ))}
@@ -687,14 +688,15 @@ const EventRegistration = () => {
                                         </div>
 
                                         <div className="form-group">
-                                            <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', display: 'block' }}>Gender</label>
+                                            <label style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', display: 'block' }}>{t('GENDER')}</label>
                                             <select 
                                                 value={p.gender} 
                                                 onChange={(e) => handleParticipantChange(index, 'gender', e.target.value)}
                                                 style={{ width: '100%', padding: '12px', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-card)', color: 'var(--color-text)', fontSize: '1rem' }}
                                             >
-                                                <option value="Male">Male</option>
-                                                <option value="Female">Female</option>
+                                                <option value="Male">{t('MALE')}</option>
+                                                <option value="Female">{t('FEMALE')}</option>
+                                                <option value="Other">{t('OTHER')}</option>
                                             </select>
                                         </div>
                                     </div>
@@ -736,7 +738,7 @@ const EventRegistration = () => {
                                         <div>
                                             <div style={{ fontWeight: 700, color: 'var(--color-text)', fontSize: '1rem' }}>{option.name}</div>
                                             <div style={{ fontSize: '0.875rem', marginTop: '2px', color: isFull ? 'var(--color-error)' : (usedCount > 0 ? 'var(--color-warning)' : 'var(--color-text-muted)') }}>
-                                                {isFull ? '🚫 Sold Out' : (option.maxCount ? `👥 ${usedCount}/${option.maxCount} filled` : '✅ Available')}
+                                                {isFull ? `🚫 ${t('SOLD_OUT')}` : (option.maxCount ? `👥 ${usedCount}/${option.maxCount} ${t('FILLED')}` : `✅ ${t('AVAILABLE')}`)}
                                             </div>
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -772,7 +774,7 @@ const EventRegistration = () => {
                                 <h4 style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-primary)', margin: 0 }}>{t('FEE_BREAKDOWN')}</h4>
                                 {isAdmin && (
                                     <span style={{ fontSize: '0.7rem', backgroundColor: 'var(--color-primary)', color: 'white', padding: '2px 8px', borderRadius: '4px', fontWeight: 600 }}>
-                                        ADMIN VIEW
+                                        {t('ADMIN_VIEW')}
                                     </span>
                                 )}
                             </div>
@@ -785,7 +787,7 @@ const EventRegistration = () => {
                                 ))}
                                 {selectedOptions.length > 0 && (
                                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--color-text)', fontWeight: 600, marginTop: '0.4rem', borderTop: '1px dashed var(--color-primary-light)', paddingTop: '0.4rem' }}>
-                                        <span>Extra Options ({selectedOptions.length})</span>
+                                        <span>{t('EXTRA_OPTIONS')} ({selectedOptions.length})</span>
                                         <span>₹{selectedOptions.reduce((acc, opt) => acc + (Number(opt.fee) || 0), 0)}</span>
                                     </div>
                                 )}
