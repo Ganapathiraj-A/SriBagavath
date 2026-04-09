@@ -7,8 +7,8 @@ import LazyImage from '@/components/LazyImage';
 import { useAdminAuth } from '@/context/AdminAuthContext';
 import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 
-const ContactCard = ({ name, number, image, delay }) => {
-    const { t } = useGlobalSettings();
+const ContactCard = ({ name, nameTamil, number, image, delay }) => {
+    const { t, language } = useGlobalSettings();
     const [copied, setCopied] = React.useState(false);
 
     const handleCopy = () => {
@@ -55,7 +55,9 @@ const ContactCard = ({ name, number, image, delay }) => {
 
             <div style={{ flex: 1 }}>
                 <div style={{ marginBottom: '1rem' }}>
-                    <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>{name}</h3>
+                    <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>
+                        {language === 'ta' ? (nameTamil || name) : name}
+                    </h3>
                     <p style={{ fontSize: '1rem', color: 'var(--color-text-muted)', margin: '0.25rem 0 0 0' }}>{number}</p>
                 </div>
 
@@ -114,7 +116,7 @@ const Consultation = () => {
     const [consultants, setConsultants] = React.useState([]);
     const [loading, setLoading] = React.useState(true);
     const { isInitialized, isAdmin, hasAccess } = useAdminAuth();
-    const { hiddenScreens, devMode, t } = useGlobalSettings();
+    const { hiddenScreens, devMode, t, language } = useGlobalSettings();
 
     const effectiveRole = isAdmin ? (devMode ? 'dev' : 'admin') : 'public';
     const currentHiddenScreens = hiddenScreens?.[effectiveRole] || [];
@@ -151,6 +153,7 @@ const Consultation = () => {
                         id: d.id, 
                         ...data,
                         name: data.name,
+                        nameTamil: data.nameTamil || '',
                         number: data.phoneNumber || data.number || '', // Support both field names
                         image: data.image || data.photo || '', // Support both field names
                     };
@@ -217,7 +220,7 @@ const Consultation = () => {
                     <p style={{ textAlign: 'center', color: 'var(--color-text-light)', padding: '2rem' }}>{t('NO_TEACHERS_AVAIL') || 'No teacher contacts available.'}</p>
                 ) : (
                     consultants.map((c, idx) => (
-                        <ContactCard key={c.id} name={c.name} number={c.number} image={c.image} delay={idx * 0.1} />
+                        <ContactCard key={c.id} name={c.name} nameTamil={c.nameTamil} number={c.number} image={c.image} delay={idx * 0.1} />
                     ))
                 )}
 

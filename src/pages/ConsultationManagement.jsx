@@ -217,7 +217,9 @@ const ConsultationManagement = () => {
                                         </div>
 
                                         <div style={{ flex: 1 }}>
-                                            <div style={{ fontWeight: 600, fontSize: '1.1rem', color: 'var(--color-text)' }}>{c.name}</div>
+                                            <div style={{ fontWeight: 600, fontSize: '1.1rem', color: 'var(--color-text)' }}>
+                                                {c.nameTamil && c.nameTamil !== c.name ? `${c.nameTamil} (${c.name})` : c.name}
+                                            </div>
                                             <div style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                                                 <Phone size={14} /> {c.phoneNumber || 'No number'}
                                             </div>
@@ -261,7 +263,9 @@ const ConsultationManagement = () => {
                                                 </div>
                                             )}
                                         </div>
-                                        <div style={{ flex: 1, fontSize: '0.9rem', fontWeight: 500, color: 'var(--color-text)' }}>{t.name}</div>
+                                        <div style={{ flex: 1, fontSize: '0.9rem', fontWeight: 500, color: 'var(--color-text)' }}>
+                                            {t.nameTamil && t.nameTamil !== t.name ? `${t.nameTamil} (${t.name})` : t.name}
+                                        </div>
                                         <button 
                                             onClick={() => toggleConsultation(t)}
                                             style={{ 

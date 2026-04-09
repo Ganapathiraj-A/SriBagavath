@@ -467,7 +467,7 @@ Download Sri Bagavath App for latest updates`.trim();
         }}>
             {!hideHeader && (
                 <PageHeader
-                    title={language === 'ta' && viewingProgram.programNameTamil ? viewingProgram.programNameTamil : viewingProgram.programName}
+                    title={viewingProgram ? (language === 'ta' && viewingProgram.programNameTamil ? viewingProgram.programNameTamil : viewingProgram.programName) : 'Programs'}
                     rightAction={
                         (isAdmin || hasAccess('PROGRAM_MANAGEMENT')) && (
                             <button
@@ -756,7 +756,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                                     {t('DESCRIPTION')}
                                                 </span>
                                                 <div style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
-                                                    {viewingProgram.programDescription}
+                                                    {language === 'ta' && viewingProgram.programDescriptionTamil ? viewingProgram.programDescriptionTamil : viewingProgram.programDescription}
                                                 </div>
                                             </div>
                                         )}
@@ -884,7 +884,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                                     alignItems: 'center',
                                                     gap: '0.5rem'
                                                 }}>
-                                                    {program.programName}
+                                                    {language === 'ta' && program.programNameTamil ? program.programNameTamil : program.programName}
                                                     {program.isFree && (
                                                         <span style={{ 
                                                             fontSize: '0.65rem', 
@@ -919,7 +919,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                                     </div>
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                                                         <MapPin size={14} style={{ color: 'var(--color-primary)' }} />
-                                                        {program.programCity}
+                                                        {language === 'ta' && program.programCityTamil ? program.programCityTamil : program.programCity}
                                                     </div>
                                                 </div>
 

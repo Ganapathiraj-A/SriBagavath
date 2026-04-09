@@ -60,9 +60,11 @@ const ScheduleManagement = () => {
         setFormData(prev => ({ ...prev, [name]: value }));
         
         if (name === 'place' && value) {
-            // Attempt auto-fill
+            // Attempt auto-fill only if placeTamil is empty
             TranslationUtils.getLearnedCity(value).then(tamil => {
-                if (tamil) setFormData(prev => ({ ...prev, placeTamil: tamil }));
+                if (tamil && !formData.placeTamil) {
+                    setFormData(prev => ({ ...prev, placeTamil: tamil }));
+                }
             });
         }
     };
