@@ -175,7 +175,7 @@ const AyyasSchedule = () => {
                             </div>
                             <div style={{ flex: 1 }}>
                                 <h2 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0 }}>
-                                    {t().language === 'ta' && schedule.placeTamil ? schedule.placeTamil : schedule.place}
+                                    {language === 'ta' && schedule.placeTamil ? schedule.placeTamil : schedule.place}
                                 </h2>
                                 <div style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>{formatDateRange(schedule.fromDate, schedule.toDate)}</div>
                             </div>

@@ -382,7 +382,7 @@ const Programs = ({ hideHeader = false }) => {
     const handleShare = async (program) => {
         if (!program) return;
 
-        const isTa = t().language === 'ta';
+        const isTa = language === 'ta';
         const pName = isTa && program.programNameTamil ? program.programNameTamil : program.programName;
         const pCity = isTa && program.programCityTamil ? program.programCityTamil : program.programCity;
         const pDesc = isTa && program.programDescriptionTamil ? program.programDescriptionTamil : program.programDescription;
@@ -467,7 +467,7 @@ Download Sri Bagavath App for latest updates`.trim();
         }}>
             {!hideHeader && (
                 <PageHeader
-                    title={t().language === 'ta' && viewingProgram.programNameTamil ? viewingProgram.programNameTamil : viewingProgram.programName}
+                    title={language === 'ta' && viewingProgram.programNameTamil ? viewingProgram.programNameTamil : viewingProgram.programName}
                     rightAction={
                         (isAdmin || hasAccess('PROGRAM_MANAGEMENT')) && (
                             <button
@@ -681,7 +681,7 @@ Download Sri Bagavath App for latest updates`.trim();
                                         }}
                                     >
                                         <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: 'var(--color-text)', margin: 0 }}>
-                                            {t().language === 'ta' && viewingProgram.programNameTamil ? viewingProgram.programNameTamil : viewingProgram.programName}
+                                            {language === 'ta' && viewingProgram.programNameTamil ? viewingProgram.programNameTamil : viewingProgram.programName}
                                         </h1>
                                         <div>
                                             <span style={{ display: 'block', fontSize: '0.875rem', fontWeight: 800, color: 'var(--color-text)', marginBottom: '0.75rem' }}>
