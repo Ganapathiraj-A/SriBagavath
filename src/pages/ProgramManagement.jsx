@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Capacitor } from '@capacitor/core';
 import LazyImage from '@/components/LazyImage';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
-import { Plus, Trash2, Package, ChevronLeft, MapPin } from 'lucide-react';
+import { Plus, Trash2, Package, ChevronLeft, MapPin, Copy } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { db, auth, storage } from '@/firebase';
 import '../components/RegistrationStyles.css';
@@ -280,7 +280,17 @@ const ProgramManagement = () => {
                 }
             }
 
-            return { ...prev, ...updates };
+    const copyToClipboard = async (text, label) => {
+        if (!text) return;
+        try {
+            await navigator.clipboard.writeText(text);
+            alert(`${label} copied to clipboard!`);
+        } catch (err) {
+            console.error('Failed to copy:', err);
+        }
+    };
+
+    return { ...prev, ...updates };
         });
     };
 
@@ -963,7 +973,7 @@ const ProgramManagement = () => {
                                 )}
 
                                 {/* Program Venue (readonly if Salem) */}
-                                <div>
+                                <div style={{ position: 'relative' }}>
                                     <label
                                         style={{
                                             display: 'block',
@@ -974,6 +984,26 @@ const ProgramManagement = () => {
                                     >
                                         Program Venue *
                                     </label>
+                                    <button
+                                        type="button"
+                                        onClick={() => copyToClipboard(formData.programVenue, 'Venue')}
+                                        style={{
+                                            position: 'absolute',
+                                            right: '0.5rem',
+                                            top: '0',
+                                            background: 'none',
+                                            border: 'none',
+                                            cursor: 'pointer',
+                                            color: 'var(--color-primary)',
+                                            padding: '0.25rem',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center'
+                                        }}
+                                        title="Copy Venue"
+                                    >
+                                        <Copy size={16} />
+                                    </button>
                                     <textarea
                                         name="programVenue"
                                         value={formData.programVenue}
@@ -1108,7 +1138,7 @@ const ProgramManagement = () => {
                                 </div>
 
                                 {/* Program Description */}
-                                <div>
+                                <div style={{ position: 'relative' }}>
                                     <label
                                         style={{
                                             display: 'block',
@@ -1119,6 +1149,26 @@ const ProgramManagement = () => {
                                     >
                                         Description
                                     </label>
+                                    <button
+                                        type="button"
+                                        onClick={() => copyToClipboard(formData.programDescription, 'Description')}
+                                        style={{
+                                            position: 'absolute',
+                                            right: '0.5rem',
+                                            top: '0',
+                                            background: 'none',
+                                            border: 'none',
+                                            cursor: 'pointer',
+                                            color: 'var(--color-primary)',
+                                            padding: '0.25rem',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center'
+                                        }}
+                                        title="Copy Description"
+                                    >
+                                        <Copy size={16} />
+                                    </button>
                                     <textarea
                                         name="programDescription"
                                         value={formData.programDescription}
