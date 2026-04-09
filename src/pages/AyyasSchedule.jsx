@@ -19,7 +19,7 @@ const AyyasSchedule = () => {
     const [isSharingAll, setIsSharingAll] = useState(false);
     const [isSharingScheduleId, setIsSharingScheduleId] = useState(null);
     const { isAdmin, hasAccess, loading: authGlobalLoading } = useAdminAuth();
-    const { hiddenScreens, devMode, t } = useGlobalSettings();
+    const { hiddenScreens, devMode, t, language } = useGlobalSettings();
 
     const effectiveRole = isAdmin ? (devMode ? 'dev' : 'admin') : 'public';
     const currentHiddenScreens = hiddenScreens?.[effectiveRole] || [];
