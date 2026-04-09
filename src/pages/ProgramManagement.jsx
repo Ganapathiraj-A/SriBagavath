@@ -267,7 +267,14 @@ const ProgramManagement = () => {
                 } else if (value !== 'Others') {
                     updates.programVenue = '';
                     TranslationUtils.getLearnedCity(value).then(tamil => {
-                        if (tamil) setFormData(prev => ({ ...prev, programCityTamil: tamil }));
+                        if (tamil) {
+                            setFormData(prev => {
+                                if (!prev.programCityTamil) {
+                                    return { ...prev, programCityTamil: tamil };
+                                }
+                                return prev;
+                            });
+                        }
                     });
                 }
                 if (value !== 'Others') {
@@ -285,7 +292,12 @@ const ProgramManagement = () => {
         if (city && !formData.programCityTamil) {
             const tamil = await TranslationUtils.getLearnedCity(city);
             if (tamil) {
-                setFormData(prev => ({ ...prev, programCityTamil: tamil }));
+                setFormData(prev => {
+                    if (!prev.programCityTamil) {
+                        return { ...prev, programCityTamil: tamil };
+                    }
+                    return prev;
+                });
             }
         }
     };

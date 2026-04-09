@@ -62,8 +62,14 @@ const ScheduleManagement = () => {
         if (name === 'place' && value) {
             // Attempt auto-fill only if placeTamil is empty
             TranslationUtils.getLearnedCity(value).then(tamil => {
-                if (tamil && !formData.placeTamil) {
-                    setFormData(prev => ({ ...prev, placeTamil: tamil }));
+                if (tamil) {
+                    setFormData(prev => {
+                        // Only auto-fill if the Tamil field is currently empty
+                        if (!prev.placeTamil) {
+                            return { ...prev, placeTamil: tamil };
+                        }
+                        return prev;
+                    });
                 }
             });
         }
@@ -71,10 +77,15 @@ const ScheduleManagement = () => {
 
     const handlePlaceBlur = async () => {
         if (formData.place && !formData.placeTamil) {
-            const tamil = await TranslationUtils.getLearnedCity(formData.place);
-            if (tamil) {
-                setFormData(prev => ({ ...prev, placeTamil: tamil }));
-            }
+        const tamil = await TranslationUtils.getLearnedCity(formData.place);
+        if (tamil) {
+            setFormData(prev => {
+                if (!prev.placeTamil) {
+                    return { ...prev, placeTamil: tamil };
+                }
+                return prev;
+            });
+        }
         }
     };
 

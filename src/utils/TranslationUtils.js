@@ -16,7 +16,9 @@ export const TranslationUtils = {
             const snap = await getDoc(docRef);
             if (snap.exists()) {
                 const data = snap.data();
-                return data[englishCity.trim().toLowerCase()] || '';
+                const normalizedKey = englishCity.trim().toLowerCase();
+                // Try direct match, then try with legacy trailing space
+                return data[normalizedKey] || data[normalizedKey + ' '] || '';
             }
         } catch (err) {
             console.warn('Error fetching learned city:', err);
