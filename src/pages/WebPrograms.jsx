@@ -76,8 +76,7 @@ const WebPrograms = () => {
                 const programsRef = collection(db, 'programs');
                 const q = query(
                     programsRef,
-                    where('programDate', '>=', today),
-                    orderBy('programDate', 'asc')
+                    where('programDate', '>=', today)
                 );
 
                 // Strategy: Cache-First with Background Refresh
@@ -91,7 +90,10 @@ const WebPrograms = () => {
                 try {
                     cacheSnap = await getDocsFromCache(q);
                     if (!cacheSnap.empty) {
-                        const list = cacheSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                        const list = cacheSnap.docs
+                            .map(d => ({ id: d.id, ...d.data() }))
+                            .filter(p => p.isActive !== false)
+                            .sort((a, b) => (a.programDate || "").localeCompare(b.programDate || ""));
                         setPrograms(list);
                         setLoading(false);
                     }
@@ -102,7 +104,10 @@ const WebPrograms = () => {
                 // If cache empty OR needs sync, fetch from server
                 if (!cacheSnap || cacheSnap.empty || needsSync) {
                     const serverTask = getDocsFromServer(q).then(serverSnap => {
-                        const list = serverSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                        const list = serverSnap.docs
+                            .map(d => ({ id: d.id, ...d.data() }))
+                            .filter(p => p.isActive !== false)
+                            .sort((a, b) => (a.programDate || "").localeCompare(b.programDate || ""));
                         setPrograms(list);
                         markSyncedLocally('programs');
                     }).catch(err => {

@@ -72,7 +72,7 @@ export const GlobalSettingsProvider = ({ children }) => {
     const [globalServerUrl, setGlobalServerUrl] = useState('');
 
     // --- Localization ---
-    const [language, setLanguage] = useState(localStorage.getItem('app_language') || 'en');
+    const [language, setLanguage] = useState(localStorage.getItem('app_language') || 'ta');
 
     const t = (key) => {
         // Tamil translations apply only to the "Mobile" section.
@@ -122,6 +122,15 @@ export const GlobalSettingsProvider = ({ children }) => {
         };
         fetchVersion();
     }, [APP_VERSION_TAG]);
+
+    // 1.1 Force Tamil Migration for existing users
+    useEffect(() => {
+        if (!localStorage.getItem('migrated_to_default_tamil_v1')) {
+            handleSetLanguage('ta');
+            localStorage.setItem('migrated_to_default_tamil_v1', 'true');
+        }
+    }, []);
+
     // 1.5 Device Authorization Listener
     useEffect(() => {
         const deviceDocRef = doc(db, 'debug_devices', deviceId);

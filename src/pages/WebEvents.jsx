@@ -139,9 +139,12 @@ const WebEvents = () => {
             try {
                 // 1. Live Programs Listener
                 unsubPrograms = onSnapshot(
-                    query(collection(db, 'programs'), where('programDate', '>=', today), orderBy('programDate', 'asc')),
+                    query(collection(db, 'programs'), where('programDate', '>=', today)),
                     (snap) => {
-                        const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                        const list = snap.docs
+                            .map(d => ({ id: d.id, ...d.data() }))
+                            .filter(p => p.isActive !== false)
+                            .sort((a, b) => (a.programDate || "").localeCompare(b.programDate || ""));
                         setData(prev => ({ ...prev, retreats: list }));
                         setLoading(false); 
                     },

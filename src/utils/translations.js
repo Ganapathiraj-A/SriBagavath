@@ -202,7 +202,10 @@ export const translations = {
         ADMIN_VIEW: "ADMIN VIEW",
         MALE: "Male",
         FEMALE: "Female",
-        OTHER: "Other"
+        OTHER: "Other",
+        SHARE: "share",
+        ADD_TO_CART: "Add to Cart",
+        OTHERS_TAB: "Others"
     },
     ta: {
         ABOUT: "பகவத் அய்யா பற்றி",
@@ -235,7 +238,7 @@ export const translations = {
         CONSULTATION: "கலந்தாலோசனை",
         DAILY_ZOOM: "தினசரி ஜூம்",
         RECORDED_PROGRAMS: "பதிவுசெய்யப்பட்ட நிகழ்ச்சிகள்",
-        DIGITAL_BOOKS: "டிஜிட்டல் புத்தகங்கள்",
+        DIGITAL_BOOKS: "மின்நூல்கள்",
         SRI_BAGAVATH_MISSION: "ஸ்ரீ பகவத் மிஷன்",
         WELCOME_APP: "அதிகாரப்பூர்வ செயலிக்கு வரவேற்கிறோம்",
         ABOUT_SRI_BAGAVATH: "ஸ்ரீ பகவத் பற்றி",
@@ -405,6 +408,9 @@ export const translations = {
         ADMIN_VIEW: "நிர்வாக பார்வை",
         MALE: "ஆண்",
         FEMALE: "பெண்",
-        OTHER: "மற்றவை"
+        OTHER: "மற்றவை",
+        SHARE: "share",
+        ADD_TO_CART: "கூடையில் சேர்க்க",
+        OTHERS_TAB: "மற்றவை"
     }
 };

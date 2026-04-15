@@ -522,17 +522,17 @@ const Home = () => {
                     fontWeight: '600'
                 }}>
                     <button 
-                        onClick={() => setLanguage('en')}
-                        style={{ border: 'none', background: 'none', color: language === 'en' ? 'var(--color-primary)' : 'var(--color-text-muted)', cursor: 'pointer', fontWeight: language === 'en' ? 'bold' : 'normal' }}
-                    >
-                        English
-                    </button>
-                    <span style={{ margin: '0 8px', color: 'var(--color-text-muted)' }}>|</span>
-                    <button 
                         onClick={() => setLanguage('ta')}
                         style={{ border: 'none', background: 'none', color: language === 'ta' ? 'var(--color-primary)' : 'var(--color-text-muted)', cursor: 'pointer', fontWeight: language === 'ta' ? 'bold' : 'normal' }}
                     >
                         தமிழ்
+                    </button>
+                    <span style={{ margin: '0 8px', color: 'var(--color-text-muted)' }}>|</span>
+                    <button 
+                        onClick={() => setLanguage('en')}
+                        style={{ border: 'none', background: 'none', color: language === 'en' ? 'var(--color-primary)' : 'var(--color-text-muted)', cursor: 'pointer', fontWeight: language === 'en' ? 'bold' : 'normal' }}
+                    >
+                        English
                     </button>
                 </div>
 

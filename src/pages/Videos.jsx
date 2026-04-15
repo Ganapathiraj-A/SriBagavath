@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Youtube, ExternalLink, Send } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Youtube, ExternalLink, Send, ChevronDown, Edit2, Loader2 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
-import { collection, query, onSnapshot } from '@/utils/FirestoreProxy';
+import { collection, query, onSnapshot, getDocs, orderBy } from '@/utils/FirestoreProxy';
 import { db } from '@/firebase';
 import { useAdminAuth } from '@/context/AdminAuthContext';
 import { useGlobalSettings } from '@/context/GlobalSettingsContext';
-import { Edit2 } from 'lucide-react';
+
 
 const Videos = () => {
     const navigate = useNavigate();
@@ -15,8 +15,11 @@ const Videos = () => {
     const { t } = useGlobalSettings();
     const isAdmin = hasAccess('RELATED_VIDEO_MANAGEMENT');
     const [videos, setVideos] = useState([]);
+    const [videoCategories, setVideoCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('general');
+    const [selectedCategoryId, setSelectedCategoryId] = useState(null);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     useEffect(() => {
         // Clear notification badge
@@ -43,8 +46,31 @@ const Videos = () => {
             setLoading(false);
         });
 
+        // Fetch categories
+        const fetchCats = async () => {
+            try {
+                const qCats = query(collection(db, 'video_categories'), orderBy('order', 'asc'));
+                const catSnap = await getDocs(qCats);
+                setVideoCategories(catSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+            } catch (e) {
+                console.error("Error fetching video categories:", e);
+            }
+        };
+        fetchCats();
+
         return () => unsubscribe();
     }, []);
+
+    const filteredVideos = useMemo(() => {
+        return videos.filter(v => {
+            const cat = v.category || 'general';
+            if (cat !== activeTab) return false;
+            if (activeTab === 'others') {
+                return v.customCategoryId === selectedCategoryId;
+            }
+            return true;
+        });
+    }, [videos, activeTab, selectedCategoryId]);
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-surface)', padding: '1.5rem' }}>
@@ -99,13 +125,19 @@ const Videos = () => {
                                 borderBottom: '1px solid var(--color-border)',
                                 padding: '0 1rem'
                             }}>
-                                {['general', 'teachers'].map(tab => {
-                                    const isActive = activeTab === tab;
-                                    const label = tab === 'general' ? t('GENERAL') : t('TEACHERS');
+                                {[
+                                    { id: 'general', label: t('GENERAL') },
+                                    { id: 'teachers', label: t('TEACHERS') }
+                                ].map(tab => {
+                                    const isActive = activeTab === tab.id;
                                     return (
                                         <button
-                                            key={tab}
-                                            onClick={() => setActiveTab(tab)}
+                                            key={tab.id}
+                                            onClick={() => {
+                                                setActiveTab(tab.id);
+                                                setSelectedCategoryId(null);
+                                                setIsDropdownOpen(false);
+                                            }}
                                             style={{
                                                 padding: '0.75rem 0.25rem',
                                                 border: 'none',
@@ -118,7 +150,7 @@ const Videos = () => {
                                                 transition: 'color 0.2s'
                                             }}
                                         >
-                                            {label}
+                                            {tab.label}
                                             {isActive && (
                                                 <motion.div
                                                     layoutId="activeTabUnderline_vids"
@@ -136,6 +168,92 @@ const Videos = () => {
                                         </button>
                                     );
                                 })}
+
+                                {videoCategories.length > 0 && (
+                                    <div style={{ position: 'relative' }}>
+                                        <button
+                                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                                            style={{
+                                                padding: '0.75rem 0.25rem',
+                                                border: 'none',
+                                                backgroundColor: 'transparent',
+                                                fontSize: '0.875rem',
+                                                fontWeight: 700,
+                                                color: activeTab === 'others' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                                position: 'relative',
+                                                cursor: 'pointer',
+                                                transition: 'color 0.2s',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '4px'
+                                            }}
+                                        >
+                                            {selectedCategoryId ? (videoCategories.find(c => c.id === selectedCategoryId)?.name) : t('OTHERS_TAB')}
+                                            <ChevronDown size={14} style={{ transform: isDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+                                            {activeTab === 'others' && (
+                                                <motion.div
+                                                    layoutId="activeTabUnderline_vids"
+                                                    style={{
+                                                        position: 'absolute',
+                                                        bottom: 0,
+                                                        left: 0,
+                                                        right: 0,
+                                                        height: '3px',
+                                                        backgroundColor: 'var(--color-primary)',
+                                                        borderRadius: '99px'
+                                                    }}
+                                                />
+                                            )}
+                                        </button>
+
+                                        <AnimatePresence>
+                                            {isDropdownOpen && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: 10 }}
+                                                    style={{
+                                                        position: 'absolute',
+                                                        top: '100%',
+                                                        right: 0,
+                                                        backgroundColor: 'var(--color-surface)',
+                                                        border: '1px solid var(--color-border)',
+                                                        borderRadius: '8px',
+                                                        boxShadow: 'var(--shadow-lg)',
+                                                        zIndex: 1000,
+                                                        minWidth: '160px',
+                                                        marginTop: '4px',
+                                                        overflow: 'hidden'
+                                                    }}
+                                                >
+                                                    {videoCategories.map(cat => (
+                                                        <button
+                                                            key={cat.id}
+                                                            onClick={() => {
+                                                                setActiveTab('others');
+                                                                setSelectedCategoryId(cat.id);
+                                                                setIsDropdownOpen(false);
+                                                            }}
+                                                            style={{
+                                                                width: '100%',
+                                                                padding: '12px 16px',
+                                                                textAlign: 'left',
+                                                                border: 'none',
+                                                                backgroundColor: selectedCategoryId === cat.id ? 'var(--color-primary-transparent)' : 'transparent',
+                                                                color: selectedCategoryId === cat.id ? 'var(--color-primary)' : 'var(--color-text)',
+                                                                fontSize: '0.9rem',
+                                                                fontWeight: selectedCategoryId === cat.id ? 600 : 500,
+                                                                cursor: 'pointer'
+                                                            }}
+                                                        >
+                                                            {cat.name}
+                                                        </button>
+                                                    ))}
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
+                                )}
                             </div>
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -219,12 +337,12 @@ const Videos = () => {
                                 )}
 
                                 {/* Dynamic Playlist Videos (Filtered) */}
-                                {videos.filter(v => (v.category || 'general') === activeTab).length === 0 && activeTab !== 'general' ? (
+                                {filteredVideos.length === 0 && activeTab !== 'general' ? (
                                     <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
-                                        No videos in {activeTab} yet.
+                                        No videos in this section yet.
                                     </div>
                                 ) : (
-                                    videos.filter(v => (v.category || 'general') === activeTab).map((video, index) => (
+                                    filteredVideos.map((video, index) => (
                                         <motion.button
                                             key={video.id}
                                             initial={{ opacity: 0, x: -20 }}
@@ -257,7 +375,7 @@ const Videos = () => {
                                                     <Youtube size={20} color="var(--color-error)" />
                                                 </div>
                                                 <span style={{ fontSize: '1rem', color: 'var(--color-text)', fontWeight: 500 }}>
-                                                    {video.title}
+                                                    {video.title || 'Untitled Playlist'}
                                                 </span>
                                             </div>
                                             <ExternalLink size={18} color="var(--color-text-light)" />

@@ -11,6 +11,7 @@ import { GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'fireb
 import PageHeader from '@/components/PageHeader';
 import { useCart } from '@/context/CartContext';
 import { useAdminAuth } from '@/context/AdminAuthContext';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 import LazyImage from '@/components/LazyImage';
 
 const BookDetails = () => {
@@ -18,6 +19,7 @@ const BookDetails = () => {
     const navigate = useNavigate();
     const { cart, addToCart, removeFromCart } = useCart();
     const { isAdmin } = useAdminAuth();
+    const { t } = useGlobalSettings();
     const [book, setBook] = useState(null);
     const [cover, setCover] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -177,7 +179,7 @@ const BookDetails = () => {
                                     }}
                                 >
                                     <Share2 size={18} />
-                                    Share
+                                    {t('SHARE')}
                                 </button>
                             </div>
 
@@ -212,7 +214,7 @@ const BookDetails = () => {
                                         disabled={authLoading}
                                         style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '16px', backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 'bold', fontSize: '1rem', cursor: authLoading ? 'wait' : 'pointer' }}
                                     >
-                                        <IndianRupee size={20} /> {authLoading ? 'Signing in...' : 'Add to Cart'}
+                                        <IndianRupee size={20} /> {authLoading ? t('SIGNING_IN') : t('ADD_TO_CART')}
                                     </button>
                                 )}
                             </div>

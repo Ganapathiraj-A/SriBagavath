@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Book, Music, Video, ExternalLink, ChevronRight, Folder } from 'lucide-react';
+import { Book, Music, Video, ExternalLink, ChevronRight, Folder, Loader2 } from 'lucide-react';
+import { collection, query, getDocs, orderBy } from '../utils/FirestoreProxy';
+import { db } from '../firebase';
 import emediaData from '../data/emedia.json';
 import LazyImage from '../components/LazyImage';
 import './WebPages.css';
@@ -9,6 +11,33 @@ const WebEMedia = () => {
     const [activeTab, setActiveTab] = useState('pdf');
     const [activeLanguage, setActiveLanguage] = useState(emediaData.digitalBooks.languages[0]?.id || 'tamil');
     const [currentMagazineFolder, setCurrentMagazineFolder] = useState(null);
+    
+    // Firestore Data
+    const [videos, setVideos] = useState([]);
+    const [videoCategories, setVideoCategories] = useState([]);
+    const [loadingVideos, setLoadingVideos] = useState(true);
+
+    useEffect(() => {
+        const fetchVideoData = async () => {
+            try {
+                // Fetch Videos
+                const vQuery = query(collection(db, 'relatedVideos'), orderBy('order', 'asc'));
+                const vSnap = await getDocs(vQuery);
+                setVideos(vSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+
+                // Fetch Categories
+                const cQuery = query(collection(db, 'video_categories'), orderBy('order', 'asc'));
+                const cSnap = await getDocs(cQuery);
+                setVideoCategories(cSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+            } catch (error) {
+                console.error("Error fetching video data:", error);
+            } finally {
+                setLoadingVideos(false);
+            }
+        };
+
+        fetchVideoData();
+    }, []);
 
 
     const tabs = [
@@ -215,41 +244,34 @@ const WebEMedia = () => {
         </div>
     );
 
-    const renderVideoSection = () => (
-        <div className="emedia-content-section">
-            <div className="emedia-grid video-grid-layout">
-                {/* Column 1 */}
-                <div>
-                    <h2 className="emedia-section-title" style={{ marginTop: 0 }}>General Playlist</h2>
-                    <div className="emedia-vertical-list" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        {emediaData.videos.general.map((video) => (
-                            <a
-                                key={video.id}
-                                href={video.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="emedia-card video-card"
-                            >
-                                <div className="emedia-card-icon video">
-                                    <Video size={24} />
-                                </div>
-                                <div className="emedia-card-info">
-                                    <h3>{video.title}</h3>
-                                </div>
-                                <ExternalLink size={18} className="emedia-external-icon" />
-                            </a>
-                        ))}
-                    </div>
+    const renderVideoSection = () => {
+        if (loadingVideos) {
+            return (
+                <div className="web-loading-state">
+                    <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                        style={{ color: 'var(--web-nav-bg)' }}
+                    >
+                        <Loader2 size={40} />
+                    </motion.div>
+                    <p>Loading videos...</p>
                 </div>
+            );
+        }
 
-                {/* Column 2 */}
-                <div>
-                    <h2 className="emedia-section-title" style={{ marginTop: 0 }}>Teachers</h2>
-                    <div className="teachers-split-container">
-                        <div className="teachers-split-col">
-                            {emediaData.videos.teachers
-                                .filter(v => v.title.includes('Saravanan') || v.title.includes('Jeevamani'))
-                                .map((video) => (
+        const generalVideos = videos.filter(v => (v.category || 'general') === 'general');
+        const teacherVideos = videos.filter(v => v.category === 'teachers');
+        const otherVideos = videos.filter(v => v.category === 'others');
+
+        return (
+            <div className="emedia-content-section">
+                <div className="emedia-grid video-grid-layout">
+                    {/* Column 1: General */}
+                    <div>
+                        <h2 className="emedia-section-title" style={{ marginTop: 0 }}>General Playlist</h2>
+                        <div className="emedia-vertical-list" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            {generalVideos.length > 0 ? generalVideos.map((video) => (
                                 <a
                                     key={video.id}
                                     href={video.url}
@@ -257,7 +279,7 @@ const WebEMedia = () => {
                                     rel="noopener noreferrer"
                                     className="emedia-card video-card"
                                 >
-                                    <div className="emedia-card-icon video alt">
+                                    <div className="emedia-card-icon video">
                                         <Video size={24} />
                                     </div>
                                     <div className="emedia-card-info">
@@ -265,35 +287,121 @@ const WebEMedia = () => {
                                     </div>
                                     <ExternalLink size={18} className="emedia-external-icon" />
                                 </a>
-                            ))}
+                            )) : (
+                                <p style={{ color: '#64748b', fontSize: '0.9rem' }}>No general videos yet.</p>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Column 2: Teachers & Others */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
+                        {/* Teachers Section */}
+                        <div>
+                            <h2 className="emedia-section-title" style={{ marginTop: 0 }}>Teachers</h2>
+                            <div className="teachers-split-container">
+                                {teacherVideos.length > 0 ? (
+                                    <>
+                                        <div className="teachers-split-col">
+                                            {teacherVideos.slice(0, Math.ceil(teacherVideos.length / 2)).map((video) => (
+                                                <a
+                                                    key={video.id}
+                                                    href={video.url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="emedia-card video-card"
+                                                >
+                                                    <div className="emedia-card-icon video alt">
+                                                        <Video size={24} />
+                                                    </div>
+                                                    <div className="emedia-card-info">
+                                                        <h3>{video.title}</h3>
+                                                    </div>
+                                                    <ExternalLink size={18} className="emedia-external-icon" />
+                                                </a>
+                                            ))}
+                                        </div>
+                                        <div className="teachers-split-col">
+                                            {teacherVideos.slice(Math.ceil(teacherVideos.length / 2)).map((video) => (
+                                                <a
+                                                    key={video.id}
+                                                    href={video.url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="emedia-card video-card"
+                                                >
+                                                    <div className="emedia-card-icon video alt">
+                                                        <Video size={24} />
+                                                    </div>
+                                                    <div className="emedia-card-info">
+                                                        <h3>{video.title}</h3>
+                                                    </div>
+                                                    <ExternalLink size={18} className="emedia-external-icon" />
+                                                </a>
+                                            ))}
+                                        </div>
+                                    </>
+                                ) : (
+                                    <p style={{ color: '#64748b', fontSize: '0.9rem' }}>No teacher videos yet.</p>
+                                )}
+                            </div>
                         </div>
 
-                        <div className="teachers-split-col">
-                            {emediaData.videos.teachers
-                                .filter(v => !v.title.includes('Saravanan') && !v.title.includes('Jeevamani'))
-                                .map((video) => (
-                                <a
-                                    key={video.id}
-                                    href={video.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="emedia-card video-card"
-                                >
-                                    <div className="emedia-card-icon video alt">
-                                        <Video size={24} />
+                        {/* Others Section (Dynamic Categories) */}
+                        {videoCategories.map(cat => {
+                            const catVideos = otherVideos.filter(v => v.customCategoryId === cat.id);
+                            if (catVideos.length === 0) return null;
+
+                            return (
+                                <div key={cat.id}>
+                                    <h2 className="emedia-section-title">{cat.name}</h2>
+                                    <div className="teachers-split-container">
+                                        <div className="teachers-split-col">
+                                            {catVideos.slice(0, Math.ceil(catVideos.length / 2)).map((video) => (
+                                                <a
+                                                    key={video.id}
+                                                    href={video.url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="emedia-card video-card"
+                                                >
+                                                    <div className="emedia-card-icon video" style={{ backgroundColor: '#f3f4f6', color: '#6b7280' }}>
+                                                        <Video size={24} />
+                                                    </div>
+                                                    <div className="emedia-card-info">
+                                                        <h3>{video.title}</h3>
+                                                    </div>
+                                                    <ExternalLink size={18} className="emedia-external-icon" />
+                                                </a>
+                                            ))}
+                                        </div>
+                                        <div className="teachers-split-col">
+                                            {catVideos.slice(Math.ceil(catVideos.length / 2)).map((video) => (
+                                                <a
+                                                    key={video.id}
+                                                    href={video.url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="emedia-card video-card"
+                                                >
+                                                    <div className="emedia-card-icon video" style={{ backgroundColor: '#f3f4f6', color: '#6b7280' }}>
+                                                        <Video size={24} />
+                                                    </div>
+                                                    <div className="emedia-card-info">
+                                                        <h3>{video.title}</h3>
+                                                    </div>
+                                                    <ExternalLink size={18} className="emedia-external-icon" />
+                                                </a>
+                                            ))}
+                                        </div>
                                     </div>
-                                    <div className="emedia-card-info">
-                                        <h3>{video.title}</h3>
-                                    </div>
-                                    <ExternalLink size={18} className="emedia-external-icon" />
-                                </a>
-                            ))}
-                        </div>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             </div>
-        </div>
-    );
+        );
+    };
 
     return (
         <div className="web-emedia-page">

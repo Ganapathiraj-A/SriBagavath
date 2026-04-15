@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { collection, query, onSnapshot, doc, setDoc, updateDoc, deleteDoc, serverTimestamp } from '@/utils/FirestoreProxy';
+import { collection, query, onSnapshot, doc, setDoc, updateDoc, deleteDoc, serverTimestamp, orderBy } from '@/utils/FirestoreProxy';
 import { bumpServerVersion } from '@/utils/SyncManager';
 import { db } from '@/firebase';
 import PageHeader from '@/components/PageHeader';
-import { Plus, Trash2, Edit, Save, X, ExternalLink, Video, Eye, ChevronUp, ChevronDown } from 'lucide-react';
+import { Plus, Trash2, Edit, Save, X, ExternalLink, Video, Eye, ChevronUp, ChevronDown, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const RelatedVideosManagement = () => {
@@ -15,9 +15,12 @@ const RelatedVideosManagement = () => {
     const [editingId, setEditingId] = useState(null);
     const [activeTab, setActiveTab] = useState('general');
     const [isFetching, setIsFetching] = useState(false);
+    const [videoCategories, setVideoCategories] = useState([]);
+    const [showCategoryModal, setShowCategoryModal] = useState(false);
+    const [selectedCategoryId, setSelectedCategoryId] = useState(null);
 
     // Form State
-    const [formData, setFormData] = useState({ title: '', url: '', category: 'general' });
+    const [formData, setFormData] = useState({ title: '', url: '', category: 'general', customCategoryId: '' });
 
     useEffect(() => {
         console.log("Subscribing to relatedVideos (unordered for migration safety)...");
@@ -41,7 +44,17 @@ const RelatedVideosManagement = () => {
             console.error("Firestore Snapshot Error!", error);
             setLoading(false);
         });
-        return () => unsubscribe();
+
+        // Fetch categories
+        const qCats = query(collection(db, 'video_categories'), orderBy('order', 'asc'));
+        const unsubscribeCats = onSnapshot(qCats, (snap) => {
+            setVideoCategories(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        });
+
+        return () => {
+            unsubscribe();
+            unsubscribeCats();
+        };
     }, []);
 
     const fixLegacyOrdering = async (data) => {
@@ -69,7 +82,7 @@ const RelatedVideosManagement = () => {
 
             if (!editingId) {
                 // New item: put at bottom of its category
-                const categoryVideos = videos.filter(v => v.category === formData.category);
+                const categoryVideos = videos.filter(v => v.category === formData.category && (!formData.customCategoryId || v.customCategoryId === formData.customCategoryId));
                 const maxOrder = categoryVideos.length > 0 ? Math.max(...categoryVideos.map(v => v.order || 0)) : -1;
                 videoData.order = maxOrder + 1;
                 videoData.createdAt = serverTimestamp();
@@ -92,7 +105,12 @@ const RelatedVideosManagement = () => {
     };
 
     const handleEdit = (video) => {
-        setFormData({ title: video.title, url: video.url, category: video.category || 'general' });
+        setFormData({ 
+            title: video.title, 
+            url: video.url, 
+            category: video.category || 'general',
+            customCategoryId: video.customCategoryId || ''
+        });
         setEditingId(video.id);
         setIsAdding(true);
     };
@@ -114,7 +132,11 @@ const RelatedVideosManagement = () => {
     };
 
     const handleMove = async (index, direction) => {
-        const categoryVideos = videos.filter(v => (v.category || 'general') === activeTab);
+        const categoryVideos = videos.filter(v => {
+            if ((v.category || 'general') !== activeTab) return false;
+            if (activeTab === 'others') return v.customCategoryId === selectedCategoryId;
+            return true;
+        });
         const targetIndex = direction === 'up' ? index - 1 : index + 1;
 
         if (targetIndex < 0 || targetIndex >= categoryVideos.length) return;
@@ -136,7 +158,7 @@ const RelatedVideosManagement = () => {
     };
 
     const resetForm = () => {
-        setFormData({ title: '', url: '', category: activeTab });
+        setFormData({ title: '', url: '', category: activeTab, customCategoryId: activeTab === 'others' ? (selectedCategoryId || '') : '' });
         setIsAdding(false);
         setEditingId(null);
         setIsFetching(false);
@@ -166,29 +188,86 @@ const RelatedVideosManagement = () => {
         }
     };
 
+    const handleAddCategory = async (name) => {
+        if (!name) return;
+        try {
+            const nextOrder = videoCategories.length > 0 ? Math.max(...videoCategories.map(c => c.order || 0)) + 1 : 0;
+            await setDoc(doc(collection(db, 'video_categories')), {
+                name,
+                order: nextOrder,
+                createdAt: serverTimestamp()
+            });
+        } catch (error) {
+            console.error("Error adding category:", error);
+        }
+    };
+
+    const handleDeleteCategory = async (id) => {
+        if (!window.confirm("Are you sure? Videos in this category will not be deleted but won't be visible in the category view.")) return;
+        try {
+            await deleteDoc(doc(db, 'video_categories', id));
+        } catch (error) {
+            console.error("Error deleting category:", error);
+        }
+    };
+
+    const handleReorderCategories = async (catId, direction) => {
+        const idx = videoCategories.findIndex(c => c.id === catId);
+        const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+        if (targetIdx < 0 || targetIdx >= videoCategories.length) return;
+
+        const cat1 = videoCategories[idx];
+        const cat2 = videoCategories[targetIdx];
+
+        await updateDoc(doc(db, 'video_categories', cat1.id), { order: cat2.order });
+        await updateDoc(doc(db, 'video_categories', cat2.id), { order: cat1.order });
+    };
+
     return (
         <div style={{ minHeight: '100vh', backgroundColor: '#f9f9f9' }}>
             <PageHeader
                 title="Related Videos Management"
                 rightAction={
-                    <button
-                        onClick={() => navigate('/videos')}
-                        title="View Public Listing"
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            padding: '10px',
-                            backgroundColor: '#f3f4f6',
-                            border: '1px solid #d1d5db',
-                            borderRadius: '50%',
-                            color: '#4b5563',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s'
-                        }}
-                    >
-                        <Eye size={20} />
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                        <button
+                            onClick={() => setShowCategoryModal(true)}
+                            title="Manage Categories"
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.4rem',
+                                padding: '0.4rem 0.8rem',
+                                backgroundColor: 'var(--color-primary-transparent)',
+                                color: 'var(--color-primary)',
+                                border: '1px solid var(--color-primary)',
+                                borderRadius: '0.75rem',
+                                fontSize: '0.85rem',
+                                fontWeight: 600,
+                                cursor: 'pointer'
+                            }}
+                        >
+                            <Settings size={16} />
+                            Categories
+                        </button>
+                        <button
+                            onClick={() => navigate('/videos')}
+                            title="View Public Listing"
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: '10px',
+                                backgroundColor: '#f3f4f6',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '50%',
+                                color: '#4b5563',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                            }}
+                        >
+                            <Eye size={20} />
+                        </button>
+                    </div>
                 }
             />
 
@@ -270,16 +349,19 @@ const RelatedVideosManagement = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: '0.5rem' }}>Category</label>
-                                    <div style={{ display: 'flex', gap: '1rem' }}>
-                                        {['general', 'teachers'].map(cat => (
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+                                        {['general', 'teachers', 'others'].map(cat => (
                                             <label key={cat} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: 'var(--color-text)' }}>
                                                 <input
                                                     type="radio"
                                                     name="category"
                                                     value={cat}
                                                     checked={formData.category === cat}
-                                                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                                    onChange={(e) => setFormData({ 
+                                                        ...formData, 
+                                                        category: e.target.value,
+                                                        customCategoryId: e.target.value === 'others' ? (videoCategories[0]?.id || '') : ''
+                                                    })}
                                                     style={{ cursor: 'pointer' }}
                                                 />
                                                 {cat.charAt(0).toUpperCase() + cat.slice(1)}
@@ -287,6 +369,39 @@ const RelatedVideosManagement = () => {
                                         ))}
                                     </div>
                                 </div>
+
+                                {formData.category === 'others' && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                    >
+                                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: '0.5rem' }}>Select Sub-Category</label>
+                                        <select
+                                            value={formData.customCategoryId}
+                                            onChange={(e) => setFormData({ ...formData, customCategoryId: e.target.value })}
+                                            style={{
+                                                width: '100%',
+                                                padding: '0.75rem',
+                                                borderRadius: '0.5rem',
+                                                border: '1px solid var(--color-border)',
+                                                backgroundColor: 'var(--color-background)',
+                                                color: 'var(--color-text)',
+                                                outline: 'none'
+                                            }}
+                                            required
+                                        >
+                                            <option value="" disabled>Select a category</option>
+                                            {videoCategories.map(cat => (
+                                                <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                            ))}
+                                        </select>
+                                        {videoCategories.length === 0 && (
+                                            <p style={{ fontSize: '0.75rem', color: 'var(--color-error)', marginTop: '0.5rem' }}>
+                                                No categories found. Create one using the "Categories" button above.
+                                            </p>
+                                        )}
+                                    </motion.div>
+                                )}
                                 <button
                                     type="submit"
                                     style={{
@@ -319,12 +434,17 @@ const RelatedVideosManagement = () => {
                     borderBottom: '1px solid var(--color-border)',
                     padding: '0 0.5rem'
                 }}>
-                    {['general', 'teachers'].map(tab => {
+                    {['general', 'teachers', 'others'].map(tab => {
                         const isActive = activeTab === tab;
                         return (
                             <button
                                 key={tab}
-                                onClick={() => setActiveTab(tab)}
+                                onClick={() => {
+                                    setActiveTab(tab);
+                                    if (tab === 'others' && !selectedCategoryId) {
+                                        setSelectedCategoryId(videoCategories[0]?.id);
+                                    }
+                                }}
                                 style={{
                                     padding: '0.75rem 0.25rem',
                                     border: 'none',
@@ -357,6 +477,41 @@ const RelatedVideosManagement = () => {
                     })}
                 </div>
 
+                {activeTab === 'others' && (
+                    <div style={{
+                        marginBottom: '1.5rem',
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: '0.5rem'
+                    }}>
+                        {videoCategories.map(cat => (
+                            <button
+                                key={cat.id}
+                                onClick={() => setSelectedCategoryId(cat.id)}
+                                style={{
+                                    padding: '0.5rem 1rem',
+                                    borderRadius: '99px',
+                                    border: '1px solid',
+                                    borderColor: selectedCategoryId === cat.id ? 'var(--color-primary)' : 'var(--color-border)',
+                                    backgroundColor: selectedCategoryId === cat.id ? 'var(--color-primary-transparent)' : 'var(--color-surface)',
+                                    color: selectedCategoryId === cat.id ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                    fontSize: '0.85rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                {cat.name}
+                            </button>
+                        ))}
+                        {videoCategories.length === 0 && (
+                            <div style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem', fontStyle: 'italic' }}>
+                                No categories created yet. Click "Categories" to add one.
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 {/* List Section */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
@@ -364,13 +519,21 @@ const RelatedVideosManagement = () => {
                             {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Entries
                         </h3>
                         <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
-                            {videos.filter(v => (v.category || 'general') === activeTab).length} videos
+                            {videos.filter(v => {
+                                if ((v.category || 'general') !== activeTab) return false;
+                                if (activeTab === 'others') return v.customCategoryId === selectedCategoryId;
+                                return true;
+                            }).length} videos
                         </span>
                     </div>
 
                     {loading ? (
                         <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)' }}>Loading entries...</div>
-                    ) : videos.filter(v => (v.category || 'general') === activeTab).length === 0 ? (
+                    ) : videos.filter(v => {
+                        if ((v.category || 'general') !== activeTab) return false;
+                        if (activeTab === 'others') return v.customCategoryId === selectedCategoryId;
+                        return true;
+                    }).length === 0 ? (
                         <div style={{
                             textAlign: 'center',
                             padding: '4rem 2rem',
@@ -380,10 +543,14 @@ const RelatedVideosManagement = () => {
                             color: 'var(--color-text-muted)'
                         }}>
                             <Video size={48} style={{ margin: '0 auto 1rem', opacity: 0.3 }} />
-                            <p>No playlists in {activeTab} yet.</p>
+                            <p>No playlists here yet.</p>
                         </div>
                     ) : (
-                        videos.filter(v => (v.category || 'general') === activeTab).map((video, index, filteredList) => (
+                        videos.filter(v => {
+                            if ((v.category || 'general') !== activeTab) return false;
+                            if (activeTab === 'others') return v.customCategoryId === selectedCategoryId;
+                            return true;
+                        }).map((video, index, filteredList) => (
                             <motion.div
                                 key={video.id}
                                 layout
@@ -471,6 +638,85 @@ const RelatedVideosManagement = () => {
                     )}
                 </div>
             </div>
+
+            <AnimatePresence>
+                {showCategoryModal && (
+                    <div style={{
+                        position: 'fixed',
+                        inset: 0,
+                        backgroundColor: 'rgba(0,0,0,0.5)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 1100,
+                        padding: '1rem'
+                    }} onClick={() => setShowCategoryModal(false)}>
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            onClick={(e) => e.stopPropagation()}
+                            style={{
+                                backgroundColor: 'var(--color-surface)',
+                                borderRadius: '1.25rem',
+                                width: '100%',
+                                maxWidth: '400px',
+                                padding: '1.5rem',
+                                boxShadow: 'var(--shadow-xl)'
+                            }}
+                        >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                                <h3 style={{ margin: 0 }}>Category Settings</h3>
+                                <button onClick={() => setShowCategoryModal(false)} style={{ background: 'none', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer' }}>
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            <div style={{ marginBottom: '1.5rem' }}>
+                                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: '0.5rem' }}>Add New Category</label>
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <input
+                                        type="text"
+                                        id="newCatInput"
+                                        placeholder="Category Name"
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                handleAddCategory(e.target.value);
+                                                e.target.value = '';
+                                            }
+                                        }}
+                                        style={{ flex: 1, padding: '0.6rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)', color: 'var(--color-text)', outline: 'none' }}
+                                    />
+                                    <button
+                                        onClick={() => {
+                                            const input = document.getElementById('newCatInput');
+                                            handleAddCategory(input.value);
+                                            input.value = '';
+                                        }}
+                                        style={{ padding: '0.6rem', backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: '0.5rem', cursor: 'pointer' }}
+                                    >
+                                        <Plus size={20} />
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                {videoCategories.map((cat, i) => (
+                                    <div key={cat.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', backgroundColor: 'var(--color-background)', borderRadius: '0.75rem', border: '1px solid var(--color-border)' }}>
+                                        <span style={{ fontWeight: 500 }}>{cat.name}</span>
+                                        <div style={{ display: 'flex', gap: '0.25rem' }}>
+                                            <button onClick={() => handleReorderCategories(cat.id, 'up')} disabled={i === 0} style={{ padding: '0.3rem', color: i === 0 ? '#ccc' : 'var(--color-text-muted)', cursor: i === 0 ? 'default' : 'pointer' }}><ChevronUp size={16} /></button>
+                                            <button onClick={() => handleReorderCategories(cat.id, 'down')} disabled={i === videoCategories.length - 1} style={{ padding: '0.3rem', color: i === videoCategories.length - 1 ? '#ccc' : 'var(--color-text-muted)', cursor: i === videoCategories.length - 1 ? 'default' : 'pointer' }}><ChevronDown size={16} /></button>
+                                            <button onClick={() => handleDeleteCategory(cat.id)} style={{ padding: '0.3rem', color: 'var(--color-error)', cursor: 'pointer' }}><Trash2 size={16} /></button>
+                                        </div>
+                                    </div>
+                                ))}
+                                {videoCategories.length === 0 && <p style={{ textAlign: 'center', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>No categories yet</p>}
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

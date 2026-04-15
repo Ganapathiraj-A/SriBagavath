@@ -18,6 +18,7 @@ import { TransactionService } from '@/services/TransactionService';
 import { getLocalDateString } from '@/utils/dateUtils';
 
 const SALEM_VENUE = "Sri Bagavath Bhavan, Kodambakkadu, Periyakoundapuram, Karippatti, Salem, Tamil Nadu 636106";
+const CITIES = ['Salem', 'Tiruppur', 'Others'];
 
 const ProgramManagement = () => {
     const navigate = useNavigate();

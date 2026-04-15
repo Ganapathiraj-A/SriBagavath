@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { collection, query, getDocs, orderBy } from '../utils/FirestoreProxy';
 import { db } from '../firebase';
-import { X, ChevronLeft, ChevronRight, Maximize2, Share2, Folder, ArrowLeft, Download, Loader2 } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Maximize2, Share2, Folder, ArrowLeft, Download, Loader2, ChevronDown } from 'lucide-react';
 import { shareItem } from '../utils/shareUtils';
 import LazyImage from '../components/LazyImage';
 import './WebPages.css';
@@ -14,6 +14,9 @@ const WebGallery = () => {
     const [activeTab, setActiveTab] = useState('general');
     const [selectedEventId, setSelectedEventId] = useState(null);
     const [selectedIndex, setSelectedIndex] = useState(null);
+    const [galleryCategories, setGalleryCategories] = useState([]);
+    const [selectedCategoryId, setSelectedCategoryId] = useState(null);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const shareImageCacheRef = useRef(new Map());
 
     // Helper to pick the correct image URL from multiple possible field names
@@ -48,6 +51,16 @@ const WebGallery = () => {
             } catch (error) {
                 console.error("[WebGallery] Error fetching gallery events:", error);
             }
+
+            // Fetch Categories
+            try {
+                const qCats = query(collection(db, 'gallery_categories'), orderBy('order', 'asc'));
+                const catSnap = await getDocs(qCats);
+                const loadedCats = catSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                setGalleryCategories(loadedCats);
+            } catch (error) {
+                console.error("[WebGallery] Error fetching gallery categories:", error);
+            }
             
             setLoading(false);
         };
@@ -60,6 +73,9 @@ const WebGallery = () => {
         if (cat !== activeTab) return false;
         if (activeTab === 'events') {
             return img.eventId === selectedEventId;
+        }
+        if (activeTab === 'others') {
+            return img.customCategoryId === selectedCategoryId;
         }
         return true;
     });
@@ -202,13 +218,82 @@ const WebGallery = () => {
                                 onClick={() => {
                                     setActiveTab(tab.id);
                                     setSelectedEventId(null);
+                                    setSelectedCategoryId(null);
                                     setSelectedIndex(null);
+                                    setIsDropdownOpen(false);
                                 }}
                             >
                                 <span>{tab.label}</span>
                                 {activeTab === tab.id && <div className="active-underline" />}
                             </button>
                         ))}
+
+                        {galleryCategories.length > 0 && (
+                            <div className="web-dropdown-container" style={{ position: 'relative' }}>
+                                <button
+                                    className={`emedia-tab-btn ${activeTab === 'others' ? 'active' : ''}`}
+                                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                                    style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                                >
+                                    <span>{selectedCategoryId ? galleryCategories.find(c => c.id === selectedCategoryId)?.name : 'Others'}</span>
+                                    <ChevronDown size={16} style={{ transform: isDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+                                    {activeTab === 'others' && <div className="active-underline" />}
+                                </button>
+
+                                <AnimatePresence>
+                                    {isDropdownOpen && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: 10 }}
+                                            className="web-dropdown-menu"
+                                            style={{
+                                                position: 'absolute',
+                                                top: '100%',
+                                                right: 0,
+                                                backgroundColor: 'white',
+                                                border: '1px solid #e2e8f0',
+                                                borderRadius: '8px',
+                                                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                                                zIndex: 100,
+                                                minWidth: '180px',
+                                                marginTop: '8px',
+                                                overflow: 'hidden',
+                                                padding: '4px'
+                                            }}
+                                        >
+                                            {galleryCategories.map(cat => (
+                                                <button
+                                                    key={cat.id}
+                                                    className="dropdown-item"
+                                                    onClick={() => {
+                                                        setActiveTab('others');
+                                                        setSelectedCategoryId(cat.id);
+                                                        setSelectedEventId(null);
+                                                        setIsDropdownOpen(false);
+                                                        setSelectedIndex(null);
+                                                    }}
+                                                    style={{
+                                                        width: '100%',
+                                                        padding: '10px 16px',
+                                                        textAlign: 'left',
+                                                        border: 'none',
+                                                        backgroundColor: selectedCategoryId === cat.id ? '#f1f5f9' : 'transparent',
+                                                        color: selectedCategoryId === cat.id ? 'var(--web-nav-bg)' : '#475569',
+                                                        fontSize: '0.9rem',
+                                                        fontWeight: selectedCategoryId === cat.id ? 600 : 500,
+                                                        cursor: 'pointer',
+                                                        borderRadius: '6px'
+                                                    }}
+                                                >
+                                                    {cat.name}
+                                                </button>
+                                            ))}
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+                        )}
                     </div>
 
                     {activeTab === 'events' && selectedEventId && (

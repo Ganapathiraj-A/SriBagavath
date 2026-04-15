@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { X, ChevronLeft, ChevronRight, Maximize2, Edit2, Share2, Folder, ArrowLeft, Download, Loader2 } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Maximize2, Edit2, Share2, Folder, ArrowLeft, Download, Loader2, ChevronDown } from 'lucide-react';
 import { collection, query, getDocs, orderBy } from '@/utils/FirestoreProxy';
 import { db } from '@/firebase';
 import { useAdminAuth } from '@/context/AdminAuthContext';
@@ -20,6 +20,9 @@ const Gallery = () => {
     const [activeTab, setActiveTab] = useState('general');
     const [selectedEventId, setSelectedEventId] = useState(null);
     const [selectedIndex, setSelectedIndex] = useState(null);
+    const [galleryCategories, setGalleryCategories] = useState([]);
+    const [selectedCategoryId, setSelectedCategoryId] = useState(null);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -41,6 +44,15 @@ const Gallery = () => {
                 } catch (e) {
                     console.error("Gallery events fetch failed:", e);
                 }
+
+                try {
+                    const qCats = query(collection(db, 'gallery_categories'), orderBy('order', 'asc'));
+                    const catSnap = await getDocs(qCats);
+                    const cats = catSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    setGalleryCategories(cats);
+                } catch (e) {
+                    console.error("Gallery categories fetch failed:", e);
+                }
             } catch (error) {
                 console.error("Error fetching gallery data:", error);
             } finally {
@@ -57,9 +69,12 @@ const Gallery = () => {
             if (activeTab === 'events') {
                 return img.eventId === selectedEventId;
             }
+            if (activeTab === 'others') {
+                return img.customCategoryId === selectedCategoryId;
+            }
             return true;
         });
-    }, [images, activeTab, selectedEventId]);
+    }, [images, activeTab, selectedEventId, selectedCategoryId]);
 
     const selectedEvent = events.find(ev => ev.id === selectedEventId);
 
@@ -191,7 +206,9 @@ const Gallery = () => {
                             onClick={() => {
                                 setActiveTab(tab.id);
                                 setSelectedEventId(null);
+                                setSelectedCategoryId(null);
                                 setSelectedIndex(null);
+                                setIsDropdownOpen(false);
                             }}
                             style={{
                                 padding: '0.75rem 0.25rem',
@@ -223,6 +240,94 @@ const Gallery = () => {
                         </button>
                     );
                 })}
+
+                {galleryCategories.length > 0 && (
+                    <div style={{ position: 'relative' }}>
+                        <button
+                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                            style={{
+                                padding: '0.75rem 0.25rem',
+                                border: 'none',
+                                backgroundColor: 'transparent',
+                                fontSize: '0.875rem',
+                                fontWeight: 700,
+                                color: activeTab === 'others' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                position: 'relative',
+                                cursor: 'pointer',
+                                transition: 'color 0.2s',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                            }}
+                        >
+                            {selectedCategoryId ? (galleryCategories.find(c => c.id === selectedCategoryId)?.name) : t('OTHERS_TAB')}
+                            <ChevronDown size={14} style={{ transform: isDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+                            {activeTab === 'others' && (
+                                <motion.div
+                                    layoutId="galleryTabUnderline"
+                                    style={{
+                                        position: 'absolute',
+                                        bottom: 0,
+                                        left: 0,
+                                        right: 0,
+                                        height: '3px',
+                                        backgroundColor: 'var(--color-primary)',
+                                        borderRadius: '99px'
+                                    }}
+                                />
+                            )}
+                        </button>
+
+                        <AnimatePresence>
+                            {isDropdownOpen && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: 10 }}
+                                    style={{
+                                        position: 'absolute',
+                                        top: '100%',
+                                        right: 0,
+                                        backgroundColor: 'var(--color-surface)',
+                                        border: '1px solid var(--color-border)',
+                                        borderRadius: '8px',
+                                        boxShadow: 'var(--shadow-lg)',
+                                        zIndex: 1000,
+                                        minWidth: '160px',
+                                        marginTop: '4px',
+                                        overflow: 'hidden'
+                                    }}
+                                >
+                                    {galleryCategories.map(cat => (
+                                        <button
+                                            key={cat.id}
+                                            onClick={() => {
+                                                setActiveTab('others');
+                                                setSelectedCategoryId(cat.id);
+                                                setSelectedEventId(null);
+                                                setIsDropdownOpen(false);
+                                                setSelectedIndex(null);
+                                            }}
+                                            style={{
+                                                width: '100%',
+                                                padding: '12px 16px',
+                                                textAlign: 'left',
+                                                border: 'none',
+                                                backgroundColor: selectedCategoryId === cat.id ? 'var(--color-primary-transparent)' : 'transparent',
+                                                color: selectedCategoryId === cat.id ? 'var(--color-primary)' : 'var(--color-text)',
+                                                fontSize: '0.9rem',
+                                                fontWeight: selectedCategoryId === cat.id ? 600 : 500,
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            {cat.name}
+                                        </button>
+                                    ))}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+                )}
             </div>
 
             {activeTab === 'events' && selectedEventId && (

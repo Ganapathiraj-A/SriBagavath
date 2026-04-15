@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Save, X, ChevronUp, ChevronDown, Share2, Folder, FolderPlus, ArrowLeft, Eye, Download, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Save, X, ChevronUp, ChevronDown, Share2, Folder, FolderPlus, ArrowLeft, Eye, Download, Loader2, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { collection, query, getDocs, orderBy, addDoc, updateDoc, deleteDoc, doc, Timestamp, where } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
@@ -23,11 +23,15 @@ const AdminGallery = () => {
     const [events, setEvents] = useState([]);
     const [showEventModal, setShowEventModal] = useState(false);
     const [newEventForm, setNewEventForm] = useState({ name: '', order: 0 });
-    const [newForm, setNewForm] = useState({ url: '', caption: '', order: 0, category: 'general', eventId: '' });
+    const [newForm, setNewForm] = useState({ url: '', caption: '', order: 0, category: 'general', eventId: '', customCategoryId: '' });
+    const [galleryCategories, setGalleryCategories] = useState([]);
+    const [showCategoryModal, setShowCategoryModal] = useState(false);
+    const [newCategoryForm, setNewCategoryForm] = useState({ name: '', order: 0 });
 
     useEffect(() => {
         fetchImages();
         fetchEvents();
+        fetchCategories();
     }, []);
 
     const fetchEvents = async () => {
@@ -39,6 +43,18 @@ const AdminGallery = () => {
             setEvents(loadedEvents);
         } catch (error) {
             console.error("Error fetching gallery events:", error);
+        }
+    };
+    
+    const fetchCategories = async () => {
+        try {
+            const q = query(collection(db, 'gallery_categories'));
+            const snapshot = await getDocs(q);
+            const loadedCategories = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            loadedCategories.sort((a, b) => (a.order || 0) - (b.order || 0));
+            setGalleryCategories(loadedCategories);
+        } catch (error) {
+            console.error("Error fetching gallery categories:", error);
         }
     };
 
@@ -107,7 +123,7 @@ const AdminGallery = () => {
                 createdAt: Timestamp.now(),
                 updatedAt: Timestamp.now()
             });
-            setNewForm({ url: '', caption: '', order: images.length, category: 'general', eventId: '' });
+            setNewForm({ url: '', caption: '', order: images.length, category: 'general', eventId: '', customCategoryId: '' });
             setShowAddModal(false);
             fetchImages();
         } catch (error) {
@@ -184,7 +200,8 @@ const AdminGallery = () => {
             caption: img.caption || '', 
             order: img.order || 0,
             category: img.category || 'general',
-            eventId: img.eventId || ''
+            eventId: img.eventId || '',
+            customCategoryId: img.customCategoryId || ''
         });
     };
 
@@ -196,6 +213,7 @@ const AdminGallery = () => {
             if (cat !== 'events') return false;
             return img.eventId === selectedEventId;
         }
+        if (activeTab === 'others') return cat === 'others';
         return false;
     });
 
@@ -224,6 +242,32 @@ const AdminGallery = () => {
             if (selectedEventId === id) setSelectedEventId(null);
         } catch (error) {
             alert("Error deleting event: " + error.message);
+        }
+    };
+
+    const handleCreateCategory = async () => {
+        if (!newCategoryForm.name) return;
+        try {
+            await addDoc(collection(db, 'gallery_categories'), {
+                ...newCategoryForm,
+                createdAt: Timestamp.now(),
+                updatedAt: Timestamp.now()
+            });
+            setNewCategoryForm({ name: '', order: galleryCategories.length });
+            fetchCategories();
+        } catch (error) {
+            alert("Error creating category: " + error.message);
+        }
+    };
+
+    const handleDeleteCategory = async (id, e) => {
+        e?.stopPropagation();
+        if (!window.confirm("Are you sure? This will NOT delete images, but they will be unlinked from this category.")) return;
+        try {
+            await deleteDoc(doc(db, 'gallery_categories', id));
+            fetchCategories();
+        } catch (error) {
+            alert("Error deleting category: " + error.message);
         }
     };
 
@@ -266,7 +310,8 @@ const AdminGallery = () => {
                 {[
                     { id: 'general', label: 'General' },
                     { id: 'ayya', label: "Ayyas Photos" },
-                    { id: 'events', label: 'Recent Events' }
+                    { id: 'events', label: 'Recent Events' },
+                    { id: 'others', label: 'Others' }
                 ].map(tab => {
                     const isActive = activeTab === tab.id;
                     return (
@@ -374,6 +419,24 @@ const AdminGallery = () => {
                             <FolderPlus size={20} /> New Event
                         </button>
                     )}
+
+                    <button
+                        onClick={() => setShowCategoryModal(true)}
+                        style={{
+                            padding: '1rem',
+                            backgroundColor: 'var(--color-surface)',
+                            color: 'var(--color-primary)',
+                            border: '1px solid var(--color-primary)',
+                            borderRadius: '0.75rem',
+                            fontWeight: 600,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        <Settings size={20} /> Categories
+                    </button>
                 </div>
 
                 {/* Event Folder List */}
@@ -488,7 +551,7 @@ const AdminGallery = () => {
                                             style={{ width: '100%', padding: '0.5rem', borderRadius: '0.25rem', border: '1px solid var(--color-border)' }}
                                         />
                                         <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.25rem', overflowX: 'auto', paddingBottom: '4px' }}>
-                                            {['general', 'events', 'ayya'].map(cat => (
+                                            {['general', 'ayya', 'events', 'others'].map(cat => (
                                                 <button
                                                     key={cat}
                                                     type="button"
@@ -533,6 +596,16 @@ const AdminGallery = () => {
                                             >
                                                 <option value="">-- Select Event Folder --</option>
                                                 {events.map(ev => <option key={ev.id} value={ev.id}>{ev.name}</option>)}
+                                            </select>
+                                        )}
+                                        {editForm.category === 'others' && (
+                                            <select
+                                                value={editForm.customCategoryId}
+                                                onChange={e => setEditForm({ ...editForm, customCategoryId: e.target.value })}
+                                                style={{ width: '100%', marginTop: '0.5rem', padding: '0.4rem', borderRadius: '0.25rem', border: '1px solid var(--color-primary)', fontSize: '0.8rem' }}
+                                            >
+                                                <option value="">-- Select Category --</option>
+                                                {galleryCategories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
                                             </select>
                                         )}
                                     </div>
@@ -663,7 +736,7 @@ const AdminGallery = () => {
                                 <div>
                                     <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Category</label>
                                     <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '0.5rem' }}>
-                                        {['general', 'ayya', 'events'].map(cat => (
+                                        {['general', 'ayya', 'events', 'others'].map(cat => (
                                             <button
                                                 key={cat}
                                                 type="button"
@@ -692,6 +765,16 @@ const AdminGallery = () => {
                                         >
                                             <option value="">-- Select Event Folder --</option>
                                             {events.map(ev => <option key={ev.id} value={ev.id}>{ev.name}</option>)}
+                                        </select>
+                                    )}
+                                    {newForm.category === 'others' && (
+                                        <select
+                                            value={newForm.customCategoryId}
+                                            onChange={e => setNewForm({ ...newForm, customCategoryId: e.target.value })}
+                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-primary)', backgroundColor: 'var(--color-surface)' }}
+                                        >
+                                            <option value="">-- Select Category --</option>
+                                            {galleryCategories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
                                         </select>
                                     )}
                                 </div>
@@ -751,6 +834,64 @@ const AdminGallery = () => {
                                         Create Folder
                                     </button>
                                 </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+            {/* Category Modal */}
+            <AnimatePresence>
+                {showCategoryModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        style={{ position: 'fixed', inset: 0, zIndex: 110, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
+                        onClick={() => setShowCategoryModal(false)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            style={{ backgroundColor: 'var(--color-card)', padding: '1.5rem', borderRadius: '1rem', width: '100%', maxWidth: '28rem', boxShadow: 'var(--shadow-lg)' }}
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                                <h3 style={{ margin: 0 }}>Manage Sub-Categories</h3>
+                                <button onClick={() => setShowCategoryModal(false)} style={{ background: 'none', border: 'none', color: 'var(--color-text-muted)' }}><X size={24} /></button>
+                            </div>
+                            
+                            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
+                                <input
+                                    value={newCategoryForm.name}
+                                    onChange={e => setNewCategoryForm({ ...newCategoryForm, name: e.target.value })}
+                                    placeholder="Category Name"
+                                    style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
+                                />
+                                <button 
+                                    onClick={handleCreateCategory}
+                                    style={{ padding: '0.75rem 1rem', borderRadius: '0.5rem', border: 'none', backgroundColor: 'var(--color-primary)', color: 'white', fontWeight: 600, cursor: 'pointer' }}
+                                >
+                                    Add
+                                </button>
+                            </div>
+
+                            <div style={{ maxHeight: '40vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                {galleryCategories.map(cat => (
+                                    <div key={cat.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', backgroundColor: 'var(--color-surface)', borderRadius: '0.5rem', border: '1px solid var(--color-border)' }}>
+                                        <span style={{ fontWeight: 500 }}>{cat.name}</span>
+                                        <button 
+                                            onClick={(e) => handleDeleteCategory(cat.id, e)}
+                                            style={{ background: 'none', border: 'none', color: 'var(--color-error)', cursor: 'pointer' }}
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </div>
+                                ))}
+                                {galleryCategories.length === 0 && (
+                                    <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+                                        No sub-categories created yet.
+                                    </div>
+                                )}
                             </div>
                         </motion.div>
                     </motion.div>
