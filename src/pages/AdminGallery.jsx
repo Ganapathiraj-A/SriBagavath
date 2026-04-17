@@ -1,15 +1,19 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Save, X, ChevronUp, ChevronDown, Share2, Folder, FolderPlus, ArrowLeft, Eye, Download, Loader2, Settings } from 'lucide-react';
+import { Plus, Trash2, Save, X, ChevronUp, ChevronDown, Share2, Folder, FolderPlus, ArrowLeft, Eye, Download, Loader2, Settings, Pencil } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { collection, query, getDocs, orderBy, addDoc, updateDoc, deleteDoc, doc, Timestamp, where } from 'firebase/firestore';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { collection, query, getDocs, orderBy, addDoc, updateDoc, deleteDoc, doc, Timestamp, where, writeBatch } from 'firebase/firestore';
+import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, storage } from '@/firebase';
 import { shareImage } from '@/utils/shareUtils';
 import PageHeader from '@/components/PageHeader';
+import { isHeic, convertHeicToJpeg } from '@/utils/heicConverter';
+import { Capacitor } from '@capacitor/core';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 
 const AdminGallery = () => {
     const navigate = useNavigate();
+    const { galleryTabLabels, setGalleryTabLabels } = useGlobalSettings();
     const [images, setImages] = useState([]);
     const [isUploading, setIsUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
@@ -27,6 +31,16 @@ const AdminGallery = () => {
     const [galleryCategories, setGalleryCategories] = useState([]);
     const [showCategoryModal, setShowCategoryModal] = useState(false);
     const [newCategoryForm, setNewCategoryForm] = useState({ name: '', order: 0 });
+    const [selectedFiles, setSelectedFiles] = useState([]);
+    const [isBatchAdding, setIsBatchAdding] = useState(false);
+    const [driveUrl, setDriveUrl] = useState('');
+    const [isDriveLoading, setIsDriveLoading] = useState(false);
+    const cancelImportRef = useRef(false);
+    const [selectedIds, setSelectedIds] = useState([]);
+    const [isSelectMode, setIsSelectMode] = useState(false);
+    const [uploadStartTime, setUploadStartTime] = useState(0);
+    const [etaText, setEtaText] = useState('');
+
 
     useEffect(() => {
         fetchImages();
@@ -73,24 +87,52 @@ const AdminGallery = () => {
         }
     };
 
+    const formatETA = (seconds) => {
+        if (!isFinite(seconds) || seconds <= 0) return '';
+        if (seconds > 3600) return '> 1 hour';
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
+
     const handleFileUpload = async (file, isEdit = false) => {
         if (!file) return;
         
         setIsUploading(true);
         setUploadProgress(0);
+        setUploadStartTime(Date.now());
+        setEtaText('');
         
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+        let finalFile = file;
+        let finalExt = file.name.split('.').pop();
+
+        // Check for HEIC and convert
+        if (isHeic(file.name, file.type)) {
+            try {
+                finalFile = await convertHeicToJpeg(file);
+                finalExt = 'jpg';
+            } catch (err) {
+                console.warn("HEIC conversion failed, uploading original:", err);
+            }
+        }
+
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${finalExt}`;
         const storagePath = `gallery/${fileName}`;
         const storageRef = ref(storage, storagePath);
         
-        const uploadTask = uploadBytesResumable(storageRef, file);
+        const uploadTask = uploadBytesResumable(storageRef, finalFile);
         
         return new Promise((resolve, reject) => {
             uploadTask.on('state_changed', 
                 (snapshot) => {
                     const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
                     setUploadProgress(progress);
+
+                    const elapsed = (Date.now() - uploadStartTime) / 1000;
+                    if (progress > 0.5) {
+                        const totalEstimated = elapsed / (progress / 100);
+                        setEtaText(` (${formatETA(elapsed)} / ${formatETA(totalEstimated)})`);
+                    }
                 }, 
                 (error) => {
                     console.error("Upload failed:", error);
@@ -111,8 +153,307 @@ const AdminGallery = () => {
             );
         });
     };
+    const executeWithRetry = async (fn, label, maxAttempts = 5) => {
+        let lastError;
+        for (let i = 0; i < maxAttempts; i++) {
+            if (cancelImportRef.current) break;
+            try {
+                return await fn();
+            } catch (err) {
+                lastError = err;
+                console.warn(`[v4] ${label} attempt ${i + 1} failed:`, err.message);
+                if (i < maxAttempts - 1 && !cancelImportRef.current) {
+                    await new Promise(r => setTimeout(r, 3000)); // wait 3s
+                }
+            }
+        }
+        throw lastError;
+    };
+
+    const handleCancel = () => {
+        if (isUploading) {
+            if (!confirm("Stop current upload process?")) return;
+            cancelImportRef.current = true;
+        }
+        setShowAddModal(false);
+        setDriveUrl('');
+        setSelectedFiles([]);
+        setUploadProgress(0);
+    };
+
+    const toggleSelection = (id) => {
+        setSelectedIds(prev => 
+            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+        );
+    };
+
+    const toggleSelectAll = () => {
+        const currentImages = getFilteredImages();
+        if (selectedIds.length === currentImages.length) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(currentImages.map(img => img.id));
+        }
+    };
+
+    const handleDeleteSelected = async () => {
+        if (selectedIds.length === 0) return;
+        if (!confirm(`Are you sure you want to delete ${selectedIds.length} selected images? This action cannot be undone.`)) return;
+
+        setLoading(true);
+        try {
+            const batch = writeBatch(db);
+            const imagesToDelete = images.filter(img => selectedIds.includes(img.id));
+            
+            // Delete from Firestore in batch
+            selectedIds.forEach(id => {
+                batch.delete(doc(db, 'gallery', id));
+            });
+            
+            await batch.commit();
+
+            // Delete from Storage (Firebase Storage doesn't support batch delete)
+            const storagePromises = imagesToDelete
+                .filter(img => img.storagePath)
+                .map(img => {
+                    const storageRef = ref(storage, img.storagePath);
+                    return deleteObject(storageRef).catch(err => {
+                        console.warn(`Could not delete storage file ${img.storagePath}:`, err);
+                    });
+                });
+            
+            await Promise.all(storagePromises);
+
+            setSelectedIds([]);
+            setIsSelectMode(false);
+            fetchImages();
+            alert(`Successfully deleted ${imagesToDelete.length} images.`);
+        } catch (error) {
+            console.error("Bulk delete failed:", error);
+            alert("Error deleting images: " + error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const extractFolderId = (url) => {
+        const match = url.match(/[-\w]{25,}/);
+        return match ? match[0] : null;
+    };
+
+    const handleDriveImport = async () => {
+        const folderId = extractFolderId(driveUrl);
+        if (!folderId) return alert("Please provide a valid Google Drive folder URL");
+
+        if (!window.navigator.onLine) {
+            return alert("Device is offline. Please check your internet connection and try again.");
+        }
+
+        setIsDriveLoading(true);
+        setIsUploading(true);
+        setUploadProgress(0);
+        setUploadStartTime(Date.now());
+        setEtaText('');
+        cancelImportRef.current = false;
+
+        try {
+            const apiKey = import.meta.env.VITE_GOOGLE_DRIVE_API_KEY;
+            const isNative = Capacitor.isNativePlatform();
+            
+            let driveFiles = [];
+            
+            // Step 1: List Files (with retry)
+            driveFiles = await executeWithRetry(async () => {
+                if (isNative) {
+                    const response = await Capacitor.Plugins.CapacitorHttp.get({
+                        url: 'https://www.googleapis.com/drive/v3/files',
+                        params: {
+                            key: apiKey,
+                            q: `'${folderId}' in parents and trashed=false and mimeType contains 'image/'`,
+                            fields: 'files(id,name,mimeType,webContentLink)',
+                        }
+                    });
+                    if (response.status !== 200) throw new Error(`Drive API error ${response.status}`);
+                    return response.data.files || [];
+                } else {
+                    const params = new URLSearchParams({
+                        key: apiKey,
+                        q: `'${folderId}' in parents and trashed=false and mimeType contains 'image/'`,
+                        fields: 'files(id,name,mimeType,webContentLink)',
+                    });
+                    const res = await fetch(`https://www.googleapis.com/drive/v3/files?${params}`);
+                    if (!res.ok) throw new Error("Could not access folder.");
+                    const data = await res.json();
+                    return data.files || [];
+                }
+            }, "Folder Scan");
+
+            if (driveFiles.length === 0) {
+                alert("No images found in this folder.");
+                setIsDriveLoading(false);
+                setIsUploading(false);
+                return;
+            }
+
+            if (!confirm(`Found ${driveFiles.length} images. Start importing?`)) {
+                setIsDriveLoading(false);
+                setIsUploading(false);
+                return;
+            }
+
+            const batch = writeBatch(db);
+            let currentOrder = parseInt(newForm.order) || images.length;
+
+            for (let i = 0; i < driveFiles.length; i++) {
+                if (cancelImportRef.current) break;
+                const file = driveFiles[i];
+
+                // Step 2: Download File Content (with retry)
+                let buffer = await executeWithRetry(async () => {
+                    if (isNative) {
+                        let dlRes = await Capacitor.Plugins.CapacitorHttp.get({
+                            url: `https://www.googleapis.com/drive/v3/files/${file.id}`,
+                            params: { alt: 'media', key: apiKey },
+                            responseType: 'arraybuffer'
+                        });
+
+                        // Fallback if 403
+                        if (dlRes.status === 403 && file.webContentLink) {
+                            dlRes = await Capacitor.Plugins.CapacitorHttp.get({
+                                url: file.webContentLink,
+                                responseType: 'arraybuffer'
+                            });
+                        }
+
+                        if (dlRes.status !== 200) throw new Error(`Download failed (${dlRes.status})`);
+                        return dlRes.data;
+                    } else {
+                        const downloadRes = await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}?alt=media&key=${apiKey}`);
+                        if (!downloadRes.ok) throw new Error("Download failed");
+                        const blob = await downloadRes.blob();
+                        return await blob.arrayBuffer();
+                    }
+                }, `Download ${file.name}`);
+
+                // Step 2.5: Process Binary Data and Handle HEIC Conversion
+                let finalData;
+                let finalMimeType = file.mimeType || 'image/jpeg';
+                let finalExtension = 'jpeg';
+
+                // First, normalize buffer to Uint8Array
+                let rawData;
+                if (typeof buffer === 'string') {
+                    const binaryString = window.atob(buffer);
+                    rawData = new Uint8Array(binaryString.length);
+                    for (let j = 0; j < binaryString.length; j++) {
+                        rawData[j] = binaryString.charCodeAt(j);
+                    }
+                } else if (buffer instanceof ArrayBuffer) {
+                    rawData = new Uint8Array(buffer);
+                } else if (buffer && buffer.buffer instanceof ArrayBuffer) {
+                    rawData = new Uint8Array(buffer.buffer);
+                } else if (typeof buffer === 'object' && buffer !== null) {
+                    const keys = Object.keys(buffer).filter(k => !isNaN(k)).map(Number).sort((a,b) => a-b);
+                    if (keys.length > 0) {
+                        rawData = new Uint8Array(keys.length);
+                        for (let j = 0; j < keys.length; j++) {
+                            rawData[j] = buffer[keys[j]];
+                        }
+                    }
+                }
+
+                if (!rawData || rawData.length === 0) {
+                    throw new Error(`Invalid data received for ${file.name}`);
+                }
+
+                // Check for HEIC and convert if necessary
+                if (isHeic(file.name, file.mimeType)) {
+                    console.log(`[v4] Converting HEIC ${file.name} to JPEG...`);
+                    const heicBlob = new Blob([rawData], { type: 'image/heic' });
+                    const jpegBlob = await convertHeicToJpeg(heicBlob);
+                    const jpegArrayBuffer = await jpegBlob.arrayBuffer();
+                    finalData = new Uint8Array(jpegArrayBuffer);
+                    finalMimeType = 'image/jpeg';
+                    finalExtension = 'jpg';
+                } else {
+                    finalData = rawData;
+                    finalExtension = file.name.split('.').pop() || 'jpeg';
+                }
+
+                const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}_${i}.${finalExtension}`;
+                const storagePath = `gallery/${fileName}`;
+                const storageRef = ref(storage, storagePath);
+
+                const metadata = { contentType: finalMimeType };
+
+                // Step 3: Upload to Firebase (with retry)
+                let downloadURL = await executeWithRetry(async () => {
+                    const uploadTask = uploadBytesResumable(storageRef, finalData, metadata);
+                    return new Promise((resolve, reject) => {
+                        uploadTask.on('state_changed', 
+                            (snapshot) => {
+                                const fileProgress = snapshot.totalBytes > 0 
+                                    ? (snapshot.bytesTransferred / snapshot.totalBytes) * 100 
+                                    : 0;
+                                const totalProgress = ((i + (fileProgress / 100)) / driveFiles.length) * 100;
+                                setUploadProgress(totalProgress);
+
+                                    const elapsed = (Date.now() - uploadStartTime) / 1000;
+                                    if (totalProgress > 0.5) {
+                                        const totalEstimated = elapsed / (totalProgress / 100);
+                                        setEtaText(` (${formatETA(elapsed)} / ${formatETA(totalEstimated)})`);
+                                    }
+                                },
+                                reject,
+                            async () => resolve(await getDownloadURL(uploadTask.snapshot.ref))
+                        );
+                    });
+                }, `Upload ${file.name}`);
+
+                if (cancelImportRef.current) break;
+
+                const newDocRef = doc(collection(db, 'gallery'));
+                batch.set(newDocRef, {
+                    ...newForm,
+                    url: downloadURL,
+                    storagePath,
+                    caption: newForm.caption || file.name,
+                    order: currentOrder + i,
+                    createdAt: Timestamp.now(),
+                    updatedAt: Timestamp.now()
+                });
+
+                // Memory Cleanup
+                finalData = null;
+            }
+
+            if (!cancelImportRef.current) {
+                await batch.commit();
+                setDriveUrl('');
+                setShowAddModal(false);
+                fetchImages();
+                alert(`[v4] Successfully imported ${driveFiles.length} images from Google Drive!`);
+            }
+        } catch (error) {
+            console.error("[v4] Drive import failed:", error);
+            let errorMessage = error.message;
+            if (error.serverResponse) {
+                errorMessage += " (Server: " + error.serverResponse + ")";
+            }
+            alert(`[v4] Drive import failed: ${errorMessage} (Online: ${window.navigator.onLine})`);
+        } finally {
+            setIsDriveLoading(false);
+            setIsUploading(false);
+            setUploadProgress(0);
+        }
+    };
+
 
     const handleAdd = async () => {
+        if (selectedFiles.length > 0) {
+            return handleBatchAdd();
+        }
+        
         if (!newForm.url) return alert("URL is required");
         if (newForm.category === 'events' && !newForm.eventId) return alert("Please select an event folder");
         
@@ -130,6 +471,111 @@ const AdminGallery = () => {
             alert("Error adding image: " + error.message);
         }
     };
+
+    const handleBatchAdd = async () => {
+        if (selectedFiles.length === 0) return;
+        if (newForm.category === 'events' && !newForm.eventId) return alert("Please select an event folder");
+
+        setIsBatchAdding(true);
+        setIsUploading(true);
+        setUploadProgress(0);
+        setUploadStartTime(Date.now());
+        setEtaText('');
+        cancelImportRef.current = false;
+
+        try {
+            const batch = writeBatch(db);
+            let currentOrder = parseInt(newForm.order) || images.length;
+
+            for (let i = 0; i < selectedFiles.length; i++) {
+                if (cancelImportRef.current) break;
+                const file = selectedFiles[i];
+                
+                let finalFile = file;
+                let finalExt = file.name.split('.').pop();
+
+                // Check for HEIC and convert
+                if (isHeic(file.name, file.type)) {
+                    try {
+                        finalFile = await convertHeicToJpeg(file);
+                        finalExt = 'jpg';
+                    } catch (err) {
+                        console.warn("Batch HEIC conversion failed, uploading original:", err);
+                    }
+                }
+
+                const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}_${i}.${finalExt}`;
+                const storagePath = `gallery/${fileName}`;
+                const storageRef = ref(storage, storagePath);
+                
+                // Upload to Firebase with Retry Logic
+                let downloadURL;
+                let uploadSuccess = false;
+                let attempts = 0;
+                const maxAttempts = 3;
+
+                while (attempts < maxAttempts && !uploadSuccess) {
+                    if (cancelImportRef.current) break;
+                    try {
+                        const uploadTask = uploadBytesResumable(storageRef, finalFile);
+                        
+                        downloadURL = await new Promise((resolve, reject) => {
+                            uploadTask.on('state_changed', 
+                                (snapshot) => {
+                                    const fileProgress = snapshot.totalBytes > 0 
+                                        ? (snapshot.bytesTransferred / snapshot.totalBytes) * 100 
+                                        : 0;
+                                    const totalProgress = ((i + (fileProgress / 100)) / selectedFiles.length) * 100;
+                                    setUploadProgress(totalProgress);
+
+                                    const elapsed = (Date.now() - uploadStartTime) / 1000;
+                                    if (totalProgress > 0.5) {
+                                        const totalEstimated = elapsed / (totalProgress / 100);
+                                        setEtaText(` (${formatETA(elapsed)} / ${formatETA(totalEstimated)})`);
+                                    }
+                                },
+                                reject,
+                                async () => resolve(await getDownloadURL(uploadTask.snapshot.ref))
+                            );
+                        });
+                        uploadSuccess = true;
+                    } catch (error) {
+                        attempts++;
+                        if (attempts >= maxAttempts) throw error;
+                        console.warn(`Retrying device upload for ${file.name} (${attempts}/${maxAttempts})...`);
+                        await new Promise(r => setTimeout(r, 2000)); // 2s backoff
+                    }
+                }
+
+                if (cancelImportRef.current) break;
+
+                const newDocRef = doc(collection(db, 'gallery'));
+                batch.set(newDocRef, {
+                    ...newForm,
+                    url: downloadURL,
+                    storagePath,
+                    order: currentOrder + i,
+                    createdAt: Timestamp.now(),
+                    updatedAt: Timestamp.now()
+                });
+            }
+
+            await batch.commit();
+            setSelectedFiles([]);
+            setNewForm({ url: '', caption: '', order: images.length, category: 'general', eventId: '', customCategoryId: '' });
+            setShowAddModal(false);
+            fetchImages();
+            alert(`Successfully added ${selectedFiles.length} images!`);
+        } catch (error) {
+            console.error("Batch upload failed:", error);
+            alert("Error adding images: " + error.message);
+        } finally {
+            setIsBatchAdding(false);
+            setIsUploading(false);
+            setUploadProgress(0);
+        }
+    };
+
 
     const handleUpdate = async (id) => {
         try {
@@ -205,17 +651,21 @@ const AdminGallery = () => {
         });
     };
 
-    const filteredImages = images.filter(img => {
-        const cat = img.category || 'general';
-        if (activeTab === 'general') return cat === 'general';
-        if (activeTab === 'ayya') return cat === 'ayya';
-        if (activeTab === 'events') {
-            if (cat !== 'events') return false;
-            return img.eventId === selectedEventId;
-        }
-        if (activeTab === 'others') return cat === 'others';
-        return false;
-    });
+    const getFilteredImages = () => {
+        return images.filter(img => {
+            const cat = img.category || 'general';
+            if (activeTab === 'general') return cat === 'general';
+            if (activeTab === 'ayya') return cat === 'ayya';
+            if (activeTab === 'events') {
+                if (cat !== 'events') return false;
+                return img.eventId === selectedEventId;
+            }
+            if (activeTab === 'others') return cat === 'others';
+            return false;
+        });
+    };
+
+    const filteredImages = getFilteredImages();
 
     const handleCreateEvent = async () => {
         if (!newEventForm.name) return;
@@ -271,6 +721,63 @@ const AdminGallery = () => {
         }
     };
 
+    const handleRenameContext = async (targetId = null) => {
+        let currentId = targetId || (activeTab === 'events' ? selectedEventId : null);
+        let collectionName = activeTab === 'events' ? 'gallery_events' : null;
+        
+        if (!currentId || !collectionName) return;
+
+        const record = events.find(e => e.id === currentId);
+        if (!record) return;
+        
+        const newName = prompt("Rename to:", record.name);
+        if (!newName || newName === record.name) return;
+
+        try {
+            await updateDoc(doc(db, collectionName, currentId), {
+                name: newName,
+                updatedAt: Timestamp.now()
+            });
+            fetchEvents();
+        } catch (error) {
+            alert("Rename failed: " + error.message);
+        }
+    };
+
+    const handleRenameTab = async (tabId) => {
+        const currentLabel = galleryTabLabels[tabId] || '';
+        const defaultLabels = {
+            general: 'General',
+            ayya: 'Ayyas Photos',
+            events: 'Recent Events',
+            others: 'Others'
+        };
+        const newLabel = prompt(`Rename "${currentLabel || defaultLabels[tabId]}" to:`, currentLabel || defaultLabels[tabId]);
+        if (newLabel === null) return;
+        
+        try {
+            await setGalleryTabLabels({
+                ...galleryTabLabels,
+                [tabId]: newLabel.trim()
+            });
+        } catch (error) {
+            alert("Failed to rename tab: " + error.message);
+        }
+    };
+
+    const getCurrentTitle = () => {
+        if (activeTab === 'events' && selectedEventId) {
+            return events.find(e => e.id === selectedEventId)?.name || 'Event';
+        }
+        const labels = {
+            general: galleryTabLabels.general || 'General',
+            ayya: galleryTabLabels.ayya || 'Ayyas Photos',
+            events: galleryTabLabels.events || 'Recent Events',
+            others: galleryTabLabels.others || 'Others'
+        };
+        return labels[activeTab] || '';
+    };
+
     return (
         <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-surface)', paddingBottom: '2rem' }}>
             <PageHeader 
@@ -300,52 +807,71 @@ const AdminGallery = () => {
             <div style={{ 
                 display: 'flex', 
                 justifyContent: 'center', 
-                gap: '2rem', 
+                gap: '1rem', 
                 borderBottom: '1px solid var(--color-border)',
                 backgroundColor: 'var(--color-surface)',
                 position: 'sticky',
                 top: '56px',
-                zIndex: 10
+                zIndex: 10,
+                padding: '0 1rem',
+                overflowX: 'auto'
             }}>
                 {[
-                    { id: 'general', label: 'General' },
-                    { id: 'ayya', label: "Ayyas Photos" },
-                    { id: 'events', label: 'Recent Events' },
-                    { id: 'others', label: 'Others' }
+                    { id: 'general', default: 'General' },
+                    { id: 'ayya', default: "Ayyas Photos" },
+                    { id: 'events', default: 'Recent Events' },
+                    { id: 'others', default: 'Others' }
                 ].map(tab => {
                     const isActive = activeTab === tab.id;
+                    const label = galleryTabLabels[tab.id] || tab.default;
                     return (
-                        <button
-                            key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
-                            style={{
-                                padding: '0.75rem 0.25rem',
-                                border: 'none',
-                                backgroundColor: 'transparent',
-                                fontSize: '0.875rem',
-                                fontWeight: 700,
-                                color: isActive ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                                position: 'relative',
-                                cursor: 'pointer',
-                                transition: 'color 0.2s'
-                            }}
-                        >
-                            {tab.label}
-                            {isActive && (
-                                <motion.div
-                                    layoutId="adminGalleryTabUnderline"
-                                    style={{
-                                        position: 'absolute',
-                                        bottom: 0,
-                                        left: 0,
-                                        right: 0,
-                                        height: '3px',
-                                        backgroundColor: 'var(--color-primary)',
-                                        borderRadius: '99px'
-                                    }}
-                                />
-                            )}
-                        </button>
+                        <div key={tab.id} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                            <button
+                                onClick={() => setActiveTab(tab.id)}
+                                style={{
+                                    padding: '0.75rem 0.5rem',
+                                    border: 'none',
+                                    backgroundColor: 'transparent',
+                                    fontSize: '0.875rem',
+                                    fontWeight: 700,
+                                    color: isActive ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                    cursor: 'pointer',
+                                    transition: 'color 0.2s',
+                                    whiteSpace: 'nowrap'
+                                }}
+                            >
+                                {label}
+                                {isActive && (
+                                    <motion.div
+                                        layoutId="adminGalleryTabUnderline"
+                                        style={{
+                                            position: 'absolute',
+                                            bottom: 0,
+                                            left: 0,
+                                            right: 0,
+                                            height: '3px',
+                                            backgroundColor: 'var(--color-primary)',
+                                            borderRadius: '99px'
+                                        }}
+                                    />
+                                )}
+                            </button>
+                            <button 
+                                onClick={(e) => { e.stopPropagation(); handleRenameTab(tab.id); }}
+                                style={{
+                                    padding: '2px',
+                                    background: 'none',
+                                    border: 'none',
+                                    color: 'var(--color-text-muted)',
+                                    cursor: 'pointer',
+                                    opacity: 0.6,
+                                    marginLeft: '-4px'
+                                }}
+                                title="Rename Tab"
+                            >
+                                <Pencil size={12} />
+                            </button>
+                        </div>
                     );
                 })}
             </div>
@@ -353,6 +879,32 @@ const AdminGallery = () => {
             {/* Sub-tabs removed for consistency with public view */}
 
             <div style={{ maxWidth: '48rem', margin: '0 auto', padding: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>{getCurrentTitle()}</h2>
+                        {activeTab === 'events' && selectedEventId && (
+                            <button 
+                                onClick={() => handleRenameContext()}
+                                style={{ 
+                                    padding: '0.4rem 0.6rem',
+                                    borderRadius: '0.5rem',
+                                    border: '1px solid var(--color-primary)',
+                                    backgroundColor: 'var(--color-primary-transparent)',
+                                    color: 'var(--color-primary)', 
+                                    cursor: 'pointer', 
+                                    display: 'flex', 
+                                    alignItems: 'center',
+                                    gap: '0.4rem',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 600
+                                }}
+                            >
+                                <Pencil size={14} /> Rename Folder
+                            </button>
+                        )}
+                    </div>
+                </div>
+
                 <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
                     {activeTab === 'events' && selectedEventId && (
                         <button
@@ -439,6 +991,86 @@ const AdminGallery = () => {
                     </button>
                 </div>
 
+                {/* Bulk Management Bar */}
+                <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center', 
+                    marginBottom: '1.5rem', 
+                    padding: '0.75rem', 
+                    backgroundColor: isSelectMode ? 'rgba(239, 68, 68, 0.05)' : 'var(--color-surface)', 
+                    borderRadius: '0.75rem', 
+                    border: `1px solid ${isSelectMode ? 'var(--color-error)' : 'var(--color-border)'}`,
+                    transition: 'all 0.3s ease' 
+                }}>
+                    <button 
+                        onClick={() => {
+                            setIsSelectMode(!isSelectMode);
+                            if (isSelectMode) setSelectedIds([]);
+                        }}
+                        style={{
+                            background: isSelectMode ? 'var(--color-error)' : 'none',
+                            border: `1px solid ${isSelectMode ? 'var(--color-error)' : 'var(--color-primary)'}`,
+                            color: isSelectMode ? 'white' : 'var(--color-primary)',
+                            padding: '0.5rem 1rem',
+                            borderRadius: '0.5rem',
+                            fontSize: '0.875rem',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem'
+                        }}
+                    >
+                        {isSelectMode ? <X size={16} /> : <Settings size={16} />}
+                        {isSelectMode ? 'Cancel Selection' : 'Select Mode'}
+                    </button>
+
+                    {isSelectMode && (
+                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                            <button 
+                                onClick={toggleSelectAll}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    color: 'var(--color-primary)',
+                                    fontSize: '0.875rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                {selectedIds.length === filteredImages.length ? 'Deselect All' : 'Select All'}
+                            </button>
+                            
+                            {selectedIds.length > 0 && (
+                                <button 
+                                    onClick={handleDeleteSelected}
+                                    style={{
+                                        backgroundColor: 'var(--color-error)',
+                                        color: 'white',
+                                        border: 'none',
+                                        padding: '0.5rem 1rem',
+                                        borderRadius: '0.5rem',
+                                        fontSize: '0.875rem',
+                                        fontWeight: 600,
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.4rem'
+                                    }}
+                                >
+                                    <Trash2 size={16} /> Delete ({selectedIds.length})
+                                </button>
+                            )}
+                        </div>
+                    )}
+                    {!isSelectMode && (
+                        <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
+                            {filteredImages.length} images
+                        </div>
+                    )}
+                </div>
+
                 {/* Event Folder List */}
                 {activeTab === 'events' && !selectedEventId && (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
@@ -462,6 +1094,13 @@ const AdminGallery = () => {
                             >
                                 <Folder size={32} color="var(--color-primary)" fill="var(--color-primary-transparent)" />
                                 <span style={{ fontSize: '0.875rem', fontWeight: 600, textAlign: 'center' }}>{event.name}</span>
+                                <button 
+                                    onClick={(e) => { e.stopPropagation(); handleRenameContext(event.id); }}
+                                    style={{ position: 'absolute', top: '0.25rem', left: '0.25rem', background: 'none', border: 'none', color: 'var(--color-primary)' }}
+                                    title="Rename"
+                                >
+                                    <Pencil size={14} />
+                                </button>
                                 <button 
                                     onClick={(e) => handleDeleteEvent(event.id, e)}
                                     style={{ position: 'absolute', top: '0.25rem', right: '0.25rem', background: 'none', border: 'none', color: 'var(--color-error)' }}
@@ -510,11 +1149,30 @@ const AdminGallery = () => {
                                     display: 'flex',
                                     gap: '1rem',
                                     alignItems: 'center',
-                                    transition: 'border-color 0.2s ease'
+                                    transition: 'border-color 0.2s ease',
+                                    cursor: isSelectMode ? 'pointer' : 'default'
                                 }}
+                                onClick={() => isSelectMode && toggleSelection(img.id)}
                             >
+                                {isSelectMode && (
+                                    <div 
+                                        style={{
+                                            width: '24px',
+                                            height: '24px',
+                                            borderRadius: '50%',
+                                            border: `2px solid ${selectedIds.includes(img.id) ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                                            backgroundColor: selectedIds.includes(img.id) ? 'var(--color-primary)' : 'transparent',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            flexShrink: 0
+                                        }}
+                                    >
+                                        {selectedIds.includes(img.id) && <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: 'white' }} />}
+                                    </div>
+                                )}
                                 <div style={{ width: '80px', height: '80px', borderRadius: '0.5rem', overflow: 'hidden', flexShrink: 0 }}>
-                                    <img src={img.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    <img src={img.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: isSelectMode && !selectedIds.includes(img.id) ? 0.6 : 1 }} />
                                 </div>
 
                                 {editingId === img.id ? (
@@ -693,27 +1351,124 @@ const AdminGallery = () => {
                                                 gap: '0.5rem'
                                             }}
                                         >
-                                            <Plus size={18} /> {isUploading ? `Uploading ${Math.round(uploadProgress)}%` : 'Upload from Device'}
+                                            <Plus size={18} /> {isUploading ? `Uploading ${Math.round(uploadProgress)}%${etaText}` : (selectedFiles.length > 0 ? `Selected ${selectedFiles.length} files` : 'Upload from Device')}
                                         </button>
                                         <input 
                                             type="file" 
                                             ref={fileInputRef}
-                                            onChange={(e) => handleFileUpload(e.target.files[0])}
+                                            onChange={(e) => {
+                                                const files = Array.from(e.target.files);
+                                                if (files.length > 1) {
+                                                    setSelectedFiles(files);
+                                                    setNewForm(prev => ({ ...prev, url: 'multiple_files' })); // Placeholder
+                                                } else if (files.length === 1) {
+                                                    setSelectedFiles([]);
+                                                    handleFileUpload(files[0]);
+                                                }
+                                            }}
+                                            multiple
                                             style={{ display: 'none' }}
                                             accept="image/*"
                                         />
                                     </div>
-                                    <input
-                                        value={newForm.url}
-                                        onChange={e => setNewForm({ ...newForm, url: e.target.value })}
-                                        placeholder="Or enter URL directly"
-                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)' }}
-                                    />
+
+                                    {selectedFiles.length > 0 && (
+                                        <div style={{ 
+                                            display: 'flex', 
+                                            gap: '0.5rem', 
+                                            overflowX: 'auto', 
+                                            padding: '0.5rem', 
+                                            backgroundColor: 'var(--color-surface)', 
+                                            borderRadius: '0.5rem',
+                                            marginBottom: '0.5rem'
+                                        }}>
+                                            {selectedFiles.map((f, i) => (
+                                                <div key={i} style={{ position: 'relative', flexShrink: 0 }}>
+                                                    <div style={{ width: '60px', height: '60px', borderRadius: '0.25rem', overflow: 'hidden', border: '1px solid var(--color-border)' }}>
+                                                        <img src={URL.createObjectURL(f)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                    </div>
+                                                    <button 
+                                                        onClick={() => setSelectedFiles(prev => prev.filter((_, idx) => idx !== i))}
+                                                        style={{ position: 'absolute', top: -5, right: -5, backgroundColor: 'var(--color-error)', color: 'white', border: 'none', borderRadius: '50%', width: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                                                    >
+                                                        <X size={12} />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            <button 
+                                                onClick={() => setSelectedFiles([])}
+                                                style={{ padding: '0.5rem', color: 'var(--color-error)', fontSize: '0.75rem', background: 'none', border: 'none', cursor: 'pointer' }}
+                                            >
+                                                Clear All
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {selectedFiles.length === 0 && (
+                                        <input
+                                            value={newForm.url}
+                                            onChange={e => setNewForm({ ...newForm, url: e.target.value })}
+                                            placeholder="Or enter URL directly"
+                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)' }}
+                                        />
+                                    )}
+
                                     {isUploading && (
                                         <div style={{ width: '100%', height: '4px', backgroundColor: 'var(--color-border)', borderRadius: '2px', marginTop: '0.5rem', overflow: 'hidden' }}>
                                             <div style={{ width: `${uploadProgress}%`, height: '100%', backgroundColor: 'var(--color-primary)', transition: 'width 0.3s ease' }} />
                                         </div>
                                     )}
+
+                                    <div style={{ 
+                                        padding: '0.75rem', 
+                                        backgroundColor: 'var(--color-surface)', 
+                                        borderRadius: '0.5rem', 
+                                        border: '1px solid var(--color-border)', 
+                                        marginTop: '0.75rem' 
+                                    }}>
+                                        <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem', fontWeight: 600 }}>
+                                            Import from Google Drive Folder
+                                        </label>
+                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                            <input 
+                                                value={driveUrl}
+                                                onChange={e => setDriveUrl(e.target.value)}
+                                                placeholder="Paste Folder URL"
+                                                disabled={isUploading}
+                                                style={{ 
+                                                    flex: 1, 
+                                                    padding: '0.5rem', 
+                                                    borderRadius: '0.25rem', 
+                                                    border: '1px solid var(--color-border)', 
+                                                    fontSize: '0.875rem',
+                                                    backgroundColor: 'white'
+                                                }}
+                                            />
+                                            <button 
+                                                onClick={handleDriveImport}
+                                                disabled={isUploading || !driveUrl}
+                                                style={{ 
+                                                    padding: '0.5rem 1rem', 
+                                                    borderRadius: '0.25rem', 
+                                                    backgroundColor: 'var(--color-primary)', 
+                                                    color: 'white', 
+                                                    border: 'none', 
+                                                    cursor: (isUploading || !driveUrl) ? 'not-allowed' : 'pointer', 
+                                                    fontSize: '0.875rem',
+                                                    fontWeight: 600,
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '0.25rem',
+                                                    opacity: (isUploading || !driveUrl) ? 0.7 : 1
+                                                }}
+                                            >
+                                                {isDriveLoading ? <Loader2 size={16} className="animate-spin" /> : 'Import'}
+                                            </button>
+                                        </div>
+                                        <p style={{ fontSize: '0.65rem', color: 'var(--color-text-light)', marginTop: '0.5rem' }}>
+                                            Folder must be set to "Anyone with the link can view"
+                                        </p>
+                                    </div>
                                 </div>
                                 <div>
                                     <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Caption</label>
@@ -780,8 +1535,11 @@ const AdminGallery = () => {
                                 </div>
 
                                 <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                                    <button onClick={() => setShowAddModal(false)} style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', background: 'none' }}>Cancel</button>
-                                    <button onClick={handleAdd} style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: 'none', backgroundColor: 'var(--color-primary)', color: 'white', fontWeight: 600 }}>Add Image</button>
+                                    <button onClick={handleCancel} style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', background: 'none' }}>Cancel</button>
+                                    <button onClick={handleAdd} disabled={isUploading} style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: 'none', backgroundColor: 'var(--color-primary)', color: 'white', fontWeight: 600, opacity: isUploading ? 0.7 : 1, cursor: isUploading ? 'not-allowed' : 'pointer' }}>
+                                        {isBatchAdding ? `Saving ${selectedFiles.length} Images...` : (isUploading ? 'Processing...' : (selectedFiles.length > 0 ? `Add ${selectedFiles.length} Images` : 'Add Image'))}
+                                    </button>
+
                                 </div>
                             </div>
                         </motion.div>

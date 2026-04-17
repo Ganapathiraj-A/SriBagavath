@@ -49,6 +49,12 @@ export const GlobalSettingsProvider = ({ children }) => {
             public: [],
             admin: [],
             dev: []
+        },
+        galleryTabLabels: { 
+            general: '', 
+            ayya: '', 
+            events: '', 
+            others: '' 
         }
     });
 
@@ -350,6 +356,7 @@ export const GlobalSettingsProvider = ({ children }) => {
             onlineRegistrationContact: publicSettings.onlineRegistrationContact,
             offlineRegistrationContact: publicSettings.offlineRegistrationContact,
             hiddenScreens: publicSettings.hiddenScreens || { public: [], admin: [], dev: [] },
+            galleryTabLabels: publicSettings.galleryTabLabels || { general: '', ayya: '', events: '', others: '' },
 
             toggleOnlineTransactions: (val) => updatePublic({ onlineTransactionsEnabled: val }),
             setMinAppVersion: (val) => updatePublic({ minAppVersion: val }),
@@ -371,6 +378,7 @@ export const GlobalSettingsProvider = ({ children }) => {
             setOnlineRegistrationContact: (val) => updatePublic({ onlineRegistrationContact: val }),
             setOfflineRegistrationContact: (val) => updatePublic({ offlineRegistrationContact: val }),
             setHiddenScreens: (val) => updatePublic({ hiddenScreens: val }),
+            setGalleryTabLabels: (val) => updatePublic({ galleryTabLabels: val }),
 
             // Developer Settings (Per-User)
             devMode: userSettings.devMode ?? DEFAULT_USER_SETTINGS.devMode,

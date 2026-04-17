@@ -13,7 +13,7 @@ import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 const Gallery = () => {
     const navigate = useNavigate();
     const { isAdmin, hasAccess, loading: authLoading } = useAdminAuth();
-    const { t } = useGlobalSettings();
+    const { t, galleryTabLabels } = useGlobalSettings();
     const [images, setImages] = useState([]);
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -195,9 +195,9 @@ const Gallery = () => {
                 zIndex: 10
             }}>
                 {[
-                    { id: 'general', label: t('GENERAL_TAB') },
-                    { id: 'ayya', label: t('AYYAS_PHOTOS') },
-                    { id: 'events', label: t('RECENT_EVENTS') }
+                    { id: 'general', label: galleryTabLabels.general || t('GENERAL_TAB') },
+                    { id: 'ayya', label: galleryTabLabels.ayya || t('AYYAS_PHOTOS') },
+                    { id: 'events', label: galleryTabLabels.events || t('RECENT_EVENTS') }
                 ].map(tab => {
                     const isActive = activeTab === tab.id;
                     return (
@@ -260,7 +260,7 @@ const Gallery = () => {
                                 gap: '4px'
                             }}
                         >
-                            {selectedCategoryId ? (galleryCategories.find(c => c.id === selectedCategoryId)?.name) : t('OTHERS_TAB')}
+                            {selectedCategoryId ? (galleryCategories.find(c => c.id === selectedCategoryId)?.name) : (galleryTabLabels.others || t('OTHERS_TAB'))}
                             <ChevronDown size={14} style={{ transform: isDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
                             {activeTab === 'others' && (
                                 <motion.div
