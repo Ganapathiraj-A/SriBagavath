@@ -11,6 +11,7 @@ import './WebPages.css';
 const WebBookStore = () => {
   const navigate = useNavigate();
   const { cart, addToCart, removeFromCart } = useCart();
+  const { isAdmin } = useAdminAuth();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('Tamil Books');
@@ -31,7 +32,9 @@ const WebBookStore = () => {
         orderBy('title', 'asc')
       );
       const snap = await getDocs(q);
-      const books = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const books = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(p => isAdmin || p.isActive !== false);
       setProducts(books);
     } catch (err) {
       console.error("Error loading books:", err);
@@ -86,7 +89,12 @@ const WebBookStore = () => {
                     </div>
                   </div>
                   <div className="book-info">
-                    <h3>{product.title}</h3>
+                    <h3>
+                      {product.title}
+                      {product.isActive === false && (
+                        <span style={{ fontSize: '0.65rem', color: 'var(--color-error)', marginLeft: '0.5rem', border: '1px solid currentColor', padding: '1px 4px', borderRadius: '4px', verticalAlign: 'middle' }}>HIDDEN</span>
+                      )}
+                    </h3>
                     <p className="book-price">₹{product.price}</p>
                     
                     <div className="book-actions">

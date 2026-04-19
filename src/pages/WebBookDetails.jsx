@@ -5,6 +5,7 @@ import { FaArrowLeft, FaShoppingCart, FaPlus, FaMinus, FaShareAlt } from 'react-
 import { db } from '@/firebase';
 import { useCart } from '@/context/CartContext';
 import LazyImage from '@/components/LazyImage';
+import { useAdminAuth } from '@/context/AdminAuthContext';
 import { shareItem } from '@/utils/shareUtils';
 import './WebPages.css';
 
@@ -12,6 +13,7 @@ const WebBookDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { cart, addToCart, removeFromCart } = useCart();
+  const { isAdmin } = useAdminAuth();
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -26,7 +28,13 @@ const WebBookDetails = () => {
       const docRef = doc(db, 'books', id);
       const snap = await getDoc(docRef);
       if (snap.exists()) {
-        setBook({ id: snap.id, ...snap.data() });
+        const data = { id: snap.id, ...snap.data() };
+        if (data.isActive === false && !isAdmin) {
+          setBook(null);
+          setLoading(false);
+          return;
+        }
+        setBook(data);
       }
     } catch (err) {
       console.error("Error loading book:", err);
@@ -64,7 +72,12 @@ const WebBookDetails = () => {
             </div>
             <div className="details-info">
               <span className="details-category">{book.category}</span>
-              <h2>{book.title}</h2>
+              <h2>
+                {book.title}
+                {book.isActive === false && (
+                  <span style={{ fontSize: '0.9rem', color: 'var(--color-error)', marginLeft: '1rem', border: '1px solid currentColor', padding: '2px 8px', borderRadius: '4px', verticalAlign: 'middle' }}>HIDDEN PREVIEW</span>
+                )}
+              </h2>
               <p className="details-price">₹{book.price}</p>
               
               <div className="details-description">

@@ -92,7 +92,7 @@ const WebPrograms = () => {
                     if (!cacheSnap.empty) {
                         const list = cacheSnap.docs
                             .map(d => ({ id: d.id, ...d.data() }))
-                            .filter(p => p.isActive !== false)
+                            .filter(p => isAdmin || p.isActive !== false)
                             .sort((a, b) => (a.programDate || "").localeCompare(b.programDate || ""));
                         setPrograms(list);
                         setLoading(false);
@@ -106,7 +106,7 @@ const WebPrograms = () => {
                     const serverTask = getDocsFromServer(q).then(serverSnap => {
                         const list = serverSnap.docs
                             .map(d => ({ id: d.id, ...d.data() }))
-                            .filter(p => p.isActive !== false)
+                            .filter(p => isAdmin || p.isActive !== false)
                             .sort((a, b) => (a.programDate || "").localeCompare(b.programDate || ""));
                         setPrograms(list);
                         markSyncedLocally('programs');
@@ -153,7 +153,13 @@ const WebPrograms = () => {
                 const programRef = doc(db, 'programs', viewingProgramId);
                 const snap = await getDocCacheFirst(programRef);
                 if (snap.exists()) {
-                    setSpecificProgram({ id: snap.id, ...snap.data() });
+                    const data = { id: snap.id, ...snap.data() };
+                    if (data.isActive === false && !isAdmin) {
+                        setSpecificProgram(null);
+                        setSpecificLoading(false);
+                        return;
+                    }
+                    setSpecificProgram(data);
                 }
             } catch (_err) {
                 console.error("Failed to fetch specific program", _err);
@@ -345,7 +351,12 @@ const WebPrograms = () => {
                                         transition={{ delay: index * 0.1 }}
                                         style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '1.25rem', border: '1px solid var(--color-border)' }}
                                     >
-                                        <h2 style={{ fontSize: '1.125rem', fontWeight: 600, margin: '0 0 0.4rem 0' }}>{program.programName}</h2>
+                                        <h2 style={{ fontSize: '1.125rem', fontWeight: 600, margin: '0 0 0.4rem 0', display: 'flex', alignItems: 'center' }}>
+                                            {program.programName}
+                                            {program.isActive === false && (
+                                                <span style={{ fontSize: '0.65rem', color: 'var(--color-error)', marginLeft: '0.5rem', border: '1px solid currentColor', padding: '1px 4px', borderRadius: '4px' }}>HIDDEN</span>
+                                            )}
+                                        </h2>
                                         <div style={{ display: 'flex', gap: '0.75rem', color: 'var(--color-text-muted)', fontSize: '0.8125rem', marginBottom: '1rem' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                                                 <Calendar size={14} style={{ color: 'var(--color-primary)' }} />
@@ -406,7 +417,12 @@ const WebPrograms = () => {
 
                                 {(activeTab === 'details' || (!viewingBanner && !viewingProgram.introYoutubeUrl)) && (
                                     <div style={{ display: 'grid', gap: '1.5rem' }}>
-                                        <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold' }}>{viewingProgram.programName}</h1>
+                                        <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold' }}>
+                                            {viewingProgram.programName}
+                                            {viewingProgram.isActive === false && (
+                                                <span style={{ fontSize: '0.9rem', color: 'var(--color-error)', marginLeft: '1rem', border: '1px solid currentColor', padding: '2px 8px', borderRadius: '4px', verticalAlign: 'middle' }}>HIDDEN PREVIEW</span>
+                                            )}
+                                        </h1>
                                         <div>
                                             <span style={{ fontWeight: 800, fontSize: '0.875rem' }}>Date & Time</span>
                                             <div>{new Date(viewingProgram.programDate).toLocaleDateString()}</div>

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Trash2, Save, X, ChevronUp, ChevronDown, Share2, Folder, FolderPlus, ArrowLeft, Eye, Download, Loader2, Settings, Pencil } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { collection, query, getDocs, orderBy, addDoc, updateDoc, deleteDoc, doc, Timestamp, where, writeBatch } from 'firebase/firestore';
+import { collection, query, getDocs, orderBy, addDoc, updateDoc, deleteDoc, doc, Timestamp, where, writeBatch, onSnapshot } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, storage } from '@/firebase';
 import { shareImage } from '@/utils/shareUtils';
@@ -40,12 +40,55 @@ const AdminGallery = () => {
     const [isSelectMode, setIsSelectMode] = useState(false);
     const [uploadStartTime, setUploadStartTime] = useState(0);
     const [etaText, setEtaText] = useState('');
+    const [selectedCategoryId, setSelectedCategoryId] = useState(null);
+    const [activityLogs, setActivityLogs] = useState([]);
+
+    const addLog = (message, type = 'info') => {
+        const timestamp = new Date().toLocaleTimeString();
+        const logEntry = `[${timestamp}] [${type.toUpperCase()}] ${message}`;
+        setActivityLogs(prev => [logEntry, ...prev].slice(0, 100)); // Keep last 100
+        console.log(logEntry);
+    };
 
 
     useEffect(() => {
-        fetchImages();
+        const qImages = query(collection(db, 'gallery'));
+        const unsubscribe = onSnapshot(qImages, (snapshot) => {
+            const loadedImages = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            addLog(`🔄 Sync: Database sent ${loadedImages.length} images.`);
+
+            // Tiered Sort (Null-Safe)
+            const getTime = (ts) => {
+                if (ts && typeof ts.toMillis === 'function') return ts.toMillis();
+                if (ts instanceof Date) return ts.getTime();
+                if (typeof ts === 'number') return ts;
+                if (typeof ts === 'string') return new Date(ts).getTime() || 0;
+                return 0;
+            };
+
+            loadedImages.sort((a, b) => {
+                const timeA = getTime(a.createdAt);
+                const timeB = getTime(b.createdAt);
+                if (timeB !== timeA) return timeB - timeA;
+                
+                const orderA = parseInt(a.order) || 0;
+                const orderB = parseInt(b.order) || 0;
+                if (orderA !== orderB) return orderA - orderB;
+                
+                return String(a.id).localeCompare(String(b.id));
+            });
+
+            setImages(loadedImages);
+            setLoading(false);
+        }, (error) => {
+            console.error("Admin real-time sync failed:", error);
+            setLoading(false);
+        });
+
         fetchEvents();
         fetchCategories();
+
+        return () => unsubscribe();
     }, []);
 
     const fetchEvents = async () => {
@@ -73,23 +116,12 @@ const AdminGallery = () => {
     };
 
     const fetchImages = async () => {
-        setLoading(true);
-        try {
-            const q = query(collection(db, 'gallery'));
-            const snapshot = await getDocs(q);
-            const loadedImages = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-            loadedImages.sort((a, b) => (a.order || 0) - (b.order || 0));
-            setImages(loadedImages);
-        } catch (error) {
-            console.error("Error fetching gallery:", error);
-        } finally {
-            setLoading(false);
-        }
+        // Redundant with onSnapshot but kept for legacy manual calls
+        // setLoading(true); // Don't block UI if synced
     };
 
     const formatETA = (seconds) => {
-        if (!isFinite(seconds) || seconds <= 0) return '';
-        if (seconds > 3600) return '> 1 hour';
+        if (!isFinite(seconds) || seconds < 0) return '0:00';
         const mins = Math.floor(seconds / 60);
         const secs = Math.floor(seconds % 60);
         return `${mins}:${secs.toString().padStart(2, '0')}`;
@@ -106,7 +138,6 @@ const AdminGallery = () => {
         let finalFile = file;
         let finalExt = file.name.split('.').pop();
 
-        // Check for HEIC and convert
         if (isHeic(file.name, file.type)) {
             try {
                 finalFile = await convertHeicToJpeg(file);
@@ -120,6 +151,8 @@ const AdminGallery = () => {
         const storagePath = `gallery/${fileName}`;
         const storageRef = ref(storage, storagePath);
         
+        addLog(`↗️ Starting upload for: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`);
+        
         const uploadTask = uploadBytesResumable(storageRef, finalFile);
         
         return new Promise((resolve, reject) => {
@@ -129,19 +162,20 @@ const AdminGallery = () => {
                     setUploadProgress(progress);
 
                     const elapsed = (Date.now() - uploadStartTime) / 1000;
-                    if (progress > 0.5) {
+                    if (progress > 5) { // Wait for 5% to stabilize ETA
                         const totalEstimated = elapsed / (progress / 100);
                         setEtaText(` (${formatETA(elapsed)} / ${formatETA(totalEstimated)})`);
                     }
                 }, 
                 (error) => {
-                    console.error("Upload failed:", error);
+                    addLog(`❌ Upload failed: ${error.message}`, 'error');
                     setIsUploading(false);
                     alert("Upload failed: " + error.message);
                     reject(error);
                 }, 
                 async () => {
                     const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                    addLog(`✅ Upload successful: ${file.name}`);
                     setIsUploading(false);
                     if (isEdit) {
                         setEditForm(prev => ({ ...prev, url: downloadURL, storagePath }));
@@ -153,6 +187,7 @@ const AdminGallery = () => {
             );
         });
     };
+
     const executeWithRetry = async (fn, label, maxAttempts = 5) => {
         let lastError;
         for (let i = 0; i < maxAttempts; i++) {
@@ -163,7 +198,7 @@ const AdminGallery = () => {
                 lastError = err;
                 console.warn(`[v4] ${label} attempt ${i + 1} failed:`, err.message);
                 if (i < maxAttempts - 1 && !cancelImportRef.current) {
-                    await new Promise(r => setTimeout(r, 3000)); // wait 3s
+                    await new Promise(r => setTimeout(r, 3000));
                 }
             }
         }
@@ -179,6 +214,7 @@ const AdminGallery = () => {
         setDriveUrl('');
         setSelectedFiles([]);
         setUploadProgress(0);
+        setEtaText('');
     };
 
     const toggleSelection = (id) => {
@@ -205,14 +241,12 @@ const AdminGallery = () => {
             const batch = writeBatch(db);
             const imagesToDelete = images.filter(img => selectedIds.includes(img.id));
             
-            // Delete from Firestore in batch
             selectedIds.forEach(id => {
                 batch.delete(doc(db, 'gallery', id));
             });
             
             await batch.commit();
 
-            // Delete from Storage (Firebase Storage doesn't support batch delete)
             const storagePromises = imagesToDelete
                 .filter(img => img.storagePath)
                 .map(img => {
@@ -226,7 +260,6 @@ const AdminGallery = () => {
 
             setSelectedIds([]);
             setIsSelectMode(false);
-            fetchImages();
             alert(`Successfully deleted ${imagesToDelete.length} images.`);
         } catch (error) {
             console.error("Bulk delete failed:", error);
@@ -262,7 +295,7 @@ const AdminGallery = () => {
             
             let driveFiles = [];
             
-            // Step 1: List Files (with retry)
+            addLog(`🔍 Drive Import: Scanning folder ${folderId}...`);
             driveFiles = await executeWithRetry(async () => {
                 if (isNative) {
                     const response = await Capacitor.Plugins.CapacitorHttp.get({
@@ -288,6 +321,8 @@ const AdminGallery = () => {
                 }
             }, "Folder Scan");
 
+            addLog(`📄 Drive Import: Found ${driveFiles.length} files.`);
+
             if (driveFiles.length === 0) {
                 alert("No images found in this folder.");
                 setIsDriveLoading(false);
@@ -305,10 +340,13 @@ const AdminGallery = () => {
             let currentOrder = parseInt(newForm.order) || images.length;
 
             for (let i = 0; i < driveFiles.length; i++) {
-                if (cancelImportRef.current) break;
+                if (cancelImportRef.current) {
+                    addLog("⏹️ Drive Import: Cancelled by user.");
+                    break;
+                }
                 const file = driveFiles[i];
+                addLog(`📥 Processing (${i+1}/${driveFiles.length}): ${file.name}`);
 
-                // Step 2: Download File Content (with retry)
                 let buffer = await executeWithRetry(async () => {
                     if (isNative) {
                         let dlRes = await Capacitor.Plugins.CapacitorHttp.get({
@@ -317,7 +355,6 @@ const AdminGallery = () => {
                             responseType: 'arraybuffer'
                         });
 
-                        // Fallback if 403
                         if (dlRes.status === 403 && file.webContentLink) {
                             dlRes = await Capacitor.Plugins.CapacitorHttp.get({
                                 url: file.webContentLink,
@@ -335,12 +372,10 @@ const AdminGallery = () => {
                     }
                 }, `Download ${file.name}`);
 
-                // Step 2.5: Process Binary Data and Handle HEIC Conversion
                 let finalData;
                 let finalMimeType = file.mimeType || 'image/jpeg';
                 let finalExtension = 'jpeg';
 
-                // First, normalize buffer to Uint8Array
                 let rawData;
                 if (typeof buffer === 'string') {
                     const binaryString = window.atob(buffer);
@@ -366,15 +401,15 @@ const AdminGallery = () => {
                     throw new Error(`Invalid data received for ${file.name}`);
                 }
 
-                // Check for HEIC and convert if necessary
                 if (isHeic(file.name, file.mimeType)) {
-                    console.log(`[v4] Converting HEIC ${file.name} to JPEG...`);
+                    addLog(`🔄 Converting HEIC to JPEG: ${file.name}`);
                     const heicBlob = new Blob([rawData], { type: 'image/heic' });
                     const jpegBlob = await convertHeicToJpeg(heicBlob);
                     const jpegArrayBuffer = await jpegBlob.arrayBuffer();
                     finalData = new Uint8Array(jpegArrayBuffer);
                     finalMimeType = 'image/jpeg';
                     finalExtension = 'jpg';
+                    addLog(`✅ Conversion complete: ${file.name}`);
                 } else {
                     finalData = rawData;
                     finalExtension = file.name.split('.').pop() || 'jpeg';
@@ -383,10 +418,8 @@ const AdminGallery = () => {
                 const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}_${i}.${finalExtension}`;
                 const storagePath = `gallery/${fileName}`;
                 const storageRef = ref(storage, storagePath);
-
                 const metadata = { contentType: finalMimeType };
 
-                // Step 3: Upload to Firebase (with retry)
                 let downloadURL = await executeWithRetry(async () => {
                     const uploadTask = uploadBytesResumable(storageRef, finalData, metadata);
                     return new Promise((resolve, reject) => {
@@ -398,13 +431,13 @@ const AdminGallery = () => {
                                 const totalProgress = ((i + (fileProgress / 100)) / driveFiles.length) * 100;
                                 setUploadProgress(totalProgress);
 
-                                    const elapsed = (Date.now() - uploadStartTime) / 1000;
-                                    if (totalProgress > 0.5) {
-                                        const totalEstimated = elapsed / (totalProgress / 100);
-                                        setEtaText(` (${formatETA(elapsed)} / ${formatETA(totalEstimated)})`);
-                                    }
-                                },
-                                reject,
+                                const elapsed = (Date.now() - uploadStartTime) / 1000;
+                                if (totalProgress > 2) {
+                                    const totalEstimated = elapsed / (totalProgress / 100);
+                                    setEtaText(` (${formatETA(elapsed)} / ${formatETA(totalEstimated)})`);
+                                }
+                            },
+                            reject,
                             async () => resolve(await getDownloadURL(uploadTask.snapshot.ref))
                         );
                     });
@@ -423,24 +456,31 @@ const AdminGallery = () => {
                     updatedAt: Timestamp.now()
                 });
 
-                // Memory Cleanup
                 finalData = null;
             }
 
             if (!cancelImportRef.current) {
+                addLog(`💾 Committing batch for ${driveFiles.length} images...`);
                 await batch.commit();
+                addLog("✨ Drive Import: Successfully completed.");
                 setDriveUrl('');
                 setShowAddModal(false);
-                fetchImages();
-                alert(`[v4] Successfully imported ${driveFiles.length} images from Google Drive!`);
+                setNewForm(prev => ({
+                    ...prev,
+                    url: '',
+                    caption: '',
+                    order: 0,
+                    category: activeTab,
+                    eventId: activeTab === 'events' ? (selectedEventId || '') : '',
+                    customCategoryId: activeTab === 'others' ? (newForm.customCategoryId || '') : ''
+                }));
+
+                const categoryLabel = galleryTabLabels[activeTab] || activeTab;
+                alert(`Successfully imported ${driveFiles.length} images to "${categoryLabel}" tab!`);
             }
         } catch (error) {
-            console.error("[v4] Drive import failed:", error);
-            let errorMessage = error.message;
-            if (error.serverResponse) {
-                errorMessage += " (Server: " + error.serverResponse + ")";
-            }
-            alert(`[v4] Drive import failed: ${errorMessage} (Online: ${window.navigator.onLine})`);
+            console.error("Drive import failed:", error);
+            alert(`Drive import failed: ${error.message}`);
         } finally {
             setIsDriveLoading(false);
             setIsUploading(false);
@@ -464,9 +504,18 @@ const AdminGallery = () => {
                 createdAt: Timestamp.now(),
                 updatedAt: Timestamp.now()
             });
-            setNewForm({ url: '', caption: '', order: images.length, category: 'general', eventId: '', customCategoryId: '' });
             setShowAddModal(false);
-            fetchImages();
+            setNewForm(prev => ({
+                ...prev,
+                url: '',
+                caption: '',
+                order: 0,
+                category: activeTab,
+                eventId: activeTab === 'events' ? (selectedEventId || '') : '',
+                customCategoryId: activeTab === 'others' ? (newForm.customCategoryId || '') : ''
+            }));
+            const categoryLabel = galleryTabLabels[newForm.category] || newForm.category;
+            alert(`Successfully added image to "${categoryLabel}" tab!`);
         } catch (error) {
             alert("Error adding image: " + error.message);
         }
@@ -482,6 +531,7 @@ const AdminGallery = () => {
         setUploadStartTime(Date.now());
         setEtaText('');
         cancelImportRef.current = false;
+        addLog(`↗️ Starting Batch Upload for ${selectedFiles.length} files...`);
 
         try {
             const batch = writeBatch(db);
@@ -490,11 +540,9 @@ const AdminGallery = () => {
             for (let i = 0; i < selectedFiles.length; i++) {
                 if (cancelImportRef.current) break;
                 const file = selectedFiles[i];
-                
                 let finalFile = file;
                 let finalExt = file.name.split('.').pop();
 
-                // Check for HEIC and convert
                 if (isHeic(file.name, file.type)) {
                     try {
                         finalFile = await convertHeicToJpeg(file);
@@ -508,44 +556,28 @@ const AdminGallery = () => {
                 const storagePath = `gallery/${fileName}`;
                 const storageRef = ref(storage, storagePath);
                 
-                // Upload to Firebase with Retry Logic
                 let downloadURL;
-                let uploadSuccess = false;
-                let attempts = 0;
-                const maxAttempts = 3;
+                const uploadTask = uploadBytesResumable(storageRef, finalFile);
+                
+                downloadURL = await new Promise((resolve, reject) => {
+                    uploadTask.on('state_changed', 
+                        (snapshot) => {
+                            const fileProgress = snapshot.totalBytes > 0 
+                                ? (snapshot.bytesTransferred / snapshot.totalBytes) * 100 
+                                : 0;
+                            const totalProgress = ((i + (fileProgress / 100)) / selectedFiles.length) * 100;
+                            setUploadProgress(totalProgress);
 
-                while (attempts < maxAttempts && !uploadSuccess) {
-                    if (cancelImportRef.current) break;
-                    try {
-                        const uploadTask = uploadBytesResumable(storageRef, finalFile);
-                        
-                        downloadURL = await new Promise((resolve, reject) => {
-                            uploadTask.on('state_changed', 
-                                (snapshot) => {
-                                    const fileProgress = snapshot.totalBytes > 0 
-                                        ? (snapshot.bytesTransferred / snapshot.totalBytes) * 100 
-                                        : 0;
-                                    const totalProgress = ((i + (fileProgress / 100)) / selectedFiles.length) * 100;
-                                    setUploadProgress(totalProgress);
-
-                                    const elapsed = (Date.now() - uploadStartTime) / 1000;
-                                    if (totalProgress > 0.5) {
-                                        const totalEstimated = elapsed / (totalProgress / 100);
-                                        setEtaText(` (${formatETA(elapsed)} / ${formatETA(totalEstimated)})`);
-                                    }
-                                },
-                                reject,
-                                async () => resolve(await getDownloadURL(uploadTask.snapshot.ref))
-                            );
-                        });
-                        uploadSuccess = true;
-                    } catch (error) {
-                        attempts++;
-                        if (attempts >= maxAttempts) throw error;
-                        console.warn(`Retrying device upload for ${file.name} (${attempts}/${maxAttempts})...`);
-                        await new Promise(r => setTimeout(r, 2000)); // 2s backoff
-                    }
-                }
+                            const elapsed = (Date.now() - uploadStartTime) / 1000;
+                            if (totalProgress > 2) {
+                                const totalEstimated = elapsed / (totalProgress / 100);
+                                setEtaText(` (${formatETA(elapsed)} / ${formatETA(totalEstimated)})`);
+                            }
+                        },
+                        reject,
+                        async () => resolve(await getDownloadURL(uploadTask.snapshot.ref))
+                    );
+                });
 
                 if (cancelImportRef.current) break;
 
@@ -560,12 +592,23 @@ const AdminGallery = () => {
                 });
             }
 
+            addLog(`💾 Committing batch for ${selectedFiles.length} images...`);
             await batch.commit();
+            addLog("✨ Batch Upload: Successfully completed.");
             setSelectedFiles([]);
-            setNewForm({ url: '', caption: '', order: images.length, category: 'general', eventId: '', customCategoryId: '' });
             setShowAddModal(false);
-            fetchImages();
-            alert(`Successfully added ${selectedFiles.length} images!`);
+            setNewForm(prev => ({
+                ...prev,
+                url: '',
+                caption: '',
+                order: 0,
+                category: activeTab,
+                eventId: activeTab === 'events' ? (selectedEventId || '') : '',
+                customCategoryId: activeTab === 'others' ? (newForm.customCategoryId || '') : ''
+            }));
+
+            const categoryLabel = galleryTabLabels[newForm.category] || newForm.category;
+            alert(`Successfully added ${selectedFiles.length} images to "${categoryLabel}" tab!`);
         } catch (error) {
             console.error("Batch upload failed:", error);
             alert("Error adding images: " + error.message);
@@ -585,7 +628,6 @@ const AdminGallery = () => {
                 updatedAt: Timestamp.now()
             });
             setEditingId(null);
-            fetchImages();
         } catch (error) {
             alert("Error updating image: " + error.message);
         }
@@ -595,7 +637,6 @@ const AdminGallery = () => {
         if (!window.confirm("Are you sure you want to delete this image?")) return;
         try {
             await deleteDoc(doc(db, 'gallery', id));
-            fetchImages();
         } catch (error) {
             alert("Error deleting image: " + error.message);
         }
@@ -621,25 +662,23 @@ const AdminGallery = () => {
     };
 
     const handleMove = async (img, direction) => {
-        const currentIndex = images.findIndex(i => i.id === img.id);
+        const currentFiltered = getFilteredImages();
+        const currentIndex = currentFiltered.findIndex(i => i.id === img.id);
         const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
         
-        if (targetIndex < 0 || targetIndex >= images.length) return;
+        if (targetIndex < 0 || targetIndex >= currentFiltered.length) return;
         
-        const neighbor = images[targetIndex];
+        const neighbor = currentFiltered[targetIndex];
         
         try {
-            // Swap orders
-            await updateDoc(doc(db, 'gallery', img.id), { order: neighbor.order, updatedAt: Timestamp.now() });
-            await updateDoc(doc(db, 'gallery', neighbor.id), { order: img.order, updatedAt: Timestamp.now() });
-            fetchImages();
+            await updateDoc(doc(db, 'gallery', img.id), { order: neighbor.order || 0, updatedAt: Timestamp.now() });
+            await updateDoc(doc(db, 'gallery', neighbor.id), { order: img.order || 0, updatedAt: Timestamp.now() });
         } catch (error) {
             console.error("Error moving image:", error);
         }
     };
 
-    const startEdit = (img, e) => {
-        if (e) e.stopPropagation();
+    const handleEdit = (img) => {
         setEditingId(img.id);
         setEditForm({ 
             url: img.url, 
@@ -653,14 +692,20 @@ const AdminGallery = () => {
 
     const getFilteredImages = () => {
         return images.filter(img => {
-            const cat = img.category || 'general';
-            if (activeTab === 'general') return cat === 'general';
-            if (activeTab === 'ayya') return cat === 'ayya';
-            if (activeTab === 'events') {
+            const cat = (img.category || 'general').toLowerCase().trim();
+            const targetTab = activeTab.toLowerCase().trim();
+            
+            if (targetTab === 'general') return cat === 'general';
+            if (targetTab === 'ayya') return cat === 'ayya' || cat === 'ayyas photos';
+            if (targetTab === 'events') {
                 if (cat !== 'events') return false;
-                return img.eventId === selectedEventId;
+                return String(img.eventId || '') === String(selectedEventId || '');
             }
-            if (activeTab === 'others') return cat === 'others';
+            if (targetTab === 'others') {
+                if (cat !== 'others') return false;
+                if (!selectedCategoryId) return true; // Show all 'others' if none selected
+                return String(img.customCategoryId || '') === String(selectedCategoryId || '');
+            }
             return false;
         });
     };
@@ -722,12 +767,17 @@ const AdminGallery = () => {
     };
 
     const handleRenameContext = async (targetId = null) => {
-        let currentId = targetId || (activeTab === 'events' ? selectedEventId : null);
-        let collectionName = activeTab === 'events' ? 'gallery_events' : null;
+        let currentId = targetId || 
+            (activeTab === 'events' ? selectedEventId : 
+            (activeTab === 'others' ? selectedCategoryId : null));
+            
+        let collectionName = 
+            activeTab === 'events' ? 'gallery_events' : 
+            (activeTab === 'others' ? 'gallery_categories' : null);
         
         if (!currentId || !collectionName) return;
 
-        const record = events.find(e => e.id === currentId);
+        const record = (activeTab === 'events' ? events : galleryCategories).find(e => e.id === currentId);
         if (!record) return;
         
         const newName = prompt("Rename to:", record.name);
@@ -827,7 +877,11 @@ const AdminGallery = () => {
                     return (
                         <div key={tab.id} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                             <button
-                                onClick={() => setActiveTab(tab.id)}
+                                onClick={() => {
+                                    setActiveTab(tab.id);
+                                    setSelectedEventId(null);
+                                    setSelectedCategoryId(null);
+                                }}
                                 style={{
                                     padding: '0.75rem 0.5rem',
                                     border: 'none',
@@ -876,8 +930,6 @@ const AdminGallery = () => {
                 })}
             </div>
 
-            {/* Sub-tabs removed for consistency with public view */}
-
             <div style={{ maxWidth: '48rem', margin: '0 auto', padding: '1rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -902,28 +954,53 @@ const AdminGallery = () => {
                                 <Pencil size={14} /> Rename Folder
                             </button>
                         )}
+                        {activeTab === 'others' && selectedCategoryId && (
+                            <button 
+                                onClick={() => handleRenameContext()}
+                                style={{ 
+                                    padding: '0.4rem 0.6rem',
+                                    borderRadius: '0.5rem',
+                                    border: '1px solid var(--color-primary)',
+                                    backgroundColor: 'var(--color-primary-transparent)',
+                                    color: 'var(--color-primary)', 
+                                    cursor: 'pointer', 
+                                    display: 'flex', 
+                                    alignItems: 'center',
+                                    gap: '0.4rem',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 600
+                                }}
+                            >
+                                <Pencil size={14} /> Rename Category
+                            </button>
+                        )}
+                        {activeTab === 'others' && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <select
+                                    value={selectedCategoryId || ''}
+                                    onChange={e => setSelectedCategoryId(e.target.value || null)}
+                                    style={{
+                                        padding: '0.4rem 0.6rem',
+                                        borderRadius: '0.5rem',
+                                        border: '1px solid var(--color-primary)',
+                                        backgroundColor: 'var(--color-primary-transparent)',
+                                        color: 'var(--color-primary)',
+                                        fontSize: '0.75rem',
+                                        fontWeight: 600,
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    <option value="">-- All Categories --</option>
+                                    {galleryCategories.map(cat => (
+                                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
                     </div>
                 </div>
 
                 <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
-                    {activeTab === 'events' && selectedEventId && (
-                        <button
-                            onClick={() => setSelectedEventId(null)}
-                            style={{
-                                border: 'none',
-                                background: 'none',
-                                color: 'var(--color-primary)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.25rem',
-                                cursor: 'pointer',
-                                padding: '0.25rem'
-                            }}
-                        >
-                            <ArrowLeft size={16} /> Back to Events
-                        </button>
-                    )}
-                    
                     <button
                         onClick={() => {
                             setNewForm(prev => ({ 
@@ -1071,8 +1148,16 @@ const AdminGallery = () => {
                     )}
                 </div>
 
-                {/* Event Folder List */}
-                {activeTab === 'events' && !selectedEventId && (
+                {/* Main Content Areas */}
+                {loading ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '4rem', gap: '1rem', color: 'var(--color-text-muted)' }}>
+                        <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}>
+                            <Loader2 size={40} />
+                        </motion.div>
+                        <span>Loading gallery management...</span>
+                    </div>
+                ) : activeTab === 'events' && !selectedEventId ? (
+                    /* Event Folder List */
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
                         {events.map(event => (
                             <motion.div
@@ -1094,323 +1179,197 @@ const AdminGallery = () => {
                             >
                                 <Folder size={32} color="var(--color-primary)" fill="var(--color-primary-transparent)" />
                                 <span style={{ fontSize: '0.875rem', fontWeight: 600, textAlign: 'center' }}>{event.name}</span>
-                                <button 
-                                    onClick={(e) => { e.stopPropagation(); handleRenameContext(event.id); }}
-                                    style={{ position: 'absolute', top: '0.25rem', left: '0.25rem', background: 'none', border: 'none', color: 'var(--color-primary)' }}
-                                    title="Rename"
-                                >
-                                    <Pencil size={14} />
-                                </button>
-                                <button 
-                                    onClick={(e) => handleDeleteEvent(event.id, e)}
-                                    style={{ position: 'absolute', top: '0.25rem', right: '0.25rem', background: 'none', border: 'none', color: 'var(--color-error)' }}
-                                >
-                                    <Trash2 size={14} />
-                                </button>
+                                <button onClick={(e) => { e.stopPropagation(); handleRenameContext(event.id); }} style={{ position: 'absolute', top: '0.25rem', left: '0.25rem', background: 'none', border: 'none', color: 'var(--color-primary)' }}><Pencil size={14} /></button>
+                                <button onClick={(e) => handleDeleteEvent(event.id, e)} style={{ position: 'absolute', top: '0.25rem', right: '0.25rem', background: 'none', border: 'none', color: 'var(--color-error)' }}><Trash2 size={14} /></button>
                             </motion.div>
                         ))}
-                    </div>
-                )}
-
-                {loading ? (
-                    <div style={{ 
-                        display: 'flex', 
-                        flexDirection: 'column', 
-                        alignItems: 'center', 
-                        justifyContent: 'center', 
-                        padding: '4rem',
-                        gap: '1rem',
-                        color: 'var(--color-text-muted)'
-                    }}>
-                        <motion.div
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-                        >
-                            <Loader2 size={40} />
-                        </motion.div>
-                        <span>Loading gallery management...</span>
-                    </div>
-                ) : activeTab === 'events' && !selectedEventId ? (
-                    <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)', backgroundColor: 'var(--color-surface)', borderRadius: '1rem', border: '1px dashed var(--color-border)' }}>
-                        Select an event folder above to manage its photos.
                     </div>
                 ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        {filteredImages.map((img) => (
-                            <motion.div 
-                                key={img.id} 
-                                layout
-                                whileHover={{ scale: 1.01, backgroundColor: 'var(--color-surface-hover)' }}
-                                style={{
-                                    backgroundColor: 'var(--color-card)',
-                                    borderRadius: '0.75rem',
-                                    border: '1px solid var(--color-border)',
-                                    padding: '1rem',
-                                    display: 'flex',
-                                    gap: '1rem',
-                                    alignItems: 'center',
-                                    transition: 'border-color 0.2s ease',
-                                    cursor: isSelectMode ? 'pointer' : 'default'
-                                }}
-                                onClick={() => isSelectMode && toggleSelection(img.id)}
-                            >
-                                {isSelectMode && (
-                                    <div 
-                                        style={{
-                                            width: '24px',
-                                            height: '24px',
-                                            borderRadius: '50%',
-                                            border: `2px solid ${selectedIds.includes(img.id) ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                                            backgroundColor: selectedIds.includes(img.id) ? 'var(--color-primary)' : 'transparent',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            flexShrink: 0
-                                        }}
-                                    >
-                                        {selectedIds.includes(img.id) && <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: 'white' }} />}
+                    /* Image Grid List */
+                    <>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            {filteredImages.map((img) => (
+                                <motion.div 
+                                    key={img.id} 
+                                    layout
+                                    style={{
+                                        backgroundColor: 'var(--color-card)',
+                                        borderRadius: '0.75rem',
+                                        border: `1px solid ${selectedIds.includes(img.id) ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                                        padding: '1rem',
+                                        display: 'flex',
+                                        gap: '1rem',
+                                        alignItems: 'center',
+                                        cursor: isSelectMode ? 'pointer' : 'default'
+                                    }}
+                                    onClick={() => isSelectMode && toggleSelection(img.id)}
+                                >
+                                    {isSelectMode && (
+                                        <div style={{ width: '24px', height: '24px', borderRadius: '50%', border: `2px solid ${selectedIds.includes(img.id) ? 'var(--color-primary)' : 'var(--color-border)'}`, backgroundColor: selectedIds.includes(img.id) ? 'var(--color-primary)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                            {selectedIds.includes(img.id) && <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: 'white' }} />}
+                                        </div>
+                                    )}
+                                    <div style={{ width: '80px', height: '80px', borderRadius: '0.5rem', overflow: 'hidden', flexShrink: 0 }}>
+                                        <img src={img.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: isSelectMode && !selectedIds.includes(img.id) ? 0.6 : 1 }} />
                                     </div>
-                                )}
-                                <div style={{ width: '80px', height: '80px', borderRadius: '0.5rem', overflow: 'hidden', flexShrink: 0 }}>
-                                    <img src={img.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: isSelectMode && !selectedIds.includes(img.id) ? 0.6 : 1 }} />
-                                </div>
 
-                                {editingId === img.id ? (
-                                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                            <button 
-                                                onClick={() => fileInputRef.current?.click()}
-                                                disabled={isUploading}
-                                                style={{
-                                                    flex: 1,
-                                                    padding: '0.50rem',
-                                                    fontSize: '0.875rem',
-                                                    borderRadius: '0.4rem',
-                                                    border: '1px dashed var(--color-primary)',
-                                                    backgroundColor: 'var(--color-primary-transparent)',
-                                                    color: 'var(--color-primary)',
-                                                    fontWeight: 600,
-                                                    cursor: 'pointer'
-                                                }}
-                                            >
-                                                {isUploading ? `Uploading...` : 'Change Image'}
-                                            </button>
+                                    {editingId === img.id ? (
+                                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                            <input value={editForm.caption} onChange={e => setEditForm({ ...editForm, caption: e.target.value })} placeholder="Caption" style={{ width: '100%', padding: '0.5rem', borderRadius: '0.25rem', border: '1px solid var(--color-border)' }} />
+                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                <input type="number" value={editForm.order} onChange={e => setEditForm({ ...editForm, order: e.target.value })} placeholder="Order" style={{ width: '60px', padding: '0.5rem', borderRadius: '0.25rem', border: '1px solid var(--color-border)' }} />
+                                                <div style={{ flex: 1 }} />
+                                                <button onClick={() => handleDelete(img.id)} style={{ padding: '0.5rem', color: 'var(--color-error)', background: 'none', border: 'none', cursor: 'pointer' }}><Trash2 size={20} /></button>
+                                                <button onClick={() => handleUpdate(img.id)} style={{ padding: '0.5rem', color: 'var(--color-success)', background: 'none', border: 'none', cursor: 'pointer' }}><Save size={20} /></button>
+                                                <button onClick={(e) => { e.stopPropagation(); setEditingId(null); }} style={{ padding: '0.5rem', color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
+                                            </div>
                                         </div>
-                                        <input
-                                            value={editForm.url}
-                                            onChange={e => setEditForm({ ...editForm, url: e.target.value })}
-                                            placeholder="Image URL"
-                                            style={{ width: '100%', padding: '0.5rem', borderRadius: '0.25rem', border: '1px solid var(--color-border)' }}
-                                        />
-                                        <input
-                                            value={editForm.caption}
-                                            onChange={e => setEditForm({ ...editForm, caption: e.target.value })}
-                                            placeholder="Caption"
-                                            style={{ width: '100%', padding: '0.5rem', borderRadius: '0.25rem', border: '1px solid var(--color-border)' }}
-                                        />
-                                        <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.25rem', overflowX: 'auto', paddingBottom: '4px' }}>
-                                            {['general', 'ayya', 'events', 'others'].map(cat => (
-                                                <button
-                                                    key={cat}
-                                                    type="button"
-                                                    onClick={() => setEditForm({ ...editForm, category: cat })}
-                                                    style={{
-                                                        flexShrink: 0,
-                                                        padding: '0.4rem 0.6rem',
-                                                        fontSize: '0.75rem',
-                                                        borderRadius: '0.25rem',
-                                                        border: `1px solid ${editForm.category === cat ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                                                        backgroundColor: editForm.category === cat ? 'var(--color-primary-transparent)' : 'transparent',
-                                                        color: editForm.category === cat ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                                                        cursor: 'pointer',
-                                                        textTransform: 'capitalize',
-                                                        fontWeight: editForm.category === cat ? 700 : 500
-                                                    }}
-                                                >
-                                                    {cat}
-                                                </button>
-                                            ))}
+                                    ) : (
+                                        <div style={{ flex: 1, cursor: 'pointer' }} onClick={() => !isSelectMode && handleEdit(img)}>
+                                            <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text)', marginBottom: '0.25rem' }}>{img.caption || 'No caption'}</div>
+                                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                                <span style={{ fontSize: '0.7rem', padding: '0.2rem 0.4rem', backgroundColor: 'var(--color-primary-transparent)', color: 'var(--color-primary)', borderRadius: '0.25rem', textTransform: 'capitalize' }}>{img.category || 'general'}</span>
+                                                <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', marginLeft: 'auto' }}>Order: {img.order || 0}</span>
+                                            </div>
+                                            {!isSelectMode && (
+                                                <div style={{ display: 'flex', gap: '0.25rem', marginTop: '0.5rem' }}>
+                                                    <button onClick={(e) => { e.stopPropagation(); handleMove(img, 'up'); }} style={{ padding: '0.25rem', color: 'var(--color-primary)', background: 'none', border: 'none', cursor: 'pointer' }}><ChevronUp size={20} /></button>
+                                                    <button onClick={(e) => { e.stopPropagation(); handleMove(img, 'down'); }} style={{ padding: '0.25rem', color: 'var(--color-primary)', background: 'none', border: 'none', cursor: 'pointer' }}><ChevronDown size={20} /></button>
+                                                </div>
+                                            )}
                                         </div>
-                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                            <input
-                                                type="number"
-                                                value={editForm.order}
-                                                onChange={e => setEditForm({ ...editForm, order: e.target.value })}
-                                                placeholder="Order"
-                                                style={{ width: '60px', padding: '0.5rem', borderRadius: '0.25rem', border: '1px solid var(--color-border)' }}
-                                            />
-                                            <div style={{ flex: 1 }} />
-                                            <button onClick={() => handleDownload(img)} style={{ padding: '0.5rem', color: 'var(--color-primary)', background: 'none', border: 'none', cursor: 'pointer' }}><Download size={20} /></button>
-                                            <button onClick={() => shareImage(img)} style={{ padding: '0.5rem', color: 'var(--color-primary)', background: 'none', border: 'none', cursor: 'pointer' }}><Share2 size={20} /></button>
-                                            <button onClick={() => handleDelete(img.id)} style={{ padding: '0.5rem', color: 'var(--color-error)', background: 'none', border: 'none', cursor: 'pointer' }}><Trash2 size={20} /></button>
-                                            <button onClick={() => handleUpdate(img.id)} style={{ padding: '0.5rem', color: 'var(--color-success)', background: 'none', border: 'none', cursor: 'pointer' }}><Save size={20} /></button>
-                                            <button onClick={(e) => { e.stopPropagation(); setEditingId(null); }} style={{ padding: '0.5rem', color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
-                                        </div>
-                                        {editForm.category === 'events' && (
-                                            <select
-                                                value={editForm.eventId}
-                                                onChange={e => setEditForm({ ...editForm, eventId: e.target.value })}
-                                                style={{ width: '100%', marginTop: '0.5rem', padding: '0.4rem', borderRadius: '0.25rem', border: '1px solid var(--color-primary)', fontSize: '0.8rem' }}
-                                            >
-                                                <option value="">-- Select Event Folder --</option>
-                                                {events.map(ev => <option key={ev.id} value={ev.id}>{ev.name}</option>)}
-                                            </select>
-                                        )}
-                                        {editForm.category === 'others' && (
-                                            <select
-                                                value={editForm.customCategoryId}
-                                                onChange={e => setEditForm({ ...editForm, customCategoryId: e.target.value })}
-                                                style={{ width: '100%', marginTop: '0.5rem', padding: '0.4rem', borderRadius: '0.25rem', border: '1px solid var(--color-primary)', fontSize: '0.8rem' }}
-                                            >
-                                                <option value="">-- Select Category --</option>
-                                                {galleryCategories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
-                                            </select>
-                                        )}
-                                    </div>
-                                ) : (
-                                    <div 
-                                        onClick={() => startEdit(img)}
-                                        style={{ flex: 1, overflow: 'hidden', cursor: 'pointer' }}
-                                    >
-                                        <div style={{ fontWeight: 600, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{img.caption || 'No caption'}</div>
-                                    </div>
-                                )}
-                                
-                                {editingId !== img.id && (
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                                        <button 
-                                            disabled={images.indexOf(img) === 0}
-                                            onClick={(e) => { e.stopPropagation(); handleMove(img, 'up'); }} 
-                                            style={{ 
-                                                padding: '0.25rem', 
-                                                color: images.indexOf(img) === 0 ? 'var(--color-border)' : 'var(--color-primary)', 
-                                                background: 'none', 
-                                                border: 'none',
-                                                cursor: 'pointer'
-                                            }}
-                                        >
-                                            <ChevronUp size={24} />
-                                        </button>
-                                        <button 
-                                            disabled={images.indexOf(img) === images.length - 1}
-                                            onClick={(e) => { e.stopPropagation(); handleMove(img, 'down'); }} 
-                                            style={{ 
-                                                padding: '0.25rem', 
-                                                color: images.indexOf(img) === images.length - 1 ? 'var(--color-border)' : 'var(--color-primary)', 
-                                                background: 'none', 
-                                                border: 'none',
-                                                cursor: 'pointer'
-                                            }}
-                                        >
-                                            <ChevronDown size={24} />
-                                        </button>
-                                    </div>
-                                )}
-                            </motion.div>
-                        ))}
-                    </div>
+                                    )}
+                                </motion.div>
+                            ))}
+                        </div>
+                        
+                        {/* Visibility Diagnostics */}
+                        <div style={{ marginTop: '2rem', padding: '1rem', backgroundColor: 'rgba(0,0,0,0.05)', borderRadius: '0.5rem', fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                            <span>Total in DB: <b>{images.length}</b></span>
+                            <span>Visible here: <b>{filteredImages.length}</b></span>
+                            {images.length > filteredImages.length && (
+                                <span style={{ color: 'var(--color-primary)' }}>Found <b>{images.length - filteredImages.length}</b> images in other tabs.</span>
+                            )}
+                        </div>
+                    </>
                 )}
+
+                {/* Debug Logs Section */}
+                <div style={{ 
+                    marginTop: '3rem', 
+                    padding: '1.5rem', 
+                    backgroundColor: 'var(--color-card)', 
+                    borderRadius: '1rem',
+                    border: '1px solid var(--color-border)'
+                }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <Settings size={18} />
+                            <h3 style={{ margin: 0, fontSize: '1rem' }}>Debug Logs</h3>
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button
+                                onClick={() => {
+                                    const logText = activityLogs.join('\n');
+                                    navigator.clipboard.writeText(logText);
+                                    alert("Logs copied to clipboard!");
+                                }}
+                                style={{
+                                    padding: '0.4rem 0.8rem',
+                                    borderRadius: '0.5rem',
+                                    border: '1px solid var(--color-primary)',
+                                    backgroundColor: 'var(--color-primary-transparent)',
+                                    color: 'var(--color-primary)',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Copy Logs
+                            </button>
+                            <button
+                                onClick={() => setActivityLogs([])}
+                                style={{
+                                    padding: '0.4rem 0.8rem',
+                                    borderRadius: '0.5rem',
+                                    border: '1px solid var(--color-border)',
+                                    backgroundColor: 'transparent',
+                                    color: 'var(--color-text-muted)',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+                    <div style={{ 
+                        height: '200px', 
+                        overflowY: 'auto', 
+                        backgroundColor: 'var(--color-surface)', 
+                        padding: '1rem', 
+                        borderRadius: '0.5rem',
+                        fontFamily: 'monospace',
+                        fontSize: '0.75rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.25rem'
+                    }}>
+                        {activityLogs.length === 0 ? (
+                            <div style={{ color: 'var(--color-text-muted)', textAlign: 'center', marginTop: '2rem' }}>No activity logged yet.</div>
+                        ) : (
+                            activityLogs.map((log, i) => (
+                                <div key={i} style={{ 
+                                    color: log.includes('[ERROR]') ? 'var(--color-error)' : 
+                                           log.includes('[SUCCESS]') || log.includes('✅') || log.includes('✨') ? 'var(--color-success)' : 
+                                           'var(--color-text-muted)',
+                                    borderBottom: '1px solid var(--color-border-subtle)',
+                                    paddingBottom: '2px'
+                                }}>
+                                    {log}
+                                </div>
+                            ))
+                        )}
+                    </div>
+                    <p style={{ fontSize: '0.65rem', color: 'var(--color-text-muted)', marginTop: '0.75rem' }}>
+                        These logs track real-time activity and are helpful for troubleshooting upload or syncing failures.
+                    </p>
+                </div>
             </div>
 
             {/* Add Image Modal */}
             <AnimatePresence>
                 {showAddModal && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        style={{ position: 'fixed', inset: 0, zIndex: 100, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
-                        onClick={() => setShowAddModal(false)}
-                    >
-                        <motion.div
-                            initial={{ y: 20 }}
-                            animate={{ y: 0 }}
-                            style={{ backgroundColor: 'var(--color-card)', padding: '1.5rem', borderRadius: '1rem', width: '100%', maxWidth: '30rem' }}
-                            onClick={e => e.stopPropagation()}
-                        >
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 100, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }} onClick={handleCancel}>
+                        <motion.div initial={{ y: 20 }} animate={{ y: 0 }} style={{ backgroundColor: 'var(--color-card)', padding: '1.5rem', borderRadius: '1rem', width: '100%', maxWidth: '30rem' }} onClick={e => e.stopPropagation()}>
                             <h3 style={{ marginBottom: '1rem' }}>Add New Gallery Image</h3>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                 <div>
                                     <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Image Source</label>
                                     <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                                        <button 
-                                            onClick={() => fileInputRef.current?.click()}
-                                            disabled={isUploading}
-                                            style={{
-                                                flex: 1,
-                                                padding: '0.75rem',
-                                                borderRadius: '0.5rem',
-                                                border: '1px dashed var(--color-primary)',
-                                                backgroundColor: 'var(--color-primary-transparent)',
-                                                color: 'var(--color-primary)',
-                                                fontWeight: 600,
-                                                cursor: 'pointer',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                gap: '0.5rem'
-                                            }}
-                                        >
+                                        <button onClick={() => fileInputRef.current?.click()} disabled={isUploading} style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: '1px dashed var(--color-primary)', backgroundColor: 'var(--color-primary-transparent)', color: 'var(--color-primary)', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
                                             <Plus size={18} /> {isUploading ? `Uploading ${Math.round(uploadProgress)}%${etaText}` : (selectedFiles.length > 0 ? `Selected ${selectedFiles.length} files` : 'Upload from Device')}
                                         </button>
-                                        <input 
-                                            type="file" 
-                                            ref={fileInputRef}
-                                            onChange={(e) => {
-                                                const files = Array.from(e.target.files);
-                                                if (files.length > 1) {
-                                                    setSelectedFiles(files);
-                                                    setNewForm(prev => ({ ...prev, url: 'multiple_files' })); // Placeholder
-                                                } else if (files.length === 1) {
-                                                    setSelectedFiles([]);
-                                                    handleFileUpload(files[0]);
-                                                }
-                                            }}
-                                            multiple
-                                            style={{ display: 'none' }}
-                                            accept="image/*"
-                                        />
+                                        <input type="file" ref={fileInputRef} onChange={(e) => { const files = Array.from(e.target.files); if (files.length > 1) { setSelectedFiles(files); setNewForm(prev => ({ ...prev, url: 'multiple_files' })); } else if (files.length === 1) { setSelectedFiles([]); handleFileUpload(files[0]); } }} multiple style={{ display: 'none' }} accept="image/*" />
                                     </div>
 
                                     {selectedFiles.length > 0 && (
-                                        <div style={{ 
-                                            display: 'flex', 
-                                            gap: '0.5rem', 
-                                            overflowX: 'auto', 
-                                            padding: '0.5rem', 
-                                            backgroundColor: 'var(--color-surface)', 
-                                            borderRadius: '0.5rem',
-                                            marginBottom: '0.5rem'
-                                        }}>
+                                        <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', padding: '0.5rem', backgroundColor: 'var(--color-surface)', borderRadius: '0.5rem', marginBottom: '0.5rem' }}>
                                             {selectedFiles.map((f, i) => (
                                                 <div key={i} style={{ position: 'relative', flexShrink: 0 }}>
                                                     <div style={{ width: '60px', height: '60px', borderRadius: '0.25rem', overflow: 'hidden', border: '1px solid var(--color-border)' }}>
                                                         <img src={URL.createObjectURL(f)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                                     </div>
-                                                    <button 
-                                                        onClick={() => setSelectedFiles(prev => prev.filter((_, idx) => idx !== i))}
-                                                        style={{ position: 'absolute', top: -5, right: -5, backgroundColor: 'var(--color-error)', color: 'white', border: 'none', borderRadius: '50%', width: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                                                    >
-                                                        <X size={12} />
-                                                    </button>
+                                                    <button onClick={() => setSelectedFiles(prev => prev.filter((_, idx) => idx !== i))} style={{ position: 'absolute', top: -5, right: -5, backgroundColor: 'var(--color-error)', color: 'white', border: 'none', borderRadius: '50%', width: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><X size={12} /></button>
                                                 </div>
                                             ))}
-                                            <button 
-                                                onClick={() => setSelectedFiles([])}
-                                                style={{ padding: '0.5rem', color: 'var(--color-error)', fontSize: '0.75rem', background: 'none', border: 'none', cursor: 'pointer' }}
-                                            >
-                                                Clear All
-                                            </button>
+                                            <button onClick={() => setSelectedFiles([])} style={{ padding: '0.5rem', color: 'var(--color-error)', fontSize: '0.75rem', background: 'none', border: 'none', cursor: 'pointer' }}>Clear All</button>
                                         </div>
                                     )}
 
                                     {selectedFiles.length === 0 && (
-                                        <input
-                                            value={newForm.url}
-                                            onChange={e => setNewForm({ ...newForm, url: e.target.value })}
-                                            placeholder="Or enter URL directly"
-                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)' }}
-                                        />
+                                        <input value={newForm.url} onChange={e => setNewForm({ ...newForm, url: e.target.value })} placeholder="Or enter URL directly" style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)' }} />
                                     )}
 
                                     {isUploading && (
@@ -1419,115 +1378,41 @@ const AdminGallery = () => {
                                         </div>
                                     )}
 
-                                    <div style={{ 
-                                        padding: '0.75rem', 
-                                        backgroundColor: 'var(--color-surface)', 
-                                        borderRadius: '0.5rem', 
-                                        border: '1px solid var(--color-border)', 
-                                        marginTop: '0.75rem' 
-                                    }}>
-                                        <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem', fontWeight: 600 }}>
-                                            Import from Google Drive Folder
-                                        </label>
+                                    <div style={{ padding: '0.75rem', backgroundColor: 'var(--color-surface)', borderRadius: '0.5rem', border: '1px solid var(--color-border)', marginTop: '0.75rem' }}>
+                                        <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem', fontWeight: 600 }}>Import from Google Drive Folder</label>
                                         <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                            <input 
-                                                value={driveUrl}
-                                                onChange={e => setDriveUrl(e.target.value)}
-                                                placeholder="Paste Folder URL"
-                                                disabled={isUploading}
-                                                style={{ 
-                                                    flex: 1, 
-                                                    padding: '0.5rem', 
-                                                    borderRadius: '0.25rem', 
-                                                    border: '1px solid var(--color-border)', 
-                                                    fontSize: '0.875rem',
-                                                    backgroundColor: 'white'
-                                                }}
-                                            />
-                                            <button 
-                                                onClick={handleDriveImport}
-                                                disabled={isUploading || !driveUrl}
-                                                style={{ 
-                                                    padding: '0.5rem 1rem', 
-                                                    borderRadius: '0.25rem', 
-                                                    backgroundColor: 'var(--color-primary)', 
-                                                    color: 'white', 
-                                                    border: 'none', 
-                                                    cursor: (isUploading || !driveUrl) ? 'not-allowed' : 'pointer', 
-                                                    fontSize: '0.875rem',
-                                                    fontWeight: 600,
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '0.25rem',
-                                                    opacity: (isUploading || !driveUrl) ? 0.7 : 1
-                                                }}
-                                            >
+                                            <input value={driveUrl} onChange={e => setDriveUrl(e.target.value)} placeholder="Paste Folder URL" disabled={isUploading} style={{ flex: 1, padding: '0.5rem', borderRadius: '0.25rem', border: '1px solid var(--color-border)', fontSize: '0.875rem', backgroundColor: 'white' }} />
+                                            <button onClick={handleDriveImport} disabled={isUploading || !driveUrl} style={{ padding: '0.5rem 1rem', borderRadius: '0.25rem', backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', cursor: (isUploading || !driveUrl) ? 'not-allowed' : 'pointer', fontSize: '0.875rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem', opacity: (isUploading || !driveUrl) ? 0.7 : 1 }}>
                                                 {isDriveLoading ? <Loader2 size={16} className="animate-spin" /> : 'Import'}
                                             </button>
                                         </div>
-                                        <p style={{ fontSize: '0.65rem', color: 'var(--color-text-light)', marginTop: '0.5rem' }}>
-                                            Folder must be set to "Anyone with the link can view"
-                                        </p>
                                     </div>
                                 </div>
                                 <div>
                                     <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Caption</label>
-                                    <input
-                                        value={newForm.caption}
-                                        onChange={e => setNewForm({ ...newForm, caption: e.target.value })}
-                                        placeholder="Enter image caption"
-                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)' }}
-                                    />
+                                    <input value={newForm.caption} onChange={e => setNewForm({ ...newForm, caption: e.target.value })} placeholder="Enter image caption" style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)' }} />
                                 </div>
                                 <div>
                                     <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Display Order</label>
-                                    <input
-                                        type="number"
-                                        value={newForm.order}
-                                        onChange={e => setNewForm({ ...newForm, order: e.target.value })}
-                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)' }}
-                                    />
+                                    <input type="number" value={newForm.order} onChange={e => setNewForm({ ...newForm, order: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)' }} />
                                 </div>
                                 <div>
                                     <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Category</label>
                                     <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '0.5rem' }}>
                                         {['general', 'ayya', 'events', 'others'].map(cat => (
-                                            <button
-                                                key={cat}
-                                                type="button"
-                                                onClick={() => setNewForm({ ...newForm, category: cat })}
-                                                style={{
-                                                    flex: 1,
-                                                    padding: '0.6rem',
-                                                    fontSize: '0.85rem',
-                                                    borderRadius: '0.4rem',
-                                                    border: `1px solid ${newForm.category === cat ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                                                    backgroundColor: newForm.category === cat ? 'var(--color-primary-transparent)' : 'var(--color-card)',
-                                                    color: newForm.category === cat ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                                                    fontWeight: 600,
-                                                    textTransform: 'capitalize'
-                                                }}
-                                            >
+                                            <button key={cat} type="button" onClick={() => setNewForm({ ...newForm, category: cat })} style={{ flex: 1, padding: '0.6rem', fontSize: '0.85rem', borderRadius: '0.4rem', border: `1px solid ${newForm.category === cat ? 'var(--color-primary)' : 'var(--color-border)'}`, backgroundColor: newForm.category === cat ? 'var(--color-primary-transparent)' : 'var(--color-card)', color: newForm.category === cat ? 'var(--color-primary)' : 'var(--color-text-muted)', fontWeight: 600, textTransform: 'capitalize' }}>
                                                 {cat}
                                             </button>
                                         ))}
                                     </div>
                                     {newForm.category === 'events' && (
-                                        <select
-                                            value={newForm.eventId}
-                                            onChange={e => setNewForm({ ...newForm, eventId: e.target.value })}
-                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-primary)', backgroundColor: 'var(--color-surface)' }}
-                                        >
+                                        <select value={newForm.eventId} onChange={e => setNewForm({ ...newForm, eventId: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-primary)', backgroundColor: 'var(--color-surface)' }}>
                                             <option value="">-- Select Event Folder --</option>
                                             {events.map(ev => <option key={ev.id} value={ev.id}>{ev.name}</option>)}
                                         </select>
                                     )}
                                     {newForm.category === 'others' && (
-                                        <select
-                                            value={newForm.customCategoryId}
-                                            onChange={e => setNewForm({ ...newForm, customCategoryId: e.target.value })}
-                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-primary)', backgroundColor: 'var(--color-surface)' }}
-                                        >
+                                        <select value={newForm.customCategoryId} onChange={e => setNewForm({ ...newForm, customCategoryId: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-primary)', backgroundColor: 'var(--color-surface)' }}>
                                             <option value="">-- Select Category --</option>
                                             {galleryCategories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
                                         </select>
@@ -1539,7 +1424,6 @@ const AdminGallery = () => {
                                     <button onClick={handleAdd} disabled={isUploading} style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: 'none', backgroundColor: 'var(--color-primary)', color: 'white', fontWeight: 600, opacity: isUploading ? 0.7 : 1, cursor: isUploading ? 'not-allowed' : 'pointer' }}>
                                         {isBatchAdding ? `Saving ${selectedFiles.length} Images...` : (isUploading ? 'Processing...' : (selectedFiles.length > 0 ? `Add ${selectedFiles.length} Images` : 'Add Image'))}
                                     </button>
-
                                 </div>
                             </div>
                         </motion.div>
@@ -1550,19 +1434,8 @@ const AdminGallery = () => {
             {/* Event Folder Modal */}
             <AnimatePresence>
                 {showEventModal && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        style={{ position: 'fixed', inset: 0, zIndex: 110, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
-                        onClick={() => setShowEventModal(false)}
-                    >
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            style={{ backgroundColor: 'var(--color-card)', padding: '1.5rem', borderRadius: '1rem', width: '100%', maxWidth: '24rem', boxShadow: 'var(--shadow-lg)' }}
-                            onClick={e => e.stopPropagation()}
-                        >
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 110, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }} onClick={() => setShowEventModal(false)}>
+                        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} style={{ backgroundColor: 'var(--color-card)', padding: '1.5rem', borderRadius: '1rem', width: '100%', maxWidth: '24rem', boxShadow: 'var(--shadow-lg)' }} onClick={e => e.stopPropagation()}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                                 <h3 style={{ margin: 0 }}>Create Event Folder</h3>
                                 <button onClick={() => setShowEventModal(false)} style={{ background: 'none', border: 'none', color: 'var(--color-text-muted)' }}><X size={24} /></button>
@@ -1570,86 +1443,40 @@ const AdminGallery = () => {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                                 <div>
                                     <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '0.5rem', color: 'var(--color-text-muted)' }}>Folder Name</label>
-                                    <input
-                                        autoFocus
-                                        value={newEventForm.name}
-                                        onChange={e => setNewEventForm({ ...newEventForm, name: e.target.value })}
-                                        placeholder="e.g. Coimbatore Event 2024"
-                                        style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
-                                    />
+                                    <input autoFocus value={newEventForm.name} onChange={e => setNewEventForm({ ...newEventForm, name: e.target.value })} placeholder="e.g. Coimbatore Event 2024" style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }} />
                                 </div>
                                 <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
-                                    <button 
-                                        onClick={() => setShowEventModal(false)} 
-                                        style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', fontWeight: 600, cursor: 'pointer' }}
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button 
-                                        onClick={handleCreateEvent} 
-                                        style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: 'none', backgroundColor: 'var(--color-primary)', color: 'white', fontWeight: 600, cursor: 'pointer' }}
-                                    >
-                                        Create Folder
-                                    </button>
+                                    <button onClick={() => setShowEventModal(false)} style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'transparent', color: 'var(--color-text)', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
+                                    <button onClick={handleCreateEvent} style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: 'none', backgroundColor: 'var(--color-primary)', color: 'white', fontWeight: 600, cursor: 'pointer' }}>Create Folder</button>
                                 </div>
                             </div>
                         </motion.div>
                     </motion.div>
                 )}
             </AnimatePresence>
+            
             {/* Category Modal */}
             <AnimatePresence>
                 {showCategoryModal && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        style={{ position: 'fixed', inset: 0, zIndex: 110, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
-                        onClick={() => setShowCategoryModal(false)}
-                    >
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            style={{ backgroundColor: 'var(--color-card)', padding: '1.5rem', borderRadius: '1rem', width: '100%', maxWidth: '28rem', boxShadow: 'var(--shadow-lg)' }}
-                            onClick={e => e.stopPropagation()}
-                        >
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 110, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }} onClick={() => setShowCategoryModal(false)}>
+                        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} style={{ backgroundColor: 'var(--color-card)', padding: '1.5rem', borderRadius: '1rem', width: '100%', maxWidth: '28rem', boxShadow: 'var(--shadow-lg)' }} onClick={e => e.stopPropagation()}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                                 <h3 style={{ margin: 0 }}>Manage Sub-Categories</h3>
                                 <button onClick={() => setShowCategoryModal(false)} style={{ background: 'none', border: 'none', color: 'var(--color-text-muted)' }}><X size={24} /></button>
                             </div>
                             
                             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
-                                <input
-                                    value={newCategoryForm.name}
-                                    onChange={e => setNewCategoryForm({ ...newCategoryForm, name: e.target.value })}
-                                    placeholder="Category Name"
-                                    style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
-                                />
-                                <button 
-                                    onClick={handleCreateCategory}
-                                    style={{ padding: '0.75rem 1rem', borderRadius: '0.5rem', border: 'none', backgroundColor: 'var(--color-primary)', color: 'white', fontWeight: 600, cursor: 'pointer' }}
-                                >
-                                    Add
-                                </button>
+                                <input value={newCategoryForm.name} onChange={e => setNewCategoryForm({ ...newCategoryForm, name: e.target.value })} placeholder="Category Name" style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }} />
+                                <button onClick={handleCreateCategory} style={{ padding: '0.75rem 1rem', borderRadius: '0.5rem', border: 'none', backgroundColor: 'var(--color-primary)', color: 'white', fontWeight: 600, cursor: 'pointer' }}>Add</button>
                             </div>
 
                             <div style={{ maxHeight: '40vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                 {galleryCategories.map(cat => (
                                     <div key={cat.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', backgroundColor: 'var(--color-surface)', borderRadius: '0.5rem', border: '1px solid var(--color-border)' }}>
                                         <span style={{ fontWeight: 500 }}>{cat.name}</span>
-                                        <button 
-                                            onClick={(e) => handleDeleteCategory(cat.id, e)}
-                                            style={{ background: 'none', border: 'none', color: 'var(--color-error)', cursor: 'pointer' }}
-                                        >
-                                            <Trash2 size={18} />
-                                        </button>
+                                        <button onClick={(e) => handleDeleteCategory(cat.id, e)} style={{ background: 'none', border: 'none', color: 'var(--color-error)', cursor: 'pointer' }}><Trash2 size={18} /></button>
                                     </div>
                                 ))}
-                                {galleryCategories.length === 0 && (
-                                    <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
-                                        No sub-categories created yet.
-                                    </div>
-                                )}
                             </div>
                         </motion.div>
                     </motion.div>

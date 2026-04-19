@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { X, ChevronLeft, ChevronRight, Maximize2, Edit2, Share2, Folder, ArrowLeft, Download, Loader2, ChevronDown } from 'lucide-react';
-import { collection, query, getDocs, orderBy } from '@/utils/FirestoreProxy';
+import { collection, query, getDocs, orderBy, onSnapshot } from '@/utils/FirestoreProxy';
 import { db } from '@/firebase';
 import { useAdminAuth } from '@/context/AdminAuthContext';
 import { shareImage } from '@/utils/shareUtils';
@@ -25,54 +25,74 @@ const Gallery = () => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     useEffect(() => {
-        const fetchData = async () => {
+        const qImages = query(collection(db, 'gallery'));
+        const unsubscribe = onSnapshot(qImages, (snapshot) => {
+            const imgs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            
+            // Tiered Memory Sort (Null-Safe)
+            const getTime = (ts) => {
+                if (ts && typeof ts.toMillis === 'function') return ts.toMillis();
+                if (ts instanceof Date) return ts.getTime();
+                if (typeof ts === 'number') return ts;
+                if (typeof ts === 'string') return new Date(ts).getTime() || 0;
+                return 0;
+            };
+
+            imgs.sort((a, b) => {
+                const timeA = getTime(a.createdAt);
+                const timeB = getTime(b.createdAt);
+                if (timeB !== timeA) return timeB - timeA;
+                
+                const orderA = parseInt(a.order) || 0;
+                const orderB = parseInt(b.order) || 0;
+                if (orderA !== orderB) return orderA - orderB;
+                
+                return String(a.id).localeCompare(String(b.id));
+            });
+
+            setImages(imgs);
+            setLoading(false);
+        }, (error) => {
+            console.error("Gallery images real-time sync failed:", error);
+            setLoading(false);
+        });
+
+        // Other non-real-time fetches can stay as-is for now or also be snapshots
+        const fetchMeta = async () => {
             try {
-                try {
-                    const qImages = query(collection(db, 'gallery'), orderBy('order', 'asc'));
-                    const imgSnap = await getDocs(qImages);
-                    const imgs = imgSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    setImages(imgs);
-                } catch (e) {
-                    console.error("Gallery images fetch failed:", e);
-                }
+                const qEvents = query(collection(db, 'gallery_events'), orderBy('order', 'asc'));
+                const eventSnap = await getDocs(qEvents);
+                setEvents(eventSnap.docs.map(d => ({ id: d.id, ...d.data() })));
 
-                try {
-                    const qEvents = query(collection(db, 'gallery_events'), orderBy('order', 'asc'));
-                    const eventSnap = await getDocs(qEvents);
-                    const evs = eventSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    setEvents(evs);
-                } catch (e) {
-                    console.error("Gallery events fetch failed:", e);
-                }
-
-                try {
-                    const qCats = query(collection(db, 'gallery_categories'), orderBy('order', 'asc'));
-                    const catSnap = await getDocs(qCats);
-                    const cats = catSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    setGalleryCategories(cats);
-                } catch (e) {
-                    console.error("Gallery categories fetch failed:", e);
-                }
-            } catch (error) {
-                console.error("Error fetching gallery data:", error);
-            } finally {
-                setLoading(false);
+                const qCats = query(collection(db, 'gallery_categories'), orderBy('order', 'asc'));
+                const catSnap = await getDocs(qCats);
+                setGalleryCategories(catSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+            } catch (e) {
+                console.error("Meta fetch failed:", e);
             }
         };
-        fetchData();
+        fetchMeta();
+
+        return () => unsubscribe();
     }, []);
 
     const filteredImages = useMemo(() => {
         return images.filter(img => {
-            const cat = img.category || 'general';
-            if (cat !== activeTab) return false;
-            if (activeTab === 'events') {
-                return img.eventId === selectedEventId;
+            const cat = (img.category || 'general').toLowerCase().trim();
+            const targetTab = activeTab.toLowerCase().trim();
+            
+            if (targetTab === 'general') return cat === 'general';
+            if (targetTab === 'ayya') return cat === 'ayya' || cat === 'ayyas photos';
+            if (targetTab === 'events') {
+                if (cat !== 'events') return false;
+                return String(img.eventId || '') === String(selectedEventId || '');
             }
-            if (activeTab === 'others') {
-                return img.customCategoryId === selectedCategoryId;
+            if (targetTab === 'others') {
+                if (cat !== 'others') return false;
+                if (!selectedCategoryId) return true; // Show all 'others' if no sub-cat selected
+                return String(img.customCategoryId || '') === String(selectedCategoryId || '');
             }
-            return true;
+            return false;
         });
     }, [images, activeTab, selectedEventId, selectedCategoryId]);
 

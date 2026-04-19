@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Share2, ChevronLeft, Calendar, MapPin, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAdminAuth } from '@/context/AdminAuthContext';
 import { db } from '@/firebase';
 import { collection, query, orderBy } from '@/utils/FirestoreProxy';
 import { getLocalDateString } from '@/utils/dateUtils';
 
 const WebAyyaSchedule = () => {
     const navigate = useNavigate();
+    const { isAdmin } = useAdminAuth();
     const [schedules, setSchedules] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isSharingAll, setIsSharingAll] = useState(false);
@@ -19,7 +21,9 @@ const WebAyyaSchedule = () => {
                 const { getDocsFromCache, getDocsFromServer } = await import('@/utils/FirestoreProxy');
                 const filterSchedules = (list) => {
                     const today = getLocalDateString();
-                    return list.filter(s => (s.toDate || s.fromDate) >= today);
+                    return list
+                        .filter(s => isAdmin || s.isActive !== false)
+                        .filter(s => (s.toDate || s.fromDate) >= today);
                 };
                 const q = query(collection(db, 'schedules'), orderBy('fromDate', 'asc'));
                 
@@ -163,6 +167,9 @@ const WebAyyaSchedule = () => {
                                 <h2 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--color-text)' }}>
                                     <MapPin size={20} style={{ color: 'var(--color-primary)' }} />
                                     {schedule.place}
+                                    {schedule.isActive === false && (
+                                        <span style={{ fontSize: '0.65rem', color: 'var(--color-error)', border: '1px solid currentColor', padding: '1px 4px', borderRadius: '4px' }}>HIDDEN</span>
+                                    )}
                                 </h2>
                                 <div style={{ color: 'var(--color-text-muted)', fontSize: '1rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                     <Calendar size={16} style={{ color: 'var(--color-primary)' }} />

@@ -6,6 +6,7 @@ import { db } from '../firebase';
 import { collection, query, where, orderBy, onSnapshot, limit } from '../utils/FirestoreProxy';
 import { getLocalDateString } from '../utils/dateUtils';
 import LazyImage from '../components/LazyImage';
+import { useAdminAuth } from '@/context/AdminAuthContext';
 import './WebPages.css';
 
 // --- Helpers for Recurring Events ---
@@ -67,6 +68,7 @@ const getNextOccurrence = (master, todayStr) => {
 
 const WebEvents = () => {
     const navigate = useNavigate();
+    const { isAdmin, loading: authLoading } = useAdminAuth();
     const [activeTab, setActiveTab] = useState('retreats');
     const [zoomSubTab, setZoomSubTab] = useState('upcoming');
     const [data, setData] = useState({
@@ -143,7 +145,7 @@ const WebEvents = () => {
                     (snap) => {
                         const list = snap.docs
                             .map(d => ({ id: d.id, ...d.data() }))
-                            .filter(p => p.isActive !== false)
+                            .filter(p => isAdmin || p.isActive !== false)
                             .sort((a, b) => (a.programDate || "").localeCompare(b.programDate || ""));
                         setData(prev => ({ ...prev, retreats: list }));
                         setLoading(false); 
@@ -154,12 +156,14 @@ const WebEvents = () => {
                 // 2. Schedules Listener (Ayya's Schedule)
                 unsubSchedules = onSnapshot(collection(db, 'schedules'), (snap) => {
                     const raw = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    const filtered = raw.filter(s => {
-                        const dateVal = s.toDate || s.fromDate;
-                        if (!dateVal) return true;
-                        const dateStr = dateVal.toDate ? dateVal.toDate().toISOString().split('T')[0] : String(dateVal);
-                        return dateStr >= today || dateStr.includes(today.substring(0, 7));
-                    }).sort((a, b) => String(a.fromDate || "").localeCompare(String(b.fromDate || "")));
+                    const filtered = raw
+                        .filter(p => isAdmin || p.isActive !== false)
+                        .filter(s => {
+                            const dateVal = s.toDate || s.fromDate;
+                            if (!dateVal) return true;
+                            const dateStr = dateVal.toDate ? dateVal.toDate().toISOString().split('T')[0] : String(dateVal);
+                            return dateStr >= today || dateStr.includes(today.substring(0, 7));
+                        }).sort((a, b) => String(a.fromDate || "").localeCompare(String(b.fromDate || "")));
                     setData(prev => ({ ...prev, schedules: filtered }));
                 });
 
@@ -177,13 +181,16 @@ const WebEvents = () => {
                 unsubMeetings = onSnapshot(collection(db, 'online_meetings'), (snap) => {
                     const raw = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                     recursiveMeetings = raw
+                        .filter(p => isAdmin || p.isActive !== false)
                         .map(m => getNextOccurrence(m, today))
                         .filter(m => m !== null);
                     updateZoomData();
                 });
 
                 unsubLegacyZoom = onSnapshot(query(collection(db, 'daily_zoom_meetings'), where('date', '>=', today), orderBy('date', 'asc')), (snap) => {
-                    manualMeetings = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    manualMeetings = snap.docs
+                        .map(d => ({ id: d.id, ...d.data() }))
+                        .filter(p => isAdmin || p.isActive !== false);
                     updateZoomData();
                 });
 
@@ -472,9 +479,13 @@ const WebEvents = () => {
                                                         </div>
                                                     </div>
 
-                                                    {/* Info Content */}
                                                     <div className="program-info">
-                                                        <h3 className="event-title">{displayName}</h3>
+                                                        <h3 className="event-title">
+                                                            {displayName}
+                                                            {item.isActive === false && (
+                                                                <span style={{ fontSize: '0.75rem', color: 'var(--color-error)', marginLeft: '0.5rem', verticalAlign: 'middle', border: '1px solid currentColor', padding: '1px 6px', borderRadius: '4px', textTransform: 'uppercase' }}>Hidden</span>
+                                                            )}
+                                                        </h3>
                                                         
                                                         <div className="event-details-rows">
                                                             {activeTab === 'dailyZoom' ? (

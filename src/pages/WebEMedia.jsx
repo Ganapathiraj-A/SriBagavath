@@ -5,9 +5,11 @@ import { collection, query, getDocs, orderBy } from '../utils/FirestoreProxy';
 import { db } from '../firebase';
 import emediaData from '../data/emedia.json';
 import LazyImage from '../components/LazyImage';
+import { useAdminAuth } from '@/context/AdminAuthContext';
 import './WebPages.css';
 
 const WebEMedia = () => {
+    const { isAdmin } = useAdminAuth();
     const [activeTab, setActiveTab] = useState('pdf');
     const [activeLanguage, setActiveLanguage] = useState(emediaData.digitalBooks.languages[0]?.id || 'tamil');
     const [currentMagazineFolder, setCurrentMagazineFolder] = useState(null);
@@ -23,12 +25,12 @@ const WebEMedia = () => {
                 // Fetch Videos
                 const vQuery = query(collection(db, 'relatedVideos'), orderBy('order', 'asc'));
                 const vSnap = await getDocs(vQuery);
-                setVideos(vSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+                setVideos(vSnap.docs.map(d => ({ id: d.id, ...d.data() })).filter(v => isAdmin || v.isActive !== false));
 
                 // Fetch Categories
                 const cQuery = query(collection(db, 'video_categories'), orderBy('order', 'asc'));
                 const cSnap = await getDocs(cQuery);
-                setVideoCategories(cSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+                setVideoCategories(cSnap.docs.map(d => ({ id: d.id, ...d.data() })).filter(c => isAdmin || c.isActive !== false));
             } catch (error) {
                 console.error("Error fetching video data:", error);
             } finally {
@@ -283,7 +285,12 @@ const WebEMedia = () => {
                                         <Video size={24} />
                                     </div>
                                     <div className="emedia-card-info">
-                                        <h3>{video.title}</h3>
+                                        <h3>
+                                            {video.title}
+                                            {video.isActive === false && (
+                                                <span style={{ fontSize: '0.65rem', color: 'var(--color-error)', marginLeft: '0.5rem', border: '1px solid currentColor', padding: '1px 4px', borderRadius: '4px' }}>HIDDEN</span>
+                                            )}
+                                        </h3>
                                     </div>
                                     <ExternalLink size={18} className="emedia-external-icon" />
                                 </a>
