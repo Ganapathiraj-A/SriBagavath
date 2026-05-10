@@ -7,9 +7,101 @@ import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebas
 import { db, storage } from '@/firebase';
 import { shareImage } from '@/utils/shareUtils';
 import PageHeader from '@/components/PageHeader';
-import { isHeic, convertHeicToJpeg } from '@/utils/heicConverter';
+import { Clipboard } from '@capacitor/clipboard';
 import { Capacitor } from '@capacitor/core';
 import { useGlobalSettings } from '@/context/GlobalSettingsContext';
+
+// Utility to check for HEIC files (offloaded to external apps)
+const isHeic = (name = '', type = '') => {
+    const n = (name || '').toLowerCase(); const t = (type || '').toLowerCase(); return n.endsWith('.heic') || n.endsWith('.heif') || n.endsWith('.hif') || t.includes('heic') || t.includes('heif');
+};
+
+const withTimeout = (promise, ms, message) => {
+    let timeoutId;
+    const timeoutPromise = new Promise((_, reject) => {
+        timeoutId = setTimeout(() => reject(new Error(message)), ms);
+    });
+    return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timeoutId));
+};
+
+const resizeImageBlob = (blob, maxDim = 2000) => {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.src = URL.createObjectURL(blob);
+        img.onload = () => {
+            URL.revokeObjectURL(img.src);
+            const canvas = document.createElement('canvas');
+            let { width, height } = img;
+            if (width > height) {
+                if (width > maxDim) {
+                    height *= (maxDim / width);
+                    width = maxDim;
+                }
+            } else {
+                if (height > maxDim) {
+                    width *= (maxDim / height);
+                    height = maxDim;
+                }
+            }
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            canvas.toBlob((result) => resolve(result || blob), 'image/jpeg', 0.85);
+        };
+        img.onerror = () => {
+            URL.revokeObjectURL(img.src);
+            reject(new Error("Image processing failed"));
+        };
+    });
+};
+
+const LocalFilePreview = ({ file }) => {
+    const [previewUrl, setPreviewUrl] = useState(null);
+
+    useEffect(() => {
+        if (!file) return;
+
+        if (isHeic(file.name, file.type)) {
+            // Skip HEIC conversion for previews to prevent UI hangs
+            return;
+        } else {
+            const url = URL.createObjectURL(file);
+            setPreviewUrl(url);
+            return () => URL.revokeObjectURL(url);
+        }
+    }, [file]);
+
+    if (isHeic(file.name, file.type)) {
+        return (
+            <div style={{ 
+                width: '100%', 
+                height: '100%', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                backgroundColor: '#fee2e2', 
+                borderRadius: '0.25rem',
+                border: '1px solid #ef4444',
+                padding: '0.2rem'
+            }}>
+                <span style={{ fontSize: '0.55rem', fontWeight: 'bold', color: '#b91c1c' }}>HEIC</span>
+                <span style={{ fontSize: '0.35rem', color: '#b91c1c', textAlign: 'center' }}>Need JPG</span>
+            </div>
+        );
+    }
+
+    if (!previewUrl) return null;
+
+    return (
+        <img 
+            src={previewUrl} 
+            alt="Preview" 
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+        />
+    );
+};
 
 const AdminGallery = () => {
     const navigate = useNavigate();
@@ -42,6 +134,9 @@ const AdminGallery = () => {
     const [etaText, setEtaText] = useState('');
     const [selectedCategoryId, setSelectedCategoryId] = useState(null);
     const [activityLogs, setActivityLogs] = useState([]);
+    const hasHeicSelection = selectedFiles.some(f => isHeic(f.name, f.type));
+    const [showMoveModal, setShowMoveModal] = useState(false);
+    const [bulkMoveForm, setBulkMoveForm] = useState({ category: 'general', eventId: '', customCategoryId: '' });
 
     const addLog = (message, type = 'info') => {
         const timestamp = new Date().toLocaleTimeString();
@@ -122,28 +217,42 @@ const AdminGallery = () => {
 
     const formatETA = (seconds) => {
         if (!isFinite(seconds) || seconds < 0) return '0:00';
-        const mins = Math.floor(seconds / 60);
+        
+        const hrs = Math.floor(seconds / 3600);
+        const mins = Math.floor((seconds % 3600) / 60);
         const secs = Math.floor(seconds % 60);
+        
+        if (hrs > 0) {
+            return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
-    const handleFileUpload = async (file, isEdit = false) => {
+    const handleFileUpload = async (file, isEdit = false, autoSave = false) => {
         if (!file) return;
         
         setIsUploading(true);
         setUploadProgress(0);
-        setUploadStartTime(Date.now());
+        const startTime = Date.now();
+        setUploadStartTime(startTime);
         setEtaText('');
         
         let finalFile = file;
         let finalExt = file.name.split('.').pop();
 
         if (isHeic(file.name, file.type)) {
+            alert("Uploading HEIC files is not directly supported. Please convert them to Jpeg before upload.");
+            setIsUploading(false);
+            return;
+        } else {
+            // Also resize standard images for stability if large
             try {
-                finalFile = await convertHeicToJpeg(file);
-                finalExt = 'jpg';
-            } catch (err) {
-                console.warn("HEIC conversion failed, uploading original:", err);
+                if (file.size > 2 * 1024 * 1024) {
+                    addLog(`📐 Optimizing large image: ${file.name}...`);
+                    finalFile = await resizeImageBlob(file, 2000);
+                }
+            } catch (e) {
+                console.warn("Standard resize failed", e);
             }
         }
 
@@ -161,7 +270,7 @@ const AdminGallery = () => {
                     const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
                     setUploadProgress(progress);
 
-                    const elapsed = (Date.now() - uploadStartTime) / 1000;
+                    const elapsed = (Date.now() - startTime) / 1000;
                     if (progress > 5) { // Wait for 5% to stabilize ETA
                         const totalEstimated = elapsed / (progress / 100);
                         setEtaText(` (${formatETA(elapsed)} / ${formatETA(totalEstimated)})`);
@@ -174,15 +283,34 @@ const AdminGallery = () => {
                     reject(error);
                 }, 
                 async () => {
-                    const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                    addLog(`✅ Upload successful: ${file.name}`);
-                    setIsUploading(false);
-                    if (isEdit) {
-                        setEditForm(prev => ({ ...prev, url: downloadURL, storagePath }));
-                    } else {
-                        setNewForm(prev => ({ ...prev, url: downloadURL, storagePath }));
+                    try {
+                        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                        addLog(`✅ Upload successful: ${file.name}`);
+                        
+                        if (isEdit) {
+                            setEditForm(prev => ({ ...prev, url: downloadURL, storagePath }));
+                        } else {
+                            // Update form state first
+                            setNewForm(prev => {
+                                const updatedForm = { ...prev, url: downloadURL, storagePath };
+                                // If autoSave requested, we trigger handleAdd with the fresh state
+                                if (autoSave) {
+                                    setTimeout(() => {
+                                        addLog(`💾 Auto-saving to database...`);
+                                        handleAdd(updatedForm); 
+                                    }, 100);
+                                }
+                                return updatedForm;
+                            });
+                        }
+                        
+                        setIsUploading(false);
+                        resolve(downloadURL);
+                    } catch (err) {
+                        addLog(`❌ Error finalizing upload: ${err.message}`, 'error');
+                        setIsUploading(false);
+                        reject(err);
                     }
-                    resolve(downloadURL);
                 }
             );
         });
@@ -264,6 +392,36 @@ const AdminGallery = () => {
         } catch (error) {
             console.error("Bulk delete failed:", error);
             alert("Error deleting images: " + error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+    const handleBulkMove = async () => {
+        if (selectedIds.length === 0) return;
+        if (bulkMoveForm.category === 'events' && !bulkMoveForm.eventId) return alert("Please select a destination event folder");
+        if (bulkMoveForm.category === 'others' && !bulkMoveForm.customCategoryId) return alert("Please select a destination category");
+
+        setLoading(true);
+        try {
+            const batch = writeBatch(db);
+            selectedIds.forEach(id => {
+                batch.update(doc(db, 'gallery', id), {
+                    category: bulkMoveForm.category,
+                    eventId: bulkMoveForm.category === 'events' ? bulkMoveForm.eventId : '',
+                    customCategoryId: bulkMoveForm.category === 'others' ? bulkMoveForm.customCategoryId : '',
+                    updatedAt: Timestamp.now()
+                });
+            });
+            await batch.commit();
+            addLog(`Bulk Move: Successfully moved ${selectedIds.length} images to ${bulkMoveForm.category}.`);
+            
+            setShowMoveModal(false);
+            setSelectedIds([]);
+            setIsSelectMode(false);
+            alert(`Moved ${selectedIds.length} images successfully.`);
+        } catch (error) {
+            addLog(`Bulk Move failed: ${error.message}`, 'error');
+            alert("Error moving images: " + error.message);
         } finally {
             setLoading(false);
         }
@@ -489,21 +647,27 @@ const AdminGallery = () => {
     };
 
 
-    const handleAdd = async () => {
-        if (selectedFiles.length > 0) {
+    const handleAdd = async (arg = null) => {
+        // If called from onClick, arg is the SyntheticEvent object.
+        // We only treat it as a programmatic override if it has a 'url' property.
+        const formOverride = (arg && arg.url) ? arg : null;
+        const sourceForm = formOverride || newForm;
+
+        if (selectedFiles.length > 0 && !formOverride) {
             return handleBatchAdd();
         }
         
-        if (!newForm.url) return alert("URL is required");
-        if (newForm.category === 'events' && !newForm.eventId) return alert("Please select an event folder");
+        if (!sourceForm.url) return alert("URL is required");
+        if (sourceForm.category === 'events' && !sourceForm.eventId) return alert("Please select an event folder");
         
         try {
             await addDoc(collection(db, 'gallery'), {
-                ...newForm,
-                order: parseInt(newForm.order) || 0,
+                ...sourceForm,
+                order: parseInt(sourceForm.order) || 0,
                 createdAt: Timestamp.now(),
                 updatedAt: Timestamp.now()
             });
+            addLog(`✨ Firestore: Image record created successfully.`);
             setShowAddModal(false);
             setNewForm(prev => ({
                 ...prev,
@@ -514,9 +678,13 @@ const AdminGallery = () => {
                 eventId: activeTab === 'events' ? (selectedEventId || '') : '',
                 customCategoryId: activeTab === 'others' ? (newForm.customCategoryId || '') : ''
             }));
-            const categoryLabel = galleryTabLabels[newForm.category] || newForm.category;
-            alert(`Successfully added image to "${categoryLabel}" tab!`);
+            
+            if (!formOverride) {
+                const categoryLabel = galleryTabLabels[sourceForm.category] || sourceForm.category;
+                alert(`Successfully added image to "${categoryLabel}" tab!`);
+            }
         } catch (error) {
+            addLog(`Firestore Save failed: ${error.message}`, 'error');
             alert("Error adding image: " + error.message);
         }
     };
@@ -528,73 +696,116 @@ const AdminGallery = () => {
         setIsBatchAdding(true);
         setIsUploading(true);
         setUploadProgress(0);
-        setUploadStartTime(Date.now());
+        const startTime = Date.now();
+        setUploadStartTime(startTime);
         setEtaText('');
         cancelImportRef.current = false;
-        addLog(`↗️ Starting Batch Upload for ${selectedFiles.length} files...`);
+        addLog(`↗️ Starting Resilient Batch Upload for ${selectedFiles.length} files...`);
+
+        let successCount = 0;
+        let failCount = 0;
 
         try {
-            const batch = writeBatch(db);
+            const firestoreBatch = writeBatch(db);
             let currentOrder = parseInt(newForm.order) || images.length;
 
             for (let i = 0; i < selectedFiles.length; i++) {
                 if (cancelImportRef.current) break;
                 const file = selectedFiles[i];
+                addLog(`Parsing: ${file.name} | ${file.type}`);
+
+                if (isHeic(file.name, file.type)) {
+                    addLog(`Skipping HEIC: ${file.name}. Conversion required.`, 'warn');
+                    continue;
+                }
+
                 let finalFile = file;
                 let finalExt = file.name.split('.').pop();
 
-                if (isHeic(file.name, file.type)) {
-                    try {
-                        finalFile = await convertHeicToJpeg(file);
-                        finalExt = 'jpg';
-                    } catch (err) {
-                        console.warn("Batch HEIC conversion failed, uploading original:", err);
+                // 1. Preparation & Resizing
+                try {
+                    if (file.size > 2 * 1024 * 1024) { // Resize if > 2MB
+                        setEtaText(` (Optimizing ${i + 1}/${selectedFiles.length}...)`);
+                        finalFile = await resizeImageBlob(file, 2000);
                     }
+                } catch (err) {
+                    addLog(`⚠️ Process failed for ${file.name}, using original: ${err.message}`, 'warn');
                 }
 
                 const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}_${i}.${finalExt}`;
                 const storagePath = `gallery/${fileName}`;
                 const storageRef = ref(storage, storagePath);
                 
-                let downloadURL;
-                const uploadTask = uploadBytesResumable(storageRef, finalFile);
-                
-                downloadURL = await new Promise((resolve, reject) => {
-                    uploadTask.on('state_changed', 
-                        (snapshot) => {
-                            const fileProgress = snapshot.totalBytes > 0 
-                                ? (snapshot.bytesTransferred / snapshot.totalBytes) * 100 
-                                : 0;
-                            const totalProgress = ((i + (fileProgress / 100)) / selectedFiles.length) * 100;
-                            setUploadProgress(totalProgress);
+                // 2. Resilient Upload with Retries
+                let downloadURL = null;
+                let attempts = 0;
+                const maxAttempts = 2;
 
-                            const elapsed = (Date.now() - uploadStartTime) / 1000;
-                            if (totalProgress > 2) {
-                                const totalEstimated = elapsed / (totalProgress / 100);
-                                setEtaText(` (${formatETA(elapsed)} / ${formatETA(totalEstimated)})`);
-                            }
-                        },
-                        reject,
-                        async () => resolve(await getDownloadURL(uploadTask.snapshot.ref))
-                    );
-                });
+                while (attempts < maxAttempts && !downloadURL) {
+                    if (cancelImportRef.current) break;
+                    attempts++;
+                    try {
+                        const uploadTask = uploadBytesResumable(storageRef, finalFile);
+                        downloadURL = await new Promise((resolve, reject) => {
+                            uploadTask.on('state_changed', 
+                                (snapshot) => {
+                                    const fileProgress = snapshot.totalBytes > 0 
+                                        ? (snapshot.bytesTransferred / snapshot.totalBytes) * 100 
+                                        : 0;
+                                    const totalProgress = ((i + (fileProgress / 100)) / selectedFiles.length) * 100;
+                                    setUploadProgress(totalProgress);
+
+                                    const elapsed = (Date.now() - startTime) / 1000;
+                                    if (totalProgress > 1) {
+                                        const totalEstimated = elapsed / (totalProgress / 100);
+                                        setEtaText(` (${formatETA(elapsed)} / ${formatETA(totalEstimated)})${attempts > 1 ? ` [Retry ${attempts - 1}]` : ''}`);
+                                    }
+                                },
+                                (err) => {
+                                    // Log full diagnostic info for storage/unknown errors
+                                    const diag = err.serverResponse ? ` | Server: ${err.serverResponse}` : '';
+                                    addLog(`❌ Storage Effort ${attempts} failed for ${file.name}: ${err.code}${diag}`, 'error');
+                                    reject(err);
+                                },
+                                async () => resolve(await getDownloadURL(uploadTask.snapshot.ref))
+                            );
+                        });
+                    } catch (err) {
+                        if (attempts >= maxAttempts) {
+                            addLog(`🛑 Final failure for ${file.name} after ${attempts} attempts.`, 'error');
+                        } else {
+                            await new Promise(r => setTimeout(r, 1000)); // Cool down before retry
+                        }
+                    }
+                }
 
                 if (cancelImportRef.current) break;
 
-                const newDocRef = doc(collection(db, 'gallery'));
-                batch.set(newDocRef, {
-                    ...newForm,
-                    url: downloadURL,
-                    storagePath,
-                    order: currentOrder + i,
-                    createdAt: Timestamp.now(),
-                    updatedAt: Timestamp.now()
-                });
+                // 3. Track Batch Success
+                if (downloadURL) {
+                    const newDocRef = doc(collection(db, 'gallery'));
+                    firestoreBatch.set(newDocRef, {
+                        ...newForm,
+                        url: downloadURL,
+                        storagePath,
+                        order: currentOrder + i,
+                        createdAt: Timestamp.now(),
+                        updatedAt: Timestamp.now()
+                    });
+                    successCount++;
+                } else {
+                    failCount++;
+                }
             }
 
-            addLog(`💾 Committing batch for ${selectedFiles.length} images...`);
-            await batch.commit();
-            addLog("✨ Batch Upload: Successfully completed.");
+            if (cancelImportRef.current) return;
+
+            if (successCount > 0) {
+                addLog(`💾 Committing results for ${successCount} images...`);
+                await firestoreBatch.commit();
+                addLog(`✨ Batch Finished: ${successCount} Success, ${failCount} Failed.`);
+            }
+
             setSelectedFiles([]);
             setShowAddModal(false);
             setNewForm(prev => ({
@@ -607,8 +818,11 @@ const AdminGallery = () => {
                 customCategoryId: activeTab === 'others' ? (newForm.customCategoryId || '') : ''
             }));
 
-            const categoryLabel = galleryTabLabels[newForm.category] || newForm.category;
-            alert(`Successfully added ${selectedFiles.length} images to "${categoryLabel}" tab!`);
+            if (failCount === 0) {
+                alert(`Successfully added all ${successCount} images!`);
+            } else {
+                alert(`Upload partial: ${successCount} succeeded, ${failCount} failed. Check debug logs for details.`);
+            }
         } catch (error) {
             console.error("Batch upload failed:", error);
             alert("Error adding images: " + error.message);
@@ -1120,10 +1334,36 @@ const AdminGallery = () => {
                             </button>
                             
                             {selectedIds.length > 0 && (
-                                <button 
-                                    onClick={handleDeleteSelected}
-                                    style={{
-                                        backgroundColor: 'var(--color-error)',
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <button 
+                                        onClick={() => {
+                                            setBulkMoveForm({ 
+                                                category: activeTab, 
+                                                eventId: selectedEventId || '', 
+                                                customCategoryId: selectedCategoryId || '' 
+                                            });
+                                            setShowMoveModal(true);
+                                        }}
+                                        style={{
+                                            backgroundColor: 'var(--color-primary)',
+                                            color: 'white',
+                                            border: 'none',
+                                            padding: '0.5rem 1rem',
+                                            borderRadius: '0.5rem',
+                                            fontSize: '0.875rem',
+                                            fontWeight: 600,
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.4rem'
+                                        }}
+                                    >
+                                        <Folder size={16} /> Move ({selectedIds.length})
+                                    </button>
+                                    <button 
+                                        onClick={handleDeleteSelected}
+                                        style={{
+                                            backgroundColor: 'var(--color-error)',
                                         color: 'white',
                                         border: 'none',
                                         padding: '0.5rem 1rem',
@@ -1138,6 +1378,7 @@ const AdminGallery = () => {
                                 >
                                     <Trash2 size={16} /> Delete ({selectedIds.length})
                                 </button>
+                                    </div>
                             )}
                         </div>
                     )}
@@ -1253,89 +1494,6 @@ const AdminGallery = () => {
                         </div>
                     </>
                 )}
-
-                {/* Debug Logs Section */}
-                <div style={{ 
-                    marginTop: '3rem', 
-                    padding: '1.5rem', 
-                    backgroundColor: 'var(--color-card)', 
-                    borderRadius: '1rem',
-                    border: '1px solid var(--color-border)'
-                }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <Settings size={18} />
-                            <h3 style={{ margin: 0, fontSize: '1rem' }}>Debug Logs</h3>
-                        </div>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <button
-                                onClick={() => {
-                                    const logText = activityLogs.join('\n');
-                                    navigator.clipboard.writeText(logText);
-                                    alert("Logs copied to clipboard!");
-                                }}
-                                style={{
-                                    padding: '0.4rem 0.8rem',
-                                    borderRadius: '0.5rem',
-                                    border: '1px solid var(--color-primary)',
-                                    backgroundColor: 'var(--color-primary-transparent)',
-                                    color: 'var(--color-primary)',
-                                    fontSize: '0.75rem',
-                                    fontWeight: 600,
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                Copy Logs
-                            </button>
-                            <button
-                                onClick={() => setActivityLogs([])}
-                                style={{
-                                    padding: '0.4rem 0.8rem',
-                                    borderRadius: '0.5rem',
-                                    border: '1px solid var(--color-border)',
-                                    backgroundColor: 'transparent',
-                                    color: 'var(--color-text-muted)',
-                                    fontSize: '0.75rem',
-                                    fontWeight: 600,
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                Clear
-                            </button>
-                        </div>
-                    </div>
-                    <div style={{ 
-                        height: '200px', 
-                        overflowY: 'auto', 
-                        backgroundColor: 'var(--color-surface)', 
-                        padding: '1rem', 
-                        borderRadius: '0.5rem',
-                        fontFamily: 'monospace',
-                        fontSize: '0.75rem',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '0.25rem'
-                    }}>
-                        {activityLogs.length === 0 ? (
-                            <div style={{ color: 'var(--color-text-muted)', textAlign: 'center', marginTop: '2rem' }}>No activity logged yet.</div>
-                        ) : (
-                            activityLogs.map((log, i) => (
-                                <div key={i} style={{ 
-                                    color: log.includes('[ERROR]') ? 'var(--color-error)' : 
-                                           log.includes('[SUCCESS]') || log.includes('✅') || log.includes('✨') ? 'var(--color-success)' : 
-                                           'var(--color-text-muted)',
-                                    borderBottom: '1px solid var(--color-border-subtle)',
-                                    paddingBottom: '2px'
-                                }}>
-                                    {log}
-                                </div>
-                            ))
-                        )}
-                    </div>
-                    <p style={{ fontSize: '0.65rem', color: 'var(--color-text-muted)', marginTop: '0.75rem' }}>
-                        These logs track real-time activity and are helpful for troubleshooting upload or syncing failures.
-                    </p>
-                </div>
             </div>
 
             {/* Add Image Modal */}
@@ -1351,15 +1509,24 @@ const AdminGallery = () => {
                                         <button onClick={() => fileInputRef.current?.click()} disabled={isUploading} style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: '1px dashed var(--color-primary)', backgroundColor: 'var(--color-primary-transparent)', color: 'var(--color-primary)', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
                                             <Plus size={18} /> {isUploading ? `Uploading ${Math.round(uploadProgress)}%${etaText}` : (selectedFiles.length > 0 ? `Selected ${selectedFiles.length} files` : 'Upload from Device')}
                                         </button>
-                                        <input type="file" ref={fileInputRef} onChange={(e) => { const files = Array.from(e.target.files); if (files.length > 1) { setSelectedFiles(files); setNewForm(prev => ({ ...prev, url: 'multiple_files' })); } else if (files.length === 1) { setSelectedFiles([]); handleFileUpload(files[0]); } }} multiple style={{ display: 'none' }} accept="image/*" />
+                                        <input type="file" ref={fileInputRef} onChange={(e) => { const files = Array.from(e.target.files); if (files.length > 1) { setSelectedFiles(files); setNewForm(prev => ({ ...prev, url: 'multiple_files' })); } else if (files.length === 1) { setSelectedFiles([]); handleFileUpload(files[0], false, true); } }} multiple style={{ display: 'none' }} accept="image/*" />
                                     </div>
+
+                                    {hasHeicSelection && (
+                                        <div style={{ backgroundColor: '#fff5f5', border: '1px solid #feb2b2', borderRadius: '0.5rem', padding: '0.75rem', marginBottom: '1rem', fontSize: '0.8rem', color: '#c53030', lineHeight: '1.4' }}>
+                                            <div style={{ fontWeight: 'bold', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                                <X size={14} /> HEIC Files Selected
+                                            </div>
+                                            Uploading HEIC files is not directly supported. Please convert them to Jpeg before upload. You can use apps similar to <a href="https://play.google.com/store/apps/details?id=com.tapuniverse.imageconverter" target="_blank" rel="noopener noreferrer" style={{ color: '#2b6cb0', fontWeight: 'bold', textDecoration: 'underline' }}>Image Converter (HEIC to JPG)</a> to do this.
+                                        </div>
+                                    )}
 
                                     {selectedFiles.length > 0 && (
                                         <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', padding: '0.5rem', backgroundColor: 'var(--color-surface)', borderRadius: '0.5rem', marginBottom: '0.5rem' }}>
                                             {selectedFiles.map((f, i) => (
                                                 <div key={i} style={{ position: 'relative', flexShrink: 0 }}>
                                                     <div style={{ width: '60px', height: '60px', borderRadius: '0.25rem', overflow: 'hidden', border: '1px solid var(--color-border)' }}>
-                                                        <img src={URL.createObjectURL(f)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                        <LocalFilePreview file={f} />
                                                     </div>
                                                     <button onClick={() => setSelectedFiles(prev => prev.filter((_, idx) => idx !== i))} style={{ position: 'absolute', top: -5, right: -5, backgroundColor: 'var(--color-error)', color: 'white', border: 'none', borderRadius: '50%', width: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><X size={12} /></button>
                                                 </div>
@@ -1373,8 +1540,10 @@ const AdminGallery = () => {
                                     )}
 
                                     {isUploading && (
-                                        <div style={{ width: '100%', height: '4px', backgroundColor: 'var(--color-border)', borderRadius: '2px', marginTop: '0.5rem', overflow: 'hidden' }}>
-                                            <div style={{ width: `${uploadProgress}%`, height: '100%', backgroundColor: 'var(--color-primary)', transition: 'width 0.3s ease' }} />
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
+                                            <div style={{ flex: 1, height: '4px', backgroundColor: 'var(--color-border)', borderRadius: '2px', overflow: 'hidden' }}>
+                                                <div style={{ width: `${uploadProgress}%`, height: '100%', backgroundColor: 'var(--color-primary)', transition: 'width 0.3s ease' }} />
+                                            </div>
                                         </div>
                                     )}
 
@@ -1423,6 +1592,90 @@ const AdminGallery = () => {
                                     <button onClick={handleCancel} style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', background: 'none' }}>Cancel</button>
                                     <button onClick={handleAdd} disabled={isUploading} style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: 'none', backgroundColor: 'var(--color-primary)', color: 'white', fontWeight: 600, opacity: isUploading ? 0.7 : 1, cursor: isUploading ? 'not-allowed' : 'pointer' }}>
                                         {isBatchAdding ? `Saving ${selectedFiles.length} Images...` : (isUploading ? 'Processing...' : (selectedFiles.length > 0 ? `Add ${selectedFiles.length} Images` : 'Add Image'))}
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Move Modal */}
+            <AnimatePresence>
+                {showMoveModal && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 120, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }} onClick={() => setShowMoveModal(false)}>
+                        <motion.div initial={{ y: 20 }} animate={{ y: 0 }} style={{ backgroundColor: 'var(--color-card)', padding: '1.5rem', borderRadius: '1rem', width: '100%', maxWidth: '25rem' }} onClick={e => e.stopPropagation()}>
+                            <h3 style={{ marginBottom: '1.5rem' }}>Move {selectedIds.length} Images</h3>
+                            
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.75rem', fontWeight: 600 }}>Select Destination Category</label>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                                        {['general', 'ayya', 'events', 'others'].map(cat => (
+                                            <button 
+                                                key={cat} 
+                                                onClick={() => setBulkMoveForm({ ...bulkMoveForm, category: cat })}
+                                                style={{ 
+                                                    padding: '0.75rem', 
+                                                    borderRadius: '0.5rem', 
+                                                    border: `1px solid ${bulkMoveForm.category === cat ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                                                    backgroundColor: bulkMoveForm.category === cat ? 'var(--color-primary-transparent)' : 'white',
+                                                    color: bulkMoveForm.category === cat ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                                    fontWeight: 600,
+                                                    textTransform: 'capitalize',
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                {cat}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {bulkMoveForm.category === 'events' && (
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem', fontWeight: 600 }}>Destination Folder</label>
+                                        <select 
+                                            value={bulkMoveForm.eventId} 
+                                            onChange={e => setBulkMoveForm({ ...bulkMoveForm, eventId: e.target.value })}
+                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-primary)', backgroundColor: 'white' }}
+                                        >
+                                            <option value="">-- Select Event Folder --</option>
+                                            {events.map(ev => <option key={ev.id} value={ev.id}>{ev.name}</option>)}
+                                        </select>
+                                    </div>
+                                )}
+
+                                {bulkMoveForm.category === 'others' && (
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem', fontWeight: 600 }}>Destination Menu</label>
+                                        <select 
+                                            value={bulkMoveForm.customCategoryId} 
+                                            onChange={e => setBulkMoveForm({ ...bulkMoveForm, customCategoryId: e.target.value })}
+                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-primary)', backgroundColor: 'white' }}
+                                        >
+                                            <option value="">-- Select Category --</option>
+                                            {galleryCategories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+                                        </select>
+                                    </div>
+                                )}
+
+                                <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                                    <button onClick={() => setShowMoveModal(false)} style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', background: 'none', cursor: 'pointer' }}>Cancel</button>
+                                    <button 
+                                        onClick={handleBulkMove} 
+                                        style={{ 
+                                            flex: 2, 
+                                            padding: '0.75rem', 
+                                            borderRadius: '0.5rem', 
+                                            border: 'none', 
+                                            backgroundColor: 'var(--color-primary)', 
+                                            color: 'white', 
+                                            fontWeight: 600,
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        Move {selectedIds.length} Images
                                     </button>
                                 </div>
                             </div>

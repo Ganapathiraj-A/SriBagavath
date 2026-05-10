@@ -101,7 +101,7 @@ const BookStore = () => {
                 orderBy('title', 'asc')
             );
 
-            const collectionId = `bookstore_${activeTab}`;
+            const collectionId = 'books';
             const needsSync = needsServerSync(collectionId);
 
             // Strategy: Cache-First with Background Refresh
@@ -124,20 +124,27 @@ const BookStore = () => {
                 console.warn("[BookStore] Cache read failed", _err);
             }
 
-            // Always background refresh if needsSync or no cache
-            if (!cachedData || needsSync) {
+            // Always background refresh if needsSync, no cache, or first time this session for this category
+            const categoryLoadedKey = `books_loaded_${activeTab}`;
+            const hasLoadedThisSession = sessionStorage.getItem(categoryLoadedKey);
+
+            if (!cachedData || cachedData.length === 0 || needsSync || !hasLoadedThisSession) {
                 console.log(`[BookStore] Refreshing from server... (Category: ${activeTab})`);
                 const serverTask = getDocsFromServer(q).then(serverSnap => {
                     const books = serverSnap.docs.map(d => ({ id: d.id, ...d.data() }));
                     console.log(`[BookStore] Server returned ${books.length} items for ${activeTab}`);
                     setProducts(books);
                     markSyncedLocally(collectionId);
+                    sessionStorage.setItem(categoryLoadedKey, 'true');
                 }).catch(err => {
                     console.error("[BookStore] Server refresh failed", err);
-                    if (!cachedData) alert(`BookStore Fetch Failed: ${err.message}`);
+                    // Show error if we have NO data (null) or if we were expecting data but got an error
+                    if (!cachedData || cachedData.length === 0) {
+                        alert(`BookStore Fetch Failed: ${err.message}`);
+                    }
                 });
 
-                if (!cachedData) {
+                if (!cachedData || cachedData.length === 0) {
                     await serverTask;
                     setLoading(false);
                 }

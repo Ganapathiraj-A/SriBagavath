@@ -12,6 +12,7 @@ const CloudGlobalSettings = () => {
         onlineTransactionsEnabled, toggleOnlineTransactions,
         bankPassword, setBankPassword,
         minAppVersion, setMinAppVersion,
+        mandatoryClearCache, setMandatoryClearCache,
         appVersion
     } = useGlobalSettings();
 
@@ -107,31 +108,43 @@ const CloudGlobalSettings = () => {
                     />
                 </div>
 
-                {/* Minimum App Version (Now at the bottom) */}
-                <div style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '1.25rem', border: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Mandatory Version</label>
-                        <button
-                            onClick={() => setMinAppVersion(appVersion)}
-                            style={{
-                                padding: '4px 12px',
-                                fontSize: '0.75rem',
-                                fontWeight: 600,
-                                borderRadius: '6px',
-                                backgroundColor: 'var(--color-primary-transparent)',
-                                color: 'var(--color-primary)',
-                                border: 'none',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            Use current v{appVersion}
-                        </button>
+                {/* Minimum App Version & Cache Clear */}
+                <div style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '1.25rem', border: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Mandatory Version</label>
+                            <button
+                                onClick={() => setMinAppVersion(appVersion)}
+                                style={{
+                                    padding: '4px 12px',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 600,
+                                    borderRadius: '6px',
+                                    backgroundColor: 'var(--color-primary-transparent)',
+                                    color: 'var(--color-primary)',
+                                    border: 'none',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Use current v{appVersion}
+                            </button>
+                        </div>
+                        <CopyableInput
+                            value={minAppVersion || ''}
+                            onChange={(e) => setMinAppVersion(e.target.value)}
+                            placeholder="e.g. 3.0.0"
+                        />
                     </div>
-                    <CopyableInput
-                        value={minAppVersion || ''}
-                        onChange={(e) => setMinAppVersion(e.target.value)}
-                        placeholder="e.g. 3.0.0"
-                    />
+
+                    <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                            <div style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--color-text)' }}>Mandatory Clear Cache</div>
+                            <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>Clear local storage during forced update</div>
+                        </div>
+                        <div onClick={() => setMandatoryClearCache(!mandatoryClearCache)} style={{ width: '40px', height: '22px', backgroundColor: mandatoryClearCache ? 'var(--color-error)' : 'var(--color-border)', borderRadius: '12px', position: 'relative', cursor: 'pointer' }}>
+                            <div style={{ width: '18px', height: '18px', backgroundColor: 'white', borderRadius: '50%', position: 'absolute', top: '2px', left: mandatoryClearCache ? '20px' : '2px', transition: 'left 0.2s' }} />
+                        </div>
+                    </div>
                 </div>
 
             </div>

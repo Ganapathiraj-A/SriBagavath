@@ -30,6 +30,7 @@ export const GlobalSettingsProvider = ({ children }) => {
     const [publicSettings, setPublicSettings] = useState({
         onlineTransactionsEnabled: true,
         minAppVersion: '3.0.0',
+        mandatoryClearCache: false,
         digitalBookLanguages: [
             { id: 'tamil', name: 'Tamil', folderId: '1y0X_HByCzQbD-niqKODg-Nan9r70_dMs' },
             { id: 'english', name: 'English', folderId: '1_PpyDSaAyeBaZ6154-7BHM7oIqs4O0Gv' },
@@ -338,6 +339,7 @@ export const GlobalSettingsProvider = ({ children }) => {
             // Functional Settings (Global)
             onlineTransactionsEnabled: publicSettings.onlineTransactionsEnabled,
             minAppVersion: publicSettings.minAppVersion,
+            mandatoryClearCache: publicSettings.mandatoryClearCache || false,
             bankPassword: adminSettings.bankPassword,
             sheetLink: adminSettings.sheetLink,
             scriptUrl: adminSettings.scriptUrl,
@@ -360,6 +362,7 @@ export const GlobalSettingsProvider = ({ children }) => {
 
             toggleOnlineTransactions: (val) => updatePublic({ onlineTransactionsEnabled: val }),
             setMinAppVersion: (val) => updatePublic({ minAppVersion: val }),
+            setMandatoryClearCache: (val) => updatePublic({ mandatoryClearCache: val }),
             setBankPassword: (val) => updateAdmin({ bankPassword: val }),
             setSheetLink: (val) => updateAdmin({ sheetLink: val }),
             setScriptUrl: (val) => updateAdmin({ scriptUrl: val }),

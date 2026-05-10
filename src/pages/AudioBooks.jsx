@@ -83,19 +83,6 @@ const AudioBooks = () => {
         )}
       />
 
-      <div style={{
-        padding: '0.75rem 1.25rem',
-        backgroundColor: 'var(--color-card)',
-        borderBottom: '1px solid var(--color-border)',
-        textAlign: 'center',
-        color: 'var(--color-text-muted)',
-        fontSize: '0.85rem',
-        fontStyle: 'italic',
-        lineHeight: 1.5
-      }}>
-        We Thank Smt Radha Kannan for compiling audio books
-      </div>
-
       {loading ? (
         <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)' }}>Loading audio books...</div>
       ) : audioBooks.length === 0 ? (

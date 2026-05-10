@@ -625,7 +625,7 @@ const BookStoreManagement = () => {
                                     />
                                 </div>
                             )}
-                            {order.status === 'PENDING' && (
+                            {(order.status === 'PENDING' || order.status === 'REGISTERED') && (
                                 <button
                                     onClick={(e) => { e.stopPropagation(); handleUpdateStatus(order.id, 'PROCESSING'); }}
                                     data-testid={`process-order-${order.id}`}

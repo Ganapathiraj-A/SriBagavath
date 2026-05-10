@@ -465,7 +465,7 @@ import PWAUpdateNotification from './components/PWAUpdateNotification';
 function AppContent() {
   const location = useLocation();
   const [currentVersion, setCurrentVersion] = React.useState(null);
-  const { minAppVersion } = useGlobalSettings();
+  const { minAppVersion, mandatoryClearCache } = useGlobalSettings();
   const { isInitialized } = useAdminAuth();
   const [showSkeleton, setShowSkeleton] = React.useState(true);
 
@@ -508,7 +508,13 @@ function AppContent() {
         <>
           <ApiCounterOverlay />
           <DiagnosticLogOverlay />
-          {Capacitor.isNativePlatform() && <ForceUpdateModal currentVersion={currentVersion} minVersion={minAppVersion} />}
+          {Capacitor.isNativePlatform() && (
+            <ForceUpdateModal 
+              currentVersion={currentVersion} 
+              minVersion={minAppVersion} 
+              mandatoryClearCache={mandatoryClearCache}
+            />
+          )}
           {Capacitor.isNativePlatform() && (
             <div style={{ position: 'fixed', top: '60px', right: '32px', zIndex: 9999 }}>
               <UpdateIcon />

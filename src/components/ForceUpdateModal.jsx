@@ -1,7 +1,8 @@
+import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Download, ExternalLink } from 'lucide-react';
 
-const ForceUpdateModal = ({ currentVersion, minVersion }) => {
+const ForceUpdateModal = ({ currentVersion, minVersion, mandatoryClearCache }) => {
     // Version comparison logic (simple string comparison for 2.8.x style)
     // For more complex versions, we'd split by . and compare integers.
     const isUpdateRequired = () => {
@@ -19,7 +20,31 @@ const ForceUpdateModal = ({ currentVersion, minVersion }) => {
         return false;
     };
 
-    if (!isUpdateRequired()) return null;
+    const updateRequired = isUpdateRequired();
+
+    useEffect(() => {
+        if (updateRequired && mandatoryClearCache) {
+            const lastCleared = localStorage.getItem('sbb_last_cleared_mandatory_version');
+            if (lastCleared !== minVersion) {
+                console.log(`[ForceUpdate] Mandatory clear cache enabled. Clearing sync registry for version ${minVersion}`);
+                
+                // Keys to clear: SyncManager registries and metadata
+                const keysToClear = [
+                    'sbb_sync_registry',
+                    'sbb_server_registry_cache',
+                    'sbb_server_registry_time',
+                    'last_sync_timestamp'
+                ];
+                
+                keysToClear.forEach(key => localStorage.removeItem(key));
+                
+                // Track that we've cleared for THIS mandatory version
+                localStorage.setItem('sbb_last_cleared_mandatory_version', minVersion);
+            }
+        }
+    }, [updateRequired, mandatoryClearCache, minVersion]);
+
+    if (!updateRequired) return null;
 
     const handleUpdateClick = () => {
         const playStoreUrl = 'https://play.google.com/store/apps/details?id=com.bhavathpathai.app';
