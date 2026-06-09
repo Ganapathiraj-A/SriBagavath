@@ -318,7 +318,7 @@ const DailyZoomMeetings = () => {
 
         try {
             const apiKey = import.meta.env.VITE_GOOGLE_DRIVE_API_KEY;
-            const playlistId = 'PLhfBLH1RxTuEKjzrKAznLcHZlQwUXJwWp';
+            const playlistId = 'PL5FJK16aj_FK4ZbqeOkaFw2pCivvE6BU0';
             let url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=10&playlistId=${playlistId}&key=${apiKey}`;
             
             if (pageToken) {
