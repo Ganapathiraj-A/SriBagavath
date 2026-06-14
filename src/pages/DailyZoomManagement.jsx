@@ -13,6 +13,14 @@ import TeacherManagementPanel from '@/components/TeacherManagementPanel';
 import { getLocalDateString } from '@/utils/dateUtils';
 import '../components/RegistrationStyles.css';
 
+const addDays = (dateStr, days) => {
+    if (!dateStr) return '';
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    date.setDate(date.getDate() + days);
+    return getLocalDateString(date);
+};
+
 const DailyZoomManagement = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
@@ -24,6 +32,18 @@ const DailyZoomManagement = () => {
     const [teachers, setTeachers] = useState([]);
     const [links, setLinks] = useState([]);
     const [activeTab, setActiveTab] = useState('upcoming'); // 'upcoming', 'history', 'add', 'edit'
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 600);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 600);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    const [isMultiAdd, setIsMultiAdd] = useState(false);
+    const [multiAddStartDate, setMultiAddStartDate] = useState(getLocalDateString());
+    const [multiAddLinkId, setMultiAddLinkId] = useState('');
+    const [multiAddRows, setMultiAddRows] = useState([]);
 
     const [formData, setFormData] = useState({
         date: getLocalDateString(),
@@ -74,6 +94,14 @@ const DailyZoomManagement = () => {
                 const defaultLink = linksList.find(l => l.isDefault) || linksList[0];
                 if (defaultLink) {
                     setFormData(prev => ({ ...prev, linkId: defaultLink.id, joinUrl: defaultLink.url }));
+                }
+            }
+
+            // Set default link for multi add if empty
+            if (!multiAddLinkId) {
+                const defaultLink = linksList.find(l => l.isDefault) || linksList[0];
+                if (defaultLink) {
+                    setMultiAddLinkId(defaultLink.id);
                 }
             }
 
@@ -145,6 +173,53 @@ const DailyZoomManagement = () => {
         }
     };
 
+    const handleStartMultiAdd = () => {
+        setIsMultiAdd(true);
+        const startDate = getLocalDateString();
+        setMultiAddStartDate(startDate);
+        const defaultLink = links.find(l => l.isDefault) || links[0];
+        if (defaultLink) {
+            setMultiAddLinkId(defaultLink.id);
+        }
+        const initialRows = Array.from({ length: 10 }, (_, i) => ({
+            date: addDays(startDate, i),
+            teacherId: '',
+            name: ''
+        }));
+        setMultiAddRows(initialRows);
+    };
+
+    const handleMultiAddStartDateChange = (newDate) => {
+        setMultiAddStartDate(newDate);
+        setMultiAddRows(prevRows =>
+            prevRows.map((row, index) => ({
+                ...row,
+                date: addDays(newDate, index)
+            }))
+        );
+    };
+
+    const handleRowDateChange = (index, newDate) => {
+        setMultiAddRows(prevRows => {
+            const nextRows = [...prevRows];
+            nextRows[index] = { ...nextRows[index], date: newDate };
+            return nextRows;
+        });
+    };
+
+    const handleRowTeacherChange = (index, teacherId) => {
+        const teacher = teachers.find(t => t.id === teacherId);
+        setMultiAddRows(prevRows => {
+            const nextRows = [...prevRows];
+            nextRows[index] = {
+                ...nextRows[index],
+                teacherId: teacherId,
+                name: teacher ? teacher.name : ''
+            };
+            return nextRows;
+        });
+    };
+
     const resetForm = () => {
         const defaultLink = links.find(l => l.isDefault) || links[0];
         setFormData({
@@ -159,6 +234,12 @@ const DailyZoomManagement = () => {
         });
         setIsEditing(false);
         setEditingId(null);
+        setIsMultiAdd(false);
+        setMultiAddStartDate(getLocalDateString());
+        if (defaultLink) {
+            setMultiAddLinkId(defaultLink.id);
+        }
+        setMultiAddRows([]);
     };
 
     const handleSubmit = async (e) => {
@@ -198,6 +279,60 @@ const DailyZoomManagement = () => {
             setActiveTab('upcoming');
         } catch (_err) {
             alert('Error: ' + _err.message);
+        }
+    };
+
+    const handleMultiSubmit = async (e) => {
+        e.preventDefault();
+        const filledRows = multiAddRows.filter(row => row.teacherId);
+        if (filledRows.length === 0) {
+            alert('Please select at least one teacher before submitting.');
+            return;
+        }
+
+        const selectedLink = links.find(l => l.id === multiAddLinkId);
+        if (!selectedLink) {
+            alert('Please select a valid Zoom meeting link.');
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const promises = filledRows.map(row => 
+                addDoc(collection(db, 'daily_zoom_meetings'), {
+                    date: row.date,
+                    teacherId: row.teacherId,
+                    name: row.name,
+                    description: '',
+                    linkId: multiAddLinkId,
+                    joinUrl: selectedLink.url,
+                    youtubeUrl: '',
+                    createdAt: new Date().toISOString()
+                })
+            );
+
+            await Promise.all(promises);
+            alert(`Successfully scheduled ${filledRows.length} meetings!`);
+
+            // --- SYNC IMPROVEMENTS ---
+            await bumpServerVersion('daily_zoom_meetings');
+            
+            try {
+                await updateDoc(doc(db, 'system', 'metadata'), {
+                    lastUpdated_daily_zoom: new Date().toISOString()
+                });
+            } catch (mErr) {
+                console.warn("Failed to update system metadata:", mErr);
+            }
+            // -------------------------
+
+            resetForm();
+            loadData();
+            setActiveTab('upcoming');
+        } catch (err) {
+            alert('Error creating meetings: ' + err.message);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -428,175 +563,165 @@ const DailyZoomManagement = () => {
                     transition={{ duration: 0.2 }}
                 >
                     {(activeTab === 'add' || activeTab === 'edit') && (
-                        <div style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '1.25rem', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)' }}>
-                            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.25rem' }}>
-                                    <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
-                                            <Calendar size={16} color="var(--color-primary)" /> Meeting Date
-                                        </label>
-                                        <input
-                                            type="date"
-                                            name="date"
-                                            value={formData.date}
-                                            onChange={handleInputChange}
-                                            required
-                                            style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', width: '100%', fontSize: '1rem', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
-                                        />
-                                    </div>
-
-                                    <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
-                                            <User size={16} color="var(--color-primary)" /> Select Teacher
-                                        </label>
-                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                            <select
-                                                name="teacherId"
-                                                value={formData.teacherId}
-                                                onChange={handleTeacherSelect}
-                                                required
-                                                style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', fontSize: '1rem' }}
-                                            >
-                                                <option value="">Select Teacher...</option>
-                                                {teachers.map(t => (
-                                                    <option key={t.id} value={t.id}>{t.name}</option>
-                                                ))}
-                                            </select>
-                                            <button
-                                                type="button"
-                                                onClick={() => navigate('/admin/daily-zoom/teachers')}
-                                                aria-label="Manage Teachers"
-                                                style={{ padding: '0.75rem', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '0.5rem', color: 'var(--color-text-muted)', cursor: 'pointer' }}
-                                            >
-                                                <Plus size={20} />
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {formData.teacherId && (
-                                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', padding: '0.75rem', backgroundColor: 'var(--color-surface)', borderRadius: '0.75rem', border: '1px solid var(--color-border)' }}>
-                                        <div style={{ width: '3rem', height: '3rem', borderRadius: '50%', overflow: 'hidden', flexShrink: 0 }}>
-                                            {formData.image ? (
-                                                <LazyImage
-                                                    src={formData.image}
-                                                    alt=""
-                                                    width="100%"
-                                                    height="100%"
-                                                    objectFit="cover"
-                                                    borderRadius="50%"
-                                                />
-                                            ) : (
-                                                <User size={20} color="var(--color-text-light)" />
-                                            )}
-                                        </div>
-                                        <div>
-                                            <div style={{ fontWeight: 600, color: 'var(--color-text)' }}>{formData.name}</div>
-                                            <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Teacher profile selected</div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
-                                            <FileText size={16} color="var(--color-primary)" /> Description (Optional)
-                                        </label>
-                                        <button
-                                            type="button"
-                                            onClick={handleUsePreviousDescription}
-                                            style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '4px',
-                                                fontSize: '0.75rem',
-                                                fontWeight: 600,
-                                                color: 'var(--color-primary)',
-                                                backgroundColor: 'var(--color-primary-transparent)',
-                                                border: 'none',
-                                                padding: '4px 8px',
-                                                borderRadius: '6px',
-                                                cursor: 'pointer'
-                                            }}
-                                        >
-                                            <History size={12} /> Use Previous
-                                        </button>
-                                    </div>
-                                    <textarea
-                                        name="description"
-                                        value={formData.description}
-                                        onChange={handleInputChange}
-                                        placeholder="Meeting details/topic..."
-                                        rows={2}
-                                        style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', width: '100%', resize: 'none', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', fontSize: '1rem' }}
-                                    />
-                                </div>
-
-                                <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
-                                        <LinkIcon size={16} color="var(--color-primary)" /> Meeting Link
-                                    </label>
-                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                        <select
-                                            name="linkId"
-                                            value={formData.linkId}
-                                            onChange={handleLinkSelect}
-                                            required
-                                            style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', fontSize: '1rem' }}
-                                        >
-                                            <option value="">Select Link...</option>
-                                            {links.map(l => (
-                                                <option key={l.id} value={l.id}>{l.name}</option>
-                                            ))}
-                                        </select>
-                                        <button
-                                            type="button"
-                                            onClick={() => navigate('/admin/daily-zoom/links')}
-                                            aria-label="Manage Links"
-                                            style={{ padding: '0.75rem', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '0.5rem', color: 'var(--color-text-muted)', cursor: 'pointer' }}
-                                        >
-                                            <Plus size={20} />
-                                        </button>
-                                    </div>
-                                    {formData.joinUrl && (
-                                        <div style={{
-                                            fontSize: '0.75rem',
-                                            color: 'var(--color-text-muted)',
-                                            padding: '0 0.25rem',
-                                            overflow: 'hidden',
-                                            wordBreak: 'break-all',
-                                            overflowWrap: 'anywhere',
-                                            whiteSpace: 'normal',
-                                            minWidth: 0
-                                        }}>
-                                            URL: {formData.joinUrl}
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div style={{ display: 'grid', gap: '0.5rem' }}>
-                                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
-                                        <Youtube size={16} color="#ef4444" /> YouTube Link (Optional)
-                                    </label>
-                                    <input
-                                        type="url"
-                                        name="youtubeUrl"
-                                        value={formData.youtubeUrl}
-                                        onChange={handleInputChange}
-                                        placeholder="https://youtube.com/live/..."
-                                        style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', width: '100%', fontSize: '1rem' }}
-                                    />
-                                </div>
-
-                                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                        <div style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: isMobile ? '1rem 0.75rem' : '1.25rem', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)', width: '100%', boxSizing: 'border-box', minWidth: 0 }}>
+                            {activeTab === 'add' && (
+                                <div style={{ display: 'flex', gap: '8px', marginBottom: '1.25rem', backgroundColor: 'var(--color-surface)', padding: '4px', borderRadius: '8px' }}>
                                     <button
-                                        type="submit"
-                                        style={{ flex: 1, padding: '0.875rem', backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: '0.6rem', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', boxShadow: '0 4px 6px -1px var(--color-primary-transparent, rgba(249, 115, 22, 0.2))' }}
+                                        type="button"
+                                        onClick={() => setIsMultiAdd(false)}
+                                        style={{
+                                            flex: 1,
+                                            padding: '8px 16px',
+                                            borderRadius: '6px',
+                                            border: 'none',
+                                            backgroundColor: !isMultiAdd ? 'var(--color-card)' : 'transparent',
+                                            color: !isMultiAdd ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                            fontWeight: !isMultiAdd ? 700 : 500,
+                                            boxShadow: !isMultiAdd ? 'var(--shadow-sm)' : 'none',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s'
+                                        }}
                                     >
-                                        <Save size={18} />
-                                        {isEditing ? 'Update Meeting' : 'Schedule Meeting'}
+                                        Single Meeting
                                     </button>
-                                    {isEditing && (
+                                    <button
+                                        type="button"
+                                        onClick={handleStartMultiAdd}
+                                        style={{
+                                            flex: 1,
+                                            padding: '8px 16px',
+                                            borderRadius: '6px',
+                                            border: 'none',
+                                            backgroundColor: isMultiAdd ? 'var(--color-card)' : 'transparent',
+                                            color: isMultiAdd ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                                            fontWeight: isMultiAdd ? 700 : 500,
+                                            boxShadow: isMultiAdd ? 'var(--shadow-sm)' : 'none',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s'
+                                        }}
+                                    >
+                                        Multi Add
+                                    </button>
+                                </div>
+                            )}
+
+                            {isMultiAdd && activeTab === 'add' ? (
+                                <form onSubmit={handleMultiSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '0.75rem' : '1.25rem' }}>
+                                        <div style={{ display: 'grid', gap: '0.5rem' }}>
+                                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+                                                <Calendar size={16} color="var(--color-primary)" /> Start Date
+                                            </label>
+                                            <input
+                                                type="date"
+                                                value={multiAddStartDate}
+                                                onChange={(e) => handleMultiAddStartDateChange(e.target.value)}
+                                                required
+                                                style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', width: '100%', fontSize: '1rem', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
+                                            />
+                                        </div>
+                                        <div style={{ display: 'grid', gap: '0.5rem' }}>
+                                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+                                                <LinkIcon size={16} color="var(--color-primary)" /> Meeting Link
+                                            </label>
+                                            <div style={{ display: 'flex', gap: '0.5rem', width: '100%', minWidth: 0 }}>
+                                                <select
+                                                    value={multiAddLinkId}
+                                                    onChange={(e) => setMultiAddLinkId(e.target.value)}
+                                                    required
+                                                    style={{ flex: 1, minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', fontSize: '1rem' }}
+                                                >
+                                                    <option value="">Select Link...</option>
+                                                    {links.map(l => (
+                                                        <option key={l.id} value={l.id}>{l.name.length > 40 ? l.name.substring(0, 40) + '...' : l.name}</option>
+                                                    ))}
+                                                </select>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => navigate('/admin/daily-zoom/links')}
+                                                    aria-label="Manage Links"
+                                                    style={{ padding: '0.75rem', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '0.5rem', color: 'var(--color-text-muted)', cursor: 'pointer' }}
+                                                >
+                                                    <Plus size={20} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.5rem' }}>
+                                        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '24px 1.1fr 1.3fr' : '40px 1.2fr 1.8fr', gap: isMobile ? '6px' : '8px', alignItems: 'center', padding: isMobile ? '0px 6px' : '0px 8px', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: isMobile ? '0.8rem' : '0.85rem' }}>
+                                            <div>Row</div>
+                                            <div>Date</div>
+                                            <div>Teacher</div>
+                                        </div>
+                                        {multiAddRows.map((row, index) => (
+                                            <div
+                                                key={index}
+                                                style={{
+                                                    display: 'grid',
+                                                    gridTemplateColumns: isMobile ? '24px 1.1fr 1.3fr' : '40px 1.2fr 1.8fr',
+                                                    gap: isMobile ? '6px' : '8px',
+                                                    alignItems: 'center',
+                                                    padding: isMobile ? '6px' : '8px',
+                                                    backgroundColor: 'var(--color-surface)',
+                                                    borderRadius: '8px',
+                                                    border: '1px solid var(--color-border)'
+                                                }}
+                                            >
+                                                <div style={{ fontWeight: 700, color: 'var(--color-text-muted)', fontSize: isMobile ? '0.8rem' : '0.9rem', textAlign: 'center' }}>
+                                                    {index + 1}
+                                                </div>
+                                                <input
+                                                    type="date"
+                                                    value={row.date}
+                                                    onChange={(e) => handleRowDateChange(index, e.target.value)}
+                                                    required
+                                                    style={{
+                                                        padding: isMobile ? '6px 4px' : '6px 8px',
+                                                        borderRadius: '4px',
+                                                        border: '1px solid var(--color-border)',
+                                                        fontSize: isMobile ? '0.8rem' : '0.9rem',
+                                                        backgroundColor: 'var(--color-card)',
+                                                        color: 'var(--color-text)',
+                                                        width: '100%',
+                                                        minWidth: 0,
+                                                        maxWidth: '100%',
+                                                        boxSizing: 'border-box'
+                                                    }}
+                                                />
+                                                <select
+                                                    value={row.teacherId}
+                                                    onChange={(e) => handleRowTeacherChange(index, e.target.value)}
+                                                    style={{
+                                                        padding: isMobile ? '6px 4px' : '6px 8px',
+                                                        borderRadius: '4px',
+                                                        border: '1px solid var(--color-border)',
+                                                        backgroundColor: 'var(--color-card)',
+                                                        color: 'var(--color-text)',
+                                                        fontSize: isMobile ? '0.8rem' : '0.9rem',
+                                                        width: '100%',
+                                                        minWidth: 0,
+                                                        maxWidth: '100%',
+                                                        boxSizing: 'border-box'
+                                                    }}
+                                                >
+                                                    <option value="">Select Teacher...</option>
+                                                    {teachers.map(t => (
+                                                        <option key={t.id} value={t.id}>{t.name}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                                        <button
+                                            type="submit"
+                                            style={{ flex: 1, padding: '0.875rem', backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: '0.6rem', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', boxShadow: '0 4px 6px -1px var(--color-primary-transparent, rgba(249, 115, 22, 0.2))' }}
+                                        >
+                                            <Save size={18} />
+                                            Create Meetings
+                                        </button>
                                         <button
                                             type="button"
                                             onClick={resetForm}
@@ -604,9 +729,188 @@ const DailyZoomManagement = () => {
                                         >
                                             Cancel
                                         </button>
+                                    </div>
+                                </form>
+                            ) : (
+                                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.25rem' }}>
+                                        <div style={{ display: 'grid', gap: '0.5rem' }}>
+                                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+                                                <Calendar size={16} color="var(--color-primary)" /> Meeting Date
+                                            </label>
+                                            <input
+                                                type="date"
+                                                name="date"
+                                                value={formData.date}
+                                                onChange={handleInputChange}
+                                                required
+                                                style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', width: '100%', fontSize: '1rem', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
+                                            />
+                                        </div>
+
+                                        <div style={{ display: 'grid', gap: '0.5rem' }}>
+                                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+                                                <User size={16} color="var(--color-primary)" /> Select Teacher
+                                            </label>
+                                            <div style={{ display: 'flex', gap: '0.5rem', width: '100%', minWidth: 0 }}>
+                                                <select
+                                                    name="teacherId"
+                                                    value={formData.teacherId}
+                                                    onChange={handleTeacherSelect}
+                                                    required
+                                                    style={{ flex: 1, minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', fontSize: '1rem' }}
+                                                >
+                                                    <option value="">Select Teacher...</option>
+                                                    {teachers.map(t => (
+                                                        <option key={t.id} value={t.id}>{t.name.length > 40 ? t.name.substring(0, 40) + '...' : t.name}</option>
+                                                    ))}
+                                                </select>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => navigate('/admin/daily-zoom/teachers')}
+                                                    aria-label="Manage Teachers"
+                                                    style={{ padding: '0.75rem', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '0.5rem', color: 'var(--color-text-muted)', cursor: 'pointer' }}
+                                                >
+                                                    <Plus size={20} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {formData.teacherId && (
+                                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', padding: '0.75rem', backgroundColor: 'var(--color-surface)', borderRadius: '0.75rem', border: '1px solid var(--color-border)' }}>
+                                            <div style={{ width: '3rem', height: '3rem', borderRadius: '50%', overflow: 'hidden', flexShrink: 0 }}>
+                                                {formData.image ? (
+                                                    <LazyImage
+                                                        src={formData.image}
+                                                        alt=""
+                                                        width="100%"
+                                                        height="100%"
+                                                        objectFit="cover"
+                                                        borderRadius="50%"
+                                                    />
+                                                ) : (
+                                                    <User size={20} color="var(--color-text-light)" />
+                                                )}
+                                            </div>
+                                            <div>
+                                                <div style={{ fontWeight: 600, color: 'var(--color-text)' }}>{formData.name}</div>
+                                                <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Teacher profile selected</div>
+                                            </div>
+                                        </div>
                                     )}
-                                </div>
-                            </form>
+
+                                    <div style={{ display: 'grid', gap: '0.5rem' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+                                                <FileText size={16} color="var(--color-primary)" /> Description (Optional)
+                                            </label>
+                                            <button
+                                                type="button"
+                                                onClick={handleUsePreviousDescription}
+                                                style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '4px',
+                                                    fontSize: '0.75rem',
+                                                    fontWeight: 600,
+                                                    color: 'var(--color-primary)',
+                                                    backgroundColor: 'var(--color-primary-transparent)',
+                                                    border: 'none',
+                                                    padding: '4px 8px',
+                                                    borderRadius: '6px',
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                <History size={12} /> Use Previous
+                                            </button>
+                                        </div>
+                                        <textarea
+                                            name="description"
+                                            value={formData.description}
+                                            onChange={handleInputChange}
+                                            placeholder="Meeting details/topic..."
+                                            rows={2}
+                                            style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', width: '100%', resize: 'none', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', fontSize: '1rem' }}
+                                        />
+                                    </div>
+
+                                    <div style={{ display: 'grid', gap: '0.5rem' }}>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+                                            <LinkIcon size={16} color="var(--color-primary)" /> Meeting Link
+                                        </label>
+                                        <div style={{ display: 'flex', gap: '0.5rem', width: '100%', minWidth: 0 }}>
+                                            <select
+                                                name="linkId"
+                                                value={formData.linkId}
+                                                onChange={handleLinkSelect}
+                                                required
+                                                style={{ flex: 1, minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', fontSize: '1rem' }}
+                                            >
+                                                <option value="">Select Link...</option>
+                                                {links.map(l => (
+                                                    <option key={l.id} value={l.id}>{l.name.length > 40 ? l.name.substring(0, 40) + '...' : l.name}</option>
+                                                ))}
+                                            </select>
+                                            <button
+                                                type="button"
+                                                onClick={() => navigate('/admin/daily-zoom/links')}
+                                                aria-label="Manage Links"
+                                                style={{ padding: '0.75rem', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '0.5rem', color: 'var(--color-text-muted)', cursor: 'pointer' }}
+                                            >
+                                                <Plus size={20} />
+                                            </button>
+                                        </div>
+                                        {formData.joinUrl && (
+                                            <div style={{
+                                                fontSize: '0.75rem',
+                                                color: 'var(--color-text-muted)',
+                                                padding: '0 0.25rem',
+                                                overflow: 'hidden',
+                                                wordBreak: 'break-all',
+                                                overflowWrap: 'anywhere',
+                                                whiteSpace: 'normal',
+                                                minWidth: 0
+                                            }}>
+                                                URL: {formData.joinUrl}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div style={{ display: 'grid', gap: '0.5rem' }}>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+                                            <Youtube size={16} color="#ef4444" /> YouTube Link (Optional)
+                                        </label>
+                                        <input
+                                            type="url"
+                                            name="youtubeUrl"
+                                            value={formData.youtubeUrl}
+                                            onChange={handleInputChange}
+                                            placeholder="https://youtube.com/live/..."
+                                            style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', width: '100%', fontSize: '1rem' }}
+                                        />
+                                    </div>
+
+                                    <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                                        <button
+                                            type="submit"
+                                            style={{ flex: 1, padding: '0.875rem', backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: '0.6rem', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', boxShadow: '0 4px 6px -1px var(--color-primary-transparent, rgba(249, 115, 22, 0.2))' }}
+                                        >
+                                            <Save size={18} />
+                                            {isEditing ? 'Update Meeting' : 'Schedule Meeting'}
+                                        </button>
+                                        {isEditing && (
+                                            <button
+                                                type="button"
+                                                onClick={resetForm}
+                                                style={{ padding: '0.875rem', backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', border: '1px solid var(--color-border)', borderRadius: '0.6rem', cursor: 'pointer', fontWeight: 600 }}
+                                            >
+                                                Cancel
+                                            </button>
+                                        )}
+                                    </div>
+                                </form>
+                            )}
                         </div>
                     )}
 
