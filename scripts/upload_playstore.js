@@ -129,11 +129,14 @@ async function uploadToPlayStore() {
 
         // 5. Commit the edit
         console.log("Committing changes...");
-        await publisher.edits.commit({
+        const commitParams = {
             editId,
-            packageName,
-            changesNotSentForReview: true
-        });
+            packageName
+        };
+        if (trackName !== 'production') {
+            commitParams.changesNotSentForReview = true;
+        }
+        await publisher.edits.commit(commitParams);
 
         console.log(`======================================`);
         console.log(`✅ SUCCESSFULLY PUBLISHED TO PLAY STORE!`);

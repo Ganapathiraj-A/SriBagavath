@@ -20,8 +20,8 @@ android {
         applicationId "com.bhavathpathai.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 304112
-        versionName "3.4.112"
+        versionCode 304113
+        versionName "3.4.113"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
