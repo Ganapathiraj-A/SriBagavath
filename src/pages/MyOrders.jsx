@@ -251,6 +251,11 @@ const MyOrders = ({ hideHeader = false }) => {
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--color-border)' }}>
                                     <div style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
                                         {t('TOTAL')}: <strong style={{ color: 'var(--color-text)' }}>₹{order.amount}</strong>
+                                        {order.courierFee > 0 && (
+                                            <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '2px' }}>
+                                                {t('COURIER_CHARGES')}: ₹{order.courierFee}
+                                            </div>
+                                        )}
                                         {order.utr && <div style={{ fontSize: '11px', color: 'var(--color-primary)', fontWeight: 600, marginTop: '2px' }}>{t('UTR')}: {order.utr}</div>}
                                     </div>
                                     {order.hasImage && (

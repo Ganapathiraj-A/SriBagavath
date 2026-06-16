@@ -9,7 +9,10 @@ const BookStoreCheckout = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { items, totalPrice, isDonation, isMagazineSubscription } = location.state || { items: [], totalPrice: 0, isDonation: false, isMagazineSubscription: false };
-    const { language, t } = useGlobalSettings();
+    const { language, t, courierFee } = useGlobalSettings();
+
+    const fee = (!isDonation && !isMagazineSubscription) ? (typeof courierFee === 'number' ? courierFee : 60) : 0;
+    const grandTotal = totalPrice + fee;
 
     const [details, setDetails] = useState({
         name: '',
@@ -64,7 +67,8 @@ const BookStoreCheckout = () => {
         const paymentState = {
             itemType: itemType,
             itemName: `Order: ${orderSummary.substring(0, 30)}${orderSummary.length > 30 ? '...' : ''}`,
-            amount: totalPrice,
+            amount: grandTotal,
+            courierFee: fee,
             orderItems: items,
             shippingAddress: details,
             savedState: { items, totalPrice, isDonation, isMagazineSubscription }
@@ -128,9 +132,18 @@ const BookStoreCheckout = () => {
                         </div>
                     ))}
                     <hr style={{ border: 'none', borderTop: '1px solid #eee', margin: '12px 0' }} />
+                    {fee > 0 && (
+                        <>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', marginBottom: '8px', color: '#666' }}>
+                                <span>{t('COURIER_CHARGES')}</span>
+                                <span>₹{fee}</span>
+                            </div>
+                            <hr style={{ border: 'none', borderTop: '1px dashed #eee', margin: '12px 0' }} />
+                        </>
+                    )}
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', fontSize: '1.125rem' }}>
                         <span>{t('TOTAL')}</span>
-                        <span>₹{totalPrice}</span>
+                        <span>₹{grandTotal}</span>
                     </div>
                 </div>
 

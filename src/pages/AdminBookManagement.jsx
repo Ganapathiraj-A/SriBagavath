@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Plus, Trash2, Image as ImageIcon, BookOpen, X, ChevronUp, ChevronDown, Eye } from 'lucide-react';
 import { useAdminAuth } from '@/context/AdminAuthContext';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 import PageHeader from '@/components/PageHeader';
 import LazyImage from '@/components/LazyImage';
 import { db } from '@/firebase';
@@ -37,6 +38,7 @@ const AdminBookManagement = () => {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const { isAdmin, hasAccess } = useAdminAuth();
+    const { courierFee, setCourierFee } = useGlobalSettings();
     const canManage = hasAccess('PRINT_BOOKS_MANAGEMENT');
     const [books, setBooks] = useState([]);
     const [covers, setCovers] = useState({});
@@ -428,6 +430,40 @@ const AdminBookManagement = () => {
                             >
                                 <Plus size={20} /> Add New {NATIVE_LABELS[activeTab] || activeTab} Book
                             </button>
+                        </div>
+
+                        <div style={{ padding: '0 1rem 1rem 1rem' }}>
+                            <div style={{
+                                backgroundColor: 'var(--color-card)',
+                                borderRadius: '1rem',
+                                padding: '1rem',
+                                border: '1px solid var(--color-border)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: '1rem'
+                            }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                    <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-text)' }}>Courier Fee (₹)</span>
+                                    <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Charges applied for print book orders</span>
+                                </div>
+                                <input
+                                    type="number"
+                                    value={courierFee ?? 60}
+                                    onChange={(e) => setCourierFee(e.target.value)}
+                                    style={{
+                                        width: '80px',
+                                        padding: '0.5rem',
+                                        fontSize: '0.9rem',
+                                        borderRadius: '0.5rem',
+                                        border: '1px solid var(--color-border)',
+                                        backgroundColor: 'var(--color-background)',
+                                        color: 'var(--color-text)',
+                                        textAlign: 'center',
+                                        outline: 'none'
+                                    }}
+                                />
+                            </div>
                         </div>
 
                         <div style={{

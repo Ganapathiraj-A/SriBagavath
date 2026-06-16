@@ -1,12 +1,17 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FaShoppingCart, FaShieldAlt, FaTruck, FaUndo, FaArrowLeft, FaCheck } from 'react-icons/fa';
+import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 import './WebPages.css';
 
 const WebCheckout = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { items, totalPrice, isDonation } = location.state || { items: [], totalPrice: 0, isDonation: false };
+    const { courierFee } = useGlobalSettings();
+
+    const fee = !isDonation ? (typeof courierFee === 'number' ? courierFee : 60) : 0;
+    const grandTotal = totalPrice + fee;
 
     const [details, setDetails] = useState({
         name: '',
@@ -30,7 +35,8 @@ const WebCheckout = () => {
         const paymentState = {
             itemType: isDonation ? 'DONATION' : 'BOOK',
             itemName: `Order: ${orderSummary.substring(0, 30)}${orderSummary.length > 30 ? '...' : ''}`,
-            amount: totalPrice,
+            amount: grandTotal,
+            courierFee: fee,
             orderItems: items,
             shippingAddress: details,
             savedState: { items, totalPrice, isDonation }
@@ -113,10 +119,16 @@ const WebCheckout = () => {
                                             <span>₹{item.price * item.quantity}</span>
                                         </div>
                                     ))}
+                                    {fee > 0 && (
+                                        <div className="summary-item" style={{ borderTop: '1px dashed #eee', paddingTop: '8px', color: '#666' }}>
+                                            <span>Courier Charges</span>
+                                            <span>₹{fee}</span>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="summary-total">
                                     <span>Grand Total</span>
-                                    <span>₹{totalPrice}</span>
+                                    <span>₹{grandTotal}</span>
                                 </div>
                                 <button className="web-btn-primary full" onClick={handleProceed}>
                                     Proceed to Payment

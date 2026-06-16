@@ -45,6 +45,7 @@ export const TransactionService = {
             id: txId,
             itemName: data.itemName || data.programName || "Unknown Item",
             amount: data.amount,
+            courierFee: data.courierFee || 0,
             status: data.status || 'PENDING',
             isOffline: data.isOffline || false,
             offlineRefNo: data.offlineRefNo || "",

@@ -564,6 +564,12 @@ const BookStoreManagement = () => {
                                     <span style={{ fontWeight: 600 }}>x {item.quantity}</span>
                                 </div>
                             ))}
+                            {order.courierFee > 0 && (
+                                <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
+                                    <span>Courier Charges</span>
+                                    <span>₹{order.courierFee}</span>
+                                </div>
+                            )}
                             <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed var(--color-border)', display: 'flex', justifyContent: 'space-between', fontWeight: 700, color: 'var(--color-text)' }}>
                                 <span>Total Paid</span>
                                 <span>₹{order.amount}</span>
