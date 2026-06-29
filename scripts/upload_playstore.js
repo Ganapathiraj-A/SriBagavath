@@ -133,9 +133,6 @@ async function uploadToPlayStore() {
             editId,
             packageName
         };
-        if (trackName !== 'production') {
-            commitParams.changesNotSentForReview = true;
-        }
         await publisher.edits.commit(commitParams);
 
         console.log(`======================================`);
