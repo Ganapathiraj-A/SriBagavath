@@ -5,10 +5,6 @@ import PageHeader from '@/components/PageHeader';
 import { useGlobalSettings } from '@/context/GlobalSettingsContext';
 
 const ContactItem = ({ icon: Icon, content, href }) => {
-    const { t } = useGlobalSettings();
-
-
-
     return (
         <div style={{
             display: 'flex',
@@ -87,7 +83,7 @@ const getTelHref = (num) => {
 
 const Contact = () => {
     const navigate = useNavigate();
-    const { t, onlineRegistrationContact } = useGlobalSettings();
+    const { t, onlineRegistrationContact, generalContacts } = useGlobalSettings();
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-surface)', paddingBottom: '2rem' }}>
@@ -122,10 +118,14 @@ const Contact = () => {
                             />
 
 
-                            <ContactItem
-                                icon={Phone}
-                                content="+91 99942-05880, +91 97891-65555"
-                            />
+                            {generalContacts && generalContacts.map((phone, idx) => (
+                                <ContactItem
+                                    key={idx}
+                                    icon={Phone}
+                                    content={formatPhoneNumber(phone)}
+                                    href={getTelHref(phone)}
+                                />
+                            ))}
 
                             <ContactItem
                                 icon={Globe}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    ChevronLeft, Cloud, Check, Copy, ExternalLink, Link as LinkIcon, Info
+    ChevronLeft, Cloud, Check, Copy, ExternalLink, Link as LinkIcon, Info, Trash2, Plus
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { useAdminAuth } from '@/context/AdminAuthContext';
@@ -81,6 +81,8 @@ const UrlSettings = () => {
         driveAudioBooksId,
         onlineRegistrationContact,
         offlineRegistrationContact,
+        generalContacts,
+        setGeneralContacts,
         setPublicSettings
     } = useGlobalSettings();
 
@@ -194,6 +196,94 @@ const UrlSettings = () => {
                             }}
                             placeholder="e.g., 7904118421"
                         />
+                    </div>
+                </div>
+
+                {/* General Contact Numbers */}
+                <div style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '1.5rem', border: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <Info size={18} color="var(--color-primary)" />
+                            <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>General Contact Numbers</h3>
+                        </div>
+                        <button
+                            onClick={() => {
+                                const updated = [...(generalContacts || []), ''];
+                                setGeneralContacts(updated);
+                            }}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                background: 'var(--color-primary-transparent)',
+                                color: 'var(--color-primary)',
+                                border: '1px solid var(--color-primary)',
+                                padding: '4px 10px',
+                                borderRadius: '20px',
+                                cursor: 'pointer',
+                                fontWeight: 600,
+                                fontSize: '0.8rem'
+                            }}
+                        >
+                            <Plus size={14} /> Add Number
+                        </button>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {generalContacts && generalContacts.map((phone, idx) => (
+                            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <div style={{ flex: 1 }}>
+                                    <input
+                                        type="text"
+                                        value={phone}
+                                        onChange={(e) => {
+                                            const updated = [...generalContacts];
+                                            updated[idx] = e.target.value;
+                                            setGeneralContacts(updated);
+                                        }}
+                                        placeholder="e.g., 9994205880"
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.625rem',
+                                            fontSize: '0.875rem',
+                                            borderRadius: '0.5rem',
+                                            border: '1px solid var(--color-border)',
+                                            color: 'var(--color-text)',
+                                            backgroundColor: 'var(--color-background)',
+                                            outline: 'none'
+                                        }}
+                                    />
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        if (window.confirm("Remove this phone number?")) {
+                                            const updated = [...generalContacts];
+                                            updated.splice(idx, 1);
+                                            setGeneralContacts(updated);
+                                        }
+                                    }}
+                                    style={{
+                                        padding: '8px',
+                                        backgroundColor: 'var(--color-error-transparent)',
+                                        color: 'var(--color-error)',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                    }}
+                                    title="Delete"
+                                >
+                                    <Trash2 size={16} />
+                                </button>
+                            </div>
+                        ))}
+                        {(!generalContacts || generalContacts.length === 0) && (
+                            <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', textAlign: 'center', padding: '1rem' }}>
+                                No general contact numbers configured.
+                            </div>
+                        )}
                     </div>
                 </div>
 

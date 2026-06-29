@@ -47,6 +47,7 @@ export const GlobalSettingsProvider = ({ children }) => {
         driveAudioBooksId: '1L65ifCQ_bAQauymMH5JyDgul7LIL3cnL',
         onlineRegistrationContact: '',
         offlineRegistrationContact: '',
+        generalContacts: ['9994205880', '9789165555'],
         hiddenScreens: {
             public: [],
             admin: [],
@@ -359,6 +360,7 @@ export const GlobalSettingsProvider = ({ children }) => {
             driveAudioBooksId: publicSettings.driveAudioBooksId,
             onlineRegistrationContact: publicSettings.onlineRegistrationContact,
             offlineRegistrationContact: publicSettings.offlineRegistrationContact,
+            generalContacts: publicSettings.generalContacts || ['9994205880', '9789165555'],
             hiddenScreens: publicSettings.hiddenScreens || { public: [], admin: [], dev: [] },
             galleryTabLabels: publicSettings.galleryTabLabels || { general: '', ayya: '', events: '', others: '' },
 
@@ -383,6 +385,7 @@ export const GlobalSettingsProvider = ({ children }) => {
             setDriveAudioBooksId: (val) => updatePublic({ driveAudioBooksId: val }),
             setOnlineRegistrationContact: (val) => updatePublic({ onlineRegistrationContact: val }),
             setOfflineRegistrationContact: (val) => updatePublic({ offlineRegistrationContact: val }),
+            setGeneralContacts: (val) => updatePublic({ generalContacts: val }),
             setHiddenScreens: (val) => updatePublic({ hiddenScreens: val }),
             setGalleryTabLabels: (val) => updatePublic({ galleryTabLabels: val }),
 
