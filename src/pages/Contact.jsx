@@ -55,9 +55,39 @@ const ContactItem = ({ icon: Icon, content, href }) => {
     );
 };
 
+const formatPhoneNumber = (num) => {
+    if (!num) return '';
+    const clean = num.replace(/[^0-9+]/g, '');
+    if (clean.length === 10 && /^\d+$/.test(clean)) {
+        return `+91 ${clean.slice(0, 5)}-${clean.slice(5)}`;
+    }
+    if (clean.length === 12 && clean.startsWith('91')) {
+        return `+91 ${clean.slice(2, 7)}-${clean.slice(7)}`;
+    }
+    if (clean.startsWith('+91') && clean.length === 13) {
+        return `+91 ${clean.slice(3, 8)}-${clean.slice(8)}`;
+    }
+    return num;
+};
+
+const getTelHref = (num) => {
+    if (!num) return 'tel:+917904118421';
+    const clean = num.replace(/[^0-9+]/g, '');
+    if (clean.startsWith('+')) {
+        return `tel:${clean}`;
+    }
+    if (clean.length === 10) {
+        return `tel:+91${clean}`;
+    }
+    if (clean.length === 12 && clean.startsWith('91')) {
+        return `tel:+${clean}`;
+    }
+    return `tel:${clean}`;
+};
+
 const Contact = () => {
     const navigate = useNavigate();
-    const { t } = useGlobalSettings();
+    const { t, onlineRegistrationContact } = useGlobalSettings();
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-surface)', paddingBottom: '2rem' }}>
@@ -87,8 +117,8 @@ const Contact = () => {
 
                             <ContactItem
                                 icon={Phone}
-                                content="+91 79041-18421"
-                                href="tel:+917904118421"
+                                content={onlineRegistrationContact ? formatPhoneNumber(onlineRegistrationContact) : "+91 79041-18421"}
+                                href={onlineRegistrationContact ? getTelHref(onlineRegistrationContact) : "tel:+917904118421"}
                             />
 
 
