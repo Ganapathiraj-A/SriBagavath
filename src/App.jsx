@@ -109,6 +109,7 @@ const BankStatementUpload = lazyWithRetry(() => import('./pages/BankStatementUpl
 const BankReconciliationRegs = lazyWithRetry(() => import('./pages/BankReconciliationRegs'));
 const BankStatementView = lazyWithRetry(() => import('./pages/BankStatementView'));
 const MediaMigration = lazyWithRetry(() => import('./pages/MediaMigration'));
+const ContactsSettings = lazyWithRetry(() => import('./pages/ContactsSettings'));
 
 // Website Replica Components
 import WebLayout from './components/WebLayout';
@@ -278,6 +279,7 @@ function AnimatedRoutes() {
           '/pdf-books': '/books',
           '/audio-books': '/books',
           '/admin/gallery': '/admin/settings',
+          '/admin/contacts-settings': '/admin/settings',
           '/videos': '/books',
           '/monthly-magazine': '/books',
           '/conversations': '/books',
@@ -404,6 +406,7 @@ function AnimatedRoutes() {
           <Route path="/admin/cloud-settings" element={<ProtectedRoute requiredRole="SUPER_ADMIN"><CloudGlobalSettings /></ProtectedRoute>} />
           <Route path="/admin/books-media" element={<ProtectedRoute requiredAdmin={true} allowedPermissions={['BANKING', 'DIGITAL_BOOKS_MANAGEMENT', 'RELATED_VIDEO_MANAGEMENT']}><BooksAndMediaManagement /></ProtectedRoute>} />
           <Route path="/admin/gallery" element={<ProtectedRoute requiredAdmin={true} allowedPermissions={['GALLERY_MANAGEMENT']}><AdminGallery /></ProtectedRoute>} />
+          <Route path="/admin/contacts-settings" element={<ProtectedRoute requiredRole="SUPER_ADMIN"><ContactsSettings /></ProtectedRoute>} />
           <Route path="/admin/analytics-system" element={<ProtectedRoute requiredAdmin={true} allowedPermissions={['REPORTING']}><AnalyticsAndSystem /></ProtectedRoute>} />
           <Route path="/admin/hide-screens" element={<ProtectedRoute requiredRole="SUPER_ADMIN"><HideScreens /></ProtectedRoute>} />
           <Route path="/admin/page-user-management" element={<ProtectedRoute requiredAdmin={true} allowedPermissions={['PROGRAM_MANAGEMENT', 'CONSULTATION_MANAGEMENT', 'DAILY_ZOOM_MANAGEMENT', 'BANKING', 'DIGITAL_BOOKS_MANAGEMENT', 'RELATED_VIDEO_MANAGEMENT', 'MANAGE_USERS', 'SUPER_ADMIN']}><PageAndUserManagement /></ProtectedRoute>} />

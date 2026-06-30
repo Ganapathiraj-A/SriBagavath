@@ -9,7 +9,8 @@ import {
     Cloud,
     Check,
     Copy,
-    Image as ImageIcon
+    Image as ImageIcon,
+    Phone
 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { useAdminAuth } from '@/context/AdminAuthContext';
@@ -158,6 +159,16 @@ const AdminSettings = () => {
                     icon: ImageIcon,
                     path: '/admin/gallery',
                     permission: ['PROGRAM_MANAGEMENT', 'DIGITAL_BOOKS_MANAGEMENT', 'RELATED_VIDEO_MANAGEMENT', 'SUPER_ADMIN'],
+                    color: 'var(--color-primary)',
+                    bgColor: 'var(--color-primary-transparent)'
+                },
+                {
+                    id: 'CONTACTS_MANAGEMENT',
+                    title: 'Contacts Management',
+                    subtitle: 'Manage phone numbers, addresses & map links',
+                    icon: Phone,
+                    path: '/admin/contacts-settings',
+                    permission: 'SUPER_ADMIN',
                     color: 'var(--color-primary)',
                     bgColor: 'var(--color-primary-transparent)'
                 }

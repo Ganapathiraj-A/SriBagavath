@@ -58,7 +58,13 @@ export const GlobalSettingsProvider = ({ children }) => {
             ayya: '', 
             events: '', 
             others: '' 
-        }
+        },
+        contactWebsiteUrl: '',
+        contactMapsUrl: '',
+        contactBhavanAddressEn: '',
+        contactBhavanAddressTa: '',
+        contactOfficeAddressEn: '',
+        contactOfficeAddressTa: ''
     });
 
     const [adminSettings, setAdminSettings] = useState({
@@ -135,6 +141,7 @@ export const GlobalSettingsProvider = ({ children }) => {
     // 1.1 Force Tamil Migration for existing users
     useEffect(() => {
         if (!localStorage.getItem('migrated_to_default_tamil_v1')) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             handleSetLanguage('ta');
             localStorage.setItem('migrated_to_default_tamil_v1', 'true');
         }
@@ -363,6 +370,12 @@ export const GlobalSettingsProvider = ({ children }) => {
             generalContacts: publicSettings.generalContacts || ['9994205880', '9789165555'],
             hiddenScreens: publicSettings.hiddenScreens || { public: [], admin: [], dev: [] },
             galleryTabLabels: publicSettings.galleryTabLabels || { general: '', ayya: '', events: '', others: '' },
+            contactWebsiteUrl: publicSettings.contactWebsiteUrl || '',
+            contactMapsUrl: publicSettings.contactMapsUrl || '',
+            contactBhavanAddressEn: publicSettings.contactBhavanAddressEn || '',
+            contactBhavanAddressTa: publicSettings.contactBhavanAddressTa || '',
+            contactOfficeAddressEn: publicSettings.contactOfficeAddressEn || '',
+            contactOfficeAddressTa: publicSettings.contactOfficeAddressTa || '',
 
             toggleOnlineTransactions: (val) => updatePublic({ onlineTransactionsEnabled: val }),
             setMinAppVersion: (val) => updatePublic({ minAppVersion: val }),
@@ -388,6 +401,12 @@ export const GlobalSettingsProvider = ({ children }) => {
             setGeneralContacts: (val) => updatePublic({ generalContacts: val }),
             setHiddenScreens: (val) => updatePublic({ hiddenScreens: val }),
             setGalleryTabLabels: (val) => updatePublic({ galleryTabLabels: val }),
+            setContactWebsiteUrl: (val) => updatePublic({ contactWebsiteUrl: val }),
+            setContactMapsUrl: (val) => updatePublic({ contactMapsUrl: val }),
+            setContactBhavanAddressEn: (val) => updatePublic({ contactBhavanAddressEn: val }),
+            setContactBhavanAddressTa: (val) => updatePublic({ contactBhavanAddressTa: val }),
+            setContactOfficeAddressEn: (val) => updatePublic({ contactOfficeAddressEn: val }),
+            setContactOfficeAddressTa: (val) => updatePublic({ contactOfficeAddressTa: val }),
 
             // Developer Settings (Per-User)
             devMode: userSettings.devMode ?? DEFAULT_USER_SETTINGS.devMode,

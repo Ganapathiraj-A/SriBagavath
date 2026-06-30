@@ -1,8 +1,9 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Phone, MapPin, Globe, Home, ChevronLeft } from 'lucide-react';
+import { Phone, MapPin, Globe, Home, ChevronLeft, Edit } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { useGlobalSettings } from '@/context/GlobalSettingsContext';
+import { useAdminAuth } from '@/context/AdminAuthContext';
 
 const ContactItem = ({ icon: Icon, content, href }) => {
     return (
@@ -83,7 +84,33 @@ const getTelHref = (num) => {
 
 const Contact = () => {
     const navigate = useNavigate();
-    const { t, onlineRegistrationContact, generalContacts } = useGlobalSettings();
+    const {
+        t,
+        onlineRegistrationContact,
+        generalContacts,
+        contactWebsiteUrl,
+        contactMapsUrl,
+        contactBhavanAddressEn,
+        contactBhavanAddressTa,
+        contactOfficeAddressEn,
+        contactOfficeAddressTa,
+        language
+    } = useGlobalSettings();
+
+    const { hasAccess } = useAdminAuth();
+
+    const currentWebsiteUrl = contactWebsiteUrl || "https://sribagavath.org/";
+    const currentWebsiteDisplay = currentWebsiteUrl.replace(/^https?:\/\//, '');
+
+    const currentMapsUrl = contactMapsUrl || "https://maps.app.goo.gl/RxVQ3nqtvuk84UWs8";
+
+    const currentBhavanAddress = language === 'ta'
+        ? (contactBhavanAddressTa || t('BHAVAN_ADDRESS'))
+        : (contactBhavanAddressEn || t('BHAVAN_ADDRESS'));
+
+    const currentOfficeAddress = language === 'ta'
+        ? (contactOfficeAddressTa || t('OFFICE_ADDRESS'))
+        : (contactOfficeAddressEn || t('OFFICE_ADDRESS'));
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-surface)', paddingBottom: '2rem' }}>
@@ -93,6 +120,29 @@ const Contact = () => {
                     <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
                         <ChevronLeft size={24} />
                     </button>
+                }
+                rightAction={
+                    hasAccess('SUPER_ADMIN') && (
+                        <button
+                            onClick={() => navigate('/admin/contacts-settings')}
+                            style={{
+                                background: 'var(--color-primary-transparent)',
+                                color: 'var(--color-primary)',
+                                border: '1px solid var(--color-primary)',
+                                padding: '6px 12px',
+                                borderRadius: '20px',
+                                cursor: 'pointer',
+                                fontWeight: 600,
+                                fontSize: '0.85rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                            }}
+                        >
+                            <Edit size={14} />
+                            {t('EDIT') || 'Edit'}
+                        </button>
+                    )
                 }
             />
             <div style={{ padding: '0 1.5rem 1.5rem 1.5rem', display: 'flex', flexDirection: 'column' }}>
@@ -119,35 +169,37 @@ const Contact = () => {
 
 
                             {generalContacts && generalContacts.map((phone, idx) => (
-                                <ContactItem
-                                    key={idx}
-                                    icon={Phone}
-                                    content={formatPhoneNumber(phone)}
-                                    href={getTelHref(phone)}
-                                />
+                                phone && (
+                                    <ContactItem
+                                        key={idx}
+                                        icon={Phone}
+                                        content={formatPhoneNumber(phone)}
+                                        href={getTelHref(phone)}
+                                    />
+                                )
                             ))}
 
                             <ContactItem
                                 icon={Globe}
-                                content="http://sribagavath.org"
-                                href="https://sribagavath.org/"
+                                content={currentWebsiteDisplay}
+                                href={currentWebsiteUrl}
                             />
 
                             <ContactItem
                                 icon={MapPin}
                                 content={t('VIEW_ON_MAPS')}
-                                href="https://maps.app.goo.gl/RxVQ3nqtvuk84UWs8"
+                                href={currentMapsUrl}
                             />
 
                             <ContactItem
                                 icon={Home}
-                                content={t('BHAVAN_ADDRESS')}
-                                href="https://maps.app.goo.gl/RxVQ3nqtvuk84UWs8"
+                                content={currentBhavanAddress}
+                                href={currentMapsUrl}
                             />
 
                             <ContactItem
                                 icon={Home}
-                                content={`${t('REGISTERED_OFFICE')}: ${t('OFFICE_ADDRESS')}`}
+                                content={`${t('REGISTERED_OFFICE')}: ${currentOfficeAddress}`}
                             />
                         </div>
                     </motion.div>
@@ -158,3 +210,4 @@ const Contact = () => {
 };
 
 export default Contact;
+

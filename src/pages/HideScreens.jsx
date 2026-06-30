@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
@@ -92,6 +92,7 @@ const HideScreens = () => {
             children: [
                 { id: '/admin/personal-profile', title: 'Personal Settings' },
                 { id: '/admin/cloud-settings', title: 'Cloud Global Settings' },
+                { id: '/admin/contacts-settings', title: 'Contacts Management' },
                 { id: '/admin/analytics-system', title: 'Analytics & Tools' }
             ]
         }
