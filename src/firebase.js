@@ -67,7 +67,21 @@ export const arrayRemove = firestore.arrayRemove;
 export const getDocFromCache = firestore.getDocFromCache;
 export const getDocsFromCache = firestore.getDocsFromCache;
 export const getDocFromServer = firestore.getDocFromServer;
-export const getDocsFromServer = firestore.getDocsFromServer;
+export const getDocsFromServer = async (...args) => {
+    try {
+        const snap = await firestore.getDocsFromServer(...args);
+        const path = args[0]?._query?.path?.segments?.join('/') || 'unknown';
+        trackRead(snap, `ServerCollection: ${path}`);
+        return snap;
+    } catch (err) {
+        console.warn("getDocsFromServer failed, falling back to getDocs:", err?.message || err);
+        const snap = await firestore.getDocs(...args);
+        const path = args[0]?._query?.path?.segments?.join('/') || 'unknown';
+        trackRead(snap, `Collection: ${path}`);
+        return snap;
+    }
+};
+
 export const getCountFromServer = firestore.getCountFromServer;
 export const enableMultiTabIndexedDbPersistence = firestore.enableMultiTabIndexedDbPersistence;
 export const getFirestore = firestore.getFirestore;
@@ -136,11 +150,11 @@ export const deleteDoc = async (...args) => {
     return res;
 };
 
-export const writeBatch = (db) => {
-    const batch = firestore.writeBatch(db);
-    const originalCommit = batch.commit.bind(batch);
+export const writeBatch = (...args) => {
+    const batch = firestore.writeBatch(...args);
+    const origCommit = batch.commit.bind(batch);
     batch.commit = async () => {
-        const res = await originalCommit();
+        const res = await origCommit();
         ApiMonitor.recordWrite(1);
         return res;
     };
@@ -160,13 +174,19 @@ export const getDocCacheFirst = async (ref) => {
     try {
         const snap = await firestore.getDocFromCache(ref);
         if (snap.exists()) {
-            trackRead(snap, `Doc (CF): ${ref.path}`);
+            trackRead(snap, "Doc (CF)");
             return snap;
         }
     } catch (_e) {}
-    const snap = await firestore.getDocFromServer(ref);
-    trackRead(snap, `Doc (CF): ${ref.path}`);
-    return snap;
+    try {
+        const snap = await firestore.getDocFromServer(ref);
+        trackRead(snap, "Doc (CF)");
+        return snap;
+    } catch (_e) {
+        const snap = await firestore.getDoc(ref);
+        trackRead(snap, "Doc (CF)");
+        return snap;
+    }
 };
 
 export const getDocsCacheFirst = async (q) => {
@@ -177,9 +197,15 @@ export const getDocsCacheFirst = async (q) => {
             return snap;
         }
     } catch (_e) {}
-    const snap = await firestore.getDocsFromServer(q);
-    trackRead(snap, "Query (CF)");
-    return snap;
+    try {
+        const snap = await firestore.getDocsFromServer(q);
+        trackRead(snap, "Query (CF)");
+        return snap;
+    } catch (_e) {
+        const snap = await firestore.getDocs(q);
+        trackRead(snap, "Query (CF)");
+        return snap;
+    }
 };
 
 // --- Auth & Storage & Analytics ---

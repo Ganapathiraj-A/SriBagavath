@@ -167,23 +167,30 @@ const AyyasSchedule = () => {
 
             <div style={{ padding: '1.5rem', maxWidth: '42rem', margin: '0 auto' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    {schedules.map((schedule, index) => (
-                        <motion.div key={schedule.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 }} style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '1.5rem', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                            <div style={{ backgroundColor: 'var(--color-primary-transparent)', color: 'var(--color-primary)', padding: '1rem', borderRadius: '0.75rem', minWidth: '5rem', textAlign: 'center' }}>
-                                <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>{new Date(schedule.fromDate).toLocaleDateString(undefined, { month: 'short' }).toUpperCase()}</div>
-                                <div style={{ fontSize: '1.75rem', fontWeight: 'bold' }}>{new Date(schedule.fromDate).getDate()}</div>
-                            </div>
-                            <div style={{ flex: 1 }}>
-                                <h2 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0 }}>
-                                    {language === 'ta' && schedule.placeTamil ? schedule.placeTamil : schedule.place}
-                                </h2>
-                                <div style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>{formatDateRange(schedule.fromDate, schedule.toDate)}</div>
-                            </div>
-                            <button onClick={() => handleShareSingle(schedule)} disabled={isSharingScheduleId === schedule.id} style={{ border: 'none', background: 'none', color: 'var(--color-primary)' }}>
-                                {isSharingScheduleId === schedule.id ? <Loader2 size={18} className="animate-spin" /> : <Share2 size={18} />}
-                            </button>
-                        </motion.div>
-                    ))}
+                    {schedules.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '3rem 1.5rem', backgroundColor: 'var(--color-card)', borderRadius: '1rem', border: '1px dashed var(--color-border)', color: 'var(--color-text-muted)' }}>
+                            <p style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>No upcoming schedules found.</p>
+                            <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.85rem' }}>Check back later for updated program dates.</p>
+                        </div>
+                    ) : (
+                        schedules.map((schedule, index) => (
+                            <motion.div key={schedule.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 }} style={{ backgroundColor: 'var(--color-card)', borderRadius: '1rem', padding: '1.5rem', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                                <div style={{ backgroundColor: 'var(--color-primary-transparent)', color: 'var(--color-primary)', padding: '1rem', borderRadius: '0.75rem', minWidth: '5rem', textAlign: 'center' }}>
+                                    <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>{new Date(schedule.fromDate).toLocaleDateString(undefined, { month: 'short' }).toUpperCase()}</div>
+                                    <div style={{ fontSize: '1.75rem', fontWeight: 'bold' }}>{new Date(schedule.fromDate).getDate()}</div>
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                    <h2 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0 }}>
+                                        {language === 'ta' && schedule.placeTamil ? schedule.placeTamil : schedule.place}
+                                    </h2>
+                                    <div style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>{formatDateRange(schedule.fromDate, schedule.toDate)}</div>
+                                </div>
+                                <button onClick={() => handleShareSingle(schedule)} disabled={isSharingScheduleId === schedule.id} style={{ border: 'none', background: 'none', color: 'var(--color-primary)' }}>
+                                    {isSharingScheduleId === schedule.id ? <Loader2 size={18} className="animate-spin" /> : <Share2 size={18} />}
+                                </button>
+                            </motion.div>
+                        ))
+                    )}
                 </div>
             </div>
             <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } } .animate-spin { animation: spin 1s linear infinite; }`}</style>
