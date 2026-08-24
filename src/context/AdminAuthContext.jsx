@@ -74,7 +74,14 @@ export const AdminAuthProvider = ({ children }) => {
 
                     const adminColl = collection(db, 'admins');
                     const idsToCheck = [currentUser.uid];
-                    if (currentUser.email) idsToCheck.push(currentUser.email.toLowerCase().trim());
+                    if (currentUser.email) {
+                        const rawEmail = currentUser.email.trim();
+                        const lowerEmail = rawEmail.toLowerCase();
+                        idsToCheck.push(lowerEmail);
+                        if (rawEmail !== lowerEmail) {
+                            idsToCheck.push(rawEmail);
+                        }
+                    }
 
                     console.log("[AdminAuth] IDs to check (Doc ID):", idsToCheck);
 
@@ -162,7 +169,7 @@ export const AdminAuthProvider = ({ children }) => {
             if (adminUnsubscribe) adminUnsubscribe();
             if (requestUnsubscribe) requestUnsubscribe();
         };
-    }, [isInitialized]);
+    }, []);
 
     return (
         <AdminAuthContext.Provider value={{

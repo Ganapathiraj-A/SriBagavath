@@ -1,7 +1,7 @@
 {
   "name": "sri-bagavath",
   "private": true,
-  "version": "3.4.117",
+  "version": "3.4.118",
   "type": "module",
   "scripts": {
     "dev": "vite",

@@ -6,14 +6,19 @@ service cloud.firestore {
     function isAdmin() {
       return request.auth != null && (
         exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
-        (request.auth.token.email != null && exists(/databases/$(database)/documents/admins/$(request.auth.token.email)))
+        (request.auth.token.email != null && (
+          exists(/databases/$(database)/documents/admins/$(request.auth.token.email)) ||
+          exists(/databases/$(database)/documents/admins/$(request.auth.token.email.lower()))
+        ))
       );
     }
 
     function getAdminData() {
       return exists(/databases/$(database)/documents/admins/$(request.auth.uid))
         ? get(/databases/$(database)/documents/admins/$(request.auth.uid)).data
-        : get(/databases/$(database)/documents/admins/$(request.auth.token.email)).data;
+        : (exists(/databases/$(database)/documents/admins/$(request.auth.token.email))
+          ? get(/databases/$(database)/documents/admins/$(request.auth.token.email)).data
+          : get(/databases/$(database)/documents/admins/$(request.auth.token.email.lower())).data);
     }
 
     function hasPermission(perm) {
@@ -28,7 +33,10 @@ service cloud.firestore {
     match /admins/{adminId} {
       allow read: if request.auth != null && (
         request.auth.uid == adminId || 
-        (request.auth.token.email != null && request.auth.token.email == adminId)
+        (request.auth.token.email != null && (
+          request.auth.token.email == adminId ||
+          request.auth.token.email.lower() == adminId
+        ))
       );
       allow write: if isAdmin();
     }
