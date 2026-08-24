@@ -57,9 +57,17 @@
       return false;
     };
     window.addEventListener('unhandledrejection', function (event) {
+      var reasonStr = event.reason ? (event.reason.message || String(event.reason)) : 'Unknown rejection';
+      if (reasonStr.includes('permission-denied') || reasonStr.includes('insufficient permissions') || reasonStr.includes('FirebaseError')) {
+        console.warn('Ignored Firebase permission error:', reasonStr);
+        return;
+      }
       var trap = document.getElementById('error-trap');
+      var details = document.getElementById('error-details');
       trap.style.display = 'block';
-      trap.innerText += "Unhandled Rejection: " + event.reason + "\n\n";
+      if (details) {
+        details.innerText += "Unhandled Rejection: " + reasonStr + "\n\n";
+      }
     });
   </script>
   <script type="module" src="/src/main.jsx"></script>

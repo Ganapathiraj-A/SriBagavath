@@ -91,14 +91,23 @@ export const onSnapshot = (...args) => {
     const path = args[0]?.path || args[0]?._query?.path?.segments?.join('/') || 'unknown';
     const nextIndex = typeof args[1] === 'function' ? 1 : 2;
     const originalNext = args[nextIndex];
+    const originalError = args[nextIndex + 1];
 
     const wrappedNext = (snapshot) => {
         trackRead(snapshot, `Listen: ${path}`);
         if (originalNext) return originalNext(snapshot);
     };
 
+    const wrappedError = (err) => {
+        console.warn(`Firestore onSnapshot listener restricted for ${path}:`, err?.message || err);
+        if (typeof originalError === 'function') {
+            return originalError(err);
+        }
+    };
+
     const newArgs = [...args];
     newArgs[nextIndex] = wrappedNext;
+    newArgs[nextIndex + 1] = wrappedError;
 
     return firestore.onSnapshot(...newArgs);
 };

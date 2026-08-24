@@ -229,6 +229,8 @@ export const GlobalSettingsProvider = ({ children }) => {
             if (docSnap.exists()) {
                 setPublicSettings(prev => ({ ...prev, ...docSnap.data() }));
             }
+        }, (_err) => {
+            console.log("Public settings listener restricted or offline:", _err?.message || _err);
         });
 
         return () => unsubscribePublic();
